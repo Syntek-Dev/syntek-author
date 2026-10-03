@@ -145,6 +145,8 @@ jobs:
       # author (or as a second template), and asserts what an update or an adoption left behind.
       - name: Prove each test, then run it
         run: |
+          uvx copier --version
+          command -v sqlite3 && sqlite3 --version || echo "sqlite3: not installed"
           status=0
           for s in update-test adopt-test coexist-test; do
             echo "::group::$s"

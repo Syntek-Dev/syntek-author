@@ -271,6 +271,12 @@ for doc in ${DOC_TYPES//,/ }; do
   else
     bold "✗ $doc — ${#FINDINGS[@]} finding(s) (work kept in $work; Copier's output in $work/flow.log):"
     print_findings
+    # On a CI runner the work directory is gone once the job ends, so show Copier's output here.
+    if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
+      echo "::group::Copier output for $doc (last 80 lines of flow.log)"
+      tail -n 80 "$work/flow.log" 2>/dev/null || true
+      echo "::endgroup::"
+    fi
     STATUS=1
   fi
 done
