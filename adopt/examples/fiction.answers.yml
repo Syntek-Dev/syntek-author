@@ -1,0 +1,28 @@
+# fiction.answers.yml — an INVENTED example of answers for a novel with both fiction kits.
+#
+# A shape to copy, not a project: every value below is made up. Copy this file outside the
+# repository you are adopting, change every value, then pass it to `copier copy` with
+# --data-file (README.md, "Adopting an existing repository"). Keys are the questions in
+# copier.yml; a question left out here is asked, or takes its default under --defaults.
+PROJECT_NAME: The Salt Ferry
+PROJECT_SLUG: the-salt-ferry
+DOC_TYPE: fiction
+PROJECT_DESCRIPTION: >-
+  A ferry pilot on a drowned coast must carry a stranger across the salt marsh before the
+  spring tide, and learns that the crossing is all that keeps the old border shut.
+AUTHOR_NAME: Morgan Example
+AUTHOR_FIRST_NAME: Morgan
+AUDIENCE: adult
+READER_TEST: a reader who has never met these characters and decides by the end of chapter one whether to go on
+WORKING_TITLE: The Salt Ferry
+SUBTITLE: ""
+FICTION_GENRE: fantasy
+INCLUDE_WORLDBUILDING: true
+INCLUDE_CONLANG: true
+INCLUDE_PROPOSAL: true
+INCLUDE_REFERENCES: false
+INCLUDE_SENSITIVE_CONTENT: false
+SEED_EXAMPLES: false
+MODEL_MECHANICAL: sonnet
+TIMEZONE: Europe/London
+DATE: 03/10/2026

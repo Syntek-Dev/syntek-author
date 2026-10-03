@@ -1,0 +1,14 @@
+% book.latex — preamble additions for this project's book builds (XeLaTeX).
+% Added to PDF builds only, by the Makefile's --include-in-header; this is NOT a full
+% template, and Pandoc's default LaTeX template still applies. Keep it minimal.
+
+% Discourage widows and orphans — a footnote-heavy, print-bound book needs clean pages.
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+
+% Keep footnotes from splitting across pages where avoidable.
+\interfootnotelinepenalty=10000
+
+% A little breathing room around footnote rules.
+\setlength{\skip\footins}{1.2\baselineskip}

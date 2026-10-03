@@ -1,0 +1,14 @@
+# .gitignore — world/src/
+#
+# Template-owned; copier update keeps it current. Project-wide rules belong in the root .gitignore.
+# No inline comments in this file: Git reads a # after a pattern as part of the pattern.
+
+# ----------------------------------------------------------------------------
+# Generated pronunciation audio
+# ----------------------------------------------------------------------------
+# Derived from each lexicon's IPA on request: regenerable, costly to make, and too large for
+# plain Git. The rule sits here rather than inside languages/ because world/src/ ships with
+# every fiction project. Turning the constructed-language kit off (or worldbuilding, which
+# takes the kit with it) removes the template's files from languages/ but keeps your languages
+# and their audio folders; this rule goes on keeping that audio out of Git.
+languages/*/audio/

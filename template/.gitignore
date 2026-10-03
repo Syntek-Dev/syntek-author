@@ -1,0 +1,94 @@
+# .gitignore — <%PROJECT_SLUG%>
+# <%AUTHOR_NAME%>: the writing, its evidence, and the build that turns it into proofs.
+#
+# No inline comments in this file: Git reads a # after a pattern as part of the pattern.
+# Rules that belong to one folder of the template live in a nested .gitignore inside that
+# folder, so this file stays the project's own.
+
+# ----------------------------------------------------------------------------
+# Generated build output — regenerated from the sources at any time
+# ----------------------------------------------------------------------------
+# Anchored to the root: an unanchored build/ would also ignore the build skill in
+# .claude/skills/build/. make also writes build/.gitignore when it creates build/,
+# so a build folder made anywhere else in the tree is ignored too.
+/build/
+
+# ----------------------------------------------------------------------------
+# SQLite transient files — never committed
+# ----------------------------------------------------------------------------
+<: if INCLUDE_REFERENCES :># The references database (tooling/references.db) and its text snapshot MUST BE
+# COMMITTED: they are the master copy of every citation. Being un-ignored is not
+# the same as being tracked, so run `make dump` and commit both whenever the
+# references change. Only the sidecar files SQLite writes while it works are
+# ignored here.
+<: else :># A database a script keeps is committed; only the sidecar files SQLite writes
+# while it works are ignored here.
+<: endif :>*.db-journal
+*.db-wal
+*.db-shm
+
+# ----------------------------------------------------------------------------
+# Credentials and secrets — NEVER commit these
+# ----------------------------------------------------------------------------
+.env
+*.env
+.env.*
+!.env.example
+
+# ----------------------------------------------------------------------------
+# Claude Code — per-user local settings (the shared .claude/ config IS committed)
+# ----------------------------------------------------------------------------
+.claude/settings.local.json
+
+# ----------------------------------------------------------------------------
+# Operating system artefacts
+# ----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----------------------------------------------------------------------------
+# Editor and IDE files
+# ----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ----------------------------------------------------------------------------
+# Word and LibreOffice lock files — written while a document is open
+# ----------------------------------------------------------------------------
+.~lock.*#
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# ----------------------------------------------------------------------------
+# TeX intermediates — left beside a .tex file when it is compiled by hand
+# ----------------------------------------------------------------------------
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+
+# ----------------------------------------------------------------------------
+# Python — the tooling/ scripts and any local virtual environment
+# ----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ----------------------------------------------------------------------------
+# Temporary files
+# ----------------------------------------------------------------------------
+*.tmp
+*.bak
+*.orig

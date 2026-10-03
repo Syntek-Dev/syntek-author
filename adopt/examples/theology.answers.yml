@@ -1,0 +1,26 @@
+# theology.answers.yml — an INVENTED example of answers for a theology book.
+#
+# A shape to copy, not a project: every value below is made up. Copy this file outside the
+# repository you are adopting, change every value, then pass it to `copier copy` with
+# --data-file (README.md, "Adopting an existing repository"). Keys are the questions in
+# copier.yml; a question left out here is asked, or takes its default under --defaults.
+PROJECT_NAME: Bread for the Road
+PROJECT_SLUG: bread-for-the-road
+DOC_TYPE: theology
+PROJECT_DESCRIPTION: >-
+  Why the shared table matters for a small congregation, argued from the meal scenes in
+  Luke's Gospel for readers with no theological training.
+AUTHOR_NAME: Robin Example
+AUTHOR_FIRST_NAME: Robin
+AUDIENCE: lay
+READER_TEST: a church member with no theological training, reading at the end of a working day
+WORKING_TITLE: Bread for the Road
+SUBTITLE: Meals, Strangers and the Church at Table
+BIBLE_TRANSLATION: niv2011
+INCLUDE_PROPOSAL: true
+INCLUDE_REFERENCES: true
+INCLUDE_SENSITIVE_CONTENT: false
+SEED_EXAMPLES: false
+MODEL_MECHANICAL: sonnet
+TIMEZONE: Europe/London
+DATE: 03/10/2026

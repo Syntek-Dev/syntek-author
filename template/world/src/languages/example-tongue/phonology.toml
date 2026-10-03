@@ -1,0 +1,45 @@
+# phonology.toml — Example Tongue
+#
+# The sound system as data, read by tooling/lexicon.py. Broad phonemic IPA, one symbol per
+# sound. It is the parent's system after the changes in sound-changes.toml, plus h, which
+# rule 4 created. Prose about the sounds is in grammar.md.
+
+[inventory]                  # 16 consonants and 5 vowels: 21 phonemes
+consonants = ["p", "b", "t", "d", "k", "g", "kʷ", "f", "h", "s", "m", "n", "l", "r", "w", "j"]
+vowels = ["a", "e", "i", "o", "u"]
+
+[classes]                    # single capital letters, used by the templates and by rules
+C = ["p", "b", "t", "d", "k", "g", "kʷ", "f", "h", "s", "m", "n", "l", "r", "w", "j"]
+V = ["a", "e", "i", "o", "u"]
+L = ["l", "r"]               # the second consonant of an onset cluster
+K = ["p", "t", "k", "s", "m", "n", "l", "r"]   # the consonants that may close a syllable
+
+[phonotactics]
+syllable = ["(C)V(K)", "CLV(K)"]
+onset_clusters = ["pl", "pr", "bl", "br", "tr", "dr", "kl", "kr", "gl", "gr", "fl", "fr"]
+coda_clusters = []           # one coda consonant at most: the templates allow no more
+forbidden = ["wu", "ji", "kʷu"]   # inherited from the parent
+
+[stress]
+rule = "penultimate"         # initial | penultimate | final | lexical
+
+[[allophone]]                # ordered; applied by `lexicon.py surface`
+phoneme = "b"
+surface = "β"
+env = "V_V"
+
+[[allophone]]
+phoneme = "d"
+surface = "ð"
+env = "V_V"
+
+[[allophone]]
+phoneme = "g"
+surface = "ɣ"
+env = "V_V"
+
+[romanisation]               # phoneme → spelling; identity when absent; one spelling per sound
+"kʷ" = "qu"
+"j" = "y"
+
+[romanisation.exceptions]    # none: every sound has its own spelling

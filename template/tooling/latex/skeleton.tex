@@ -1,0 +1,83 @@
+% unit: [unit-slug]
+% status: draft
+% last_updated: DD/MM/YYYY
+%
+% ─────────────────────────────────────────────────────────────────────────────────────
+% skeleton.tex — the starting point for every business document (XeLaTeX).
+%
+% HOW TO USE IT
+%   1. Copy it to the document's place in library/src/<family>/, named for the document
+%      (kebab-case, with its version and date when it is versioned). Never fill it in here.
+%   2. Replace every [BRACKETED] field. A field only the author can supply stays as
+%      \fillme until they do; a decision only the author can make is a \dnote whose
+%      text opens with AUTHOR TO CONFIRM and a colon (`make flags` lists every one).
+%   3. Keep the order: title block → disclaimer for the document's class → control block
+%      → the body (standards/brand/brand-guide.md rule 4).
+%   4. Render with: make pdf FILE=<this file>. XeLaTeX runs twice so every \ref resolves.
+%
+% The leading block comes first, always: `% unit:` names the unit brief in
+% planning/src/units/ (it is how promote-section finds this document), and the two lines
+% after it are the document's writing status (idea · outlined · draft · structural-review ·
+% fact-check · line-edit · final), updated as it passes each gate in standards/verification/.
+% Each section of the brief sits between a marker pair, `% section: <slug>` and
+% `% end section: <slug>`, in plan order; promote-section replaces only what lies between a
+% pair, and no marker is deleted, renamed or moved by hand. It then proves the words with
+% make section-check FILE=<this file> SECTION=<slug> DRAFT=<the promoted draft>.
+% Escape LaTeX specials in body text: \& \% \# \_ \$ \{ \}.
+% No em dashes in client-facing copy; en dashes only in ranges.
+% ─────────────────────────────────────────────────────────────────────────────────────
+\documentclass[11pt]{article}
+\input{house-preamble}
+
+\hypersetup{pdftitle={[DOCUMENT TITLE]}, pdfauthor={[TRADING NAME]}}
+
+\begin{document}
+
+\housetitle{[DOCUMENT TITLE]}{[TRADING NAME]}{[DD/MM/YYYY]}
+
+% Disclaimer: the wording for this document's class, copied unchanged from
+% standards/brand/disclaimers.md. Remove the block only on the author's recorded waiver,
+% noted in a % comment here so a later pass does not add it back.
+\begin{housenotice}
+[DISCLAIMER WORDING FOR THIS DOCUMENT CLASS]
+\end{housenotice}
+
+\begin{housecontrol}
+Document    & [DOCUMENT TITLE] \\
+Reference   & [DOC-NNN] \\
+Version     & [v1.0] \\
+Status      & [Draft] \\
+Date        & [DD/MM/YYYY] \\
+Owner       & [TRADING NAME] \\
+Next review & [DD/MM/YYYY] \\
+\end{housecontrol}
+
+% section: summary
+\section{Summary}
+
+[What this document is for, and what the reader must decide or do.]
+% end section: summary
+
+% section: terms
+\section{Terms}
+
+\begin{clause}
+  \item \ctitle{Definitions}\label{cl:definitions}
+  \begin{clause}
+    \item In this document, \textbf{[Defined Term]} means [definition].
+  \end{clause}
+  \item \ctitle{Precedence}\label{cl:precedence}
+  \begin{clause}
+    \item If this document conflicts with [the governing document], [which one] prevails
+      (see clause~\ref{cl:definitions}).
+  \end{clause}
+\end{clause}
+% end section: terms
+
+% section: next-steps
+\section{Next steps}
+
+[The way forward: what happens next, who does it, and by when.]
+% end section: next-steps
+
+\end{document}

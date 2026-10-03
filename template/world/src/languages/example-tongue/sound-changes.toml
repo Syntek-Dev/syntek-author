@@ -1,0 +1,32 @@
+# sound-changes.toml — Example Tongue, from Example Proto
+#
+# Applied in this order to each inherited word's proto_form by `make derive`; a loan or late
+# coinage undergoes only the rules after its entered_after. The order is history: each rule
+# acts on the output of the one before. The shape of each change follows the language's model
+# (language.toml); the words they act on are the language's own.
+# Notation: '_' is the sound changing; '#' a word boundary; C, V and the other capital letters
+# are the classes in phonology.toml; {a,e} is a set; a list in from and to pairs item by item.
+
+[[rule]]
+from = "m"
+to = ""
+env = "_#"
+note = "Final m is lost: *kʷarom > kʷaro."
+
+[[rule]]
+from = "u"
+to = "o"
+env = "_#"
+note = "Final u becomes o: *kelu > kelo."
+
+[[rule]]
+from = ["p", "t", "k"]
+to = ["b", "d", "g"]
+env = "V_V"
+note = "Stops are voiced between vowels: *mipo > mibo."
+
+[[rule]]
+from = "f"
+to = "h"
+env = "#_"
+note = "Word-initial f becomes h: *febo > hebo. An f inside a word is untouched (mipfebo)."

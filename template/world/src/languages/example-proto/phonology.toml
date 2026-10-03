@@ -1,0 +1,35 @@
+# phonology.toml — Example Proto
+#
+# The sound system as data, read by tooling/lexicon.py. Broad phonemic IPA, one symbol per
+# sound. Prose about the sounds is in grammar.md; what the model gave and what it did not is
+# in language.toml and the research note it cites.
+
+[inventory]                  # 15 consonants and 5 vowels: 20 phonemes
+consonants = ["p", "b", "t", "d", "k", "g", "kʷ", "f", "s", "m", "n", "l", "r", "w", "j"]
+vowels = ["a", "e", "i", "o", "u"]
+
+[classes]                    # single capital letters, used by the templates and by rules
+C = ["p", "b", "t", "d", "k", "g", "kʷ", "f", "s", "m", "n", "l", "r", "w", "j"]
+V = ["a", "e", "i", "o", "u"]
+L = ["l", "r"]               # the second consonant of an onset cluster
+K = ["p", "t", "k", "s", "m", "n", "l", "r"]   # the consonants that may close a syllable
+
+[phonotactics]
+syllable = ["(C)V(K)", "CLV(K)"]
+onset_clusters = ["pl", "pr", "bl", "br", "tr", "dr", "kl", "kr", "gl", "gr", "fl", "fr"]
+coda_clusters = []           # one coda consonant at most: the templates allow no more
+forbidden = ["wu", "ji", "kʷu"]   # invented for this language: no glide before its own vowel
+
+[stress]
+rule = "penultimate"         # initial | penultimate | final | lexical
+
+[[allophone]]                # ordered; applied by `lexicon.py surface`
+phoneme = "n"
+surface = "ŋ"
+env = "_{k,g,kʷ}"
+
+[romanisation]               # phoneme → spelling; identity when absent; one spelling per sound
+"kʷ" = "qu"
+"j" = "y"
+
+[romanisation.exceptions]    # none: every sound has its own spelling

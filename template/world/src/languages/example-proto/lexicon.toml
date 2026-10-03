@@ -1,0 +1,408 @@
+# lexicon.toml — Example Proto
+#
+# One [[word]] per entry, appended in the order coined; never reorder. Roots and affixes are
+# entries too (pos = "root" or "affix"). Every key is present in every entry, even when empty;
+# proto_form and entered_after stay empty here, because a proto-language has no parent.
+# Checked by `make lexicon`; the fields are explained in world/docs/reference/lexicon-format.md.
+# Every form here is reconstructed: in prose about the language's history it takes an asterisk
+# (*fepom), and no speaker in the book says it.
+
+[meta]
+language = "Example Proto"
+slug = "example-proto"
+
+[[word]]
+headword = "quar"
+ipa = "kʷar"
+pos = "root"
+senses = ["to flow", "to run (of water)"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = ["quarom", "quaru"]
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "fep"
+ipa = "fep"
+pos = "root"
+senses = ["to cross", "to step over"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = ["fepom", "fepatu", "fepika", "mipfepom"]
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "mip"
+ipa = "mip"
+pos = "root"
+senses = ["stone"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = ["mipu", "mipika", "mipfepom"]
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "kel"
+ipa = "kel"
+pos = "root"
+senses = ["to burn"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = ["kelu", "kelom"]
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "-om"
+ipa = "om"
+pos = "affix"
+senses = ["place of (makes nouns of place from roots)"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Suffix: quar 'flow' + -om gives quarom 'river', the place where water runs."
+
+[[word]]
+headword = "-u"
+ipa = "u"
+pos = "affix"
+senses = ["a thing (makes plain nouns from roots)"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Suffix."
+
+[[word]]
+headword = "-atu"
+ipa = "atu"
+pos = "affix"
+senses = ["having been done", "the result of"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Suffix: makes adjectives of a finished action, and nouns of what it left behind."
+
+[[word]]
+headword = "-ika"
+ipa = "ika"
+pos = "affix"
+senses = ["small", "dear"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Suffix."
+
+[[word]]
+headword = "quarom"
+ipa = "kʷarom"
+pos = "noun"
+senses = ["river", "the course of a life (in songs)"]
+concept = "river"
+roots = ["quar"]
+affixes = ["-om"]
+compound_of = []
+proto_form = ""
+drift = "'place of flowing' → 'river'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "quaru"
+ipa = "kʷaru"
+pos = "noun"
+senses = ["water"]
+concept = "water"
+roots = ["quar"]
+affixes = ["-u"]
+compound_of = []
+proto_form = ""
+drift = "'a flowing thing' → 'water'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "mipu"
+ipa = "mipu"
+pos = "noun"
+senses = ["stone (the material and a single stone)"]
+concept = "stone"
+roots = ["mip"]
+affixes = ["-u"]
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "mipika"
+ipa = "mipika"
+pos = "noun"
+senses = ["pebble", "a counter in a game"]
+concept = ""
+roots = ["mip"]
+affixes = ["-ika"]
+compound_of = []
+proto_form = ""
+drift = "'small stone' → 'game counter'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "fepom"
+ipa = "fepom"
+pos = "noun"
+senses = ["ford", "a crossing-place"]
+concept = ""
+roots = ["fep"]
+affixes = ["-om"]
+compound_of = []
+proto_form = ""
+drift = "'place of crossing' → 'ford'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "fepatu"
+ipa = "fepatu"
+pos = "adjective"
+senses = ["crossed over", "the far bank (as a noun)"]
+concept = ""
+roots = ["fep"]
+affixes = ["-atu"]
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "kelu"
+ipa = "kelu"
+pos = "noun"
+senses = ["fire"]
+concept = "fire"
+roots = ["kel"]
+affixes = ["-u"]
+compound_of = []
+proto_form = ""
+drift = "'a burning thing' → 'fire'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = ""
+
+[[word]]
+headword = "mipfepom"
+ipa = "mipfepom"
+pos = "noun"
+senses = ["a crossing on stepping stones"]
+concept = ""
+roots = ["mip", "fep"]
+affixes = ["-om"]
+compound_of = ["mip", "fepom"]
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "A compound: the root mip 'stone' before fepom 'ford'; the second element is the head."
+
+[[word]]
+headword = "kelom"
+ipa = "kelom"
+pos = "noun"
+senses = ["hearth"]
+concept = "hearth"
+roots = ["kel"]
+affixes = ["-om"]
+compound_of = []
+proto_form = ""
+drift = "'place of burning' → 'hearth'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "No reflex in the daughter yet: make derive proposes one, and shows why it was never kept."
+
+[[word]]
+headword = "fepika"
+ipa = "fepika"
+pos = "noun"
+senses = ["a narrow crossing", "a plank laid over a stream"]
+concept = ""
+roots = ["fep"]
+affixes = ["-ika"]
+compound_of = []
+proto_form = ""
+drift = "'small crossing' → 'plank bridge'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "No reflex in the daughter yet: make derive proposes one."

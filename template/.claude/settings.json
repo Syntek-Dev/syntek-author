@@ -1,0 +1,44 @@
+{
+  "model": "opus",
+  "autoCompactEnabled": false,
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(python3 tooling/*.py *)",
+<: if INCLUDE_REFERENCES :>      "Bash(sqlite3 tooling/references.db *)",
+<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>      "Bash(uv run tooling/font.py *)",
+<: endif :>      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": [
+      "AskUserQuestion",
+      "Edit(**/*.pdf)",
+      "Edit(build/**)"<: if DOC_TYPE != 'business' :>,
+      "Edit(typeset/src/units/.base/**)"<: endif :>
+    ]
+  },
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" auto'",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" manual'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

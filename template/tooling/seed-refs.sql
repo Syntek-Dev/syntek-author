@@ -1,0 +1,32 @@
+-- seed-refs.sql — reference seed data for <%PROJECT_NAME%>
+-- Applied by `make init` after schema.sql. Idempotent: INSERT OR IGNORE keyed on the
+-- unique citation_key, so running it twice never duplicates a row.
+--
+-- =============================================================================
+-- THIS FILE SHIPS WITH NO ROWS
+-- =============================================================================
+-- It exists for works the project brings with it: a bibliography carried over from
+-- earlier writing, or a reading list agreed before drafting starts. Every other source
+-- enters the database through the add-reference skill, never by editing this file.
+--
+-- HOW A ROW IS WRITTEN. One INSERT per work, grouped under a topic banner, with only
+-- the columns that are known:
+--
+--   INSERT OR IGNORE INTO refs (citation_key, type, author, year, title) VALUES
+--   ('ashdown2019', 'book', 'Ashdown, Nell', '2019', 'An Invented Title');
+--
+-- A ROW WITH MISSING DETAILS stays incomplete. Precede it with a comment line that starts
+-- with the word VERIFY and a colon, saying what is missing; `make flags` lists every such
+-- line. Never fill a gap with a plausible guess: a guessed publisher is undetectable
+-- downstream, while an incomplete row renders as a visibly incomplete reference in the
+-- proof, which is the intended failure, loud rather than silent.
+--
+-- CITATION KEYS ARE IMMUTABLE. Once a key is cited in the work, never rename it, even
+-- to "improve" it.
+-- =============================================================================
+<: if DOC_TYPE == 'theology' -:>
+--
+-- The default Bible translation's key is <%BIBLE_TRANSLATION%>. Add its row with the
+-- add-reference skill, from the edition actually used, before the first unit that
+-- quotes Scripture is promoted.
+<: endif -:>
