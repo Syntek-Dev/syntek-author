@@ -1,0 +1,52 @@
+% book.tex — the master file for the printed book of <%PROJECT_NAME%>.
+%
+% Seeded once by the template, then the author's: copier update never changes it. make print
+% sets it with XeLaTeX into build/typeset/book.pdf, finding the house class in tooling/latex/
+% (typeset/docs/reference/the-house-class.md lists every option and macro).
+%
+% Every class option below mirrors a choice in typeset/src/page-design.md. Change the two
+% together, and only on the author's decision. Until a choice is made, the option shows the
+% class default and page-design.md carries its AUTHOR TO CONFIRM flag.
+%
+% Chapters come in through \houseinput{units/NN-kebab-title}, one line each, in the order of
+% planning/src/outline.md. A file that does not exist yet is left out of the print with a
+% warning, so the book can be proofed while it grows. In the title, put a backslash before any
+% & % # $ _ ^ or ~.
+\documentclass[
+  trim=demy,              % Trim size
+  fontsize=11pt,          % Body typeface and size
+  % mainfont={…},         % Body typeface: installed, and licensed for print
+  % headingfont={…},      % Heading typeface
+  chapterstyle=centred,   % Chapter opener
+  chapterlabel=numeral,   % Chapter opener: the label
+  scenebreak=stars,       % Scene-break mark
+  footnotes=hang,         % Footnote style
+  dropcaps=true,          % Drop capitals
+<: if DOC_TYPE == 'theology' :>  % greekfont={…},        % Greek typeface
+  % hebrewfont={…},       % Hebrew typeface
+<: endif :>  % final,                % the release print: an open flag or a missing character stops it
+]{housebook}
+
+\title{<%WORKING_TITLE%>}
+<: if SUBTITLE :>\subtitle{<%SUBTITLE%>}
+<: endif :>\author{<%AUTHOR_NAME%>}
+% \runningtitle{…}        % a shorter title for the running heads
+
+\begin{document}
+
+\frontmatter
+\housetitlepage
+\houseinput{frontmatter/copyright}
+\houseinput{frontmatter/dedication}
+\tableofcontents
+
+\mainmatter
+<: if SEED_EXAMPLES :>\houseinput{units/01-example-chapter}
+<: endif :>% \houseinput{units/02-…}
+
+\backmatter
+\houseinput{backmatter/acknowledgements}
+<: if INCLUDE_REFERENCES :>\housereferences
+<: endif :>\houseinput{backmatter/about-the-author}
+
+\end{document}

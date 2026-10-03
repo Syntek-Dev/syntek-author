@@ -1,0 +1,221 @@
+# glyphs.toml — the Example Tongue script
+#
+# One [[glyph]] per letter, read by tooling/script.py (transliterate, render, check) and
+# tooling/font.py (build, assign, check). The script is an alphabet: one letter per sound, each
+# a run of the stem with a number of cuts above, below or across it. The rules in words, and
+# what is not yet designed, are in transliteration.md and script.md.
+#
+# Every SVG is one filled outline (fill="currentColor"), drawn on the em grid below: viewBox
+# 0 0 <advance> 1000, y growing downwards, the baseline at y = 800. The stem runs edge to edge,
+# so the letters of a word join into one unbroken line, as the stem of a carved post would.
+# Code points are left unpinned: the shared assignment gives U+E000 onwards in file order, and
+# `uv run tooling/font.py assign example-tongue` prints the lines that would pin them.
+
+[meta]
+type = "alphabet"            # alphabet | abjad | abugida | syllabary | logographic | featural
+direction = "ltr"            # ltr | rtl | ttb
+units_per_em = 1000
+ascender = 800
+descender = -200
+default_advance = 600
+
+[meta.inspiration]           # independent of the sound model (language.toml)
+medium = "wood"              # stone | wood | clay | palm-leaf | parchment | paper | metal | other
+tool = "knife"               # chisel | knife | stylus | reed-pen | brush | quill | other
+origin = "native"            # native | borrowed:<from> | adapted:<from>
+script_family = "Ogham"
+period = "fourth to sixth centuries AD (the orthodox inscriptions)"
+borrows = ["structure", "stroke-style"]   # never the glyphs themselves
+sources = ["research/src/setting/example-model-ogham.md"]
+
+[[glyph]]
+id = "o"
+romanisation = "o"
+ipa = "o"
+name = "one notch"
+description = "One notch across the stem: the commonest vowel takes the fewest cuts."
+strokes = ["stem, left to right", "one notch across the stem"]
+svg = "glyphs/o.svg"
+advance = 220
+forms = { final = "glyphs/o-final.svg" }
+codepoint = ""
+
+[[glyph]]
+id = "a"
+romanisation = "a"
+ipa = "a"
+name = "two notches"
+description = "Two notches across the stem."
+strokes = ["stem, left to right", "two notches across the stem, left to right"]
+svg = "glyphs/a.svg"
+advance = 340
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "e"
+romanisation = "e"
+ipa = "e"
+name = "three notches"
+description = "Three notches across the stem."
+strokes = ["stem, left to right", "three notches across the stem, left to right"]
+svg = "glyphs/e.svg"
+advance = 460
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "i"
+romanisation = "i"
+ipa = "i"
+name = "four notches"
+description = "Four notches across the stem."
+strokes = ["stem, left to right", "four notches across the stem, left to right"]
+svg = "glyphs/i.svg"
+advance = 580
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "u"
+romanisation = "u"
+ipa = "u"
+name = "five notches"
+description = "Five notches across the stem: the rarest vowel takes the most cuts."
+strokes = ["stem, left to right", "five notches across the stem, left to right"]
+svg = "glyphs/u.svg"
+advance = 700
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "k"
+romanisation = "k"
+ipa = "k"
+name = "one high cut"
+description = "One upright cut above the stem: the voiceless stops stand above the line."
+strokes = ["stem, left to right", "one upright cut above the stem"]
+svg = "glyphs/k.svg"
+advance = 220
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "p"
+romanisation = "p"
+ipa = "p"
+name = "two high cuts"
+description = "Two upright cuts above the stem."
+strokes = ["stem, left to right", "two upright cuts above the stem, left to right"]
+svg = "glyphs/p.svg"
+advance = 340
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "qu"
+romanisation = "qu"
+ipa = "kʷ"
+name = "four high cuts"
+description = "Four upright cuts above the stem: one letter for one sound, although the romanisation spells it with two."
+strokes = ["stem, left to right", "four upright cuts above the stem, left to right"]
+svg = "glyphs/qu.svg"
+advance = 580
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "b"
+romanisation = "b"
+ipa = "b"
+name = "one low cut"
+description = "One upright cut below the stem: each voiced stop hangs below the line, under the place of its voiceless partner."
+strokes = ["stem, left to right", "one upright cut below the stem"]
+svg = "glyphs/b.svg"
+advance = 220
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "d"
+romanisation = "d"
+ipa = "d"
+name = "two low cuts"
+description = "Two upright cuts below the stem."
+strokes = ["stem, left to right", "two upright cuts below the stem, left to right"]
+svg = "glyphs/d.svg"
+advance = 340
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "g"
+romanisation = "g"
+ipa = "g"
+name = "three low cuts"
+description = "Three upright cuts below the stem."
+strokes = ["stem, left to right", "three upright cuts below the stem, left to right"]
+svg = "glyphs/g.svg"
+advance = 460
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "h"
+romanisation = "h"
+ipa = "h"
+name = "one high slant"
+description = "One slanting cut above the stem: the fricatives lean forward above the line."
+strokes = ["stem, left to right", "one cut slanting up and to the right above the stem"]
+svg = "glyphs/h.svg"
+advance = 310
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "f"
+romanisation = "f"
+ipa = "f"
+name = "two high slants"
+description = "Two slanting cuts above the stem."
+strokes = ["stem, left to right", "two cuts slanting up and to the right above the stem"]
+svg = "glyphs/f.svg"
+advance = 430
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "r"
+romanisation = "r"
+ipa = "r"
+name = "one low slant"
+description = "One slanting cut below the stem: the nasals and liquids lean forward below the line."
+strokes = ["stem, left to right", "one cut slanting down and to the right below the stem"]
+svg = "glyphs/r.svg"
+advance = 310
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "l"
+romanisation = "l"
+ipa = "l"
+name = "two low slants"
+description = "Two slanting cuts below the stem."
+strokes = ["stem, left to right", "two cuts slanting down and to the right below the stem"]
+svg = "glyphs/l.svg"
+advance = 430
+forms = {}
+codepoint = ""
+
+[[glyph]]
+id = "m"
+romanisation = "m"
+ipa = "m"
+name = "three low slants"
+description = "Three slanting cuts below the stem."
+strokes = ["stem, left to right", "three cuts slanting down and to the right below the stem"]
+svg = "glyphs/m.svg"
+advance = 550
+forms = {}
+codepoint = ""

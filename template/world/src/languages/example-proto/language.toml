@@ -1,0 +1,26 @@
+# language.toml — Example Proto
+#
+# Who spoke the language, where it sits in its family, and what real languages it is
+# modelled on. Read by tooling/lexicon.py (check, family). The fields are explained in
+# world/docs/reference/lexicon-format.md; the method in world/docs/reference/building-a-language.md.
+
+name = "Example Proto"
+slug = "example-proto"
+kind = "proto"                        # proto | daughter | isolate
+parent = ""
+culture = "world/src/cultures/example-culture.md"
+speakers = "Reconstructed: the ancestors of the people in the example culture, in the hills above the falls, before they came down to the river. Nobody in the book speaks it, but the rites keep some of its words (see example-tongue's hepom)."
+values = ["stone", "fire", "water"]
+word_order = "SOV"
+morphology = "agglutinative"
+marks = []
+ignores = ["grammatical gender", "case", "tense"]
+
+[[inspiration]]
+language = "Classical Latin"
+period = "classical"
+family = "Italic (Indo-European)"
+weight = "primary"
+borrows = ["phonology", "phonotactics"]
+sources = ["research/src/setting/example-model-classical-latin.md"]
+notes = "Taken: five vowel qualities, kʷ as one sound, and stop-plus-liquid clusters that open a syllable. Not taken: vowel length, the weight-sensitive stress (stress here is simply penultimate), and any Latin word or affix."

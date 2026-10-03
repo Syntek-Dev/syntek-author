@@ -1,0 +1,1056 @@
+# copier.yml — the contract a new writing repository is generated from.
+#
+#   uvx copier copy --trust gh:Syntek-Dev/syntek-author my-book
+#
+# User guide: README.md. Design contract: DESIGN.md — where this file and DESIGN.md disagree,
+# DESIGN.md wins and this file is the one that is wrong.
+
+# 9.6.0, not 9.0.0 (03/10/2026). The seed-once example gates in _exclude and the copy-only
+# _tasks below read `_copier_operation`, which did not exist until Copier 9.6.0. On anything
+# older the expression is undefined, and it fails in BOTH directions at once: the copy-only
+# tasks hold SHUT, so a fresh generation never runs `git init`, and the seed-once exclusions
+# hold OPEN, so every example an author deleted comes back on the next update. A floor that
+# admits a Copier which cannot read the file's own safety mechanism is not a floor.
+_min_copier_version: "9.6.0"
+
+# Everything that ships lives at its real path under template/ (DESIGN.md D1). The repository
+# root holds the template's OWN state — DESIGN.md, this file, VERSION, CHANGELOG.md, the
+# audits in .github/scripts/ and the adoption scripts in adopt/ — and none of it is rendered.
+#
+# This is why there is no anchored list of root state files below, no .copier/ staging folder
+# and no `mv` seed task: syntek-author is not itself a writing project, so nothing at this
+# root needs keeping out of a generated one. It also keeps the business variant's Google
+# Drive workflows in template/.github/ inert here; at the root they would run on every push.
+_subdirectory: template
+
+# A named answers file, not the default .copier-answers.yml (DESIGN.md D3, Section 9). A
+# second template — syntek-media is the first planned — must be able to sit in the same
+# repository with its own answers file, and two templates writing one answers file would
+# overwrite each other's record on every update.
+#
+# THE COST, AND IT IS REAL: `copier update` looks for .copier-answers.yml unless it is told
+# otherwise (verified in the Copier 9.18.2 source, 03/10/2026), so every update must be run
+# as `copier update --trust -a .copier-answers.syntek-author.yml`. Without `-a` it stops with
+# no answers to read; it never updates the wrong thing. README.md and the rendered answers
+# file both say so.
+_answers_file: .copier-answers.syntek-author.yml
+
+# The previous answers, read back so that DOC_TYPE's validator can refuse a change of variant
+# on update (DESIGN.md D35). The path is the destination's: on `copier update` it is the
+# project's own record. On a fresh `copier copy`, and on adoption, the file does not exist yet:
+# Copier prints a MissingFileWarning and `_external_data.prev` is empty, which the validator's
+# `default(DOC_TYPE, true)` reads as "no previous answer". That warning on every copy is the
+# accepted cost. Never test `_copier_operation` in a validator instead: it is undefined there.
+_external_data:
+  prev: .copier-answers.syntek-author.yml
+
+# Every file is a template — tokens are not confined to a suffixed subset.
+_templates_suffix: ""
+
+# Nothing in v0.1 ships as a symbolic link. Kept from the house idiom so that a later alias
+# (a shared AI entry point, a skill discovery path) renders as a link to its target rather
+# than as a second copy that drifts from the first.
+_preserve_symlinks: true
+
+# Tokens are written <%TOKEN%> rather than {{TOKEN}} so they cannot collide with anything a
+# writing repository already contains: GitHub Actions expressions (${{ }}) in the business
+# Drive workflows, LaTeX braces and % comments in the house preamble and book.latex, Pandoc
+# template variables, or a Jinja-like {{ }} in front-matter tooling. Before settling, every
+# text file of the three source repositories was scanned for <%, <: and <~ (03/10/2026):
+# none occurs, so the set carries over unchanged.
+_envops:
+  variable_start_string: "<%"
+  variable_end_string: "%>"
+  block_start_string: "<:"
+  block_end_string: ":>"
+  comment_start_string: "<~"
+  comment_end_string: "~>"
+  keep_trailing_newline: true
+
+# Patterns are gitignore-style and are matched against DESTINATION paths, relative to
+# template/ (verified in a probe template, 03/10/2026). ANCHORED (leading slash) means
+# template content; UNANCHORED means "never part of a checkout" and matches at any depth.
+#
+# With _subdirectory set, Copier's default _exclude is [] rather than its usual list, and
+# defining _exclude replaces the default in any case — so the defaults are re-listed here.
+# Without them, a __pycache__ left by running tooling/*.py inside template/ would ship.
+_exclude:
+  - .git
+  - .svn
+  - __pycache__
+  - "*.py[co]"
+  - .DS_Store
+  - "~*"
+  # Generated binaries. Built proofs are rebuilt by `make`, and the references database is
+  # built by `make init` from schema.sql and seed-refs.sql (DESIGN.md D21) — a .db shipped
+  # from here would carry this repository's rows into every project, as binary nobody can
+  # review in a diff.
+  - "*.pdf"
+  - "*.db"
+  # The Makefile's output folder, should anyone run `make` inside template/. ANCHORED, never
+  # bare: an unanchored `build` would also swallow .claude/skills/build/, the proof skill
+  # every variant needs.
+  - /build
+  #
+  # ── Gated paths ──────────────────────────────────────────────────────────────
+  #
+  # A templated _exclude entry is the SINGLE conditionalisation mechanism for paths, as in
+  # syntek-base. When a gate is shut the path is never rendered at all, so a Jinja error inside
+  # a fiction-only file cannot break a theology generation; when it is open the entry renders
+  # to an empty string, which Copier ignores. One line per path, never a multi-pattern block.
+  #
+  # EVERY LINE READS  "<: if not (GATE) :>/path<: endif :>"  where GATE is the "ships when"
+  # expression of DESIGN.md Section 3.5, copied verbatim. The index files (a CONTEXT.md or
+  # CLAUDE.md whose folder holds gated children) wrap the same path's row in
+  # "<: if GATE :>…<: endif :>" with the SAME string — so an audit can pair every exclusion
+  # with every index row mechanically, and a gate that drifts in one place shows up as a
+  # mismatch rather than as a dangling citation in one variant. The one exception is the
+  # generated mode-file block at the end, whose lines read "<: if DOC_TYPE != 'x' :>…" as
+  # gen-mode-excludes.sh writes them; the audits negate both forms.
+  #
+  # Every gate carries its DOC_TYPE test (DESIGN.md Section 2). A question hidden by `when:`
+  # still has its default in the render context, so a gate written as a bare
+  # `INCLUDE_CONLANG` would open in a theology project the day that default changed.
+  #
+  # Bare paths name whole directories. That is safe only because nothing under a gated
+  # directory is negated back in; a future allowlist inside one needs `/**` and quoted
+  # `"!…"` negations instead.
+  #
+  # ── Content layers and option layers (DESIGN.md Section 3.5) ──
+  - "<: if not (DOC_TYPE != 'business') :>/manuscript<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/library<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_PROPOSAL) :>/proposal<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/world<: endif :>"
+  # The printed book (D31): a production layer for books only. Business deliverables are
+  # already LaTeX documents in library/, so they have nothing to typeset.
+  - "<: if not (DOC_TYPE != 'business') :>/typeset<: endif :>"
+  # A CI workflow travels with what it runs: the Drive push and pull workflows are the whole
+  # of template/.github/, and they are meaningless without a business library to sync.
+  - "<: if not (DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC) :>/.github<: endif :>"
+  #
+  # ── manuscript/ (books): variant guides and workflows (DESIGN.md Section 4.4) ──
+  - "<: if not (DOC_TYPE == 'theology') :>/manuscript/docs/reference/main-text-and-footnotes.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/manuscript/docs/reference/scene-craft.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/manuscript/workflows/10-steelman-the-objections<: endif :>"
+  #
+  # ── planning/ (all variants): variant sources, guides and workflows ──
+  - "<: if not (DOC_TYPE == 'theology') :>/planning/src/arguments<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/src/causality.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/src/timeline.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/src/continuity.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/src/arcs<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/planning/src/quests<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/src/document-register.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/src/review-schedule.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/src/precedence.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/src/approvals<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/planning/docs/reference/argument-maps.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/docs/reference/causality-chains.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/docs/reference/character-arcs.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/planning/docs/reference/quest-design.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/docs/reference/the-document-register.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/planning/workflows/02-map-the-argument<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/workflows/03-chart-the-causality<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/planning/workflows/04-chart-a-character-arc<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/planning/workflows/05-design-a-quest<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/workflows/06-run-a-review-cycle<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/workflows/07-record-an-approval<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/workflows/08-update-the-register<: endif :>"
+  # The example unit briefs sit in planning/src/units/, which every variant ships, so each
+  # needs its variant gate here as well as its seed-once line below.
+  - "<: if not (DOC_TYPE != 'business') :>/planning/src/units/01-example-chapter.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/planning/src/units/example-proposal.md<: endif :>"
+  # The same holds for the example drafts' ledger entries in standards/style/ledger/: the
+  # AI-drafted section and the author-drafted, promoted opening (DESIGN.md Section 3.2).
+  - "<: if not (DOC_TYPE != 'business') :>/standards/style/ledger/01-example-chapter--the-turn.md<: endif :>"
+  - "<: if not (DOC_TYPE != 'business') :>/standards/style/ledger/01-example-chapter--opening.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/standards/style/ledger/example-proposal--scope.md<: endif :>"
+  #
+  # ── research/ (all variants) ──
+  - "<: if not (DOC_TYPE == 'theology') :>/research/src/contested-readings<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/research/src/setting<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/research/src/permissions.md<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/research/src/testimony<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/research/docs/reference/contested-readings.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/research/docs/reference/real-world-detail.md<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/research/docs/reference/handling-testimony.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/research/workflows/03-map-a-contested-reading<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/research/workflows/05-handle-testimony-safely<: endif :>"
+  # The example language family's researched real-world models (D33) sit in the fiction-only
+  # research/src/setting/; each needs the conlang gate here and its seed-once line below.
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/research/src/setting/example-model-classical-latin.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/research/src/setting/example-model-old-spanish.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/research/src/setting/example-model-ogham.md<: endif :>"
+  #
+  # ── proposal/ (books + INCLUDE_PROPOSAL, gated above): theology and fiction halves ──
+  - "<: if not (DOC_TYPE == 'theology') :>/proposal/src/book-proposal<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/proposal/src/endorsements<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/src/query-letter.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/src/synopsis-short.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/src/synopsis-long.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/src/comp-titles.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/src/submissions<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/proposal/docs/reference/book-proposal-anatomy.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/proposal/docs/reference/query-package-anatomy.md<: endif :>"
+  #
+  # ── world/ (fiction, gated above): the worldbuilding and constructed-language kits ──
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/src/creatures<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/src/cultures<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/src/peoples<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/src/history<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/docs/reference/creatures.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/docs/reference/cultures.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/docs/reference/peoples.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/docs/reference/world-history.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/workflows/04-create-a-creature<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/workflows/05-create-a-culture<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/workflows/10-create-a-people<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/world/workflows/11-chart-the-world-history<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/src/languages<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/docs/reference/building-a-language.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/docs/reference/lexicon-format.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/docs/reference/writing-systems.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/docs/reference/pronunciation.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/workflows/06-build-a-language<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/workflows/07-add-a-word<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/workflows/08-design-a-script<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/world/workflows/09-record-a-pronunciation<: endif :>"
+  #
+  # ── typeset/ (books, gated above): the conlang guide inside it ──
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/typeset/docs/reference/conlang-in-print.md<: endif :>"
+  #
+  # ── standards/ (supporting): option and variant folders ──
+  # The per-variant mode files of standards/{method,risk,verification}/ are NOT here: they
+  # belong to the generated block at the end of this list.
+  - "<: if not (INCLUDE_REFERENCES) :>/standards/referencing<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/standards/brand<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/standards/risk/sensitive-content.md<: endif :>"
+  #
+  # ── tooling/ (supporting): a script travels with its option ──
+  - "<: if not (INCLUDE_REFERENCES) :>/tooling/schema.sql<: endif :>"
+  - "<: if not (INCLUDE_REFERENCES) :>/tooling/seed-refs.sql<: endif :>"
+  - "<: if not (INCLUDE_REFERENCES) :>/tooling/export_refs.py<: endif :>"
+  - "<: if not (INCLUDE_REFERENCES) :>/tooling/harvard.csl<: endif :>"
+  # tooling/latex/ ships in every variant as an INDEX pair (DESIGN.md Section 3.5): the folder
+  # is never excluded whole, because the business house preamble and the books' house class
+  # live side by side in it. Each file carries its own gate, and the pair gates its rows.
+  - "<: if not (DOC_TYPE == 'business') :>/tooling/latex/house-preamble.tex<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/tooling/latex/skeleton.tex<: endif :>"
+  - "<: if not (DOC_TYPE != 'business') :>/tooling/latex/housebook.cls<: endif :>"
+  - "<: if not (DOC_TYPE != 'business') :>/tooling/book.latex<: endif :>"
+  # tooling/texcheck.py has no line: it ships to every variant (DESIGN.md Section 3.5, D36) —
+  # books check a styled chapter's words, business checks each promoted section of a .tex.
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/tooling/lexicon.py<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/tooling/script.py<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/tooling/font.py<: endif :>"
+  # The code-point assignment script.py and font.py share (D20); DESIGN.md does not list it,
+  # so it carries the gate of the two scripts that import it.
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/tooling/conlang_common.py<: endif :>"
+  # The folder of tooling/data/core-concepts.toml, with its pair: the data file is its only
+  # content, so the folder carries the file's gate.
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/tooling/data<: endif :>"
+  #
+  # ── Variant-only and option skills (DESIGN.md Sections 5.3 and 5.4) ──
+  #
+  # Governance goes with the tree: a skill fires on DESCRIPTION MATCH rather than on being
+  # named, so a theology skill shipped into a novel would compete for work it cannot do.
+  # A skill with mode files (approach-a-reader, sensitivity-pass, typeset: THEOLOGY.md and
+  # FICTION.md only) has its folder gated here and its mode files in the generated block below.
+  - "<: if not (DOC_TYPE == 'theology') :>/.claude/skills/argument-audit<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/.claude/skills/category-check<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/.claude/skills/tradition-check<: endif :>"
+  - "<: if not (DOC_TYPE == 'theology') :>/.claude/skills/steelman<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/continuity<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/character-voice<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/causality<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/pacing<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/create-name<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction') :>/.claude/skills/chart-character-arc<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/.claude/skills/create-creature<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING) :>/.claude/skills/design-quest<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/.claude/skills/build-language<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/.claude/skills/add-word<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/.claude/skills/design-script<: endif :>"
+  - "<: if not (DOC_TYPE == 'fiction' and INCLUDE_CONLANG) :>/.claude/skills/pronounce<: endif :>"
+  - "<: if not (DOC_TYPE != 'business') :>/.claude/skills/typeset<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/clause-consistency<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/tone<: endif :>"
+  - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/obligation-check<: endif :>"
+  - "<: if not (INCLUDE_REFERENCES) :>/.claude/skills/add-reference<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_PROPOSAL) :>/.claude/skills/approach-a-reader<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/.claude/skills/sensitivity-pass<: endif :>"
+  #
+  # ── Seed-once examples (DESIGN.md Section 3.2): copy only, and they stay deleted ──
+  #
+  # Rendered on `copy` when SEED_EXAMPLES is true, and never again. The difference from
+  # _skip_if_exists is the whole point: a skip-if-exists file the author DELETES is recreated
+  # by the next update, which is right for a style sheet that skills cite and wrong for an
+  # example the author has finished with. Excluding on `update` means an update never renders
+  # the example at all — not when it exists, not when it was deleted. Copier keeps the
+  # operation as 'update' while it renders the old template copy during an update (checked in
+  # the 9.18.2 source, 03/10/2026), so a kept example is never mistaken for one the template
+  # removed. Adoption passes SEED_EXAMPLES=false: a repository with real chapters has no use
+  # for an invented one.
+  #
+  # These lines use DESIGN.md Section 3.2's gate verbatim, and each sits under a parent that
+  # is already variant-gated above (or carries its own variant line there).
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/manuscript/src/01-example-chapter<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/01-example-chapter.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/arguments/01-example-chapter.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/proposals/drafts/example-proposal<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/example-proposal.md<: endif :>"
+  # The example drafts' ledger entries, so each draft's `ledger:` pointer resolves and
+  # learn-voice has something to practise on. The author-drafted opening carries a filled
+  # Author final, so the example can be practised through V2 (DESIGN.md Section 3.2).
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/standards/style/ledger/01-example-chapter--the-turn.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/standards/style/ledger/01-example-chapter--opening.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/standards/style/ledger/example-proposal--scope.md<: endif :>"
+  # The example language family (proto and daughter), the tooling's smoke-test fixture, with
+  # the research notes on the real-world models it is built from.
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/world/src/languages/example-proto<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/world/src/languages/example-tongue<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/research/src/setting/example-model-classical-latin.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/research/src/setting/example-model-old-spanish.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/research/src/setting/example-model-ogham.md<: endif :>"
+  # The example people and culture the example languages cite; their folders already carry
+  # the worldbuilding gate.
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/world/src/peoples/example-people.md<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/world/src/cultures/example-culture.md<: endif :>"
+  #
+  # ── Mode files (DESIGN.md D6, Section 3.5): GENERATED, never edited by hand ──
+  #
+  # Every moded skill and every moded standards folder carries exactly one of THEOLOGY.md,
+  # FICTION.md or BUSINESS.md in a generated project; the others are excluded here, one line
+  # per file that exists on disk. `.github/scripts/gen-mode-excludes.sh` writes everything
+  # between the two markers from the files under template/, and `--check` fails CI when the
+  # block and the disk disagree. Add or remove a mode file, then regenerate — never type a
+  # line here.
+  # BEGIN generated mode excludes
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/adapt-section/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/adapt-section/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/adapt-section/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/approach-a-reader/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/approach-a-reader/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/build/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/build/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/build/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/comprehension/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/comprehension/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/comprehension/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/draft-section/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/draft-section/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/draft-section/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/fact-check/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/fact-check/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/fact-check/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/flow/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/flow/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/flow/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/grammar/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/grammar/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/grammar/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/grill-with-docs/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/grill-with-docs/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/grill-with-docs/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/grilling/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/grilling/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/grilling/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/handoff/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/handoff/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/handoff/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/improve-section/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/improve-section/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/improve-section/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/learn-voice/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/learn-voice/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/learn-voice/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/promote-section/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/promote-section/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/promote-section/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/prototype/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/prototype/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/prototype/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/research/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/research/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/research/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/sensitivity-pass/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/sensitivity-pass/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/spelling/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/spelling/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/spelling/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/structure-review/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/structure-review/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/structure-review/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/teach/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/teach/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/teach/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/typeset/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/typeset/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/wayfinder/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/wayfinder/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/wayfinder/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/standards/method/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/standards/method/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/standards/method/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/standards/risk/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/standards/risk/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/standards/risk/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/standards/verification/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/standards/verification/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/standards/verification/BUSINESS.md<: endif :>"
+  # END generated mode excludes
+
+# Seed-if-missing (DESIGN.md D14, D17, Section 3.1): written when absent, never overwritten
+# once they exist, and recreated by the next update if the author deletes one. They are the
+# files skills and rules cite by path, so they must always exist; and they are the files the
+# author fills in, so the template must never write over them. A seed therefore receives no
+# template improvement once it exists — which is why each ships EMPTY of entries (headings,
+# writing rules and the cited-stub banner only) and why that emptiness is audited by
+# `.github/scripts/shipped-seeds.sh`, not trusted.
+#
+# The shared root files are here for a second reason (D17): a later template such as
+# syntek-media will seed the same README.md, CONTEXT.md, .claude/CLAUDE.md and settings, and
+# a root file that two templates both update is a file two templates fight over.
+#
+# EVERY PATTERN IS ANCHORED. These are gitignore-style patterns like _exclude: an unanchored
+# `CONTEXT.md` would match every governance pair in the tree and freeze all of them against
+# every update, and an unanchored `.gitignore` would freeze the nested, template-owned
+# .gitignore files with it.
+#
+# Listed UNCONDITIONALLY: a pattern for a path that does not ship in this variant is a no-op
+# (verified in the probe, 03/10/2026). A variant seed therefore needs two lines in total —
+# its variant gate in _exclude above, and its line here.
+#
+# Section 3.1 also seeds the proposal package stubs (the eight book-proposal sections and the
+# four fiction package files): guides cite them by path from day one, and once drafted they
+# are the author's text, which an update must never merge into. The business brand files and
+# the author-filled index pairs are seeds for the same reason (Section 3.1): the author fills
+# their AUTHOR TO CONFIRM slots or adds rows to their tables, and a template-owned file the
+# author writes in is a merge conflict on every update.
+#
+# THE ONE THING A SEED DOES NOT SURVIVE is its option being turned off. `copier update` with
+# an INCLUDE_* answer changed to false deletes every file that option generated, seeds
+# included, even ones the author has filled in (reproduced on 9.18.2, 03/10/2026). The
+# _message_before_update below names them, and the generated README tells the author to copy
+# them out first.
+#
+# A seed is listed only once its file is on disk: shipped-seeds.sh fails on a seed that is
+# not. Add each line in the change that adds its file, and keep the list explicit (no globs):
+# adopt/adopt.sh and the audits read it path by path.
+_skip_if_exists:
+  # ── Shared root files ──
+  - /README.md
+  - /CONTEXT.md
+  - /.gitignore
+  - /.mcp.json
+  - /.claude/CLAUDE.md
+  - /.claude/CONTEXT.md
+  - /.claude/MEMORY.md
+  - /.claude/settings.json
+  - /.claude/skills/CONTEXT.md
+  - /.claude/skills/CLAUDE.md
+  - /.claude/hooks/CONTEXT.md
+  - /.claude/hooks/CLAUDE.md
+  # ── The style trio and the provenance table ──
+  - /standards/style/style-sheet.md
+  - /standards/style/voice-notes.md
+  - /standards/style/terminology.md
+  - /standards/style/ledger/provenance.md
+  # ── Planning registers ──
+  - /planning/src/outline.md
+  - /planning/src/causality.md
+  - /planning/src/timeline.md
+  - /planning/src/continuity.md
+  - /planning/src/document-register.md
+  - /planning/src/review-schedule.md
+  - /planning/src/precedence.md
+  # ── Variant registers outside planning/ ──
+  - /world/src/names-register.md
+  - /world/src/history/eras.md
+  - /standards/brand/disclaimers.md
+  - /standards/brand/brand-voice.md
+  - /standards/brand/brand-guide.md
+  - /research/src/permissions.md
+  - /proposal/src/endorsements/tracker.md
+  - /proposal/src/submissions/tracker.md
+  - /proposal/src/sample/sample-index.md
+  # ── Proposal package stubs (books + INCLUDE_PROPOSAL; theology then fiction) ──
+  - /proposal/src/book-proposal/01-overview-and-hook.md
+  - /proposal/src/book-proposal/02-why-now.md
+  - /proposal/src/book-proposal/03-audience.md
+  - /proposal/src/book-proposal/04-comparable-titles.md
+  - /proposal/src/book-proposal/05-chapter-outline.md
+  - /proposal/src/book-proposal/06-about-the-author.md
+  - /proposal/src/book-proposal/07-endorsements-and-reach.md
+  - /proposal/src/book-proposal/08-sample-chapters.md
+  - /proposal/src/query-letter.md
+  - /proposal/src/synopsis-short.md
+  - /proposal/src/synopsis-long.md
+  - /proposal/src/comp-titles.md
+  # ── The printed book (books): the author's page design and the master file ──
+  - /typeset/src/page-design.md
+  - /typeset/src/book.tex
+  # ── References: the header only, never rows ──
+  - /tooling/seed-refs.sql
+  # ── Author-filled index pairs (DESIGN.md Section 3.1): wayfinder appends to the map index,
+  #    and the author adds a row to each docs/project/ and workflows/local/ pair ──
+  - /planning/src/maps/CONTEXT.md
+  - /manuscript/docs/project/CONTEXT.md
+  - /manuscript/docs/project/CLAUDE.md
+  - /manuscript/workflows/local/CONTEXT.md
+  - /manuscript/workflows/local/CLAUDE.md
+  - /library/docs/project/CONTEXT.md
+  - /library/docs/project/CLAUDE.md
+  - /library/workflows/local/CONTEXT.md
+  - /library/workflows/local/CLAUDE.md
+  - /planning/docs/project/CONTEXT.md
+  - /planning/docs/project/CLAUDE.md
+  - /planning/workflows/local/CONTEXT.md
+  - /planning/workflows/local/CLAUDE.md
+  - /research/docs/project/CONTEXT.md
+  - /research/docs/project/CLAUDE.md
+  - /research/workflows/local/CONTEXT.md
+  - /research/workflows/local/CLAUDE.md
+  - /proposal/docs/project/CONTEXT.md
+  - /proposal/docs/project/CLAUDE.md
+  - /proposal/workflows/local/CONTEXT.md
+  - /proposal/workflows/local/CLAUDE.md
+  - /world/docs/project/CONTEXT.md
+  - /world/docs/project/CLAUDE.md
+  - /world/workflows/local/CONTEXT.md
+  - /world/workflows/local/CLAUDE.md
+  - /typeset/docs/project/CONTEXT.md
+  - /typeset/docs/project/CLAUDE.md
+  - /typeset/workflows/local/CONTEXT.md
+  - /typeset/workflows/local/CLAUDE.md
+
+# ── Identity ─────────────────────────────────────────────────────────────────
+
+PROJECT_NAME:
+  type: str
+  help: >-
+    The project's name as a human would write it: a book's working title, or a plain name
+    such as 'Client Documents' for a business library.
+  placeholder: The Salt Ferry
+  validator: >-
+    <: if not PROJECT_NAME | trim :>
+    Give the project a name — every metadata header reads it.
+    <: endif :>
+    <: if '"' in PROJECT_NAME or '\\' in PROJECT_NAME :>
+    Avoid double quotation marks and backslashes — this value can be written into the build
+    metadata (tooling/defaults.yaml) as a double-quoted string, and the house style uses
+    single quotation marks anyway.
+    <: endif :>
+
+# The default keeps only letters, digits, spaces and hyphens and joins the words with
+# hyphens, so a title with a colon or an apostrophe ('The Ferryman's Daughter: A Novel')
+# still yields a valid slug instead of a default the validator rejects.
+#
+# The validator is DESIGN.md's ^[a-z][a-z0-9-]+$ written as character-set tests, because
+# Jinja has no regular expressions without an extension and this template loads none.
+PROJECT_SLUG:
+  type: str
+  help: >-
+    The project's machine name in kebab-case. It heads the project memory file and names
+    anything that needs a file-safe name.
+  default: "<% (PROJECT_NAME | lower | select('in', 'abcdefghijklmnopqrstuvwxyz0123456789 -') | join).split() | join('-') %>"
+  validator: >-
+    <: if PROJECT_SLUG | length < 2 or PROJECT_SLUG[0] not in 'abcdefghijklmnopqrstuvwxyz'
+       or PROJECT_SLUG | reject('in', 'abcdefghijklmnopqrstuvwxyz0123456789-') | list | length > 0 :>
+    Use kebab-case that starts with a letter: lower-case letters, digits and hyphens only,
+    at least two characters (the pattern ^[a-z][a-z0-9-]+$).
+    <: endif :>
+
+# ── Variant ──────────────────────────────────────────────────────────────────
+#
+# The one answer that decides the shape of the tree: which content layer ships (manuscript/
+# or library/), which variant skills, workflows and guides ship, and which single mode file
+# sits beside every shared skill. Asked second, so every later question's help, default and
+# choices can speak to the variant.
+#
+# NO DEFAULT, ON PURPOSE. `copier copy --defaults` without it stops with 'Question "DOC_TYPE"
+# is required' rather than quietly generating a theology book, so CI, the audits and every
+# adoption must say which variant they mean.
+#
+# Changing it later is REFUSED (DESIGN.md D35). The content layer holds author work, and
+# `copier update` only moves what it generated: a project that switched variant would keep its
+# chapters in a folder nothing routes to, and lose every variant seed it had filled in. The
+# validator compares the answer with the previous one, read from the project's answers file
+# through _external_data; on a copy there is no previous answer and it always passes. Proven
+# on 9.18.2: a changed DOC_TYPE stops the update before a single file is touched
+# (update-test.sh checks 10 and 11). A different variant is a new project.
+DOC_TYPE:
+  type: str
+  help: >-
+    What are you writing? 'theology' — a Christian non-fiction book; 'fiction' — a novel,
+    with optional worldbuilding and constructed languages; 'business' — business, legal and
+    client documents. This cannot be changed later: an update refuses a different answer.
+  choices:
+    - theology
+    - fiction
+    - business
+  validator: >-
+    <: if (_external_data.prev.DOC_TYPE | default(DOC_TYPE, true)) != DOC_TYPE :>
+    DOC_TYPE cannot change on update. This project was generated as
+    '<% _external_data.prev.DOC_TYPE %>', and its content layer holds your work, which a
+    different variant would strand. A different variant is a new project: generate one and
+    copy your work across.
+    <: endif :>
+
+# ── The brief and the author ─────────────────────────────────────────────────
+
+# The first question about the WORK rather than its labels. It renders into
+# .claude/CLAUDE.md Section 1 and the README, and every skill reads it before anything else —
+# so a vague answer here is a vague answer echoed through every planning step downstream.
+# Title and brief live only there and in the answers (route, do not restate).
+PROJECT_DESCRIPTION:
+  type: str
+  help: >-
+    <: if DOC_TYPE == 'theology' :>The book's thesis<: elif DOC_TYPE == 'fiction' :>The
+    novel's premise<: else :>What the library is for<: endif :>, in one or two full
+    sentences. Every skill reads this brief before anything else — write it as a brief, not a
+    tagline.
+  placeholder: >-
+    <: if DOC_TYPE == 'theology' :>Why the shared table matters for a small congregation,
+    argued from the meal scenes in Luke's Gospel for readers with no theological
+    training.<: elif DOC_TYPE == 'fiction' :>A ferry pilot on a drowned coast must carry a
+    stranger across the salt marsh before the spring tide, and learns that the crossing is
+    all that keeps the old border shut.<: else :>The contracts, policies, proposals and client
+    correspondence of a two-person design studio, kept as one consistent, versioned
+    library.<: endif :>
+  validator: >-
+    <: if PROJECT_DESCRIPTION | trim | length < 40 :>
+    Write at least a full sentence — a tagline is not a brief, and this is what every skill
+    reads before it reads anything else.
+    <: endif :>
+
+# The author's name in its exact printed form. It renders into every metadata header and the
+# build metadata, so its FORM is load-bearing: 'J. R. Example' and 'J R Example' are
+# different strings to every search, every index and every publisher's system.
+AUTHOR_NAME:
+  type: str
+  help: >-
+    Your name exactly as it is printed on the cover or the document, full stops included
+    (for a business library, the person or firm that signs). Settle its form now and never
+    change it later.
+  placeholder: Robin Example
+  validator: >-
+    <: if not AUTHOR_NAME | trim :>
+    Give the name as it is printed — every metadata header carries it.
+    <: endif :>
+    <: if '"' in AUTHOR_NAME or '\\' in AUTHOR_NAME :>
+    Avoid double quotation marks and backslashes — this value is written into the build
+    metadata (tooling/defaults.yaml) as a double-quoted string.
+    <: endif :>
+
+# How skills address the author in chat. Derived from the first word of AUTHOR_NAME, which is
+# wrong whenever the printed name opens with an initial or a title — hence a question rather
+# than a computed value.
+AUTHOR_FIRST_NAME:
+  type: str
+  help: >-
+    What should the skills call you in chat? Defaults to the first word of your name; change
+    it if that is an initial or a title.
+  default: "<% (AUTHOR_NAME.split() or [''])[0] %>"
+  validator: >-
+    <: if not AUTHOR_FIRST_NAME | trim :>
+    Give the name the skills should use when they speak to you.
+    <: endif :>
+
+# ── The reader ───────────────────────────────────────────────────────────────
+#
+# Both answers drive the `comprehension` skill, which reads every unit as this reader. The
+# choices depend on DOC_TYPE (Copier renders a templated `choices:` string as YAML), so a
+# novel is never offered a board of directors as its audience.
+
+AUDIENCE:
+  type: str
+  help: >-
+    Who reads it? The comprehension skill reads every <: if DOC_TYPE == 'business'
+    :>document<: else :>chapter<: endif :> as this reader.
+  choices: |
+    <:- if DOC_TYPE == 'theology' :>
+    - lay
+    - ministry-leaders
+    - academic
+    <:- elif DOC_TYPE == 'fiction' :>
+    - middle-grade
+    - young-adult
+    - adult
+    <:- else :>
+    - client
+    - staff
+    - board
+    - public
+    <:- endif :>
+  default: "<% {'theology': 'lay', 'fiction': 'adult', 'business': 'client'}[DOC_TYPE] %>"
+
+READER_TEST:
+  type: str
+  help: >-
+    One sentence naming the reader every page must work for — the lowest common denominator,
+    for example 'a church leader reading on a Tuesday evening'.
+  default: "<% {'theology': 'a church member with no theological training, reading at the end of a working day', 'fiction': 'a reader who has never met these characters and decides by the end of chapter one whether to go on', 'business': 'a busy client reading on a phone between meetings, who must know what to do next'}[DOC_TYPE] %>"
+  validator: >-
+    <: if READER_TEST | trim | length < 20 :>
+    Name a real reader in a real moment — a sentence, not a label.
+    <: endif :>
+
+# ── Books (theology and fiction) ─────────────────────────────────────────────
+
+WORKING_TITLE:
+  type: str
+  help: The book's working title, as the proof's title page should print it
+  default: "<% PROJECT_NAME %>"
+  when: "<% DOC_TYPE != 'business' %>"
+  validator: >-
+    <: if '"' in WORKING_TITLE or '\\' in WORKING_TITLE :>
+    Avoid double quotation marks and backslashes — the title is written into the build
+    metadata (tooling/defaults.yaml) as a double-quoted string.
+    <: endif :>
+
+SUBTITLE:
+  type: str
+  help: The book's subtitle, or leave it blank
+  default: ""
+  when: "<% DOC_TYPE != 'business' %>"
+  validator: >-
+    <: if '"' in SUBTITLE or '\\' in SUBTITLE :>
+    Avoid double quotation marks and backslashes — the subtitle is written into the build
+    metadata (tooling/defaults.yaml) as a double-quoted string.
+    <: endif :>
+
+# ── Theology ─────────────────────────────────────────────────────────────────
+
+# A citation key, not a translation's name: scripture is cited through the references
+# pipeline like any other source, and keys are lower-case and never renamed (D21).
+BIBLE_TRANSLATION:
+  type: str
+  help: >-
+    The citation key of the Bible translation you quote by default, lower-case as it appears
+    in the references database, for example niv2011.
+  default: niv2011
+  when: "<% DOC_TYPE == 'theology' %>"
+  validator: >-
+    <: if not BIBLE_TRANSLATION or BIBLE_TRANSLATION | reject('in', 'abcdefghijklmnopqrstuvwxyz0123456789') | list | length > 0 :>
+    Use a citation key: lower-case letters and digits only, for example niv2011.
+    <: endif :>
+
+# ── Fiction ──────────────────────────────────────────────────────────────────
+#
+# Every novel gets world/ (characters, places, the names register), character arcs and
+# naming (D16). The two kits below add to it, and the conlang kit is only offered on top of
+# the worldbuilding one, because a language with no culture to speak it has nothing to name.
+
+FICTION_GENRE:
+  type: str
+  help: The novel's genre — it sets the default for the worldbuilding kit
+  choices:
+    - fantasy
+    - science-fiction
+    - historical
+    - literary
+    - crime
+    - romance
+    - other
+  default: fantasy
+  when: "<% DOC_TYPE == 'fiction' %>"
+
+INCLUDE_WORLDBUILDING:
+  type: bool
+  help: >-
+    Add the worldbuilding kit: creatures, cultures and quests, with their workflows and
+    skills. Characters, places and the names register ship with every novel regardless.
+    Turning this off later deletes every file it generated, including seeds you have filled
+    in, and the constructed-language kit with it.
+  default: "<% DOC_TYPE == 'fiction' and FICTION_GENRE in ['fantasy', 'science-fiction'] %>"
+  when: "<% DOC_TYPE == 'fiction' %>"
+
+# The default repeats the DOC_TYPE test even though the question is only asked for fiction:
+# a hidden question keeps its default in the render context, and that default must never be
+# true outside a novel.
+INCLUDE_CONLANG:
+  type: bool
+  help: >-
+    Add the constructed-language kit: phonology, grammar, lexicon, etymology, a writing
+    system and pronunciation. Audio needs an ElevenLabs MCP server added at user scope (see
+    the syntek-author README); nothing is added to the project's .mcp.json. Turning this off
+    later deletes every file it generated, including your edits to them; the languages you
+    built yourself stay.
+  default: "<% DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING %>"
+  when: "<% DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING %>"
+
+# ── Business ─────────────────────────────────────────────────────────────────
+
+TRADING_NAME:
+  type: str
+  help: The name the business trades under, as its documents print it
+  default: "<% PROJECT_NAME %>"
+  when: "<% DOC_TYPE == 'business' %>"
+  validator: >-
+    <: if not TRADING_NAME | trim :>
+    Give the trading name — the brand and disclaimer files carry it.
+    <: endif :>
+    <: if '"' in TRADING_NAME or '\\' in TRADING_NAME :>
+    Avoid double quotation marks and backslashes — this value can be written into the build
+    metadata as a double-quoted string.
+    <: endif :>
+
+# Named in every legal instrument; the obligation-check and fact-check skills read it when a
+# statute or a term needs its jurisdiction stated.
+JURISDICTION:
+  type: str
+  help: The legal jurisdiction your contracts and policies are written under
+  default: England and Wales
+  when: "<% DOC_TYPE == 'business' %>"
+
+CURRENCY:
+  type: str
+  help: The currency symbol your prices and fees are written in
+  default: "£"
+  when: "<% DOC_TYPE == 'business' %>"
+  validator: >-
+    <: if not CURRENCY | trim :>
+    Give a currency symbol, for example £.
+    <: endif :>
+
+# The fix for a real drift in the source library, where some documents said 'I' and others
+# 'we' for the same sole trader. One answer, held by the tone skill across every document.
+BUSINESS_VOICE_PERSON:
+  type: str
+  help: >-
+    Does the business speak as 'I' (singular — a sole trader) or as 'we' (plural — a firm)?
+    The tone skill holds every document to this.
+  choices:
+    - singular
+    - plural
+  default: singular
+  when: "<% DOC_TYPE == 'business' %>"
+
+# Ships template/.github/ — the Drive push and pull workflows — and nothing else. Off by
+# default (a new optional surface defaults false): the workflows need Google credentials as
+# repository secrets, and a workflow without its secrets is a red job on every push.
+INCLUDE_DRIVE_SYNC:
+  type: bool
+  help: >-
+    Add GitHub workflows that push the library to Google Drive and pull it back. They need
+    Google credentials stored as repository secrets before they will run. Turning this off
+    later deletes every file it generated, including your edits to them.
+  default: false
+  when: "<% DOC_TYPE == 'business' %>"
+
+# ── Options ──────────────────────────────────────────────────────────────────
+#
+# Each option gates a layer, a standard, its workflows and its skills together. Turning one
+# off later with `copier update --data …=false` deletes EVERY file that option generated,
+# seeds included, even ones the author has filled in — they survive only in git history —
+# and leaves every file the author created (verified in the probe, 03/10/2026; a filled
+# proposal stub deleted by INCLUDE_PROPOSAL=false reproduced in the wave 3 review). Nothing
+# refuses it (DESIGN.md D35 guards DOC_TYPE only): _message_before_update names what each
+# option-off removes, each help below says so, and the generated README tells the author to
+# copy those files out first. Seeds that describe the options (README.md, CONTEXT.md,
+# .claude/CLAUDE.md, .claude/settings.json, .gitignore) are never re-rendered, so after a
+# toggle the author edits them by hand.
+
+# Defaults TRUE, unlike the other options: the layer exists in both source book
+# repositories, and a book that will be sold needs a proposal or a query package.
+INCLUDE_PROPOSAL:
+  type: bool
+  help: >-
+    Add the proposal/ layer: <: if DOC_TYPE == 'theology' :>the book proposal and
+    endorsements<: else :>the query package and the submissions tracker<: endif :>, with the
+    approach-a-reader skill. Turning this off later deletes every file it generated,
+    including seeds you have filled in.
+  default: true
+  when: "<% DOC_TYPE != 'business' %>"
+
+# Asked in every variant, because a novel with real-world research or a policy citing
+# guidance can want citations too; on by default only where the method depends on them.
+INCLUDE_REFERENCES:
+  type: bool
+  help: >-
+    Add the citation pipeline: a SQLite references database built by `make init`, exported
+    to CSL-JSON and rendered by Pandoc in Harvard style, with the add-reference skill. Needs
+    sqlite3 and pandoc. Turning this off later deletes every file it generated, including
+    seeds you have filled in; the database itself is yours and stays.
+  default: "<% DOC_TYPE == 'theology' %>"
+
+INCLUDE_SENSITIVE_CONTENT:
+  type: bool
+  help: >-
+    Add the sensitive-content standard, the sensitivity-pass skill and the safe-handling
+    workflow for testimony — first-person accounts from real people. Turning this off later
+    deletes every file it generated, including your edits to them.
+  default: false
+  when: "<% DOC_TYPE != 'business' %>"
+
+# Copy-only, through the seed-once block of _exclude: an example the author deletes stays
+# deleted. Adoption passes false (DESIGN.md Section 8).
+SEED_EXAMPLES:
+  type: bool
+  help: >-
+    Include one worked example to learn from (an example <: if DOC_TYPE == 'business'
+    :>proposal<: else :>chapter<: endif :> and its brief<: if DOC_TYPE == 'fiction' :>; with
+    the constructed-language kit, a tiny example language<: endif :>). Delete it when you are
+    done and it never comes back. Answer false when adopting an existing repository.
+  default: true
+
+# ── Policy and locale ────────────────────────────────────────────────────────
+
+# The tier for mechanical work only — renames, checklist ticks, builds. Substantive writing
+# is always Opus and Haiku is never used (.claude/rules/syntek-author/05-model-allocation.md).
+# Business defaults to Opus because a mis-ticked obligation in a contract costs more than the
+# model saving.
+MODEL_MECHANICAL:
+  type: str
+  help: >-
+    Which model does mechanical work — renames, ticks and builds? Substantive writing always
+    uses Opus, and Haiku is never used.
+  choices:
+    - sonnet
+    - opus
+  default: "<% 'opus' if DOC_TYPE == 'business' else 'sonnet' %>"
+
+TIMEZONE:
+  type: str
+  help: Your timezone, as an IANA name — skills use it for dates in filenames and headers
+  default: Europe/London
+  validator: >-
+    <: if '/' not in TIMEZONE and TIMEZONE != 'UTC' :>
+    Use an IANA timezone name, for example Europe/London.
+    <: endif :>
+
+# ── Meta ─────────────────────────────────────────────────────────────────────
+
+DATE:
+  type: str
+  help: >-
+    Baseline date stamped into every metadata header (DD/MM/YYYY, day first). It is answered
+    once and kept, so `copier update` never churns every header in the project.
+  placeholder: 03/10/2026
+  validator: >-
+    <: if DATE | length != 10 or DATE[2] != '/' or DATE[5] != '/'
+       or (DATE[0:2] ~ DATE[3:5] ~ DATE[6:10]) | reject('in', '0123456789') | list | length > 0 :>
+    Use DD/MM/YYYY, for example 03/10/2026.
+    <: elif (DATE[0:2] | int) < 1 or (DATE[0:2] | int) > 31 or (DATE[3:5] | int) < 1 or (DATE[3:5] | int) > 12 :>
+    Use DD/MM/YYYY — day first, then month (01–12).
+    <: endif :>
+
+# ── Computed (never asked, never stored) ─────────────────────────────────────
+#
+# `when: false` hides a question and keeps it out of the answers file, so these are
+# recomputed from DOC_TYPE on every copy and update and can never drift from it (verified in
+# the probe, 03/10/2026). They exist so the spine files can name the content layer and the
+# unit without a conditional at every mention. Like every variant token they may appear only
+# in the spine set (DESIGN.md Section 2, token discipline); a shared file says "the content
+# layer" and routes to .claude/rules/syntek-author/01-layout-and-routing.md instead.
+
+CONTENT_LAYER:
+  type: str
+  default: "<% 'library' if DOC_TYPE == 'business' else 'manuscript' %>"
+  when: false
+
+UNIT_NOUN:
+  type: str
+  default: "<% 'document' if DOC_TYPE == 'business' else 'chapter' %>"
+  when: false
+
+# ── Migrations ───────────────────────────────────────────────────────────────
+#
+# Run on `copier update` only, never on `copier copy`, when the update crosses the declared
+# version. They exist for the one thing Copier's merge cannot do on its own: move files the
+# AUTHOR wrote. Copier only tracks what it generated, so a renamed folder takes its
+# governance pair to the new path and leaves every draft, unit brief and ledger entry behind
+# — with no conflict and no error.
+#
+# NONE AT 0.1.0. The rule from the first release: folder names and workflow numbers are
+# frozen and append-only (DESIGN.md D26), and any release that renames or moves a folder that
+# can hold author work ships a version-keyed migration IN THE SAME COMMIT, or it silently
+# strands that work.
+#
+# Seeds are the second case. .claude/settings.json, .gitignore and the rest of DESIGN.md
+# Section 3.1 are never re-rendered once they exist (D17), so a release that changes what a
+# seed must contain ships that change as a migration too.
+#
+# House shape for a migration script: it lives in migrations/ at this repository's root
+# (outside template/, so it never ships) and is read from the template clone through
+# _copier_conf.src_path. It is idempotent; it never overwrites; it acts only where exactly
+# one destination or value is correct and reports everything else with file and line; it
+# guards on the folder's CONTEXT.md marker, so a folder Copier has not renamed yet is never
+# touched; and it always exits 0, because a non-zero exit aborts every migration declared
+# after it and leaves the project half-upgraded. Key it to the release the folder MOVED in,
+# never the release somebody noticed. The first entry will look like:
+#
+#   - version: v0.2.0
+#     command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-<what>.sh"
+#     when: "<% _stage == 'after' %>"
+_migrations: []
+
+# ── Before an update ─────────────────────────────────────────────────────────
+#
+# DESIGN.md D35. Printed on every `copier update`, BEFORE the questions are asked — which is
+# also why it cannot be tailored to the project: Copier renders it before any answer, the
+# previous ones included, is loaded (checked in the 9.18.2 source, 03/10/2026). So it names
+# what each option-off deletes in every variant, and the author reads the lines for theirs.
+# update-test.sh check 12 proves it is printed; a quiet run (--quiet) suppresses it.
+_message_before_update: |
+
+  Before you answer: turning an option off deletes EVERY file it generated, including the
+  seeds you have filled in (git history keeps the last committed copy). Copy out and commit
+  anything you need first. Your own files are never deleted.
+
+    INCLUDE_PROPOSAL=false           proposal/: theology book-proposal/01-08,
+                                     endorsements/tracker.md; fiction query-letter.md,
+                                     synopsis-short.md, synopsis-long.md, comp-titles.md,
+                                     submissions/tracker.md; both sample/sample-index.md,
+                                     and the proposal/docs/project/ and
+                                     proposal/workflows/local/ index files
+    INCLUDE_WORLDBUILDING=false      creatures, cultures, peoples, history (with
+                                     world/src/history/eras.md), quests, AND the whole
+                                     constructed-language kit
+    INCLUDE_CONLANG=false            the constructed-language kit: tooling/lexicon.py,
+                                     script.py, font.py, tooling/data/, its guides, workflows
+                                     and skills (your languages and their ignored audio stay)
+    INCLUDE_REFERENCES=false         tooling/seed-refs.sql, schema.sql, export_refs.py,
+                                     harvard.csl, standards/referencing/ (references.db stays)
+    INCLUDE_SENSITIVE_CONTENT=false  standards/risk/sensitive-content.md, the testimony
+                                     workflow and sensitivity-pass
+    INCLUDE_DRIVE_SYNC=false         .github/, the Drive push and pull workflows
+
+  DOC_TYPE never changes: the update refuses it, because a different variant is a new project.
+  After any option change, edit by hand the seeds that describe your options: README.md,
+  CONTEXT.md, .claude/CLAUDE.md Section 1, .claude/settings.json and .gitignore.
+
+# ── Post-generation ──────────────────────────────────────────────────────────
+
+_tasks:
+  # ORDER MATTERS IN THIS LIST: Copier runs _tasks top to bottom, on `copy` AND on `update`.
+  # A task that must not touch a live project carries an explicit
+  # `when: "<% _copier_operation == 'copy' %>"`; the absence of one means it runs on every
+  # update. Both shapes are used below. Every task is non-fatal by construction, because a
+  # failing task aborts the whole generation — or the whole update — after the files are
+  # already written.
+  #
+  # There are no `mv` seed tasks (cross-check Section 6.6). Seeds are _skip_if_exists, which
+  # is adoption-safe; an `mv` onto an existing file clobbers it.
+  #
+  # 1. A repository first, because the PreCompact hook locates the project with
+  #    `git rev-parse --show-toplevel`. Guarded by `[ -d .git ]` because adoption is a
+  #    `copier copy` INTO an existing repository, which must never be re-initialised.
+  - command: "[ -d .git ] || git init --initial-branch=main"
+    when: "<% _copier_operation == 'copy' %>"
+
+  # 2. The hook must be executable or Claude Code cannot run it, and a git checkout of the
+  #    template does not always carry the bit. Ungated and idempotent; it never fails, so an
+  #    update in a project whose author removed the hook still completes.
+  - command: "chmod +x .claude/hooks/*.sh 2>/dev/null || true"
+
+  # 3. Build the references database from schema.sql and seed-refs.sql, on copy only and only
+  #    where the pipeline ships. `make init` already refuses to replace an existing database;
+  #    the `[ ! -f ]` guard says so before make is even asked. Non-fatal: without sqlite3 or
+  #    make the project is still complete, and the message says what to run later.
+  - command: >-
+      command -v sqlite3 >/dev/null 2>&1 && command -v make >/dev/null 2>&1 &&
+      [ ! -f tooling/references.db ] && make init
+      || echo 'References database not built here (it needs sqlite3 and make, and never replaces an existing tooling/references.db) — run `make init` when ready.'
+    when: "<% _copier_operation == 'copy' and INCLUDE_REFERENCES %>"

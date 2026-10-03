@@ -1,0 +1,253 @@
+# lexicon.toml — Example Tongue
+#
+# One [[word]] per entry, appended in the order coined; never reorder. Every key is present in
+# every entry, even when empty. Checked by `make lexicon`; inherited words and loans are also
+# checked against sound-changes.toml by `make derive`. proto_form is the parent's phonemic form;
+# entered_after is the last sound-change rule a word did NOT undergo (0 = inherited, all four).
+# The fields are explained in world/docs/reference/lexicon-format.md.
+
+[meta]
+language = "Example Tongue"
+slug = "example-tongue"
+
+[[word]]
+headword = "quaro"
+ipa = "kʷaro"
+pos = "noun"
+senses = ["river", "the course of a life (in songs)"]
+concept = "river"
+roots = ["quar"]
+affixes = ["-om"]
+compound_of = []
+proto_form = "kʷarom"
+drift = "kept the parent's senses"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rule 1 shows here: *kʷarom > kʷaro."
+
+[[word]]
+headword = "quaru"
+ipa = "kʷaru"
+pos = "noun"
+senses = ["water"]
+concept = "water"
+roots = ["quar"]
+affixes = ["-u"]
+compound_of = []
+proto_form = "kʷaru"
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = true
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Irregular, and the reason is a sound change: by rule 2, *kʷaru would have become kʷaro and sounded exactly like quaro 'river'. Speakers kept the old final u in this one everyday word to keep the two apart."
+
+[[word]]
+headword = "mibo"
+ipa = "mibo"
+pos = "noun"
+senses = ["stone", "a boundary stone"]
+concept = "stone"
+roots = ["mip"]
+affixes = ["-u"]
+compound_of = []
+proto_form = "mipu"
+drift = "'stone' → also 'boundary stone', from the stones set at field edges"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rules 2 and 3: *mipu > mipo > mibo."
+
+[[word]]
+headword = "mibiga"
+ipa = "mibiga"
+pos = "noun"
+senses = ["pebble", "a counter in a game", "a vote (cast as a pebble)"]
+concept = ""
+roots = ["mip"]
+affixes = ["-ika"]
+compound_of = []
+proto_form = "mipika"
+drift = "'pebble' → 'game counter' → 'vote'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rule 3 twice: *mipika > mibiga."
+
+[[word]]
+headword = "hebo"
+ipa = "hebo"
+pos = "noun"
+senses = ["ford", "a place where a quarrel is settled"]
+concept = ""
+roots = ["fep"]
+affixes = ["-om"]
+compound_of = []
+proto_form = "fepom"
+drift = "'ford' → also 'place of settlement', because disputes were heard at the fords"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rules 1, 3 and 4: *fepom > fepo > febo > hebo. False-friend check (en.wiktionary.org, 03/10/2026): 'horse' in Karelian and Veps; nothing in Latin, Spanish or English. Judged harmless."
+
+[[word]]
+headword = "hebado"
+ipa = "hebado"
+pos = "adjective"
+senses = ["crossed over", "the far bank (as a noun)", "the other side in a quarrel"]
+concept = ""
+roots = ["fep"]
+affixes = ["-atu"]
+compound_of = []
+proto_form = "fepatu"
+drift = "'the far bank' → 'the other side in a quarrel'"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rules 2, 3 and 4: *fepatu > fepato > febado > hebado."
+
+[[word]]
+headword = "hepom"
+ipa = "hepom"
+pos = "noun"
+senses = ["the Crossing: the rite that sets the dead on the water"]
+concept = ""
+roots = ["fep"]
+affixes = ["-om"]
+compound_of = []
+proto_form = ""
+drift = "'ford' → 'the rite of passage at death'"
+loan_from = "example-proto"
+loan_source = "fepom"
+irregular = false
+stratum = "late-loan"
+entered_after = 3
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "A learned borrowing, taken back from the old language for ceremony after rules 1 to 3 had run: it keeps its final m and its p, and only rule 4 turned its f to h. It stands beside the inherited hebo 'ford' as a doublet."
+
+[[word]]
+headword = "kelo"
+ipa = "kelo"
+pos = "noun"
+senses = ["fire", "a household (counted by its hearth)"]
+concept = "fire"
+roots = ["kel"]
+affixes = ["-u"]
+compound_of = []
+proto_form = "kelu"
+drift = "'fire' → also 'household', since households are counted by their fires"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rule 2: *kelu > kelo. False-friend check (en.wiktionary.org, 03/10/2026): Finnish 'a dry, dead pine', Esperanto 'cellar'; nothing in Latin, Spanish or English. Judged harmless."
+
+[[word]]
+headword = "mipfebo"
+ipa = "mipfebo"
+pos = "noun"
+senses = ["a crossing on stepping stones", "a bridge"]
+concept = ""
+roots = ["mip", "fep"]
+affixes = ["-om"]
+compound_of = []
+proto_form = "mipfepom"
+drift = "'stepping-stone crossing' → any bridge"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "inherited"
+entered_after = 0
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Rule 3 voices only the p between vowels; the p before f stays, and rule 4 leaves the f, which is not word-initial."
+
+[[word]]
+headword = "-ri"
+ipa = "ri"
+pos = "affix"
+senses = ["one who keeps or tends"]
+concept = ""
+roots = []
+affixes = []
+compound_of = []
+proto_form = ""
+drift = ""
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "coinage"
+entered_after = 4
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "A suffix of the daughter's own, with no source in the parent; it arose after every sound change, so it has undergone none."
+
+[[word]]
+headword = "hebori"
+ipa = "hebori"
+pos = "noun"
+senses = ["ford-keeper", "a go-between"]
+concept = ""
+roots = []
+affixes = ["-ri"]
+compound_of = ["hebo"]
+proto_form = ""
+drift = "'one who keeps the ford' → 'a go-between', since quarrels were settled at fords"
+loan_from = ""
+loan_source = ""
+irregular = false
+stratum = "coinage"
+entered_after = 4
+echo = ""
+derived = []
+native = ""
+first_used = ""
+notes = "Formed in the daughter from hebo 'ford' and -ri; a new coinage, so make derive has nothing to check."

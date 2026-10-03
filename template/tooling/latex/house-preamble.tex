@@ -1,0 +1,109 @@
+% house-preamble.tex — the house LaTeX preamble for every business document (XeLaTeX).
+%
+% Every .tex document starts from skeleton.tex, which loads this file with
+% \input{house-preamble}; `make pdf FILE=…` puts tooling/latex/ and assets/ on TEXINPUTS
+% so it is found from any folder. Template-owned: `copier update` merges improvements here.
+%
+% THE BRAND IS NOT SET HERE. Colours and fonts below are neutral defaults. The author's
+% own values live in house-brand.tex (an optional file the author creates in
+% tooling/latex/, never shipped by the template), loaded at the end of this file, so a
+% template update never touches the brand. standards/brand/brand-guide.md maps each name.
+% house-brand.tex holds only \definecolor{house…}{HTML}{…} lines and font settings
+% (\setmainfont{…}, \setfontfamily\headingfont{…}), each naming an installed font.
+%
+% Macros:
+%   \dnote{…}                     drafting note: muted, bracketed. One whose text opens with
+%                                  AUTHOR TO CONFIRM or VERIFY and a colon is a flag that
+%                                  `make flags` lists; none may survive into an issued document.
+%   \fillme                        a field the author must complete by hand:
+%                                  prints [AWAITING USER INPUT].
+%   clause environment             auto-numbered clauses 1. / 1.1 / (a); \label{cl:slug}
+%                                  then clause~\ref{cl:slug}. Render twice so \ref resolves.
+%   \ctitle{…}                     the title of a level-1 clause.
+%   \ins{…} \del{…} \cmt{…}        redline: inserted, deleted, commented text.
+%   \srule                         a short centred divider.
+%   \housetitle{title}{name}{date} the title block.
+%   housenotice environment        the disclaimer block (wording from
+%                                  standards/brand/disclaimers.md).
+%   housecontrol environment       the document-control block: one `Label & Value \\` per row.
+
+\usepackage{fontspec}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{newunicodechar}
+\usepackage[normalem]{ulem}
+\usepackage{hyperref}
+\usepackage{sectsty}
+
+% ── Neutral defaults (override in house-brand.tex) ───────────────────────────────────
+\definecolor{housebody}{HTML}{1A1A1A}
+\definecolor{houseprimary}{HTML}{1A1A1A}
+\definecolor{houselink}{HTML}{1F4E79}
+\definecolor{housemuted}{HTML}{5F6368}
+\definecolor{housedivider}{HTML}{C8CCD0}
+\definecolor{housesurface}{HTML}{F1F3F4}
+\definecolor{chgred}{HTML}{B3261E}
+\definecolor{cmtblue}{HTML}{1F4E79}
+
+\IfFontExistsTF{TeX Gyre Heros}{\setmainfont{TeX Gyre Heros}}{}
+\IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}}{}
+\newcommand{\headingfont}{\relax}  % house-brand.tex may set it: \setfontfamily\headingfont{…}
+
+% Symbols the body font may lack, when a fallback font is installed.
+\IfFontExistsTF{DejaVu Sans}{%
+  \newfontfamily\symfallback{DejaVu Sans}%
+  \newunicodechar{✓}{{\symfallback ✓}}%
+  \newunicodechar{✗}{{\symfallback ✗}}%
+  \newunicodechar{☐}{{\symfallback ☐}}%
+  \newunicodechar{☑}{{\symfallback ☑}}%
+  \newunicodechar{⚠}{{\symfallback ⚠}}%
+}{}
+\newunicodechar{^^^^fe0f}{}
+
+% ── Layout ───────────────────────────────────────────────────────────────────────────
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\setlength{\emergencystretch}{3em}
+\setcounter{secnumdepth}{-\maxdimen} % headings unnumbered: clauses carry the numbers
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% ── House macros ─────────────────────────────────────────────────────────────────────
+\newcommand{\dnote}[1]{{\color{housemuted}\small\itshape [#1]}}
+\newcommand{\fillme}{\textbf{\textcolor{chgred}{[AWAITING USER INPUT]}}}
+\newcommand{\ins}[1]{\textcolor{chgred}{#1}}
+\newcommand{\del}[1]{\textcolor{chgred}{\sout{#1}}}
+\newcommand{\cmt}[1]{{\small\leavevmode\textcolor{cmtblue}{#1}}}
+\newcommand{\srule}{\begin{center}{\color{housedivider}\rule{0.5\linewidth}{0.5pt}}\end{center}}
+
+\newlist{clause}{enumerate}{3}
+\setlist[clause,1]{label=\textbf{\arabic*.}, ref=\arabic*, leftmargin=2.2em, labelsep=0.6em, itemsep=0.5em, topsep=0.35em}
+\setlist[clause,2]{label=\arabic{clausei}.\arabic*, ref=\arabic{clausei}.\arabic*, leftmargin=2.6em, labelsep=0.6em, itemsep=0.35em, topsep=0.3em}
+\setlist[clause,3]{label=(\alph*), ref=\arabic{clausei}.\arabic{clauseii}(\alph*), leftmargin=2.0em, labelsep=0.5em, itemsep=0.25em, topsep=0.25em}
+\newcommand{\ctitle}[1]{\textbf{\headingfont\color{houseprimary}#1}}
+
+\newcommand{\housetitle}[3]{%
+  {\headingfont\fontsize{18}{22}\selectfont\bfseries\color{houseprimary}#1\par}%
+  \medskip
+  {\color{housemuted}#2\quad|\quad#3\par}%
+  \bigskip}
+
+\newenvironment{housenotice}{\begin{quote}\small\itshape}{\end{quote}\medskip}
+
+\newenvironment{housecontrol}
+  {\par\small\tabularx{\linewidth}{@{}>{\leavevmode\bfseries\color{housemuted}}p{3.6cm}X@{}}\toprule}
+  {\bottomrule\endtabularx\par\medskip}
+
+% ── The author's brand (optional; never shipped by the template) ─────────────────────
+\InputIfFileExists{house-brand}{}{}
+
+\color{housebody}
+\sectionfont{\headingfont\bfseries\color{houseprimary}}
+\subsectionfont{\headingfont\bfseries\color{houseprimary}}
+\subsubsectionfont{\headingfont\bfseries\color{houseprimary}}
+\hypersetup{colorlinks=true, linkcolor=houselink, urlcolor=houselink, citecolor=houselink, linktoc=all}

@@ -1,0 +1,26 @@
+# language.toml — Example Tongue
+#
+# Who speaks the language, where it sits in its family, and what real languages it is
+# modelled on. Read by tooling/lexicon.py (check, derive, family). The fields are explained in
+# world/docs/reference/lexicon-format.md; the method in world/docs/reference/building-a-language.md.
+
+name = "Example Tongue"
+slug = "example-tongue"
+kind = "daughter"                     # proto | daughter | isolate
+parent = "example-proto"
+culture = "world/src/cultures/example-culture.md"
+speakers = "The people in the example culture, in the book's present: the ford-keepers' kin along the river, from the falls down to the marshes."
+values = ["water", "river bed", "footing", "crossing"]
+word_order = "SOV"
+morphology = "agglutinative"
+marks = ["formality"]
+ignores = ["grammatical gender", "case", "tense"]
+
+[[inspiration]]
+language = "Old Spanish (medieval Castilian)"
+period = "medieval"
+family = "Romance (Indo-European)"
+weight = "primary"
+borrows = ["phonology"]
+sources = ["research/src/setting/example-model-old-spanish.md"]
+notes = "Taken: the shape of the model's changes from Latin (final m lost, final u to o, stops voiced between vowels, word-initial f to h), learned words borrowed back from the old language that escape the earlier changes, and b, d and g softened between vowels. Not taken: any Spanish word, or the model's vowel changes."

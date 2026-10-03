@@ -1,0 +1,436 @@
+# Google Drive Push — repository to Drive
+# <%PROJECT_NAME%>
+#
+# Uploads the issued documents under library/src/ to the connected Google Drive folder whenever
+# a commit lands on main that touches that path. Only issued artefacts leave the repository
+# (standards/risk/BUSINESS.md rule 6):
+#   - the PDF beside a .tex whose leading comment block reads `% status: final`;
+#   - .docx and .xlsx files;
+#   - a .md whose frontmatter reads `status: final`.
+# Never pushed, whatever their status: anything under a drafts/ folder; every CONTEXT.md,
+# CLAUDE.md and README.md; an ingest reading copy (<name>.reading.md); a Drive copy the pull
+# saved beside a tracked file (<name>.drive-DD-MM-YYYY.<ext>); and every .tex source. A PDF,
+# .md or other file that is not issued is listed as held back in the log.
+#
+# Moves and deletions are mirrored too: when a synced file is moved or deleted in the repository,
+# its copy at the old path on Drive is moved to the Drive bin (recoverable for 30 days), and any
+# Drive folder left empty is binned as well.
+#
+# Manual dispatch with scope all-files considers every file under library/src/ and uploads the
+# issued ones; it never removes anything from Drive. So does a push with no earlier commit to
+# compare with (the first push to main).
+#
+# The Drive folder must be inside a SHARED DRIVE, with the service account added to that shared
+# drive as a Content manager. A service account cannot own files, so it can create them only in a
+# shared drive: a folder in someone's My Drive will not work, and the step 'Check the Drive folder
+# is in a shared drive' stops with that message before anything is uploaded.
+#
+# Authentication uses Workload Identity Federation: no service-account key is stored.
+#
+# Required GitHub Actions secrets (setup: .github/workflows/CONTEXT.md):
+#   WORKLOAD_IDENTITY_PROVIDER   the provider's resource name (projects/…/providers/…)
+#   SERVICE_ACCOUNT_EMAIL        the service account, a Content manager of the shared drive
+#   GOOGLE_DRIVE_FOLDER_ID       the ID of the root folder for this repository, in a shared drive
+
+name: Push Documents to Google Drive
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'library/src/**'
+      - '!library/src/**/drafts/**'
+
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Which files to consider'
+        required: true
+        default: 'changed-only'
+        type: choice
+        options:
+          - changed-only
+          - all-files
+
+# One sync at a time across push and pull, so neither undoes the other mid-run.
+concurrency:
+  group: google-drive-sync
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  push-to-drive:
+    name: Upload issued documents from library/src/ to Google Drive
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write   # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Google API client library
+        run: pip install --quiet google-api-python-client google-auth
+
+      - name: Check the Drive folder is in a shared drive
+        env:
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: |
+          python - <<'PYEOF'
+          import os
+          import google.auth
+          from googleapiclient.discovery import build
+          from googleapiclient.errors import HttpError
+
+          credentials, _ = google.auth.default(scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=credentials)
+          try:
+              folder = service.files().get(
+                  fileId=os.environ['GOOGLE_DRIVE_FOLDER_ID'],
+                  fields='id, name, mimeType, driveId', supportsAllDrives=True,
+              ).execute()
+          except HttpError as err:
+              print(f'::error::The service account cannot open the folder GOOGLE_DRIVE_FOLDER_ID '
+                    f'names. Check the secret, and that the account is a member of the shared '
+                    f'drive: {err}')
+              raise SystemExit(1)
+          if folder.get('mimeType') != 'application/vnd.google-apps.folder':
+              print('::error::GOOGLE_DRIVE_FOLDER_ID names a file, not a folder.')
+              raise SystemExit(1)
+          if not folder.get('driveId'):
+              print('::error::The Drive folder is in My Drive, not in a shared drive. A service '
+                    'account cannot own files, so it can upload only into a shared drive. Move '
+                    'the folder into a shared drive, add the service account to that drive as a '
+                    'Content manager, and set GOOGLE_DRIVE_FOLDER_ID to the folder there '
+                    '(.github/workflows/CONTEXT.md, Setup).')
+              raise SystemExit(1)
+          print(f"Drive folder '{folder['name']}' is in a shared drive.")
+          PYEOF
+
+      - name: Determine files to push
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+          SCOPE: ${{ github.event.inputs.scope }}
+        run: |
+          set -euo pipefail
+          LIST="$RUNNER_TEMP/drive-sync"
+          mkdir -p "$LIST"
+          : > "$LIST/changed.txt"
+          : > "$LIST/deleted.txt"
+          FROM=""
+          TO="HEAD"
+          if [ "$EVENT_NAME" = "push" ]; then
+            # Diff across the full push range so every commit in a multi-commit push is captured.
+            FROM="$BEFORE"
+            TO="$AFTER"
+          elif [ "$SCOPE" = "changed-only" ]; then
+            # Manual dispatch with changed-only: no push context, so compare with the last commit.
+            FROM="$(git rev-parse -q --verify 'HEAD~1^{commit}' || true)"
+            [ -n "$FROM" ] || echo "::notice::main has one commit; considering every file under library/src/."
+          fi
+          # The first push to main reports an all-zero 'before', and a force-push can name a
+          # commit no longer in the history. Either way there is nothing to compare with, so every
+          # file is considered and nothing is removed from Drive.
+          if [ -n "$FROM" ] && { [ -z "${FROM//0/}" ] || ! git cat-file -e "$FROM^{commit}" 2>/dev/null; }; then
+            echo "::notice::No earlier commit to compare with; considering every file under library/src/."
+            FROM=""
+          fi
+          # --no-renames reports a move as a deletion of the old path plus an addition of the
+          # new one, so the old copy can be removed from Drive. --diff-filter=d lists everything
+          # except deletions (to upload); --diff-filter=D lists only deletions (to bin).
+          # core.quotePath=false stops git escaping non-ASCII filenames, which the upload step
+          # would otherwise treat as missing and skip.
+          if [ -n "$FROM" ]; then
+            git -c core.quotePath=false diff --name-only --no-renames --diff-filter=d "$FROM" "$TO" -- library/src/ > "$LIST/changed.txt"
+            git -c core.quotePath=false diff --name-only --no-renames --diff-filter=D "$FROM" "$TO" -- library/src/ > "$LIST/deleted.txt"
+          elif [ -d library/src ]; then
+            find library/src -type f > "$LIST/changed.txt"
+          fi
+          python - <<'PYEOF'
+          import os, pathlib, re
+
+          LIST       = pathlib.Path(os.environ['RUNNER_TEMP'], 'drive-sync')
+          SYNCED     = {'.pdf', '.docx', '.xlsx', '.md'}
+          GOVERNANCE = {'CONTEXT.md', 'CLAUDE.md', 'README.md'}
+          DRIVE_COPY = re.compile(r'\.drive-\d{2}-\d{2}-\d{4}\.[A-Za-z0-9]+$')
+          TEX_FINAL  = re.compile(r'%\s*status:\s*final')
+          MD_FINAL   = re.compile(r'''status:\s*(['"]?)final\1\s*(#.*)?''')
+
+          def never_synced(rel):
+              # By name alone, so it also decides which deleted paths are binned on Drive.
+              p = pathlib.PurePosixPath(rel)
+              return ('drafts' in p.parts[:-1] or p.name in GOVERNANCE
+                      or p.name.endswith('.reading.md') or DRIVE_COPY.search(p.name) is not None
+                      or p.suffix.lower() not in SYNCED)
+
+          def tex_is_final(tex):
+              # The leading block is the run of % lines at the top of the file.
+              with tex.open(encoding='utf-8', errors='replace') as fh:
+                  for line in fh:
+                      if not line.startswith('%'):
+                          return False
+                      if TEX_FINAL.fullmatch(line.strip()):
+                          return True
+              return False
+
+          def md_is_final(md):
+              with md.open(encoding='utf-8', errors='replace') as fh:
+                  if fh.readline().strip() != '---':
+                      return False
+                  for raw in fh:
+                      line = raw.strip()
+                      if line in ('---', '...'):
+                          return False
+                      # Only a top-level key counts: a nested `status: final` (a section's,
+                      # say) must never make the whole document look issued.
+                      if raw[:1] in (' ', '\t'):
+                          continue
+                      if MD_FINAL.fullmatch(line):
+                          return True
+              return False
+
+          def held_back(p):
+              """Why an existing file is not an issued artefact, or None when it is."""
+              ext = p.suffix.lower()
+              if ext == '.pdf':
+                  tex = p.with_suffix('.tex')
+                  if not tex.is_file():
+                      return 'no .tex beside it'
+                  return None if tex_is_final(tex) else f'{tex.name} is not at % status: final'
+              if ext == '.md':
+                  return None if md_is_final(p) else 'its frontmatter is not at status: final'
+              return None   # .docx and .xlsx
+
+          def read(name):
+              text = (LIST / name).read_text(encoding='utf-8')
+              return [line.strip() for line in text.splitlines() if line.strip()]
+
+          candidates = []
+          for rel in read('changed.txt'):
+              candidates.append(rel)
+              if rel.lower().endswith('.tex'):
+                  # A .tex moved to final issues the PDF beside it, even when that PDF was
+                  # committed earlier and did not change in this push.
+                  pdf = pathlib.Path(rel).with_suffix('.pdf')
+                  if pdf.is_file():
+                      candidates.append(str(pdf))
+
+          push, seen = [], set()
+          for rel in candidates:
+              if rel in seen or never_synced(rel) or not pathlib.Path(rel).is_file():
+                  continue
+              seen.add(rel)
+              reason = held_back(pathlib.Path(rel))
+              if reason:
+                  print(f'  Held back (not issued): {rel}: {reason}')
+              else:
+                  push.append(rel)
+
+          delete = [rel for rel in read('deleted.txt') if not never_synced(rel)]
+
+          (LIST / 'push.txt').write_text(''.join(f'{r}\n' for r in push), encoding='utf-8')
+          (LIST / 'delete.txt').write_text(''.join(f'{r}\n' for r in delete), encoding='utf-8')
+          print('--- Files queued for upload ---')
+          print('\n'.join(push) or '  (none)')
+          print('--- Files moved or deleted (old copies to bin on Drive) ---')
+          print('\n'.join(delete) or '  (none)')
+          PYEOF
+
+      - name: Push files to Google Drive
+        env:
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: |
+          python - <<'PYEOF'
+          import os, pathlib
+          import google.auth
+          from googleapiclient.discovery import build
+          from googleapiclient.errors import HttpError
+          from googleapiclient.http import MediaFileUpload
+
+          SCOPES      = ['https://www.googleapis.com/auth/drive']
+          ROOT_FOLDER = os.environ['GOOGLE_DRIVE_FOLDER_ID']
+          LIST        = pathlib.Path(os.environ['RUNNER_TEMP'], 'drive-sync')
+          FILES       = (LIST / 'push.txt').read_text(encoding='utf-8').splitlines()
+          DELETES     = (LIST / 'delete.txt').read_text(encoding='utf-8').splitlines()
+
+          if not any(f.strip() for f in FILES + DELETES):
+              print('No files to upload or remove.')
+              raise SystemExit(0)
+
+          credentials, _ = google.auth.default(scopes=SCOPES)
+          service         = build('drive', 'v3', credentials=credentials)
+
+          MIME_MAP = {
+              '.md':   'text/markdown',
+              '.pdf':  'application/pdf',
+              '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }
+
+          folder_cache = {}
+
+          def q(value):
+              # Drive query strings need apostrophes and backslashes escaped with a backslash.
+              return value.replace('\\', '\\\\').replace("'", "\\'")
+
+          def get_or_create_folder(name, parent_id):
+              key = f'{parent_id}/{name}'
+              if key in folder_cache:
+                  return folder_cache[key]
+              query = (
+                  f"name='{q(name)}' and '{parent_id}' in parents "
+                  f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
+              )
+              results = service.files().list(
+                  q=query, fields='files(id)',
+                  supportsAllDrives=True, includeItemsFromAllDrives=True,
+              ).execute()
+              if results.get('files'):
+                  fid = results['files'][0]['id']
+              else:
+                  meta = {
+                      'name': name,
+                      'mimeType': 'application/vnd.google-apps.folder',
+                      'parents': [parent_id],
+                  }
+                  fid = service.files().create(
+                      body=meta, fields='id', supportsAllDrives=True,
+                  ).execute()['id']
+                  print(f'  Created folder on Drive: {name}')
+              folder_cache[key] = fid
+              return fid
+
+          def upload_or_update(local_path, parent_id):
+              p    = pathlib.Path(local_path)
+              mime = MIME_MAP.get(p.suffix.lower(), 'application/octet-stream')
+              name = p.name
+              query   = f"name='{q(name)}' and '{parent_id}' in parents and trashed=false"
+              results = service.files().list(
+                  q=query, fields='files(id)',
+                  supportsAllDrives=True, includeItemsFromAllDrives=True,
+              ).execute()
+              media   = MediaFileUpload(local_path, mimetype=mime, resumable=True)
+              if results.get('files'):
+                  # Drive keeps the copy it replaces in the file's revision history.
+                  service.files().update(
+                      fileId=results['files'][0]['id'], media_body=media,
+                      supportsAllDrives=True,
+                  ).execute()
+                  print(f'  Updated:  {local_path}')
+              else:
+                  service.files().create(
+                      body={'name': name, 'parents': [parent_id]},
+                      media_body=media, fields='id', supportsAllDrives=True,
+                  ).execute()
+                  print(f'  Uploaded: {local_path}')
+
+          def find_folder(name, parent_id):
+              # Look a folder up without creating it: resolving an old path must never
+              # recreate the folders the file was moved out of.
+              results = service.files().list(
+                  q=(f"name='{q(name)}' and '{parent_id}' in parents "
+                     f"and mimeType='application/vnd.google-apps.folder' and trashed=false"),
+                  fields='files(id)',
+                  supportsAllDrives=True, includeItemsFromAllDrives=True,
+              ).execute()
+              found = results.get('files', [])
+              return found[0]['id'] if found else None
+
+          emptied = {}   # folder id -> depth below the root, for the tidy-up pass
+
+          def trash_old_copy(rel):
+              # Move the Drive copy at a path that no longer exists in the repository to the bin.
+              parts  = pathlib.Path(rel).parts[2:]
+              parent = ROOT_FOLDER
+              chain  = []
+              for part in parts[:-1]:
+                  parent = find_folder(part, parent)
+                  if parent is None:
+                      print(f'  Not on Drive: {rel}')
+                      return
+                  chain.append(parent)
+              results = service.files().list(
+                  q=(f"name='{q(parts[-1])}' and '{parent}' in parents and trashed=false "
+                     f"and mimeType!='application/vnd.google-apps.folder'"),
+                  fields='files(id)',
+                  supportsAllDrives=True, includeItemsFromAllDrives=True,
+              ).execute()
+              found = results.get('files', [])
+              if not found:
+                  print(f'  Not on Drive: {rel}')
+                  return
+              for item in found:
+                  try:
+                      service.files().update(
+                          fileId=item['id'], body={'trashed': True}, supportsAllDrives=True,
+                      ).execute()
+                  except HttpError as err:
+                      print(f'::warning::Could not move {rel} to the Drive bin: {err}')
+                      return
+              print(f'  Binned:   {rel}')
+              for depth, folder_id in enumerate(chain, start=1):
+                  emptied[folder_id] = depth
+
+          # 1. Upload new and changed files first, so a moved file is safely at its new path on
+          #    Drive before its old copy is binned. A failed upload stops the step here.
+          for rel in FILES:
+              rel = rel.strip()
+              if not rel:
+                  continue
+              p = pathlib.Path(rel)
+              if not p.exists():
+                  print(f'  Skipped (deleted or missing locally): {rel}')
+                  continue
+              # Strip the 'library/src' prefix to mirror the subfolder structure on Drive:
+              # library/src/proposals/x.pdf -> Drive root / proposals / x.pdf
+              parts  = p.parts[2:]
+              parent = ROOT_FOLDER
+              for part in parts[:-1]:
+                  parent = get_or_create_folder(part, parent)
+              upload_or_update(str(p), parent)
+
+          # 2. Old copies of moved or deleted files go to the Drive bin.
+          for rel in DELETES:
+              rel = rel.strip()
+              if rel and not pathlib.Path(rel).exists():
+                  trash_old_copy(rel)
+
+          # 3. Bin any folder the moves left empty, deepest first, after the uploads so a
+          #    folder that has just received a file is never removed. The root is never touched.
+          for folder_id, _ in sorted(emptied.items(), key=lambda kv: -kv[1]):
+              try:
+                  children = service.files().list(
+                      q=f"'{folder_id}' in parents and trashed=false",
+                      fields='files(id)', pageSize=1,
+                      supportsAllDrives=True, includeItemsFromAllDrives=True,
+                  ).execute().get('files', [])
+                  if not children:
+                      service.files().update(
+                          fileId=folder_id, body={'trashed': True}, supportsAllDrives=True,
+                      ).execute()
+                      print(f'  Binned empty folder: {folder_id}')
+              except HttpError as err:
+                  print(f'::warning::Could not tidy an empty Drive folder ({folder_id}): {err}')
+
+          print('Push complete.')
+          PYEOF

@@ -1,0 +1,26 @@
+# business.answers.yml — an INVENTED example of answers for a business document library.
+#
+# A shape to copy, not a project: every value below is made up. Copy this file outside the
+# repository you are adopting, change every value, then pass it to `copier copy` with
+# --data-file (README.md, "Adopting an existing repository"). Keys are the questions in
+# copier.yml; a question left out here is asked, or takes its default under --defaults.
+PROJECT_NAME: Client Documents
+PROJECT_SLUG: client-documents
+DOC_TYPE: business
+PROJECT_DESCRIPTION: >-
+  The contracts, policies, proposals and client correspondence of a two-person design
+  studio, kept as one consistent, versioned library.
+AUTHOR_NAME: Harbour Lane Studio
+AUTHOR_FIRST_NAME: Casey
+AUDIENCE: client
+READER_TEST: a busy client reading on a phone between meetings, who must know what to do next
+TRADING_NAME: Harbour Lane Studio
+JURISDICTION: England and Wales
+CURRENCY: "£"
+BUSINESS_VOICE_PERSON: plural
+INCLUDE_DRIVE_SYNC: false
+INCLUDE_REFERENCES: false
+SEED_EXAMPLES: false
+MODEL_MECHANICAL: opus
+TIMEZONE: Europe/London
+DATE: 03/10/2026

@@ -1,0 +1,265 @@
+# Google Drive Pull — Drive to repository
+# <%PROJECT_NAME%>
+#
+# Brings documents added or changed on the connected Google Drive folder into library/src/, then
+# commits and pushes any new file back to main. Native Google Docs and Sheets are exported as
+# .docx and .xlsx. A pull NEVER overwrites a file the repository already holds, because the
+# repository is the record (versioning: supersede, never rewrite):
+#   - a Drive file with no counterpart in the repository is added at the same path;
+#   - a Drive file identical to its counterpart is left alone;
+#   - a Drive file that differs from its counterpart is saved beside it as
+#     <name>.drive-DD-MM-YYYY.<ext> (the date of the pull) and reported in the run's summary
+#     and in the commit message, for the author to compare and decide; the tracked file is not
+#     touched, and the same Drive copy is never saved twice.
+# Never written by a pull, whatever is on Drive: a PDF beside a .tex (the repository renders and
+# issues it); anything in a drafts/ folder; every CONTEXT.md, CLAUDE.md and README.md; an ingest
+# reading copy (<name>.reading.md); and any file already named as a Drive copy.
+#
+# Runs daily at 06:00 UTC, and by hand from the Actions tab.
+#
+# The Drive folder sits inside a shared drive, with the service account added to that drive as a
+# Content manager: the push workflow needs it there, because a service account cannot own files.
+#
+# Authentication uses Workload Identity Federation: no service-account key is stored.
+#
+# Required GitHub Actions secrets (setup: .github/workflows/CONTEXT.md):
+#   WORKLOAD_IDENTITY_PROVIDER   the provider's resource name (projects/…/providers/…)
+#   SERVICE_ACCOUNT_EMAIL        the service account, a Content manager of the shared drive
+#   GOOGLE_DRIVE_FOLDER_ID       the ID of the root folder for this repository, in a shared drive
+#   GIT_AUTHOR_NAME              the display name for the automated commits
+#   GIT_AUTHOR_EMAIL             the email address for the automated commits
+
+name: Pull Documents from Google Drive
+
+on:
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: '0 6 * * *'
+
+  workflow_dispatch:
+
+# One sync at a time across push and pull, so neither undoes the other mid-run.
+concurrency:
+  group: google-drive-sync
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  pull-from-drive:
+    name: Bring new Drive files into library/src/
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # Required to push the commit back to main
+      id-token: write   # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Use GITHUB_TOKEN so the subsequent push is authorised.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Google API client library
+        run: pip install --quiet google-api-python-client google-auth
+
+      - name: Bring Drive files into library/src/
+        env:
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: |
+          python - <<'PYEOF'
+          import datetime, hashlib, io, os, pathlib, re, zipfile
+          import google.auth
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+
+          SCOPES      = ['https://www.googleapis.com/auth/drive.readonly']
+          ROOT_FOLDER = os.environ['GOOGLE_DRIVE_FOLDER_ID']
+          LOCAL_ROOT  = pathlib.Path('library/src')
+          LIST        = pathlib.Path(os.environ['RUNNER_TEMP'], 'drive-sync')
+          TODAY       = datetime.datetime.now(datetime.timezone.utc).strftime('%d-%m-%Y')
+
+          # Only the file types this repository manages, matching the push workflow.
+          SUPPORTED_MIME = {
+              'text/markdown',
+              'application/pdf',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }
+
+          # Native Google Workspace types that must be exported rather than downloaded.
+          # Google MIME type -> (export MIME type, file extension).
+          EXPORT_MIME = {
+              'application/vnd.google-apps.document': (
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  '.docx',
+              ),
+              'application/vnd.google-apps.spreadsheet': (
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  '.xlsx',
+              ),
+          }
+
+          GOVERNANCE = {'CONTEXT.md', 'CLAUDE.md', 'README.md'}
+          DRIVE_COPY = re.compile(r'\.drive-\d{2}-\d{2}-\d{4}\.[A-Za-z0-9]+$')
+
+          added, conflicts, unchanged = [], [], 0
+
+          credentials, _ = google.auth.default(scopes=SCOPES)
+          service         = build('drive', 'v3', credentials=credentials)
+
+          def sanitise_name(name):
+              """Replace characters that are invalid or awkward in local filenames."""
+              for ch in ('/', '\\', ':', '*', '?', '"', '<', '>', '|'):
+                  name = name.replace(ch, '-')
+              return name.strip()
+
+          def fetch(request):
+              buf = io.BytesIO()
+              dl = MediaIoBaseDownload(buf, request)
+              done = False
+              while not done:
+                  _, done = dl.next_chunk()
+              return buf.getvalue()
+
+          def fingerprint(data, ext):
+              # A .docx or .xlsx is a zip archive whose entry dates and document properties can
+              # change on every export; compare what the entries hold instead.
+              if ext in ('.docx', '.xlsx'):
+                  try:
+                      with zipfile.ZipFile(io.BytesIO(data)) as z:
+                          h = hashlib.sha256()
+                          for entry in sorted(z.namelist()):
+                              if entry.startswith('docProps/'):
+                                  continue
+                              h.update(entry.encode() + b'\0' + z.read(entry) + b'\0')
+                          return h.hexdigest()
+                  except zipfile.BadZipFile:
+                      pass
+              return hashlib.sha256(data).hexdigest()
+
+          def never_written(dest):
+              if dest.name in GOVERNANCE:
+                  return 'governance file'
+              if dest.name.endswith('.reading.md') or DRIVE_COPY.search(dest.name):
+                  return 'never synced'
+              if dest.suffix.lower() == '.pdf' and dest.with_suffix('.tex').exists():
+                  return 'a PDF beside a .tex: the repository renders and issues it'
+              return None
+
+          def place(data, dest):
+              """Add a new file; never overwrite one the repository holds."""
+              global unchanged
+              if not dest.exists():
+                  dest.write_bytes(data)
+                  added.append(str(dest))
+                  print(f'  Added:      {dest}')
+                  return
+              ext  = dest.suffix.lower()
+              mark = fingerprint(data, ext)
+              if fingerprint(dest.read_bytes(), ext) == mark:
+                  unchanged += 1
+                  return
+              saved = re.compile(re.escape(dest.stem) + r'\.drive-\d{2}-\d{2}-\d{4}' + re.escape(dest.suffix) + '$')
+              for other in sorted(dest.parent.iterdir()):
+                  if saved.match(other.name) and fingerprint(other.read_bytes(), ext) == mark:
+                      print(f'  Already saved beside it: {other}')
+                      return
+              copy = dest.with_name(f'{dest.stem}.drive-{TODAY}{dest.suffix}')
+              if copy.exists():
+                  print(f'::warning file={dest}::A different Drive copy of {dest} was saved earlier '
+                        f'today; this newer one is saved by the next pull.')
+                  return
+              copy.write_bytes(data)
+              conflicts.append(f'{dest} -> {copy.name}')
+              print(f'::warning file={dest}::The Drive copy differs from {dest}; saved beside it as '
+                    f'{copy.name}. The repository file was not changed.')
+
+          def download_folder(folder_id, local_dir):
+              local_dir.mkdir(parents=True, exist_ok=True)
+              page_token = None
+              while True:
+                  response = service.files().list(
+                      q=f"'{folder_id}' in parents and trashed=false",
+                      fields='nextPageToken, files(id, name, mimeType)',
+                      pageToken=page_token,
+                      supportsAllDrives=True, includeItemsFromAllDrives=True,
+                  ).execute()
+                  for item in response.get('files', []):
+                      name = sanitise_name(item['name'])
+                      mime = item['mimeType']
+                      if mime == 'application/vnd.google-apps.folder':
+                          if name == 'drafts':
+                              print(f'  Skipped drafts folder: {local_dir / name}')
+                              continue
+                          download_folder(item['id'], local_dir / name)
+                          continue
+                      if mime in EXPORT_MIME:
+                          export_mime, ext = EXPORT_MIME[mime]
+                          dest = local_dir / (name if name.lower().endswith(ext) else name + ext)
+                      elif mime in SUPPORTED_MIME:
+                          dest = local_dir / name
+                      else:
+                          continue
+                      reason = never_written(dest)
+                      if reason:
+                          print(f'  Skipped ({reason}): {dest}')
+                          continue
+                      if mime in EXPORT_MIME:
+                          data = fetch(service.files().export_media(fileId=item['id'], mimeType=export_mime))
+                      else:
+                          data = fetch(service.files().get_media(fileId=item['id'], supportsAllDrives=True))
+                      place(data, dest)
+                  page_token = response.get('nextPageToken')
+                  if not page_token:
+                      break
+
+          download_folder(ROOT_FOLDER, LOCAL_ROOT)
+
+          LIST.mkdir(parents=True, exist_ok=True)
+          (LIST / 'conflicts.txt').write_text(''.join(f'{c}\n' for c in conflicts), encoding='utf-8')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+              summary.write('## Google Drive pull\n\n')
+              summary.write(f'- Added: {len(added)}\n- Unchanged: {unchanged}\n')
+              summary.write(f'- Differing Drive copies saved beside the repository file: {len(conflicts)}\n')
+              for c in conflicts:
+                  summary.write(f'  - `{c}`\n')
+          print(f'Pull complete: {len(added)} added, {unchanged} unchanged, '
+                f'{len(conflicts)} differing Drive copies saved beside their files.')
+          PYEOF
+
+      - name: Commit and push new files (if any)
+        env:
+          BOT_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
+          BOT_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
+        run: |
+          set -euo pipefail
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git add library/src/
+          if git diff --cached --quiet; then
+            echo "No changes detected: nothing on Drive is new to the repository."
+          else
+            SUBJECT="chore: pull document updates from Google Drive [$(date -u '+%d/%m/%Y %H:%M UTC')]"
+            CONFLICTS="$RUNNER_TEMP/drive-sync/conflicts.txt"
+            if [ -s "$CONFLICTS" ]; then
+              BODY="$(printf 'Drive copies that differ from the repository, saved beside the tracked file for the author to compare:\n'; cat "$CONFLICTS")"
+              git commit -m "$SUBJECT" -m "$BODY"
+            else
+              git commit -m "$SUBJECT"
+            fi
+            git push
+          fi
