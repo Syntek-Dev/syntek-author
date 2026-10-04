@@ -1,0 +1,172 @@
+% compare.tex — the look of the comparison that make compare prints.
+%
+% make compare reads the ledger with tooling/compare.py, which writes each section's record as a
+% Pandoc document; Pandoc sets it with this file pasted into its preamble (--include-in-header),
+% after tooling/defaults.yaml and tooling/compare.yaml. Nothing else uses it. Template-owned:
+% `copier update` merges improvements here; the typefaces are set in tooling/project.mk.
+%
+% Its macros exist only in the comparison: compare.py writes them, and they never appear in a
+% document or a styled chapter, so tooling/texcheck.py does not know them. Every name starts
+% \cmp, so none can clash with a house macro (business's \ins, \del and \cmt above all).
+%
+% Who changed a word: an Okabe–Ito colour, which colour-blind readers can tell apart, and a line
+% of its own, so a page printed in greyscale still says who.
+%   AI            #0072B2 blue        added: dashed underline   removed: crossed out (////)
+%   author-note   #009E73 green       added: dotted underline   removed: double strike
+%   author        #D55E00 vermillion  added: solid underline    removed: single strike
+%   unattributed  #6F6F6F grey        added: wavy underline     removed: wavy strike
+% Unattributed is a change in an entry written before the record: shown, never assigned.
+% The dashes and dots are centred on each word (\cleaders) at a short step, so even a one-letter
+% word carries one; a citation, code or maths takes its step's line around a box.
+%
+% The macros, <who> one of ai, note, author, unatt:
+%   \cmp<who>ins{…} \cmp<who>del{…}   a word added or removed, in the redline
+%   \cmptint<who>{…}                  a changed word in the three columns: the colour and line
+%                                     of the step that removed it (Original) or added it
+%   \cmpink{<who>}{…}                 the colour alone, for a line break or raw LaTeX, which
+%                                     no line can mark
+%   \cmpcover{…} \cmplegend \cmpsectionbreak   the cover, the key, a new section's page
+%   cmphead cmpitem cmpcont cmpquote cmpepigraph cmpbreak cmpcode cmptablerow cmpline cmpterm
+%                                     environments that keep a paragraph's shape (a heading, a
+%                                     list item, numbered or not, a quotation, a table row…)
+%                                     inside the redline
+%   cmplandscape                      a landscape page: the paper itself turns, because paracol
+%                                     ships its own pages and pdflscape's rotation never
+%                                     reaches them; the next portrait page gets its full height
+%   \cmpcolheads{…}{…}{…}              the three column headings, repeated at the top of every
+%                                     landscape page the columns run on to
+%   cmpcolumns \cmprow \cmpnextcol    three columns (paracol): a new aligned row, the next column
+%
+% Needs xcolor, ulem, paracol and array (TeX Live: latex-recommended, plain-generic and
+% latex-extra, which symbol-fallback.tex's newunicodechar already needs).
+
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\usepackage{paracol}
+\usepackage{array}
+\makeatletter
+% Link text takes the colour of the step that changed it, and unchanged link text stays black:
+% the colours here say who, so hyperref's own link colours are turned off. Deferred, because
+% Pandoc loads hyperref and sets its colours after this file.
+\AtBeginDocument{\hypersetup{hidelinks}}
+
+% ── Colours ───────────────────────────────────────────────────────────────────────────
+\definecolor{cmpai}{HTML}{0072B2}
+\definecolor{cmpnote}{HTML}{009E73}
+\definecolor{cmpauthor}{HTML}{D55E00}
+\definecolor{cmpunatt}{HTML}{6F6F6F}
+\definecolor{cmpmuted}{HTML}{555555}
+\definecolor{cmprule}{HTML}{BBBBBB}
+
+% ── Who changed a word ────────────────────────────────────────────────────────────────
+\renewcommand{\ULthickness}{0.5pt}
+% A double strike: two thin rules, repeated along the words as ulem repeats its marks.
+\newcommand*\cmp@dstrike{\bgroup\markoverwith{\hbox to 0.2em{%
+  \rlap{\rule[0.3ex]{0.2em}{0.45pt}}\rule[0.72ex]{0.2em}{0.45pt}\hss}}\ULon}
+% A wavy strike: ulem's wave raised through the middle of the words.
+\newcommand*\cmp@wstrike{\bgroup\markoverwith{\raise0.2ex\hbox{\sixly\char58}}\ULon}
+% Dashes and dots centred on each word at a short step: ulem's own sit on a fixed grid a
+% little over half an em wide, which can leave a short word with none.
+\newcommand*\cmp@dash{\bgroup\let\ULleaders\cleaders\UL@setULdepth
+  \ifx\UL@on\UL@onin\advance\ULdepth2\p@\fi
+  \markoverwith{\kern.05em\vtop{\kern\ULdepth\hrule width .22em}\kern.05em}\ULon}
+\newcommand*\cmp@dots{\bgroup\let\ULleaders\cleaders\UL@setULdepth
+  \ifx\UL@on\UL@onin\advance\ULdepth2\p@\fi
+  \markoverwith{\lower\ULdepth\hbox{\kern.03em.\kern.03em}}\ULon}
+\newcommand{\cmpaiins}[1]{{\color{cmpai}\cmp@dash{#1}}}
+\newcommand{\cmpaidel}[1]{{\color{cmpai}\xout{#1}}}
+\newcommand{\cmpnoteins}[1]{{\color{cmpnote}\cmp@dots{#1}}}
+\newcommand{\cmpnotedel}[1]{{\color{cmpnote}\cmp@dstrike{#1}}}
+\newcommand{\cmpauthorins}[1]{{\color{cmpauthor}\uline{#1}}}
+\newcommand{\cmpauthordel}[1]{{\color{cmpauthor}\sout{#1}}}
+\newcommand{\cmpunattins}[1]{{\color{cmpunatt}\uwave{#1}}}
+\newcommand{\cmpunattdel}[1]{{\color{cmpunatt}\cmp@wstrike{#1}}}
+% In the three columns a changed word keeps its step's colour and underline whether that step
+% added it or removed it: the column says which.
+\newcommand{\cmptintai}[1]{{\color{cmpai}\cmp@dash{#1}}}
+\newcommand{\cmptintnote}[1]{{\color{cmpnote}\cmp@dots{#1}}}
+\newcommand{\cmptintauthor}[1]{{\color{cmpauthor}\uline{#1}}}
+\newcommand{\cmptintunatt}[1]{{\color{cmpunatt}\uwave{#1}}}
+\newcommand{\cmpink}[2]{{\color{cmp#1}#2}}
+
+% ── The cover and the key ─────────────────────────────────────────────────────────────
+% Pandoc's own title block would print the work's title alone; the cover names the comparison
+% too, so \title and \author are kept for it and \maketitle prints nothing.
+\def\cmp@work{}
+\def\cmp@by{}
+\let\cmp@title\title
+\renewcommand{\title}[1]{\gdef\cmp@work{#1}\cmp@title{#1}}
+\let\cmp@author\author
+\renewcommand{\author}[1]{\gdef\cmp@by{#1}\cmp@author{#1}}
+\renewcommand{\maketitle}{}
+\newcommand{\cmpcover}[1]{\par\begingroup\raggedright
+  {\color{cmpmuted}\cmp@work\ifx\cmp@work\@empty\else\ifx\cmp@by\@empty\else\ \textperiodcentered\ \fi\fi
+   \cmp@by\par}\vspace{0.4em}
+  {\LARGE\bfseries Comparison\par}\vspace{0.2em}
+  {\Large #1\par}\vspace{0.8em}\endgroup}
+\newcommand{\cmpsectionbreak}{\clearpage}
+\newcommand{\cmplegend}{\par\begingroup\small\renewcommand{\arraystretch}{1.35}%
+  \noindent\begin{tabular}{@{}l l l >{\raggedright\arraybackslash}p{0.42\linewidth}@{}}
+  \textbf{Who} & \textbf{Added} & \textbf{Removed} & \textbf{Which changes}\\
+  \textcolor{cmpai}{AI} & \cmpaiins{added words} & \cmpaidel{removed words} &
+    an AI suggestion the author accepted\\
+  \textcolor{cmpnote}{Author's note} & \cmpnoteins{added words} & \cmpnotedel{removed words} &
+    the AI applying the author's own note or answer\\
+  \textcolor{cmpauthor}{Author} & \cmpauthorins{added words} & \cmpauthordel{removed words} &
+    the author's own edit\\
+  \textcolor{cmpunatt}{Unattributed} & \cmpunattins{added words} & \cmpunattdel{removed words} &
+    a change in an entry written before the record: shown, never assigned\\
+  \end{tabular}\par\endgroup}
+
+% ── A paragraph's shape inside the redline ────────────────────────────────────────────
+\newlength\cmp@indent
+\setlength\cmp@indent{1.6em}
+\newcommand*\cmp@size[1]{\ifcase#1\or\Large\or\large\or\normalsize\else\normalsize\fi}
+\newenvironment{cmphead}[1]{\par\addvspace{0.5em}\cmp@size{#1}\bfseries}{\par\nobreak}
+\newenvironment{cmpitem}[2]{\par\leftskip=#1\cmp@indent
+  \def\cmp@label{#2}\ifx\cmp@label\@empty\def\cmp@label{\textbullet}\fi
+  \everypar{\llap{\color{black}\cmp@label\hskip0.5em}\everypar{}}}{\par}
+\newenvironment{cmpcont}[1]{\par\leftskip=#1\cmp@indent}{\par}
+\newenvironment{cmpquote}[1]{\par\leftskip=#1\cmp@indent\rightskip=\dimexpr\cmp@indent\relax plus 2em}{\par}
+\newenvironment{cmpepigraph}{\par\leftskip=0.3\linewidth\itshape}{\par}
+\newenvironment{cmpbreak}{\par\centering}{\par}
+\newenvironment{cmpcode}{\par\ttfamily\small\raggedright}{\par}
+\newenvironment{cmptablerow}{\par\small\leftskip=\cmp@indent}{\par}
+\newenvironment{cmpline}{\par}{\par}
+\newenvironment{cmpterm}{\par\bfseries}{\par}
+
+% ── The landscape page and its three columns ──────────────────────────────────────────
+\newlength\cmp@margin
+\setlength\cmp@margin{15mm}
+\newenvironment{cmplandscape}{\clearpage
+  \@tempdima=\paperwidth \paperwidth=\paperheight \paperheight=\@tempdima
+  \pdfpagewidth=\paperwidth \pdfpageheight=\paperheight
+  \textwidth=\paperwidth \advance\textwidth by -2\cmp@margin
+  \textheight=\paperheight \advance\textheight by -2\cmp@margin
+  \advance\textheight by -\footskip
+  \hsize=\textwidth \linewidth=\textwidth \columnwidth=\textwidth
+  \vsize=\textheight \@colht=\textheight \@colroom=\textheight
+  \oddsidemargin=\cmp@margin \advance\oddsidemargin by -1in \evensidemargin=\oddsidemargin
+  \headsep=8pt \topmargin=\cmp@margin \advance\topmargin by -1in
+  \advance\topmargin by -\headheight \advance\topmargin by -\headsep \hoffset=0pt \voffset=0pt
+  \thispagestyle{plain}\pagestyle{cmpcolumns}}{\clearpage\aftergroup\cmp@portrait}
+% LaTeX keeps the column height of the page it last shipped, the landscape one, for the page
+% after: give the next portrait page its own height back once the landscape group has closed.
+\def\cmp@portrait{\global\@colht\textheight \global\@colroom\textheight
+  \global\vsize\textheight}
+% Every landscape page after the first repeats the column headings, aligned over the columns.
+\def\cmp@heads{}
+\newcommand{\cmpcolheads}[3]{\def\cmp@heads{%
+  \cmp@headcell{#1}\hskip1.6em\cmp@headcell{#2}\hskip1.6em\cmp@headcell{#3}}}
+\newcommand*\cmp@headcell[1]{\makebox[\dimexpr(\textwidth-3.2em)/3\relax][l]{%
+  \small\color{cmpmuted}\strut #1}}
+\def\ps@cmpcolumns{\def\@oddhead{\cmp@heads\hfil}\let\@evenhead\@oddhead
+  \def\@oddfoot{\hfil\thepage\hfil}\let\@evenfoot\@oddfoot}
+\newcommand*\cmp@column{\raggedright\small}
+\newcommand*\cmp@rowrule{{\color{cmprule}\rule{\linewidth}{0.4pt}}}
+\newenvironment{cmpcolumns}{\setlength\columnsep{1.6em}\setlength\columnseprule{0.4pt}%
+  \colseprulecolor{cmprule}\begin{paracol}{3}\cmp@column}{\end{paracol}}
+\newcommand{\cmprow}{\switchcolumn[0]*[\cmp@rowrule]\cmp@column}
+\newcommand{\cmpnextcol}{\switchcolumn\cmp@column}
+
+\makeatother

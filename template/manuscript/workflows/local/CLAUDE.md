@@ -14,7 +14,7 @@ can never reach them.
 ## How to work here
 
 - **Routing:** `run-workflow` resolves an intent here before it looks in `manuscript/workflows/`.
-  A folder here with the same name as a template folder replaces it entirely.
+  A folder here with the same slug as a template folder, whatever its number, replaces it entirely.
 - **Model:** **Opus** for writing or changing a procedure; the mechanical tier for copying files
   and adding index rows (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps to add a procedure:**

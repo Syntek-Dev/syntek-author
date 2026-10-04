@@ -23,9 +23,11 @@ are authoritative.
   mechanical tier for listing entries, appending approved entries and marking entries learned
   (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps:** gather the unlearned entries → read the voice notes, style sheet and
-  terminology → compare each AI original with its author final → read the rejections → find the
-  patterns worth a note → seed from samples (when the notes are empty) → propose → write only
-  what is approved → mark the promoted entries learned → record and hand back.
+  terminology → walk each entry's record (the author's revisions, the gap to the author final;
+  an entry without `format: 2`, its AI original beside its author final) → read the rejections,
+  then the implicit ones → find the patterns worth a note → seed from samples (when the notes are
+  empty) → propose → write only what is approved → mark the promoted entries learned → record and
+  hand back.
 - **Definition of done:** every proposed note cites the author's own before-and-after; only
   approved entries were written; every promoted entry read is marked `learned: true`, and no
   unpromoted one; any conflict with the style sheet went to the author.
@@ -36,6 +38,9 @@ are authoritative.
   and `standards/style/terminology.md` change only with the author's approval of each entry.
 - **Evidence, not impressions.** No note without at least two sections showing it, and no example
   that is not the author's own text.
+- **The author's changes, not the AI's.** Words an `ai` or `author-note` revision brought in are
+  not the author's evidence, even once accepted; an AI change the author later undid is an
+  implicit rejection. A difference read from an entry without `format: 2` is weaker evidence.
 - **Voice is not mechanics, and not content.** A spelling or punctuation habit is proposed for the
   style sheet; a corrected fact belongs in the evidence. Neither is a voice note.
 - **In the voice notes, write only under `## Learned`.** The rest is the author's own writing; do

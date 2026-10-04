@@ -23,7 +23,8 @@ model: opus
 
 **Gates**
 
-- [ ] Zero `AUTHOR TO CONFIRM`, `VERIFY` and `[AWAITING USER INPUT]` in the draft. · _sonnet_
+- [ ] Zero `AUTHOR TO CONFIRM`, `VERIFY` and `[AWAITING USER INPUT]` in the draft; any answer given at promotion logged `author-note`, and recorded as an `author-note` revision if it changed the words. · _sonnet_
+- [ ] No decision row in the ledger entry left open (a holding line chosen first). · _sonnet_
 - [ ] Draft frontmatter complete; any section gate in `standards/verification/` passed. · _sonnet_
 - [ ] Bound for a `.tex`: no citation key (`[@`) in the draft; if there was one, stopped for the author to write the reference in full. · _sonnet_
 - [ ] Document not yet circulated; if it has been, stopped and a new version opened first. · _opus_
@@ -39,7 +40,7 @@ model: opus
 
 **Records**
 
-- [ ] Ledger: `## Author final` written, `promoted` date and `change_ratio` set; on a re-promotion, `learned: false`. · _sonnet_
+- [ ] Ledger: `## Author final` written, `promoted` date and `change_ratio` set; on a re-promotion, the previous final kept in the revision chain and `learned: false`. · _sonnet_
 - [ ] Row added or updated in `standards/style/ledger/provenance.md`. · _sonnet_
 - [ ] Draft at `promoted`; brief's `sections:` list mirrored; dated line in `.claude/MEMORY.md` `## Status`. · _sonnet_
 - [ ] Document status left unchanged. · _sonnet_

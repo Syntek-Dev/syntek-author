@@ -41,6 +41,6 @@ template into one client's document without loosening its terms.
 ## Output & naming
 
 - **Produces:** the revised draft, in place.
-- **Also writes:** rows in the ledger entry's `## Improvement decisions`; the section's status in
-  the unit brief.
+- **Also writes:** rows in the ledger entry's `## Improvement decisions` and its revisions (for a
+  template adaptation, its `## Author original` too); the section's status in the unit brief.
 - **Does not touch:** the AI original in the ledger, the deliverable `.tex`, or any other section.

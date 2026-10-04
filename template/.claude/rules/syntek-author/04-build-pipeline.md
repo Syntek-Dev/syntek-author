@@ -72,6 +72,15 @@ A revision is a new file with a new version
 **`ISSUE` and `FORCE` are switches.** Each takes `1`, `yes` or `true`, and is off when left out.
 Any other value is refused with an error, so `ISSUE=0` never issues and `FORCE=0` never replaces.
 <: endif :>
+**The comparison.** `make compare` prints the ledger's record of how each section moved from its
+original to its final text, for the author and for disclosure:
+
+```text
+standards/style/ledger/ (each section's record) + the brief's sections: list (the order)
+  └─► tooling/compare.py ──► Pandoc (house filter, tooling/compare.yaml after tooling/defaults.yaml,
+        tooling/latex/compare.tex) ──► XeLaTeX, twice ──► build/compare/<unit>.pdf
+```
+
 ---
 
 ## 2. The targets
@@ -96,6 +105,7 @@ Any other value is refused with an error, so `ISSUE=0` never issues and `FORCE=0
 <: endif :>| `make flags` | Lists every `AUTHOR TO CONFIRM` and `VERIFY` flag, and every open item `FLAG_EXTRA_RE` matches<: if DOC_TYPE == 'business' :> (by default `[AWAITING USER INPUT]` and `\fillme`, the field that prints it)<: endif :>, by file and line; with no `SCOPE`, <: if DOC_TYPE == 'business' :>the brand folders `BRAND_DIRS` names (by default `standards/brand/`), <: endif :>the project brief `.claude/CLAUDE.md` and `00-project.md` too. Give `SCOPE=` for the work in hand<: if DOC_TYPE == 'business' :>; `SCOPE=<file>` lists what stops that document's issue<: endif :> |
 | `make lint` | Flags lines in `src/` that hold more than one sentence, en_US spellings<: if DOC_TYPE == 'business' :>, and em dashes in client copy<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and paragraphs with more than three unglossed constructed-language words<: endif :> |
 | `make provenance` | Prints the per-unit AI-disclosure table from the ledger, counting only `accepted` and `rejected` decisions as AI suggestions (an `author-note` row is the author's own) |
+| `make compare` | Writes `build/compare/<unit>.pdf` for every unit with ledger entries: a cover with the key and the unit's disclosure table, then each section in the brief's plan order, as a redline (each added word marked, and each removed word struck, by who changed it: the AI, the author's note or the author) and a landscape page in three columns (Original, AI edit, Final). An entry written before the record shows the stages it has, unattributed. `UNIT=` and `SECTION=` narrow it; `FORMAT=tex` stops at the LaTeX |
 <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>| `make lexicon` | Checks every language (inventory, phonotactics, romanisation against IPA, roots, missing fields, a missing real-world model) and the names register against them |
 | `make derive` | Re-derives each daughter language from its parent through its ordered sound changes, and reports every word that differs |
 | `make coverage` | Lists the core concepts and pronouns each language has no word for yet |
@@ -118,6 +128,11 @@ more than one language has a script.
 <: endif :><: else :>**`FILE`** names one document. A `.tex` deliverable is rendered twice because LaTeX resolves
 `\ref` and `\pageref` on the second pass; a single pass leaves question marks in the proof.
 <: endif :>
+**`UNIT`** names one unit: the brief's filename without `.md`, number included (`03-the-ford`),
+or a path that ends in it. **`SECTION=<slug>`** narrows `make compare` to one section, written to
+`build/compare/<unit>--<section>.pdf`, and needs `UNIT`. The working files stay in
+`build/compare/<unit>/`.
+
 ---
 
 ## 3. Rules
@@ -126,7 +141,8 @@ more than one language has a script.
   rebuild. Settings deny those edits. The rule that creates `build/` also writes
   `build/.gitignore`, so nothing in it is ever committed.
 - **Drafts never reach a build.** Work in progress lives in `drafts/` folders, which every build
-  excludes by path.
+  excludes by path. `make compare` reads no draft: it prints the ledger's record, earlier states
+  included, and its PDF stays in `build/`, never issued, committed or synced.
 - **No target reads what Git ignores.** `make flags`, `make lint` and every other scan keep only
   the files Git does not ignore (`git check-ignore`; a negation that re-includes a file counts as
   not ignored), because ignored folders hold credentials and local-only material and these
@@ -147,8 +163,8 @@ more than one language has a script.
   with the machine.
 - **Citation keys are `authorYYYY`, lower-case, with `a`, `b`, `c` to disambiguate, and are never
   renamed**: the prose cites them, and a renamed key breaks every citation silently.
-<: endif :>- **Proofs are ungated.** A proof can be built at any status, so the author can read the work as a
-  reader will. Gates govern promotion and `final`<: if DOC_TYPE == 'business' :>, and issuing<: endif :>, not builds.
+<: endif :>- **Proofs are ungated.** A proof, or the comparison, can be built at any status, so the author
+  can read the work as a reader will. Gates govern promotion and `final`<: if DOC_TYPE == 'business' :>, and issuing<: endif :>, not builds.
 - **Read the proof before reporting it.** The `build` skill confirms the file list `make` echoed,
   opens the output, and reports what it found. A build that succeeded is not a proof that was read.
 - **Never hand over a lossy conversion as the deliverable.** If a conversion drops a table, a
@@ -166,8 +182,8 @@ more than one language has a script.
 |---|---|
 | `make`, `python3` (3.11 or later) | every target |
 | `git` | `make flags`, `make lint` and every other list of files a target reads, to leave out every file Git ignores |
-| `pandoc` | <: if DOC_TYPE == 'business' :>`make docx`, `make pdf` of a Markdown document, and `make section-check`<: else :>`make docx`, `make pdf`, `make epub`, `make book`, `make tex`, `make tex-check`<: endif :> |
-| XeLaTeX (TeX Live) | `make pdf`<: if DOC_TYPE != 'business' :>, `make book`, `make print`<: endif :> |
+| `pandoc` | <: if DOC_TYPE == 'business' :>`make docx`, `make pdf` of a Markdown document, `make section-check`<: else :>`make docx`, `make pdf`, `make epub`, `make book`, `make tex`, `make tex-check`<: endif :>, `make compare` |
+| XeLaTeX (TeX Live) | `make pdf`<: if DOC_TYPE != 'business' :>, `make book`, `make print`<: endif :>, `make compare` (with the TeX Live packages `xcolor`, `ulem`, `paracol` and `array`; with `FORMAT=tex` it needs Pandoc alone) |
 <: if INCLUDE_REFERENCES :>| `sqlite3` | `make init`, `make dump` |
 <: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>| `uv` | `make font`, and the script fonts `make print` builds |
 | `espeak-ng` (optional) | the pronunciation fallback when no speech service is configured |

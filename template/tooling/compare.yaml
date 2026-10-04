@@ -1,0 +1,23 @@
+# compare.yaml — Pandoc defaults for the comparison that make compare prints.
+#
+# make compare passes --defaults=tooling/defaults.yaml --defaults=tooling/compare.yaml, in that
+# order. A second defaults file replaces each key it names and keeps every other, so the
+# comparison keeps the project's language, metadata and references and is laid out here. Never
+# with -V: Pandoc appends a -V value to the defaults' own, so -V documentclass=article on a book
+# reads 'bookarticle'. Template-owned: `copier update` merges improvements here. The typefaces
+# are set in tooling/project.mk; the colours and line styles in tooling/latex/compare.tex.
+
+variables:
+  documentclass: article
+  papersize: a4
+  fontsize: 10pt
+  geometry:
+    - margin=18mm
+  linkcolor: black
+
+metadata:
+  # Citations print as they would in a proof, but the comparison needs no reference list.
+  suppress-bibliography: true
+
+# One LaTeX line per paragraph, so no line break falls inside a macro's argument.
+wrap: none

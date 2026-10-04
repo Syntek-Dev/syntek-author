@@ -186,10 +186,21 @@ Each case follows `standards/verification/verification.md` Section 3.
   `library/workflows/04-promote-a-section/`; the review resumes from that rung.
 - **Any other agreed wording change** goes back through the section the same way and is promoted
   again; the stages the document has already passed are run again over that section before it
-  moves on.
+  moves on. Whenever a section is reopened, and its ledger entry carries `format: 2`, its previous
+  `## Author final` goes into `## Revisions` before the new round's first revision, as
+  `standards/style/ledger/CLAUDE.md` sets out.
 - **An agreed correction** (a slip, a spelling or punctuation fix, a figure the fact check
   corrected) may be applied in the `.tex` directly. Make the same correction in the section's
   draft, log it as a row in the section's ledger entry, and run
   `make section-check FILE=<path>.tex SECTION=<slug> DRAFT=<draft>.md`, so the draft and the
   document still hold the same words. A spelling or punctuation fix reopens only V6. List each
   correction in the hand-back.
+- **The ledger follows the document.** A correction to a promoted section changes its promoted
+  text, so its ledger entry is brought up to date in the same pass, following the steps for a
+  correction after promotion in `standards/style/ledger/CLAUDE.md`. In an entry carrying
+  `format: 2`, the previous `## Author final` goes into `## Revisions` unless the last state in the
+  chain already equals it, then the section's draft as found if it differs from the last recorded
+  state, then the corrected draft as one `ai` revision with its rows. In every entry, the
+  corrected draft's body becomes the `## Author final`, `learned` goes back to `false`, the ratio
+  is rewritten, the section's row in `standards/style/ledger/provenance.md` is updated, and
+  `python3 tooling/provenance.py check` reports no problems.

@@ -32,8 +32,11 @@ author has not said, ask, recommending `light`. _Substantive._
 
 If the author's text is not yet a draft file (pasted into chat, or written elsewhere), create it at
 `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md` with `status: author-draft` and
-`origin: author`, and its ledger entry with `## AI original` left empty. Check first that neither
-exists; never overwrite. _Mechanical._
+`origin: author`, and its ledger entry with `format: 2`, `## AI original` left empty and the
+draft's body, as saved, under `## Author original`. Check first that neither exists; never
+overwrite. In an existing `format: 2` entry, first record what `standards/style/ledger/CLAUDE.md`
+requires before a change: a missing Author original, then any hand-edits since the last recorded
+state as an `author` revision. _Mechanical._
 
 ## 3. Read the brief, the voice and the neighbours
 
@@ -99,8 +102,10 @@ _Mechanical._
 
 Add a row to the ledger's `## Improvement decisions` for every proposal: number, proposal, reason,
 accepted or rejected, and the author's note if they gave one. Rejections matter most: they are the
-clearest evidence of the author's voice. Set `status: improved` (or leave it if nothing was
-accepted), set `last_updated`, and mirror the status in the brief. _Mechanical._
+clearest evidence of the author's voice. If anything was accepted, append the draft as it now
+stands as an `ai` revision, `improve-section (<strength>)`, with this pass's rows. Set
+`status: improved` (or leave it if nothing was accepted), set `last_updated`, and mirror the
+status in the brief. _Mechanical._
 
 ## 11. Hand back
 

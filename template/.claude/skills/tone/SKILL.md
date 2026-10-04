@@ -43,6 +43,8 @@ These are the procedure of record — do not restate them at length here.
 - `00-project.md` `## Brief` — the voice person the business writes in;
   `standards/style/voice-notes.md` — the marks learned from the author's own edits.
 - `library/docs/reference/document-anatomy.md` — which families keep the formal register.
+- `standards/style/ledger/CONTEXT.md` and its `CLAUDE.md` — how a section's accepts, rejects and
+  revisions are logged.
 
 ## How to run the tone pass
 
@@ -96,9 +98,15 @@ These are the procedure of record — do not restate them at length here.
    review workflow's guardrails set: a slip (a dash, a spelling, a casing) as an agreed correction
    in the document, listed in the hand-back; a reworded sentence back through the library's adapt
    or improve workflow and promotion, so the section's ledger stays true. Log every accept and
-   reject in the section's ledger entry. Then compare the frozen list from step 3 with the document:
-   every item must be byte-identical. *Complete when:* the accepted changes are in, the frozen list
-   is unchanged, and any difference has been reverted and reported.
+   reject in the section's ledger entry. An agreed correction to a promoted section is recorded in
+   its entry as the workflow's 'Applying agreed fixes' sets out. One applied to a section draft
+   whose entry carries `format: 2` is recorded as `standards/style/ledger/CLAUDE.md` sets out:
+   first the entry is brought level with the draft as found (its empty Author original, a reopened
+   section's previous final, any hand-edits as an `author` revision); then the corrected draft
+   goes in as one `ai` revision naming this skill and its rows (none when no word changed). Then
+   compare the frozen list from step 3 with the document: every item must be byte-identical.
+   *Complete when:* the accepted changes are in and recorded, the frozen list is unchanged, and
+   any difference has been reverted and reported.
 
 8. **Hand back.** Report what changed, what was declined, any voice decision still open, and the
    frozen-list result. Run as gate V6.1, hand the verdict to the review workflow, which dates the

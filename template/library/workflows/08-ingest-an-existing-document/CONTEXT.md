@@ -42,7 +42,8 @@ brief).
   never issued.
 - **For a record:** a register row (and an approval record if it was executed).
 - **For a working source or a template seed:** a unit brief, one section draft per planned section
-  at `author-draft`, and a ledger entry for each with an empty `## AI original`.
+  at `author-draft`, and a ledger entry for each with an empty `## AI original` and the copied
+  text as its `## Author original`.
 
 ## The failure this procedure exists to prevent
 

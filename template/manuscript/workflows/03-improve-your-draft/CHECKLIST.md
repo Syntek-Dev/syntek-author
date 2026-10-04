@@ -17,7 +17,8 @@ model: opus
 ## Pre-Conditions
 
 - [ ] Read `.claude/CLAUDE.md` and `.claude/MEMORY.md`, then this folder's `CONTEXT.md` and `CLAUDE.md`. · _sonnet_
-- [ ] Draft located in the chapter's drafts folder, with frontmatter and a ledger entry (created if missing, `origin: author`). · _sonnet_
+- [ ] Draft located in the chapter's drafts folder, with frontmatter and a ledger entry (created if missing, `origin: author`, `format: 2`, the draft as its Author original). · _sonnet_
+- [ ] Hand-edits since the ledger's last recorded state recorded as an `author` revision before any proposal. · _sonnet_
 - [ ] Strength agreed with the author, or `light` used and said so. · _opus_
 - [ ] `standards/style/voice-notes.md`, the style sheet and the `improve-section` mode file read. · _opus_
 
@@ -43,6 +44,7 @@ model: opus
 
 - [ ] Only accepted proposals applied; no meaning changed. · _sonnet_
 - [ ] Every proposal logged in the ledger, accepted or rejected, with the author's words where given. · _sonnet_
+- [ ] If anything was accepted, an `ai` revision appended with the strength and the pass's rows; it matches the draft. · _sonnet_
 - [ ] Draft at `status: improved`, `last_updated` set, status mirrored in the brief. · _sonnet_
 
 ## Done When

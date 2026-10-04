@@ -34,7 +34,9 @@ Reach for a **different** procedure when: the AI wrote the draft and the author 
 - **A supportive proofreading report:** what and where, the correction offered, recurring items
   grouped.
 - **The improved draft**, in place, with only the accepted proposals applied, at `status: improved`.
-- **Ledger rows** for every proposal, accepted or rejected, with the author's note.
+- **Ledger rows** for every proposal, accepted or rejected, with the author's note; the author's
+  text as it was before the first pass, as the entry's `## Author original`; and an `ai` revision
+  holding the text after the accepted changes.
 
 ## The failure this procedure exists to prevent
 

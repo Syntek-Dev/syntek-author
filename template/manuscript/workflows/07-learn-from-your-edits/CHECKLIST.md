@@ -16,15 +16,16 @@ model: opus
 ## Pre-Conditions
 
 - [ ] Read `.claude/CLAUDE.md` and `.claude/MEMORY.md`, then this folder's `CONTEXT.md` and `CLAUDE.md`. · _sonnet_
-- [ ] Unlearned ledger entries listed, the promoted ones marked; too few raised with the author. · _sonnet_
+- [ ] Unlearned ledger entries listed, the promoted ones marked (a reopened one counts as unpromoted); too few raised with the author. · _sonnet_
 - [ ] `standards/style/voice-notes.md`, `standards/style/style-sheet.md` and `standards/style/terminology.md` read. · _opus_
 
 ## Execution Checklist
 
 **Evidence**
 
-- [ ] Each promoted AI original read beside its author final; changes noted by kind. · _opus_
-- [ ] Every improvement-decisions table read, rejections first. · _opus_
+- [ ] Each promoted entry's record walked: its `author` revisions, the gap to its author final and any author original the author wrote taken as the author's evidence, and no word an `ai` or `author-note` revision brought in; changes noted by kind. · _opus_
+- [ ] An entry mined in an earlier run whose final has been replaced since read only after its last `promoted …` revision; an entry without `format: 2` read as its AI original beside its author final, and marked weaker evidence. · _opus_
+- [ ] Every improvement-decisions table read, rejections first, each against the state it was proposed for; implicit rejections (an AI change the author later undid) ranked just below. · _opus_
 - [ ] Patterns kept only where at least two sections show them. · _opus_
 - [ ] Voice separated from mechanics, terms and corrected facts; each pattern's home named. · _opus_
 - [ ] When the notes were empty: marks drawn from the author's samples, each quoted; no samples raised with the author. · _opus_
@@ -38,12 +39,12 @@ model: opus
 **Recording**
 
 - [ ] Approved notes appended under `## Learned`, and approved rules and terms to the style sheet and terminology, dated, each with one example; nothing else changed. · _sonnet_
-- [ ] `learned: true` set on every promoted entry read, and on no unpromoted one; nothing else in the entries changed. · _sonnet_
+- [ ] `learned: true` set on every promoted entry read, and on no unpromoted or reopened one; nothing else in the entries changed. · _sonnet_
 - [ ] Any overturned voice decision superseded, with a date, in `.claude/MEMORY.md` Decisions (mapped in `00-project.md` `## Memory headings`). · _sonnet_
 - [ ] Handed back: notes added, notes declined, conflicts raised, entries marked. · _opus_
 
 ## Done When
 
 - [ ] **Every note written cites the author's own text and was approved by the author.** · _opus_
-- [ ] Every promoted entry read is marked learned; every unpromoted one is still unlearned. · _sonnet_
+- [ ] Every promoted entry read is marked learned; every unpromoted or reopened one is still unlearned. · _sonnet_
 - [ ] No standard changed beyond the approved entries. · _opus_

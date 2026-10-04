@@ -24,7 +24,7 @@ model: opus
 
 **Before changing a word**
 
-- [ ] Author's hand edits, if any, listed and the draft set to `author-revised` first. · _sonnet_
+- [ ] Author's hand edits, if any, found against the ledger's last recorded state, listed, recorded as an `author` revision, and the draft set to `author-revised` first. · _sonnet_
 - [ ] Notes numbered, each mapped to the sentences it reaches; unclear notes asked about, one question each. · _opus_
 - [ ] **Notes asking the AI to decide a commitment, a price or a date put back to the author as questions.** · _opus_
 
@@ -39,13 +39,14 @@ model: opus
 
 - [ ] One draft per section of the new document, placeholders filled only from the author or the client's facts. · _opus_
 - [ ] Template clause order and labels kept; every instructed change to a term listed for `obligation-check`. · _opus_
-- [ ] Template name and review date recorded in each draft's internal note. · _sonnet_
+- [ ] Template name and review date recorded in each draft's internal note; each draft as first written recorded under `## Author original`. · _sonnet_
 
 **Checking and recording**
 
 - [ ] **No figure, date, price, scope boundary, defined term or obligation changed except by a numbered note.** · _opus_
 - [ ] Status set to `adapted`; `last_updated` set; brief mirrored. · _sonnet_
-- [ ] One ledger row per note (`author-note`) and per alternative (`accepted` or `rejected`); the AI original untouched. · _sonnet_
+- [ ] One ledger row per note (`author-note`) and per alternative (`accepted` or `rejected`; empty while open); the AI original untouched. · _sonnet_
+- [ ] Revisions appended: the notes as `author-note`, the alternatives as `ai`, each with its rows; the last matches the draft. · _sonnet_
 - [ ] Handed back: each note and its outcome, alternatives, questions, reversions, open flags, next move. · _opus_
 
 ## Done When

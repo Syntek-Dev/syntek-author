@@ -13,7 +13,7 @@ dialogue punctuation, the grammar of invented words, and the line between a slip
   `manuscript/docs/reference/scene-craft.md` (point of view and orientation); how the style sheet
   marks thought, scene breaks and invented words.
 - **Where corrections go:** an accepted punctuation correction may be applied in the chapter file
-  directly, logged as a row in that section's ledger entry. Any correction that changes a word,
+  directly and recorded in that section's ledger entry. Any correction that changes a word,
   however small, is a wording change: it goes back through `manuscript/workflows/02-adapt-a-draft/`
   or `manuscript/workflows/03-improve-your-draft/` and is promoted again through
   `manuscript/workflows/04-promote-a-section/` (`manuscript/workflows/05-review-a-chapter/`,
@@ -45,7 +45,7 @@ dialogue punctuation, the grammar of invented words, and the line between a slip
 ## Examples
 
 > **Dialogue tag.** `the-turn` line 5: `'Hold the rope.' Maren said.` → `'Hold the rope,' Maren
-> said.` Applied in the chapter file once accepted; ledger row added.
+> said.` Applied in the chapter file once accepted; ledger entry updated.
 
 > **Action beat.** `the-turn` line 11: `'Now,' Tam lifted the lantern.` → `'Now.' Tam lifted the
 > lantern.` (lifting is an action, not a way of speaking).

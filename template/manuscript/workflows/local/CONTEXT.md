@@ -3,8 +3,8 @@
 The author's own procedures for the manuscript layer: work that recurs in this book and no
 template procedure covers, and overrides of template procedures. The template ships only this pair;
 everything else here is the author's, and `copier update` never touches it. Local procedures have
-their own numbering. A local folder with **the same name** as a numbered template folder (for
-example a local 03-improve-your-draft) overrides it, and `run-workflow` always looks here first.
+their own numbering. A local folder with **the same slug** as a template folder, whatever its
+number (for example a local 03-improve-your-draft or 12-improve-your-draft), overrides it, and `run-workflow` always looks here first.
 
 ## Directory Tree
 

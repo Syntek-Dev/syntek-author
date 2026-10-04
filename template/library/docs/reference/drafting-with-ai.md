@@ -53,11 +53,11 @@ floor, not the process: the `grill-with-docs` skill sharpens them, in chat.
 ## The record
 
 Each section has a ledger entry at `standards/style/ledger/<unit-slug>--<section-slug>.md`: the
-AI original verbatim (when the AI drafted), the author's final text at promotion, and every
-improvement accepted or rejected with the author's note. `tooling/provenance.py` measures how much
-the author changed; `standards/style/ledger/provenance.md` lists every promoted section; and
-`make provenance` prints the disclosure table for anyone who asks. Rejected improvements are the
-clearest evidence of the author's voice, which is why `learn-voice` reads them first.
+original verbatim (the AI's, or the text the author began from), every revision marked with whose
+change it was (an accepted AI suggestion, an author's note applied, the author's own edits), the
+final text at promotion, and every improvement accepted or rejected with the author's note.
+`make provenance` prints the disclosure table, and `make compare` each section's redline. In the
+revisions `learn-voice` finds the author's own changes, and it reads the rejections first.
 
 ## How we apply it here
 

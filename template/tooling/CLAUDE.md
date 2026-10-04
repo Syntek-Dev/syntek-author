@@ -14,7 +14,9 @@ a broken build says exactly what broke.
 
 - **Routing:** `build` runs the proof targets and reads the result;<: if INCLUDE_REFERENCES :>
   `add-reference` changes the reference database (never by hand);<: endif :> `promote-section`
-  runs `provenance.py ratio --write` at promotion; `learn-voice` reads `make provenance`.<: if DOC_TYPE != 'business' :>
+  runs `provenance.py ratio --write` at promotion; `learn-voice` reads `make provenance`;
+  `make compare` is run when the author asks how a section changed, and its PDF is read before
+  it is reported.<: if DOC_TYPE != 'business' :>
   `typeset` runs `make tex`, `make tex-check` and `make print` for the printed book.<: endif :><: if DOC_TYPE == 'business' :>
   `promote-section` runs `make section-check` before it writes the ledger.<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>
   `add-word`, `build-language` and `design-script` validate with `make lexicon`, `make derive`,
@@ -45,7 +47,8 @@ a broken build says exactly what broke.
   `Makefile` writes `build/.gitignore` so none of it is committed.
 - **Do not defeat the exclusions.** `CONTEXT.md`, `CLAUDE.md`, `README.md` and anything under a
   `drafts/` folder never build: governance is not prose, and an unpromoted draft must never reach
-  an editor.
+  an editor. `make compare` reads no draft: it prints the ledger's record for the author and for
+  disclosure, and its PDF is never issued, committed or synced.
 - **Never read what git ignores.** Every scan filters its files through `git check-ignore`,
   because ignored folders hold credentials and local-only material. When `make flags` or
   `make lint` reports files 'Not read', never grep, cat or open them to make up the difference:
@@ -62,5 +65,5 @@ a broken build says exactly what broke.
   (0 done, 1 problems found, 2 usage or file error). `project.mk` is the project's own, seeded
   once; every other file here is template-owned and updated by `copier update`.
 - **Generated (never hand-edit):** everything under `build/`, named after the scope or file with
-  `/` replaced by `__`<: if INCLUDE_REFERENCES :>; the text dump `references.dump.sql`, written by `make dump`<: endif :>.
+  `/` replaced by `__` (the comparison after its unit: `build/compare/<unit>.pdf`)<: if INCLUDE_REFERENCES :>; the text dump `references.dump.sql`, written by `make dump`<: endif :>.
 - New scripts: `snake_case.py`, standard library only, each with a `make` target.

@@ -32,8 +32,10 @@ word it was and when, for the hand-back. _Substantive (the author's call)._
 Search the draft for `AUTHOR TO CONFIRM` and `VERIFY` (`make flags` lists every flag in the
 project). Any flag stops the promotion: the author may settle an `AUTHOR TO CONFIRM` now, and the
 flag is removed with their answer applied; a `VERIFY` goes through `fact-check` or the claim comes
-out, then the author confirms again. Run any gate `standards/verification/verification.md` sets for
-promoting a section. _Substantive._
+out, then the author confirms again. An answer or a removal is logged `author-note` in the ledger,
+and one that changes the words is also an `author-note` revision, after any hand-edits are
+recorded (`standards/style/ledger/CLAUDE.md`). Run any gate
+`standards/verification/verification.md` sets for promoting a section. _Substantive._
 
 ## 3. Check the chapter file and the marker
 
@@ -58,12 +60,13 @@ next marker, with one blank line either side. Change nothing else in the file. _
 
 > **Skill:** `promote-section` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
-In the ledger entry: copy the promoted text under `## Author final`; set `promoted` to today
-(DD/MM/YYYY); set `change_ratio` with `tooling/provenance.py`, which compares the AI original with
-the author final (for an author-drafted section there is no AI original to compare). On a
-re-promotion, set the entry's `learned: false`, so `learn-voice` mines the new edits. Add or update
-the section's row in `standards/style/ledger/provenance.md`: Unit, Section, Origin, Change ratio,
-Promoted. _Mechanical._
+In the ledger entry: on a re-promotion, make sure the previous Author final is in the revision
+chain first (`standards/style/ledger/CLAUDE.md`); copy the promoted text under `## Author final`;
+set `promoted` to today (DD/MM/YYYY); set `change_ratio` with `tooling/provenance.py`, which
+compares the AI original with the author final (for an author-drafted section there is no AI
+original to compare). On a re-promotion, set the entry's `learned: false`, so `learn-voice` mines
+the new edits. Add or update the section's row in `standards/style/ledger/provenance.md`: Unit,
+Section, Origin, Change ratio, Promoted. _Mechanical._
 
 ## 6. Update the statuses
 

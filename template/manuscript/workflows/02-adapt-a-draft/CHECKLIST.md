@@ -26,7 +26,7 @@ model: opus
 **The notes**
 
 - [ ] Every note restated as a numbered list; ambiguous notes asked about before any change. · _opus_
-- [ ] The author's hand-edits identified against the last recorded text and kept verbatim. · _opus_
+- [ ] The author's hand-edits identified against the ledger's last recorded state, kept verbatim, and recorded as an `author` revision first. · _opus_
 - [ ] Each note scoped to the lines it touches; any note that changes the section's job raised, not acted on. · _opus_
 
 **The revision**
@@ -41,7 +41,8 @@ model: opus
 
 - [ ] `spelling` run over the changed lines. · _sonnet_
 - [ ] New claims checked with `fact-check` or flagged `VERIFY`. · _opus_
-- [ ] One ledger row per note applied (`author-note`) and per alternative offered (`accepted` or `rejected`). · _sonnet_
+- [ ] One ledger row per note applied (`author-note`) and per alternative offered (`accepted` or `rejected`; empty while open). · _sonnet_
+- [ ] Revisions appended: the notes as `author-note`, the chosen alternatives as `ai`, each with its rows; the last matches the draft. · _sonnet_
 - [ ] Draft at `status: adapted`, `last_updated` set, status mirrored in the brief. · _sonnet_
 
 ## Done When

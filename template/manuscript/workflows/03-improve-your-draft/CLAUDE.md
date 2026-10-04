@@ -50,7 +50,9 @@ are authoritative.
 
 - **Produces:** the improved `manuscript/src/NN-kebab-title/drafts/<NN>-<section-slug>.md`, at
   `status: improved`.
-- **Also writes:** every proposal into the ledger entry's `## Improvement decisions` table; the
-  section's status in the brief; for a section without one, its frontmatter and ledger entry.
+- **Also writes:** every proposal into the ledger entry's `## Improvement decisions` table, with
+  the entry's Author original on the first pass and its revisions (the author's edits found, the
+  accepted changes); the section's status in the brief; for a section without one, its
+  frontmatter and ledger entry.
 - **Generated:** nothing.
 - **Does not touch:** the chapter file, any standard, or the ledger's `## AI original`.

@@ -21,7 +21,8 @@ Locale: en_GB · <%TIMEZONE%> · dates DD/MM/YYYY.
 the AI. Every suggestion is a numbered proposal the author can accept or refuse one by one, at a
 strength the author chose, with a reason short enough to judge at a glance. Nothing changes in the
 file until the author has answered, and every answer, yes or no, goes into the ledger: a refused
-suggestion is the clearest evidence of the author's voice there is.
+suggestion is the clearest evidence of the author's voice there is. The ledger also keeps the
+author's own text as it was before the first pass, and each accepted pass as a revision.
 
 ## Governing procedures (route here — do not restate at length)
 
@@ -38,7 +39,9 @@ suggestion is the clearest evidence of the author's voice there is.
   `standards/style/style-sheet.md` and `standards/style/terminology.md`.
 - `standards/method/method.md` and its mode file — before cutting a hedge that may be doing
   honest work.
-- `standards/style/ledger/CONTEXT.md` — the decision table every proposal is logged in.
+- `standards/style/ledger/CONTEXT.md` and `standards/style/ledger/CLAUDE.md` — the decision
+  table every proposal is logged in, the Author original and the revisions, and the procedure for
+  recording them.
 - The content layer's `docs/reference/drafting-with-ai.md` and `docs/reference/section-anatomy.md`.
 
 ## Steps
@@ -49,8 +52,13 @@ suggestion is the clearest evidence of the author's voice there is.
    it in chat or wrote it without frontmatter, save it as `<NN>-<section-slug>.md` with the
    frontmatter in the content layer's `docs/reference/section-anatomy.md` (`status: author-draft`,
    `origin: author`), after checking nothing will be overwritten. If it has no ledger entry,
-   create one with `origin: author` and `## AI original` left empty.
-   *Complete when:* the draft and its ledger entry exist, and nothing was overwritten.
+   create one with `origin: author`, `format: 2`, `## AI original` left empty and the draft's
+   body, as saved, under `## Author original`. In an existing `format: 2` entry, do what
+   `standards/style/ledger/CLAUDE.md` requires before a change: an author-drafted entry with no
+   Author original gets the draft as found, and any hand-edits since the last recorded state
+   become an `author` revision, before anything is proposed.
+   *Complete when:* the draft and its ledger entry exist, nothing was overwritten, and a
+   `format: 2` entry's last recorded state matches the draft.
 
 2. **Agree the strength.** Ask which strength the author wants: `light` (clarity, typos, slips),
    `edit` (rhythm, sentence order, the joins between paragraphs) or `rework` (restructure, keeping
@@ -100,10 +108,13 @@ suggestion is the clearest evidence of the author's voice there is.
 
 9. **Log every decision.** Add every proposal to the ledger entry's `## Improvement decisions`
    table: number, proposal, reason, `accepted` or `rejected`, and the author's own words where
-   they gave a reason. Set `status: improved` (or leave the status as it was if nothing was
-   accepted), set `last_updated`, and mirror the status in the brief's `sections:` list. If the
-   unit is still `outlined`, the author's first draft moves it to `draft` (no gate of its own).
-   *Complete when:* the table holds a row for every proposal, accepted or rejected.
+   they gave a reason. In a `format: 2` entry, if anything was accepted, append the draft as it
+   now stands as an `ai` revision: `improve-section (<strength>)`, with this pass's rows. Set
+   `status: improved` (or leave the status as it was if nothing was accepted), set
+   `last_updated`, and mirror the status in the brief's `sections:` list. If the unit is still
+   `outlined`, the author's first draft moves it to `draft` (no gate of its own).
+   *Complete when:* the table holds a row for every proposal, accepted or rejected, and a
+   `format: 2` entry's last revision matches the draft whenever anything was accepted.
 
 10. **Hand back.** Report how many proposals were accepted and rejected, the questions still open,
     the notes from step 3, and every flag in the draft. Offer the next move: another pass at a
@@ -122,6 +133,8 @@ suggestion is the clearest evidence of the author's voice there is.
   style.
 - Remarking on the author rather than the text.
 - Logging the accepted proposals and dropping the rejected ones.
+- Recording the improved text as the Author original (it credits the author with the AI's
+  words), or skipping the hand-edit check (it credits the AI with the author's).
 
 ## Cross-references
 

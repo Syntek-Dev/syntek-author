@@ -13,8 +13,9 @@ texts whose spelling is not the book's to change.
   quoted in the Project settings of `standards/style/style-sheet.md`; any transliteration scheme
   the style sheet records; the contested terms in `standards/style/terminology.md`.
 - **Where corrections go:** an accepted spelling correction may be applied in the chapter file
-  directly, logged as a row in that section's ledger entry
-  (`manuscript/workflows/05-review-a-chapter/`, 'Applying agreed fixes'); in a draft, in the draft.
+  directly and recorded in that section's ledger entry
+  (`manuscript/workflows/05-review-a-chapter/`, 'Applying agreed fixes'); in a draft, in the draft
+  (step 7).
 
 ## Additions to the steps
 

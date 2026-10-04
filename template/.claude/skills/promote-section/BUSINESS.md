@@ -29,8 +29,13 @@ pair, proving every word arrived, and proving the document still renders.
 ## Additions to the steps
 
 - **Step 2 — also stop on an open field.** A draft holding `[AWAITING USER INPUT]` is not promoted:
-  the field goes back to the author. `make flags` lists these fields as well as the two flags
-  (`FLAG_EXTRA_RE` in `tooling/project.mk`).
+  the field goes back to the author, and a value they give there and then is applied and recorded
+  like a flag answer. `make flags` lists these fields as well as the two flags (`FLAG_EXTRA_RE` in
+  `tooling/project.mk`).
+- **Step 2 — also stop on an open choice.** A section whose ledger entry still has a decision
+  row with an empty cell is not promoted: its draft may carry a holding line, the AI's wording
+  kept only until the author chooses (`adapt-section`). The author chooses first, and the choice
+  is applied and recorded as `adapt-section` step 9 sets out.
 - **Step 2 — also stop on a citation key bound for a `.tex`.** Citation keys (`[@key]`) resolve
   only in Markdown deliverables; in a `.tex` they print raw while the build still succeeds. A
   draft whose unit file is a `.tex` and whose body contains `[@` is not promoted: the author

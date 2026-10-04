@@ -14,7 +14,7 @@ punctuation of Scripture.
   `manuscript/docs/reference/main-text-and-footnotes.md` (the two registers); the Project settings
   of `standards/style/style-sheet.md` (how Scripture is quoted).
 - **Where corrections go:** an accepted punctuation correction may be applied in the chapter file
-  directly, logged as a row in that section's ledger entry. Any correction that changes a word,
+  directly and recorded in that section's ledger entry. Any correction that changes a word,
   however small, is a wording change: it goes back through `manuscript/workflows/02-adapt-a-draft/`
   or `manuscript/workflows/03-improve-your-draft/` and is promoted again through
   `manuscript/workflows/04-promote-a-section/` (`manuscript/workflows/05-review-a-chapter/`,
@@ -55,7 +55,7 @@ punctuation of Scripture.
 > **Hedge kept.** `opening` line 15: 'On this reading the passage commends welcome, it does not
 > command it.' A comma splice. Offered: a semicolon after 'welcome', which keeps 'On this reading'
 > governing both clauses; not the tidier 'The passage commends welcome…', which would present an
-> inference as the text. Applied in the chapter file once accepted; ledger row added.
+> inference as the text. Applied in the chapter file once accepted; ledger entry updated.
 
 > **Style-sheet proposal.** References appear as '[book] 3:16' and '[book] 3.16' (two and four
 > places, listed). Proposed entry for approval: a colon between chapter and verse.

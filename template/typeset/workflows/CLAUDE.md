@@ -18,7 +18,7 @@ Two modes: **running** a procedure (the normal case) and **changing** one (rare,
 call).
 
 **Running one.** The `run-workflow` skill resolves the author's intent to a procedure, looking in
-`typeset/workflows/local/` first; a local folder with the same name as a template folder wins.
+`typeset/workflows/local/` first; a local folder with the same slug as a template folder wins, whatever its number.
 
 | You want to… | Procedure | Usually followed by |
 |---|---|---|

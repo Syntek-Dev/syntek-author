@@ -69,7 +69,9 @@ _Substantive._
 
 Check whether `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md` or its ledger entry
 `standards/style/ledger/<unit-slug>--<section-slug>.md` already exists. If either does, stop and
-confirm with the author before going on; never overwrite silently. _Mechanical._
+confirm with the author before going on; never overwrite silently. A confirmed redraft keeps its
+ledger entry: before the old draft is replaced, record the author's work in it as
+`standards/style/ledger/CLAUDE.md` sets out. _Mechanical._
 
 ## 6. Create the draft file and its ledger entry
 
@@ -77,8 +79,9 @@ confirm with the author before going on; never overwrite silently. _Mechanical._
 
 Create the drafts folder for the document if it is missing, then the draft with its frontmatter:
 `unit`, `section`, `order`, `status: ai-draft`, `origin: ai`, `words_target` (from the brief, or
-400), `ledger` and `last_updated`. Create the ledger entry with its frontmatter (`learned: false`)
-and its three empty sections. _Mechanical._
+400), `ledger` and `last_updated`. Create the ledger entry with its frontmatter (`learned: false`,
+`format: 2`) and its empty sections, in the format `standards/style/ledger/CONTEXT.md` gives; on a
+redraft, keep the existing entry. _Mechanical._
 
 ## 7. Draft the section
 
@@ -107,15 +110,17 @@ internal note under the frontmatter, so a later pass does not 'correct' it. _Sub
 Run `spelling` and `grammar` over the draft against `standards/style/style-sheet.md`: en_GB
 spelling, single quotation marks, dates as DD/MM/YYYY, the currency format, no em dashes in client
 copy, no filler intensifiers. Fix the draft's own slips now: it is still the AI's text, and the
-author should be shown its best version. _Mechanical._
+author should be shown its best version. Nothing is recorded in the ledger here: step 10 records
+the result as the AI original. _Mechanical._
 
 ## 10. Record the AI original
 
 > **Skill:** `draft-section` · **Guide:** `library/docs/reference/drafting-with-ai.md`
 
 Copy the draft's body, exactly as it now stands, into the ledger entry's `## AI original`, and set
-its `drafted` date. This is the baseline every later change is measured against; it is never
-edited afterwards. _Mechanical._
+its `drafted` date. On a redraft, first move the earlier record into the superseded comment, as
+`standards/style/ledger/CLAUDE.md` sets out, so the new chain starts here. This is the baseline
+every later change is measured against; it is never edited afterwards. _Mechanical._
 
 ## 11. Update the unit brief
 

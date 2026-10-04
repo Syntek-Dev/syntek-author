@@ -1036,6 +1036,9 @@ DATE:
     Use DD/MM/YYYY, for example 03/10/2026.
     <: elif (DATE[0:2] | int) < 1 or (DATE[0:2] | int) > 31 or (DATE[3:5] | int) < 1 or (DATE[3:5] | int) > 12 :>
     Use DD/MM/YYYY — day first, then month (01–12).
+    <: elif (DATE[0:2] | int) > [31, 29 if (DATE[6:10] | int) % 4 == 0 and ((DATE[6:10] | int) % 100 != 0
+       or (DATE[6:10] | int) % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][(DATE[3:5] | int) - 1] :>
+    That month has no such day: use a date the calendar has, for example 03/10/2026.
     <: endif :>
 
 # ── Computed (never asked, never stored) ─────────────────────────────────────
@@ -1177,6 +1180,13 @@ _message_before_update: |
   you created there into the new families where the destination is free, and lists anything
   it left behind and every file that still names an old folder. The old folders' signposts
   are deleted even where you edited them; your lines remain in git history.
+
+  Every project, updating from v0.2.0 or earlier: the ledger now records each section's
+  original and every revision, with who made it, and make compare prints them. Sections
+  worked before the update carry no revision record: make compare shows each with the stages
+  its entry holds (an AI-drafted section from its AI original to its final, every change
+  unattributed; an author-drafted one as its final alone) and says the rest were not
+  recorded. Nothing is migrated: no file moves, and an older entry is never backfilled.
 
 # ── Post-generation ──────────────────────────────────────────────────────────
 

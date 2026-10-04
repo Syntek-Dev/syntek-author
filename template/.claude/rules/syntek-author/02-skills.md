@@ -19,7 +19,7 @@ section of the unit"). A described job that no skill matches, a request such as 
 "pick up where we left off" or "run the review workflow", goes to `run-workflow`, which resolves
 it to a workflow (and reads a handoff newer than `MEMORY.md` first). Every skill that carries out
 a workflow runs the project's alias for it (`00-project.md` `## Workflow aliases`) or the
-author's procedure of the same name in `workflows/local/` instead, where one exists. Where work
+author's procedure of the same slug in `workflows/local/` instead, where one exists. Where work
 benefits from a separate context, such as a delegated search or a multi-lens review, the skill
 runs itself as a forked subagent (`context: fork`) instead of handing off to an agent file.
 

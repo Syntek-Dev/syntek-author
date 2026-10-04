@@ -22,10 +22,12 @@ Each step names the skill and the guide it uses. **Run in order** and tick `CHEC
 > **Skill:** `learn-voice` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
 List the ledger entries in `standards/style/ledger/` with `learned: false`, and mark which carry a
-`promoted` date: only a promoted entry has an author final to compare. An entry not yet promoted
-may lend its `## Improvement decisions` to step 4, and stays unlearned. If there are none and the
-voice notes are empty while `standards/style/samples/` holds writing, go to step 6. If there is
-one, say that one section is too little evidence and ask whether to wait. _Mechanical._
+`promoted` date: only a promoted entry has the author final its record ends at. An entry not yet
+promoted, or reopened (changed since its promotion and not promoted again,
+`standards/style/ledger/CONTEXT.md`), may lend its `## Improvement decisions` to step 4, and stays
+unlearned. If there are none
+and the voice notes are empty while `standards/style/samples/` holds writing, go to step 6. If
+there is one, say that one section is too little evidence and ask whether to wait. _Mechanical._
 
 ## 2. Read the current voice notes and style sheet
 
@@ -35,14 +37,24 @@ Read `standards/style/voice-notes.md` (including what is already under `## Learn
 `standards/style/style-sheet.md` and `standards/style/terminology.md`, so no proposal repeats an
 entry or silently contradicts one. _Substantive._
 
-## 3. Compare each AI original with its author final
+## 3. Walk each entry's record
 
 > **Skill:** `learn-voice` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
-For each promoted, AI-drafted entry, read `## AI original` and `## Author final` side by side.
-`make provenance` gives each section's change ratio, which says where to look, not what changed. Note
-what the author cut, added, replaced and reordered: openings, sentence length, diction, hedges,
-register, punctuation habits, things the AI keeps writing and the author keeps removing.
+For each promoted entry, walk its record from the original to `## Author final`, as
+`standards/style/ledger/CONTEXT.md` describes it. The author's evidence is each `author` revision
+against the state before it, the gap from the last revision (or the original) to the final, and, for
+an author-drafted section, the whole `## Author original` when the author wrote it. Words an `ai`
+or `author-note` revision
+brought in are never the author's evidence, even once accepted; an AI change the author later undoes
+is an implicit rejection, which step 4 ranks just below the explicit ones. An entry mined in an
+earlier run whose final has been replaced since (its git history shows `learned: true` before its last `promoted …`
+revision) has already given everything up to that revision: read only what came after it. An entry
+without `format: 2` has no record: read `## AI original` beside `## Author final`, and mark what it
+shows as weaker evidence, because accepted AI text is mixed into it (`make provenance` gives its
+change ratio, which says where to look, not who changed what). Note what the author cut, added,
+replaced and reordered: openings, sentence length, diction, hedges, register, punctuation habits,
+things the AI keeps writing and the author keeps removing.
 _Substantive._
 
 ## 4. Read the rejections
@@ -51,7 +63,9 @@ _Substantive._
 
 Read every `## Improvement decisions` table, the author-drafted sections' included. A rejected
 suggestion or alternative is the clearest signal there is: the author saw the change and said no.
-Note recurring rejections and the author's own words about them. _Substantive._
+Read each against the text it was proposed for, the state before the revision whose marker names
+its row; then the implicit rejections from step 3, ranked just below. Note recurring rejections and
+the author's own words about them. _Substantive._
 
 ## 5. Find the patterns worth a note
 
@@ -93,9 +107,9 @@ approved mechanical rule to `standards/style/style-sheet.md` and each approved t
 
 > **Skill:** `learn-voice` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
-Set `learned: true` on every ledger entry read in this run whose section is promoted, including
-those that yielded no note: they have been mined. An entry not yet promoted stays
-`learned: false`. Change nothing else in any entry. _Mechanical._
+Set `learned: true` on every ledger entry read in this run whose section is promoted and not
+reopened, including those that yielded no note: they have been mined. An entry not yet promoted,
+or reopened, stays `learned: false`. Change nothing else in any entry. _Mechanical._
 
 ## 10. Record and hand back
 

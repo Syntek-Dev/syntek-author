@@ -38,9 +38,11 @@ note under the draft's frontmatter: a deviation recorded there is deliberate. _S
 
 > **Skill:** — · **Guide:** `library/docs/reference/the-status-ladders.md`
 
-If the author has edited the draft by hand since the last AI pass, compare it with the last
-version you produced, list what the author changed, and set `status: author-revised` before
-adapting anything. Their words are now the baseline; treat them as approved. _Mechanical._
+Compare the draft with the ledger's last recorded state (`standards/style/ledger/CONTEXT.md`; in an
+older entry without `format: 2`, the AI original or the last commit). If the author has edited it
+by hand, list what they changed, record it as an `author` revision
+(`standards/style/ledger/CLAUDE.md`), and set `status: author-revised` before adapting anything.
+Their words are now the baseline; treat them as approved. _Mechanical._
 
 ## 4. Map each note to the lines it reaches
 
@@ -67,7 +69,8 @@ whether to re-draft through `library/workflows/01-draft-a-section/` instead. _Su
 Where a note leaves the wording open, or a line carries weight (a guarantee, a limit, an
 apology), offer two or three alternatives in the hand-back, each with one line on what it changes:
 the strength of the commitment, the tone, the length. Put the most conservative wording in the
-draft until the author chooses. _Substantive._
+draft until the author chooses; it is the AI's wording, so it goes into this run's `ai` revision
+(step 9) with its open row. _Substantive._
 
 ## 7. Adapt a template for one client (template adaptations only)
 
@@ -77,9 +80,10 @@ Write one draft per section of the new document from the matching part of the te
 placeholder only from the author or the client's facts; leave any other as `[AWAITING USER INPUT]`.
 Keep the template's clause order and labels. Every change the author instructs to a term is
 listed for `obligation-check` against the template's standard position. Record the template's name
-and review date in each draft's internal note. Set `origin: author` and leave the ledger's
-`## AI original` empty: the wording is the template's, already approved, and every change made to
-it is logged in step 9. _Substantive._
+and review date in each draft's internal note. Set `origin: author` and `format: 2`, leave the
+ledger's `## AI original` empty, and record each draft as first written from the template under
+`## Author original`: the wording is the template's, already approved, and every change made to
+it after that is a revision, logged in step 9. _Substantive._
 
 ## 8. Check what must not change
 
@@ -96,9 +100,11 @@ other difference is reverted, or raised with the author as a question. _Substant
 Set `status: adapted` and `last_updated`. Add one row per note to the ledger entry's
 `## Improvement decisions` table: the note, what was done, the reason, and the decision. A note
 the author gave that was applied is logged `author-note`, never `accepted`: it was the author's
-call, not an AI suggestion. Each alternative offered is logged `accepted` or `rejected`
-(`pending` until the author chooses). Mirror the section's status in the unit brief. Never edit the ledger's
-`## AI original`. _Mechanical._
+call, not an AI suggestion. Each alternative offered is logged `accepted` or `rejected`, its
+decision cell left empty until the author chooses. Then append the revisions: the text after the
+notes as `author-note`, then the text after the alternatives as `ai`, each with its rows (one
+revision if only one kind of change was made). Mirror the section's status in the unit brief.
+Never edit the ledger's `## AI original`. _Mechanical._
 
 ## 10. Hand back
 

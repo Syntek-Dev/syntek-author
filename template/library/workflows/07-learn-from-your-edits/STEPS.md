@@ -22,8 +22,9 @@ uses. **Run in order** — the ordering is load-bearing — and tick `CHECKLIST.
 > **Skill:** `learn-voice` · **Guide:** `library/docs/reference/drafting-with-ai.md`
 
 List every ledger entry in `standards/style/ledger/` with `learned: false`, grouped by document and
-by family, and mark which carry a `promoted` date: an entry not yet promoted lends only its
-`## Improvement decisions`, and stays unlearned. When seeding a new project instead, take three or
+by family, and mark which carry a `promoted` date: an entry not yet promoted, or reopened
+(changed since its promotion and not promoted again, `standards/style/ledger/CONTEXT.md`), lends
+only its `## Improvement decisions`, and stays unlearned. When seeding a new project instead, take three or
 more of the author's own pieces from `standards/style/samples/`; fewer than three is too little to
 find a pattern, so say so and stop. _Mechanical._
 
@@ -32,15 +33,26 @@ find a pattern, so say so and stop. _Mechanical._
 > **Skill:** `learn-voice` · **Guide:** `library/docs/reference/drafting-with-ai.md`
 
 Read every rejected proposal in the entries' `## Improvement decisions`, with the author's note
-where there is one. A rejection is the author saying 'not like that', which is the clearest signal
-the ledger holds. _Substantive._
+where there is one, against the text it was proposed for: the state before the revision whose
+marker names its row. A rejection is the author saying 'not like that', which is the clearest
+signal the ledger holds. _Substantive._
 
 ## 3. Read what the author changed
 
 > **Skill:** `learn-voice` · **Guide:** `library/docs/reference/section-anatomy.md`
 
-For each promoted, AI-drafted section, compare `## AI original` with `## Author final` and list
-what the author changed: words cut, words added, sentences reordered, register shifted. Set aside changes
+For each promoted entry, walk its record from the original to `## Author final`, as
+`standards/style/ledger/CONTEXT.md` describes it, and list what the author changed: words cut, words
+added, sentences reordered, register shifted. The author's evidence is each `author` revision
+against the state before it, the gap from the last revision (or the original) to the final, and, for
+an author-drafted section, the whole `## Author original` when the author wrote it (not when its
+draft's internal note names a template, or another writer of an ingested document); words an
+`ai` or `author-note` revision brought in are never the author's, even once accepted. An AI change the author later undoes is an
+implicit rejection: add it to the rejections from step 2, ranked just below them. An entry mined in
+an earlier run whose final has been replaced since (its git history shows `learned: true` before its last
+`promoted …` revision) has already given everything up to that revision: read only what came after
+it. An entry without `format: 2` has no record: compare `## AI original` with `## Author final`, and
+mark what it shows as weaker evidence, because accepted AI text is mixed into it. Set aside changes
 that corrected a fact or a figure: they are about the document, not the voice. _Substantive._
 
 ## 4. Find the patterns
@@ -93,7 +105,8 @@ author's alone. _Substantive._
 Write each approved item to its home as a dated bullet, in the author's words where they gave any,
 with one before-and-after example. Mark a contradicted earlier lesson superseded with the date,
 never deleting it. Set `learned: true` on every ledger entry read in this run whose section is
-promoted, whether or not it yielded a pattern; an entry not yet promoted stays `learned: false`.
+promoted and not reopened, whether or not it yielded a pattern; an entry not yet promoted, or
+reopened, stays `learned: false`.
 _Mechanical._
 
 ## 10. Hand back

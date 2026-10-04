@@ -87,9 +87,10 @@ The work is written one small section at a time, and you decide every step:
 4. **Promote.** On your word, the section moves into the <%UNIT_NOUN%> and its history is recorded.
 5. **Learn.** Claude studies what you changed and rejected, and proposes additions to your voice notes for you to approve.
 
-The ledger in `standards/style/ledger/` keeps the AI's original and your final text for every
-section, so `make provenance` can answer honestly when anyone asks how AI was used. The full rules
-are in `.claude/rules/syntek-author/03-authorship.md`.
+The ledger in `standards/style/ledger/` keeps each section's original (the AI's draft or yours),
+every revision with who made it, and your final text, so `make provenance` can answer honestly
+when anyone asks how AI was used, and `make compare` can show how each section moved from its
+original to its final text. The full rules are in `.claude/rules/syntek-author/03-authorship.md`.
 
 ---
 
@@ -108,13 +109,15 @@ make print                # the printed book, from typeset/src/book.tex
 make pdf FILE=… ISSUE=1   # issue it beside its source (final by default; never over an issued file)
 <: endif :>make flags                # every AUTHOR TO CONFIRM and VERIFY still open<: if DOC_TYPE == 'business' :>, and every [AWAITING USER INPUT]<: endif :>
 make provenance           # the AI-disclosure table
+make compare UNIT=<unit>  # each section's original, AI edit and final, marked by who changed what
 make clean                # remove build/
 ```
 
 Built files are generated: never edit one by hand; change the source and rebuild. The `build/`
 folder is ignored by Git, and no target ever reads a file Git ignores.
 
-**Requirements:** `git`; `make`; Python 3.11 or later; `pandoc`; TeX Live with XeLaTeX<: if INCLUDE_REFERENCES :>;
+**Requirements:** `git`; `make`; Python 3.11 or later; `pandoc`; TeX Live with XeLaTeX (with the
+`xcolor`, `ulem` and `paracol` packages for `make compare`)<: if INCLUDE_REFERENCES :>;
 `sqlite3`<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>; `espeak-ng` (optional, for pronunciation)<: endif :>; and `uv`, for Copier<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> and for building the script fonts (`make font`)<: endif :>.
 
 ---

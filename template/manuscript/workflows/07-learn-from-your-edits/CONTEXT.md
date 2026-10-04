@@ -1,12 +1,13 @@
 # CONTEXT.md — manuscript/workflows/07-learn-from-your-edits/
 
 The procedure that turns the author's edits into a better voice guide. It reads the ledger entries
-not yet learned from: what the author changed between an AI draft and the promoted text, and which
-suggestions and alternatives the author turned down. From the patterns it proposes additions to
-`standards/style/voice-notes.md` (and, for a mechanical habit or a term, to the style sheet or the
-terminology), each backed by real before-and-after examples, and writes only what the author
-approves. It also seeds the voice notes from the author's own samples when the notes are still
-empty. It never changes a standard on its own authority.
+not yet learned from: what the author changed by hand at each stage of a section's record, from
+its original to the promoted text, and which suggestions and alternatives the author turned down
+or later undid. From the patterns it proposes additions to `standards/style/voice-notes.md` (and,
+for a mechanical habit or a term, to the style sheet or the terminology), each backed by real
+before-and-after examples, and writes only what the author approves. It also seeds the voice notes
+from the author's own samples when the notes are still empty. It never changes a standard on its
+own authority.
 
 ## Directory Tree
 

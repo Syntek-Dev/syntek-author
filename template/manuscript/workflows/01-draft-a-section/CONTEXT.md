@@ -33,7 +33,7 @@ ready for the chapter (`manuscript/workflows/04-promote-a-section/`).
 - **A section draft** at `manuscript/src/NN-kebab-title/drafts/<NN>-<section-slug>.md`, with
   `status: ai-draft` and `origin: ai`.
 - **A ledger entry** at `standards/style/ledger/<unit-slug>--<section-slug>.md` holding the AI
-  original verbatim, with `learned: false`.
+  original verbatim, with `learned: false` and `format: 2`.
 - **Evidence entries** in `research/src/evidence/` for every claim checked before drafting.
 - **Inline flags:** `VERIFY` at every checkable claim not yet checked; `AUTHOR TO CONFIRM` at every
   decision only the author can make.

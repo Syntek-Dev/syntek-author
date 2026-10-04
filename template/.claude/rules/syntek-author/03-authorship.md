@@ -215,18 +215,23 @@ changed contract, and the author is bound by it whether or not they noticed the 
 included (`.claude/rules/syntek-author/08-naming-and-memory.md` Section 1), holding:
 
 - `## AI original`: the AI draft the author worked from, verbatim and never tidied (empty for a
-  section the author drafted; a redraft keeps the earlier one in a dated comment beneath it, as
-  `standards/style/ledger/CLAUDE.md` sets out);
+  section the author drafted; a redraft keeps the earlier record in a dated comment beneath it);
+- `## Author original`: the text the loop started from, verbatim, when the AI did not draft it;
+- `## Revisions`: each later state of the text, verbatim, marked `ai` (an AI suggestion the author
+  accepted), `author-note` (the author's note or flag answer, applied by the AI) or `author` (the
+  author's own edits, recorded before any skill changes a word);
 - `## Author final`: the text as promoted, written by `promote-section`;
 - `## Improvement decisions`: every proposal with its decision, `accepted` or `rejected`, and
-  every author's note `adapt-section` applied, logged as `author-note`.
+  every author's note or flag answer the AI applied, logged as `author-note`.
 
 **An author's note is not an AI suggestion.** `tooling/provenance.py` counts only `accepted` and
 `rejected` rows as AI proposals, so the author's own notes never inflate the AI's share, and
 `learn-voice` still mines them as evidence of the voice.
 
 `promote-section` adds a row to `standards/style/ledger/provenance.md`; `tooling/provenance.py`
-computes the author's change ratio, and `make provenance` prints a per-unit disclosure table.
+computes the author's change ratio, `make provenance` prints a per-unit disclosure table, and
+`make compare` prints each section's redline. `standards/style/ledger/CONTEXT.md` owns the format,
+and `standards/style/ledger/CLAUDE.md` the procedure every skill follows.
 
 When a publisher, agent, client or institution asks how AI was used, the answer comes from
 `make provenance`, not from memory or impression. Never describe the work as unassisted when the

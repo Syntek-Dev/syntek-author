@@ -94,9 +94,10 @@ form requires that the original lacks, and answers the five questions. _Substant
 
 Write one draft per planned section in the family's `drafts/<unit-slug>/`, its text copied word
 for word from the reading copy: `status: author-draft`, `origin: author`, and an internal note
-naming the source file and who wrote the text. Create each ledger entry with `## AI original`
-empty. A planned section with no counterpart in the original is left for
-`library/workflows/01-draft-a-section/`. _Mechanical._
+naming the source file and who wrote the text. Create each ledger entry with `origin: author`,
+`format: 2`, `## AI original` empty and the copied text under `## Author original`, so every
+house-form change after it is a revision. A planned section with no counterpart in the original
+is left for `library/workflows/01-draft-a-section/`. _Mechanical._
 
 ## 9. Check what it claims
 

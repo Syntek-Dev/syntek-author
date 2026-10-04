@@ -5,7 +5,8 @@ origin: ai              # ai | author
 drafted: <%DATE%>
 promoted:               # DD/MM/YYYY, set by promote-section
 change_ratio:           # 0.00 to 1.00, computed at promotion; empty for author-drafted
-learned: false          # set true by learn-voice once promoted and mined
+learned: false          # true once promoted and mined; false again when its final is replaced
+format: 2               # the revision record below; absent from an entry that predates it
 ---
 
 <!-- WORKED EXAMPLE: the ledger entry for the example chapter's AI draft,
@@ -56,6 +57,14 @@ Not a branch.
 Branches did not turn.
 She froze with one foot lifted, and the river, which had been loud all night, went quiet around her.
 <: endif :>
+## Author original
+
+<!-- Empty: the AI drafted this section. -->
+
+## Revisions
+
+<!-- Empty: no skill has changed this draft's words yet; the first that does adds revision 1 here. -->
+
 ## Author final
 
 ## Improvement decisions

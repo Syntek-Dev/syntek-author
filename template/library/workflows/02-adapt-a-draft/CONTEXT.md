@@ -33,7 +33,8 @@ that has not been brought in yet (`library/workflows/08-ingest-an-existing-docum
 - **The revised draft**, in place, at `status: adapted`, its `last_updated` set.
 - **Alternatives** for each contested line, in the hand-back, for the author to choose from.
 - **Ledger rows** in the section's `## Improvement decisions` table: each note, what was done, and
-  the author's choice.
+  the author's choice; and **revisions**, the text after each kind of change, marked with whose
+  change it was.
 - **For a template adaptation:** one draft per section of the new client document, with an
   internal note naming the template it came from.
 

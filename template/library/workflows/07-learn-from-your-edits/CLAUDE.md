@@ -28,7 +28,10 @@ draft starts closer to their voice.
 - **Evidence, not taste.** A pattern needs at least two instances from the ledger or the samples;
   one edit is a preference about one sentence.
 - **Rejections first.** A rejected improvement says more about the author's voice than an accepted
-  one.
+  one; an AI change the author later undid is an implicit rejection, ranked just below.
+- **The author's changes, not the AI's.** Words an `ai` or `author-note` revision brought in are
+  not the author's evidence, even once accepted. A difference read from an entry without
+  `format: 2` is weaker evidence, because accepted AI text is mixed into it.
 - **Registers stay apart.** A lesson from editing a contract or a policy is a drafting rule for
   instruments, not a voice note for proposals and emails, and the reverse.
 - **Write only what the author approves**, in the author's words where they gave any.

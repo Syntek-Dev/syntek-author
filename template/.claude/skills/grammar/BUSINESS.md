@@ -20,8 +20,8 @@ copy carries no em dash.
   person in `00-project.md` `## Brief`, and `standards/style/voice-notes.md`.
 - **Where corrections go:** accepted corrections are applied in the `.tex` or Markdown file
   directly and listed in the hand-back (`library/workflows/05-review-a-document/` step 11). A
-  correction inside a promoted section is also made in its draft and logged in its ledger entry,
-  and `make section-check` is re-run (that workflow's 'Applying agreed fixes'), so a later
+  correction inside a promoted section is also made in its draft and recorded in its ledger
+  entry, and `make section-check` is re-run (that workflow's 'Applying agreed fixes'), so a later
   re-promotion cannot undo it. A change of substance reopens its section through `library/workflows/02-adapt-a-draft/` or
   `library/workflows/03-improve-your-draft/`, then `library/workflows/04-promote-a-section/`.
 

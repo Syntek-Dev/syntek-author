@@ -25,6 +25,11 @@ registers that never mix, and the homes a lesson may go to once the author appro
 
 ## Additions to the steps
 
+- **Step 3 — also leave out wording the author did not write.** A document adapted from a
+  template, or ingested from an existing document, records the text it started from under
+  `## Author original`, and its draft's internal note names the template, or the source and who
+  wrote it. When that is a template or anyone but the author, the Author original is not the
+  author's voice: read only the revisions and the gap to the final.
 - **Step 3 — also set aside changes to the substance.** A changed figure, date, price, scope
   boundary or commitment is about the document, not the voice; so is a correction to a defined
   term.

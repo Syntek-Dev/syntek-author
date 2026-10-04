@@ -45,7 +45,8 @@ are authoritative.
 - **Fix through the sections, not around them.** Any change to promoted wording goes back through
   the section procedures and is promoted again, so the ledger stays true. The one exception is an
   accepted spelling or punctuation correction, which may be applied in the chapter file directly if
-  it is logged in that section's ledger.
+  that section's ledger entry is brought up to date with it: its revisions, its author final and
+  its ratio (`STEPS.md`, 'Applying agreed fixes').
 - **Never mark a chapter `final`** without zero flags, every gate passed, and the author's explicit
   word, recorded with its date in `.claude/MEMORY.md` `## Status` (mapped in `00-project.md`
   `## Memory headings`). A gate waived by the author is dated in `verified:` with the reason.
@@ -57,7 +58,8 @@ are authoritative.
 
 - **Produces:** `planning/src/reviews/REVIEW-<scope>-DD-MM-YYYY.md`; the line-edit report; the
   chapter's `status:` and `verified:` in its brief.
-- **Also writes:** evidence entries; `VERIFY` flags; ledger rows for accepted corrections; the
+- **Also writes:** evidence entries; `VERIFY` flags; for accepted corrections, ledger rows,
+  revisions, a new author final and its ratio, and the section's `provenance.md` row; the
   author's dated word in `.claude/MEMORY.md` `## Status` (its mapped heading) at `final`.
 - **Generated (never hand-edit):** any proof under `build/`.
 - **Does not touch:** any standard, or `.claude/MEMORY.md` beyond decisions the author has dated

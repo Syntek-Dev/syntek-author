@@ -142,7 +142,9 @@ Each case follows `standards/verification/verification.md` Section 3.
 - **Wording changes** go back through the section: copy the chapter's current text for that section
   into its draft, set `author-revised`, revise through `manuscript/workflows/02-adapt-a-draft/` or
   `manuscript/workflows/03-improve-your-draft/`, and promote it again through
-  `manuscript/workflows/04-promote-a-section/`.
+  `manuscript/workflows/04-promote-a-section/`. In a ledger entry carrying `format: 2`, the
+  previous `## Author final` goes into `## Revisions` before the new round's first revision, as
+  `standards/style/ledger/CLAUDE.md` sets out.
 - **A material change** (a section rewritten, a claim added, the argument restructured) also
   clears the date of the gate it reopens and of every later gate in the brief's `verified:`, and
   sets `status:` back to the rung the standard names. The review resumes from that rung.
@@ -150,3 +152,13 @@ Each case follows `standards/verification/verification.md` Section 3.
   again over its section before the chapter moves on.
 - **Accepted spelling and punctuation corrections** may be applied in the chapter file directly,
   each logged as a row in that section's ledger entry. They reopen only V6.
+- **The ledger follows the chapter file.** A correction applied there changes a promoted section,
+  so its ledger entry is brought up to date in the same pass, following the steps for a correction
+  after promotion in `standards/style/ledger/CLAUDE.md`. In an entry carrying `format: 2`, the
+  previous `## Author final` goes into `## Revisions` unless the last state in the chain already
+  equals it, then the section as found in the chapter file if it differs from the last recorded
+  state, then the corrected section as one `ai` revision with its rows. In every entry, the
+  corrected section, exactly as it now stands in the chapter file, becomes the `## Author final`,
+  `learned` goes back to `false`, the ratio is rewritten, the section's row in
+  `standards/style/ledger/provenance.md` is updated, and `python3 tooling/provenance.py check`
+  reports no problems.

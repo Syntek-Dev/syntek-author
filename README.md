@@ -2,7 +2,7 @@
 
 **A Copier template that generates writing repositories — a theology book, a novel or a business document library — with their own folder system, standards and a Claude Code skill suite.**
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.3.0-blue)
 ![Template: Copier](https://img.shields.io/badge/template-copier-blue)
 
 ```bash
@@ -44,7 +44,7 @@ One template, three variants. You choose the variant once, with `DOC_TYPE`, and 
 Every variant shares the same spine:
 
 - **The authoring loop.** The AI drafts one small section (`draft-section`), or you draft and the AI proposes changes as a diff with a reason for each (`improve-section`); your notes drive targeted revisions (`adapt-section`); only your word moves a section into the unit (`promote-section`); and the template learns your voice from what you changed and rejected (`learn-voice`).
-- **Provenance.** Every section keeps a ledger entry holding the AI's original and your final text. `make provenance` prints a per-unit disclosure table for publishers.
+- **Provenance.** Every section keeps a ledger entry holding its original (the AI's draft, or yours), every revision with who made it (an AI suggestion you accepted, the AI applying your own note, or your own edit) and your final text. `make provenance` prints a per-unit disclosure table for publishers, and `make compare` prints the three-stage comparison of each section — original, AI edit, final — as a PDF in `build/compare/`: a redline marking every added or removed word by who changed it, in colour-blind-safe colours with a line style of their own, so it reads in greyscale too, and a landscape page with the three stages side by side.
 - **Review.** Structure, fact-check, comprehension, flow, grammar and spelling, plus the variant's own checks, run as a workflow against numbered verification gates.
 - **Production layers** (`planning/`, `research/`, the content layer, and `proposal/` or `world/` where they apply), each with reference guides, numbered workflows and a place for your own procedures. **Supporting layers** (`standards/`, `tooling/`) and working folders (`handoffs/`, `learning/`, `assets/`).
 - **Claude Code configuration.** Skills only, no agents; the rules in `.claude/rules/syntek-author/`; hand off, never compact.
@@ -72,7 +72,8 @@ Options add to a variant:
 | git | Every project is a repository; updates are three-way merges. |
 | Python 3.11 or newer | The scripts in `tooling/` (standard library only, TOML data files). |
 | make | Every build and check (`make help` lists them). |
-| Pandoc and XeLaTeX | `make pdf`, `make docx` and the book builds. |
+| Pandoc and XeLaTeX | `make pdf`, `make docx`, the book builds and `make compare`. |
+| TeX Live packages for `make compare` | `xcolor` (collection latex-recommended), `ulem` (plain-generic), `paracol` (latex-extra) and `array` (part of LaTeX itself). `make compare FORMAT=tex` stops at the LaTeX and needs Pandoc alone. |
 | sqlite3 | The references database (with `INCLUDE_REFERENCES`). |
 | espeak-ng (optional) | Offline pronunciation fallback (with `INCLUDE_CONLANG`). |
 | [Claude Code](https://code.claude.com/) | The skills, rules and workflows. |
@@ -242,6 +243,8 @@ A project rendered from a local clone at `HEAD` (see [Generating a project](#gen
 
 **Business, updating from v0.1.0.** v0.2.0 replaces v0.1.0's six folders under `library/src/` with the document families. The update asks `BUSINESS_FAMILIES` for the first time (`--defaults` takes every family but `msp-scp`), removes the old folders' signposts, and runs `migrations/v0.2.0-business-families.sh`, which moves what you wrote in them: `proposals/` → `business/`, `contracts/` → `legal/`, `policies/` → `business/` (or `msp-scp/` when you choose it), `correspondence/` → `email/` (a client's letters from `client-docs/` into `client-emails/`), `finance/` → `accounting/` and `marketing/` → `social-media/`, keeping each file's sub-path, so a kept example proposal lands in `library/src/business/drafts/example-proposal/`. A file whose destination already exists, whose family you did not choose, or which git ignores where it is but would not ignore where it would go, stays put and is named. The old folders' signposts are deleted even where you edited them; your lines remain in git history. The migration lists each one with the file in its family that takes your lines (`git show HEAD:<path>` recovers them), each moved client folder or template the new folder's `CONTEXT.md` does not yet name, and each email to file into its `client-emails/<client>/<family>/` folder. Afterwards, point each listed line (unit briefs, ledger entries, your notes) at its new path, and commit.
 
+**Every project, updating from v0.2.0 or earlier.** From v0.3.0 the ledger records each section's original and every revision, and `make compare` prints them. A section worked before the update has no revision record: `make compare` shows it with the stages its entry holds — an AI-drafted section from its AI original to its final, every change unattributed and in grey; an author-drafted one as its final alone — and says the rest were not recorded. Nothing is migrated: no file moves, the new parts of an entry are optional, and an old entry is never backfilled, because nobody can say now who made each change. Such an entry keeps its decision rows and Author final as before; only a redraft of the section starts a new record. A section whose entry is first written after the update has its full record from the start.
+
 Commit `.copier-answers.syntek-author.yml` and never edit it by hand; it is the record every future update merges against.
 
 ---
@@ -375,7 +378,7 @@ The template checks itself with the scripts in `.github/scripts/`, and CI runs e
 | `update-test.sh` | A generated project survives `copier update` with the author's work intact; a changed `DOC_TYPE` is refused with nothing touched; the option-off warning is printed; a business project upgraded from `v0.1.0` has every file it kept in an old family folder moved to its family, nothing lost; a book project upgraded from `v0.1.0` keeps the audience its author changed in `.claude/CLAUDE.md` Section 1, now in `00-project.md` `## Brief`, and keeps a reader test answered again during the update, reporting the older hand edit as a conflict. |
 | `adopt-test.sh` | Moving adoption over an anonymised fixture leaves seeds, sources and style untouched; additive adoption leaves every existing file untouched, and its report names the inert mode file and the index to extend; on a business library it also names the template paths an ignore rule hides, the kept files a family untick or option-off would delete, the signposts added beside the library's own files, and a kept workflow that would sync the new `drafts/` folders, each same-named file with its `## Overrides` redirect, and each kept file as committed, untracked or ignored. |
 | `coexist-test.sh` | A second template's files and answers coexist through updates of both. |
-| `tooling-smoke.sh` | The `make` targets run in rendered trees, each tooling script passes its own `--self-test`, a business section passes `make section-check` and fails it with one word changed, no git-ignored file reaches `make flags` or `make lint`, and no ignored language folder is found; `make flags` counts `\fillme`; `ISSUE=1` refuses to overwrite an issued PDF without `FORCE=1`, and refuses a document with open items even with it; `ISSUE` and `FORCE` refuse any value but `1`, `yes` or `true`; a file name git would quote still builds; `\houseclassification` prints its level in the header and footer of every page; and `make flags` reads the brand folder `BRAND_DIRS` names, and not `standards/brand/`, once `project.mk` points it elsewhere. |
+| `tooling-smoke.sh` | The `make` targets run in rendered trees, each tooling script passes its own `--self-test`, a business section passes `make section-check` and fails it with one word changed, no git-ignored file reaches `make flags` or `make lint`, and no ignored language folder is found; `make flags` counts `\fillme`; `ISSUE=1` refuses to overwrite an issued PDF without `FORCE=1`, and refuses a document with open items even with it; `ISSUE` and `FORCE` refuse any value but `1`, `yes` or `true`; a file name git would quote still builds; `\houseclassification` prints its level in the header and footer of every page; and `make flags` reads the brand folder `BRAND_DIRS` names, and not `standards/brand/`, once `project.mk` points it elsewhere; `make compare FORMAT=tex` on a ledger entry planted with a multi-round revision chain writes LaTeX carrying each actor's macro, never prints a git-ignored entry, refuses `SECTION=` without `UNIT=`, says 'No sections to compare yet.' on an empty ledger, and builds the PDF where XeLaTeX exists. |
 | `scrub.sh` | No personal data, source-repository names or absolute paths under `template/`. |
 | `dev-isolation.sh` | Every template skill is denied at the root, and `claudeMdExcludes` is present. |
 

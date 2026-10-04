@@ -74,9 +74,10 @@ This skill runs procedures; it never replaces one, and it never paraphrases one 
    named.
 
 3. **Resolve to one procedure.** An alias replaces the template workflow it names. A local folder
-   with the same name as a template folder, number included
-   (`workflows/local/03-improve-your-draft/` over `workflows/03-improve-your-draft/`), replaces it
-   entirely. A local procedure with a number of its own competes on its row like any other. A
+   with the same slug as a template folder (the name after its number), whatever its number
+   (`workflows/local/03-improve-your-draft/` or `workflows/local/12-improve-your-draft/` over
+   `workflows/03-improve-your-draft/`), replaces it entirely. A local procedure with a slug of its
+   own competes on its row like any other. A
    workflow is named by its full folder name, never by its number alone: where a number the author
    gives matches more than one folder in a layer (a template workflow beside a project's own), list
    each by full name and ask. If two still fit, offer the one that produces or approves prose and

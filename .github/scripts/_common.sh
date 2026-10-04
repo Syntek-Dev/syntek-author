@@ -534,6 +534,7 @@ business           f  standards/brand/brand-guide.md
 business           f  standards/brand/disclaimers.md
 always             d  tooling/latex
 always             f  tooling/latex/symbol-fallback.tex
+always             f  tooling/latex/compare.tex
 always             f  tooling/project.mk
 business           f  tooling/latex/house-preamble.tex
 business           f  tooling/latex/skeleton.tex
@@ -544,6 +545,8 @@ always             d  tooling/pandoc
 always             f  tooling/pandoc/house.lua
 always             f  tooling/defaults.yaml
 always             f  tooling/provenance.py
+always             f  tooling/compare.py
+always             f  tooling/compare.yaml
 books              d  typeset
 books              d  typeset/docs/reference
 books              d  typeset/docs/project
@@ -824,9 +827,13 @@ copier_init() {
 }
 
 sa_git() { # $1 = dir, then git arguments — with an identity, so CI needs no global config
+  # Automatic housekeeping stays off: a commit can start a background gc or maintenance run that
+  # packs and prunes loose objects while parallel Copier clones are still copying them from this
+  # repository ('fatal: failed to copy file to …/.git/objects/…' on the runner's newer git).
   local d="$1"; shift
   git -C "$d" -c user.name='syntek-author audit' -c user.email='audit@example.com' \
-    -c commit.gpgsign=false -c init.defaultBranch=main "$@"
+    -c commit.gpgsign=false -c init.defaultBranch=main \
+    -c gc.auto=0 -c maintenance.auto=false "$@"
 }
 
 # Copy a working tree (uncommitted work included, .gitignore honoured as a commit would) to

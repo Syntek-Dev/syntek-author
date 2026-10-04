@@ -30,9 +30,11 @@ _Mechanical._
 > **Skill:** `adapt-section` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
 Notes may come in chat, as comments in the draft, or as the author's own edits to the file. For
-edits, compare the draft with the last recorded text (the ledger's AI original, or the last commit)
-to see exactly what the author changed; those changes are decisions. Restate every note as a
-numbered list. Where a note is ambiguous, ask before changing anything. _Substantive._
+edits, compare the draft with the ledger's last recorded state (`standards/style/ledger/CONTEXT.md`;
+in an older entry without `format: 2`, the AI original or the last commit) to see exactly what the
+author changed; those changes are decisions, recorded as an `author` revision before anything else
+changes (`standards/style/ledger/CLAUDE.md`). Restate every note as a numbered list. Where a note
+is ambiguous, ask before changing anything. _Substantive._
 
 ## 3. Scope the change
 
@@ -68,7 +70,10 @@ When the author asks for a section to be made from their own earlier material, t
 read-only. Quarry it, never paste it: keep the argument or the events, change the register to the
 reader named in `00-project.md` `## Brief`, and cut what this section's one job does not need.
 Name the source (path and date) in an `<!-- INTERNAL NOTE: … -->` under the frontmatter. Then read
-the result against the source: nothing in it may claim more than the source did. _Substantive._
+the result against the source: nothing in it may claim more than the source did. The words are the
+AI's, so the result is recorded as the section's AI original (`origin: ai`), as
+`manuscript/workflows/01-draft-a-section/` step 9 does; over an existing draft, it is a redraft.
+_Substantive._
 
 ## 7. Check what you touched
 
@@ -86,9 +91,11 @@ Add one row per note applied and one per alternative offered to the ledger entry
 `## Improvement decisions` table: the proposal, its reason, the decision, and the author's own
 words where they gave any. A note the author gave (or a hand-edit) that was applied is logged
 `author-note`, never `accepted`: it was the author's call, not an AI suggestion. Each alternative
-is logged `accepted` or `rejected` (`pending` until chosen). Rejected alternatives matter most:
-they are the clearest evidence of the author's voice. Set the draft's `status: adapted` and `last_updated`, and mirror the status in
-the brief. _Mechanical._
+is logged `accepted` or `rejected`, its decision cell left empty until the author chooses. Rejected
+alternatives matter most: they are the clearest evidence of the author's voice. Then append the
+revisions: the text after the notes as `author-note`, then the text after the chosen alternatives
+as `ai`, each with its rows (one revision if only one kind of change was made). Set the draft's
+`status: adapted` and `last_updated`, and mirror the status in the brief. _Mechanical._
 
 ## 9. Hand back
 
