@@ -640,8 +640,12 @@ for doc in ${DOC_TYPES//,/ }; do
     print_findings
     # On a CI runner the work directory is gone once the job ends, so show Copier's output here.
     if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
-      echo "::group::Copier output for $doc (last 80 lines of flow.log)"
-      tail -n 80 "$work/flow.log" 2>/dev/null || true
+      echo "::group::Copier output for $doc (start, error lines and end of flow.log)"
+      head -n 60 "$work/flow.log" 2>/dev/null || true
+      echo "… error lines …"
+      grep -n -i -E 'traceback|error|exception|fatal|refus|invalid|not found|denied' "$work/flow.log" 2>/dev/null | head -n 40 || true
+      echo "… end …"
+      tail -n 40 "$work/flow.log" 2>/dev/null || true
       echo "::endgroup::"
     fi
     STATUS=1
