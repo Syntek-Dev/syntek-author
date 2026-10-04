@@ -46,6 +46,7 @@ Every section's ledger entry now records how the section moved from its original
 
 ### Fixed
 
+- **CI renders no longer race git's housekeeping.** Every repository the audits create (the working-tree snapshot, fixture templates, test projects) runs git with automatic gc and maintenance off, so a background repack can no longer prune objects while parallel Copier clones copy them.
 - **A local workflow overrides a template workflow by slug, whatever its number, as D26 says.** `run-workflow` step 3, `.claude/rules/syntek-author/02-skills.md`, `manuscript/workflows/CLAUDE.md` and `typeset/workflows/CLAUDE.md` and their `local/` pairs said a local folder overrode only a template folder of the same name, number included. The `local/` pairs are seeds, so their wording changes for new projects only.
 - **Rule 01 now says the `CONTEXT.md` and `CLAUDE.md` in `handoffs/`, `learning/` and `assets/` are template-owned**; only what the author puts in those folders is author-owned, which is how `copier update` already treats them.
 - **The `DATE` question accepted a day the calendar lacks**, such as 30/02/2027, which then made the worked example's revision marker fail `provenance.py check` on a project nobody had touched. The validator now refuses it, and `check` calls such a marker date 'a day the calendar lacks' instead of asking for the DD/MM/YYYY form it already has.
