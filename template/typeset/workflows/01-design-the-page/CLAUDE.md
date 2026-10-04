@@ -42,5 +42,6 @@ are authoritative.
 ## Output & naming
 
 - **Produces:** edits to `typeset/src/page-design.md` and `typeset/src/book.tex`; a sample print
-  in `build/typeset/`; dated lines in `.claude/MEMORY.md` Decisions.
+  in `build/typeset/`; dated lines in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+  `## Memory headings`).
 - **Touches nothing else.** No chapter, base or styled file changes in this procedure.

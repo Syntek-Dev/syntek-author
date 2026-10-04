@@ -40,7 +40,7 @@
 
 set -euo pipefail
 SCRIPT_NAME="run-all.sh"
-# shellcheck source=_common.sh
+# shellcheck source=SCRIPTDIR/_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SCRIPTS="$SA_SCRIPTS_DIR"

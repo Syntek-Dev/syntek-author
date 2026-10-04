@@ -85,7 +85,7 @@ is the clearest record of their voice.
 
 7. **Adapt source material, only when asked.** Treat the source as read-only. Quarry it, never
    paste it: keep its spine (the argument, the events or the terms), change the register to the
-   reader named in `.claude/CLAUDE.md` Section 1, and cut what this section's one job does not
+   reader named in `00-project.md` `## Brief`, and cut what this section's one job does not
    need. Name the source (path and date) in an `<!-- INTERNAL NOTE: … -->` under the frontmatter.
    Read the result against the source: nothing in it may claim more than the source did. The mode
    file says what kinds of source this project adapts, and how each is recorded.

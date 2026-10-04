@@ -34,7 +34,8 @@ reusable template. _Substantive._
 
 Choose its folder: the family root for the business's own document,
 `library/src/<family>/templates/` for a template seed, or
-`library/src/<family>/client-docs/<client-slug>/` for a client's. Name it to the house kebab-case
+`library/src/<family>/client-docs/<client-slug>/` for a client's; the email family files by
+correspondent instead (its folder's CONTEXT.md sets the layout). Name it to the house kebab-case
 pattern, keeping any version and date the document itself states. Check that no file of that name
 exists; if one does, stop and ask. _Mechanical._
 
@@ -112,7 +113,8 @@ not verified with `<!-- VERIFY: … -->` in its draft. _Substantive._
 Run `library/workflows/02-adapt-a-draft/` on each draft, with the author's instructions: bring it
 into the house parts and order, the house terminology and the style sheet; for a template seed,
 replace every client value with a placeholder. Every change to a term or an obligation is listed
-for `obligation-check` and the author. Promotion (04) and review (05) follow as for any document.
+for `obligation-check` and the author. Promotion (`library/workflows/04-promote-a-section/`) and
+review (`library/workflows/05-review-a-document/`) follow as for any document.
 _Substantive._
 
 ## 11. Hand back

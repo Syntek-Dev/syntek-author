@@ -38,10 +38,11 @@ _Mechanical._
 
 > **Skill:** none · **Guide:** `planning/docs/reference/the-document-register.md`
 
-Read the guides for its family in `library/docs/reference/` (and any override in
-`library/docs/project/`), `standards/method/BUSINESS.md`, and `standards/brand/disclaimers.md`
-where the document carries a disclaimer. Where no guide covers the family, say so in the review.
-_Substantive._
+Read its family's standard, `library/docs/reference/<family>-standards.md`, and the other guides
+in `library/docs/reference/` that cover it (and any override in `library/docs/project/`),
+`standards/method/BUSINESS.md`, and, where the document carries a disclaimer,
+`standards/brand/disclaimers.md` (or the file `00-project.md` `## Paths` names instead). Where no
+guide covers the family, say so in the review. _Substantive._
 
 ## 4. Review it
 

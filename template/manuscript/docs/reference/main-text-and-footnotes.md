@@ -10,7 +10,7 @@ model: opus
 **Language**: British English (en_GB)
 
 **What it is.** The book runs on two registers at once. The **main text** is plain, warm prose the
-reader named in `.claude/CLAUDE.md` Section 1 can follow without a dictionary. The **footnotes**
+reader named in `00-project.md` `## Brief` can follow without a dictionary. The **footnotes**
 carry the depth that earns the trust of the specialist who reads them. Same claim, two audiences:
 the body persuades; the note proves.
 
@@ -31,7 +31,7 @@ the body persuades; the note proves.
 - The fuller history of an interpretation: who has held it, when and where.
 - Translation comparisons, textual variants and the basis of any figure or date.
 
-**The test:** if the reader named in `.claude/CLAUDE.md` Section 1 would stumble on a sentence, it
+**The test:** if the reader named in `00-project.md` `## Brief` would stumble on a sentence, it
 belongs in a note. If removing a sentence from the body leaves the argument intact but a specialist
 unsatisfied, it belongs in a note.
 

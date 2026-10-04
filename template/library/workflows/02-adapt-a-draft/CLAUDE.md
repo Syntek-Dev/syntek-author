@@ -28,7 +28,7 @@ template into one client's document without loosening its terms.
 - **Change only what was flagged.** Everything the notes did not reach stays word for word,
   punctuation included.
 - **Never rewrite the whole section.** If the notes amount to a rewrite, say so and ask whether to
-  re-draft through workflow 01 instead.
+  re-draft through `library/workflows/01-draft-a-section/` instead.
 - **A note that asks for a decision is answered with a question.** 'Make the guarantee stronger'
   is the author's commitment to make; offer wordings at different strengths and let the author
   choose.

@@ -19,8 +19,9 @@ proposal/src/sample/
 - `sample-index.md` — one row per unit in the sample: its order, its canonical path in
   `manuscript/src/`, the date its last section was promoted, and the reason it is in the sample
   (what it shows the reader: the voice, the method, the story's pull).
-- **The selection is the author's call,** recorded in `.claude/MEMORY.md` (Decisions). The package
-  anatomy guide says what kind of sample this project's readers expect.
+- **The selection is the author's call,** recorded in `.claude/MEMORY.md` (Decisions, mapped in
+  `00-project.md` `## Memory headings`). The package anatomy guide says what kind of sample this
+  project's readers expect.
 - **Only units whose sections are all promoted:** a file still in a unit's `drafts/` has not had
   the author's word, and every build excludes `drafts/` by design.
 

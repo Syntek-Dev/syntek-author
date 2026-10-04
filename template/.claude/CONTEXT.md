@@ -9,15 +9,16 @@ which is which.
 
 ```text
 .claude/
-├── CLAUDE.md               ← the project brief and where the rules live (read first; yours)
+├── CLAUDE.md               ← the project brief, where the rules live, project rules (read first; yours)
 ├── CONTEXT.md              ← this file (yours)
 ├── MEMORY.md               ← project memory: facts, decisions, feedback, status (read second; yours)
 ├── settings.json           ← model, permissions, the PreCompact hook (yours)
 ├── settings.local.json     ← your machine-only overrides, if any (git-ignored; never committed)
 ├── hooks/                  ← pre-compact-handoff.sh (template-owned) and its pair (yours)
 ├── rules/                  ← rules loaded at launch, one folder per template (no pair here)
-│   └── syntek-author/      ← the template's rules, loaded at launch (template-owned; never edit)
-│       ├── 01-layout-and-routing.md
+│   └── syntek-author/      ← the template's rules, loaded at launch
+│       ├── 00-project.md   ← this project's settings: brief, paths, memory headings, aliases, overrides (yours)
+│       ├── 01-layout-and-routing.md   ← 01 to 08: template-owned; never edit
 │       ├── 02-skills.md
 │       ├── 03-authorship.md
 │       ├── 04-build-pipeline.md
@@ -30,15 +31,21 @@ which is which.
 
 ## What's here
 
-- `CLAUDE.md` — the operating manual for this project: Section 1 is the project brief from the
-  Copier answers, Section 3 holds the project's own rules. **It wins over the template's rules
-  where the two conflict.**
-- `rules/syntek-author/` — the template's rules. Claude Code loads every Markdown file under
-  `rules/` at launch with the same weight as `CLAUDE.md`, which is why this folder holds no
-  `CONTEXT.md` or `CLAUDE.md` of its own. Another template applied to this project would add its
-  own folder beside it.
-- `MEMORY.md` — the durable memory every session reads second. It splits into `memory/<topic>.md`
-  files once it passes 300 lines.
+- `CLAUDE.md` — the operating manual for this project: the project brief, a map of the rules,
+  and the project's own rules under 'Project-specific rules'. **Those rules win over the
+  template's rules files where the two conflict.**
+- `rules/syntek-author/00-project.md` — **this project's settings**, read by every template rule
+  and skill: the audience and reader test, where the project keeps each thing, its `MEMORY.md`
+  headings, workflow aliases and overrides of template rules. Written once from the Copier
+  answers and never overwritten; it outranks everything else in the rules folder and
+  `CLAUDE.md`'s project rules.
+- `rules/syntek-author/` — the template's rules, `01-…` to `08-…`. Claude Code loads every
+  Markdown file under `rules/` at launch with the same weight as `CLAUDE.md`, which is why this
+  folder holds no `CONTEXT.md` or `CLAUDE.md` of its own. Another template applied to this
+  project would add its own folder beside it.
+- `MEMORY.md` — the durable memory every session reads second. Template files name its headings;
+  `00-project.md` maps each to the heading this project uses. It splits into `memory/<topic>.md`
+  files once it passes 300 lines, unless an override keeps it whole.
 - `settings.json` — `"model": "opus"`, `"autoCompactEnabled": false`, the `PreCompact` hook, and a
   short allow and deny list. It is committed and shared; personal overrides belong in
   `settings.local.json`.
@@ -46,8 +53,9 @@ which is which.
 
 ## Cross-references
 
-- `.claude/rules/syntek-author/01-layout-and-routing.md` — the layers, the folder pair and who owns
-  which files.
+- `.claude/rules/syntek-author/00-project.md` — this project's settings.
+- `.claude/rules/syntek-author/01-layout-and-routing.md` — the layers, the folder pair, who owns
+  which files, and which rule wins (Section 9).
 - `.claude/rules/syntek-author/02-skills.md` — the skill roster.
 - `.claude/hooks/CONTEXT.md` — the hook registry.
 - `.claude/skills/CONTEXT.md` — how skills are laid out.

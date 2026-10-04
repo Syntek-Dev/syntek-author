@@ -33,12 +33,66 @@
 <: endif -:>
 #   make flags                                      # every open AUTHOR TO CONFIRM and VERIFY
 #   make provenance                                 # the AI-disclosure table, per unit
-
+#
+<: if DOC_TYPE != 'business' -:>
+# What differs from one project to the next (logo folders, typefaces, extra open-item marks) is
+# set in tooling/project.mk, the project's own file. No target here reads a file git ignores.
+<: endif -:>
+<: if DOC_TYPE == 'business' -:>
+# What differs from one project to the next (logo folders, typefaces, extra open-item marks, the
+# brand folders make flags reads, the Word converter, the statuses a document may be issued at)
+# is set in tooling/project.mk, the project's own file. No target here reads a file git ignores.
+<: endif :>
 PY       := python3
 BUILD    := build
 DEFAULTS := tooling/defaults.yaml
 CONTENT  := <%CONTENT_LAYER%>
 STRICT   ?=
+
+# ── Project settings ────────────────────────────────────────────────────────────────────
+# tooling/project.mk is the project's own: written once, when the project was generated, and
+# never touched by copier update. Each setting below is the default it can change; a value
+# given on the command line wins over both. It may also hold project-only targets, which
+# make help lists when they carry a ## description.
+-include tooling/project.mk
+LOGO_DIRS      ?=
+FLAG_EXTRA_RE  ?=
+MAINFONT       ?=
+SANSFONT       ?=
+MONOFONT       ?=
+<: if DOC_TYPE == 'business' -:>
+BRAND_DIRS     ?= standards/brand
+DOCX_CONVERTER ?=
+ISSUE_STATUSES ?= final
+<: endif :>
+# LOGO_DIRS go on TeX's search path ahead of everything else, so a logo is taken from the folder
+# named there (the right resolution) before any other folder that holds a file of that name.
+EMPTY          :=
+SPACE          := $(EMPTY) $(EMPTY)
+LOGO_TEXINPUTS  = $(subst $(SPACE),,$(addsuffix :,$(LOGO_DIRS)))
+
+# Every PDF Pandoc makes: the project's typefaces (Pandoc's own when unset) and the symbol
+# fallback, so a check mark, ballot box or box-drawing line the text font lacks is drawn by an
+# installed font that has it instead of vanishing. MKTEXTFM=0 stops TeX trying to generate a
+# bitmap font for a fallback font that is not installed.
+PANDOC_FONTS = $(if $(strip $(MAINFONT)),-V 'mainfont=$(strip $(MAINFONT))') \
+               $(if $(strip $(SANSFONT)),-V 'sansfont=$(strip $(SANSFONT))') \
+               $(if $(strip $(MONOFONT)),-V 'monofont=$(strip $(MONOFONT))')
+PANDOC_PDF   = $(PANDOC_FONTS) --include-in-header=tooling/latex/symbol-fallback.tex
+TEX_ENV     := MKTEXTFM=0
+
+# NOT_IGNORED filters a list of paths, one per line, to those git does not ignore, or that a
+# negation pattern (!) re-includes; a tracked file is never ignored. Every scan here passes its
+# file list through it, because ignored folders hold credentials and local-only material and
+# flags and lint print the lines they match. Outside a git work tree the list passes unchanged.
+# The paths go to git and come back separated by NUL, never quoted, so a name holding a quote
+# or a backslash is still read: each answer is four fields (source, line, pattern, path), and a
+# path is kept when no pattern matched it (an empty source) or the pattern is a negation.
+NOT_IGNORED = | { if [ "$$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then \
+    sed '/^$$/d' | tr '\n' '\000' | git check-ignore -z --stdin --verbose --non-matching \
+    | tr '\000' '\n' | awk 'NR % 4 == 1 { src = $$0 } NR % 4 == 3 { pat = $$0 } \
+      NR % 4 == 0 && (src == "" || substr(pat, 1, 1) == "!") { print }'; \
+    else cat; fi; }
 
 # The house filter maps semantic Markdown (epigraphs, scene breaks, small capitals<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, words in
 # a constructed language<: endif :>) to each output; every Pandoc run here passes through it.<: if DOC_TYPE != 'business' :> In a book, a
@@ -51,32 +105,44 @@ PANDOC_HOUSE := --lua-filter=$(HOUSE_LUA)<: if DOC_TYPE != 'business' :> -M hous
 SCOPE_GIVEN := $(filter command line environment,$(origin SCOPE))
 SCOPE ?= $(CONTENT)/src
 SCOPE_PATH := $(patsubst %/,%,$(SCOPE))
-
+<: if DOC_TYPE != 'business' :>
 # SRC: the Markdown a build reads, sorted (numeric prefixes are the running order).
-# Excluded: governance files (CONTEXT.md, CLAUDE.md), folder notes (README.md) and anything
-# under a drafts/ folder, so only promoted prose ever builds. An assembled file that already
-# concatenates its siblings must live outside the folder it assembles, or a SCOPE build reads
-# the same text twice; EXCLUDE='name.md other.md' drops further files by name if needed.
+# Excluded: governance files (CONTEXT.md, CLAUDE.md), folder notes (README.md), anything
+# under a drafts/ folder, so only promoted prose ever builds, and anything git ignores. An
+# assembled file that already concatenates its siblings must live outside the folder it
+# assembles, or a SCOPE build reads the same text twice; EXCLUDE='name.md other.md' drops
+# further files by name if needed.
 EXCLUDE ?=
 FIND_MD = find $(1) -name '*.md' ! -name CONTEXT.md ! -name CLAUDE.md ! -name README.md \
-          $(foreach x,$(EXCLUDE),! -name '$(x)') ! -path '*/drafts/*' 2>/dev/null | LC_ALL=C sort
+          $(foreach x,$(EXCLUDE),! -name '$(x)') ! -path '*/drafts/*' -print 2>/dev/null \
+          $(NOT_IGNORED) | LC_ALL=C sort
 SRC := $(shell $(call FIND_MD,$(SCOPE_PATH)))
 OUT := $(BUILD)/$(subst /,__,$(patsubst %.md,%,$(SCOPE_PATH)))
-
+# A recipe takes each path single-quoted (SH_QUOTE), so a name holding a quote, a backslash or
+# a $ reaches Pandoc as written. Make itself splits a list at spaces: keep spaces out of names.
+SH_QUOTE = $(foreach f,$(1),'$(subst ','\'',$(f))')
+SRC_Q    = $(call SH_QUOTE,$(SRC))
+<: endif :>
 # Where lint and flags look when no SCOPE is given: every production layer's src/<: if DOC_TYPE == 'business' :>; flags
-# also look in standards/brand/, whose structures carry flags until the author completes them<: endif :>.
-# Without a SCOPE, flags also read the project brief, .claude/CLAUDE.md, whose open questions
-# (a subtitle, the near-term goal) are flags like any other.
+# also look in the brand folders, whose structures carry flags until the author completes them.
+# BRAND_DIRS (tooling/project.mk) names them: standards/brand when project.mk does not set it,
+# none when it is set empty. A folder that does not exist is skipped, and the files of one that
+# does pass through NOT_IGNORED like every other, wherever it is<: endif :>.
+# Without a SCOPE, flags also read the project brief and settings (.claude/CLAUDE.md and
+# .claude/rules/syntek-author/00-project.md), whose open questions are flags like any other.
 WORK_DIRS := $(wildcard */src)
-FLAG_DIRS := $(WORK_DIRS)<: if DOC_TYPE == 'business' :> $(wildcard standards/brand)<: endif :>
+FLAG_DIRS := $(WORK_DIRS)<: if DOC_TYPE == 'business' :> $(wildcard $(patsubst %/,%,$(BRAND_DIRS)))<: endif :>
 LINT_IN    = $(or $(if $(SCOPE_GIVEN),$(SCOPE_PATH),$(WORK_DIRS)),.nothing-to-scan)
 FLAGS_IN   = $(or $(if $(SCOPE_GIVEN),$(SCOPE_PATH),$(FLAG_DIRS)),.nothing-to-scan)
-FLAG_FILES = $(if $(SCOPE_GIVEN),,$(wildcard .claude/CLAUDE.md))
+FLAG_FILES = $(if $(SCOPE_GIVEN),,$(wildcard .claude/CLAUDE.md .claude/rules/syntek-author/00-project.md))
 
 # A flag is an HTML comment opening AUTHOR TO CONFIRM: or VERIFY: in Markdown, or a \dnote
 # whose text opens the same way in LaTeX. A form quoted in backticks, or inside a LaTeX %
-# comment, is an example, not a flag.
+# comment, is an example, not a flag. FLAG_EXTRA_RE (tooling/project.mk) adds the project's
+# own open-item marks, an extended regular expression counted as one more kind, read the same
+# way<: if DOC_TYPE == 'business' :>; make pdf ISSUE=1 runs the same scans over the document it is asked to issue<: endif :>.
 FLAG_RE := (^|[^`])(<!--[[:space:]]*|\\dnote\{)(AUTHOR TO CONFIRM|VERIFY):
+FLAG_EXTRA_SCAN = scan '(^|[^`])($(strip $(FLAG_EXTRA_RE)))'
 
 .DEFAULT_GOAL := help
 .PHONY: help clean flags lint provenance docx pdf<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
@@ -122,23 +188,24 @@ dump: | $(DB) ## snapshot the database to tooling/references.dump.sql (text, dif
 # ── Proofs and the book ─────────────────────────────────────────────────────────────────
 # Proofs are ungated: they build at any status and change nothing.
 define need_src
-@test -n "$(strip $(SRC))" || { echo "error: no buildable .md files under $(SCOPE_PATH)"; exit 1; }
-@echo "building from:"; printf '  %s\n' $(SRC)
+@$(if $(strip $(SRC)),true,{ echo "error: no buildable .md files under $(SCOPE_PATH)"; exit 1; })
+@echo "building from:"; printf '  %s\n' $(SRC_Q)
 endef
 
 docx: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## build SCOPE to .docx, for editors and publishers
 	$(need_src)
-	pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(SRC) -o $(OUT).docx
+	pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(SRC_Q) -o $(OUT).docx
 	@echo "wrote $(OUT).docx"
 
 pdf: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## build SCOPE to a .pdf proof (XeLaTeX)
 	$(need_src)
-	pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) --include-in-header=tooling/book.latex $(SRC) -o $(OUT).pdf
+	$(TEX_ENV) pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(PANDOC_PDF) --include-in-header=tooling/book.latex \
+	  $(SRC_Q) -o $(OUT).pdf
 	@echo "wrote $(OUT).pdf"
 
 epub: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## build SCOPE to .epub
 	$(need_src)
-	pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(SRC) -o $(OUT).epub
+	pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(SRC_Q) -o $(OUT).epub
 	@echo "wrote $(OUT).epub"
 
 book: ## build the whole work, .docx and .pdf
@@ -168,7 +235,7 @@ BOOK_MD   = $(shell $(call FIND_MD,$(CONTENT)/src))
 tex: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## write the Pandoc base of each chapter in SCOPE to typeset/src/units/.base/
 	$(need_src)
 	@mkdir -p $(BASES) $(BUILD)/typeset
-	@for f in $(SRC); do \
+	@for f in $(SRC_Q); do \
 	  u=$$(basename "$$f" .md); new=$(BUILD)/typeset/$$u.new-base.tex; base=$(BASES)/$$u.tex; \
 	  old=$(BUILD)/typeset/$$u.old-base.tex; styled=$(UNITS)/$$u.tex; \
 	  case "$$f" in */$$u/$$u.md) ;; *) echo "skip $$f: not a chapter file (NN-kebab-title/NN-kebab-title.md)"; continue ;; esac; \
@@ -183,7 +250,9 @@ tex: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## write t
 	done
 
 tex-check: <: if INCLUDE_REFERENCES :>refs <: endif :>## prove each styled chapter carries exactly its Markdown's words (UNIT= narrows it)
-	@units="$(if $(UNIT),$(UNIT_NAME),$(notdir $(basename $(wildcard $(UNITS)/*.tex))))"; \
+	@units="$(if $(UNIT),$(UNIT_NAME))"; \
+	[ -n "$$units" ] || units=$$(for f in $(UNITS)/*.tex; do [ ! -f "$$f" ] || printf '%s\n' "$$f"; done \
+	  $(NOT_IGNORED) | sed 's|^.*/||; s|\.tex$$||'); \
 	if [ -z "$$units" ]; then echo "tex-check: no styled chapters in $(UNITS)/ yet"; exit 0; fi; \
 	status=0; \
 	for u in $$units; do \
@@ -207,11 +276,11 @@ print: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## set t
 	done; fi
 <: endif :><: if INCLUDE_REFERENCES :>	@rm -f $(BUILD)/typeset/references.tex
 	$(if $(BOOK_MD),@pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) -M house-class=true \
-	  -M house-refs-only=true -t latex $(BOOK_MD) -o $(BUILD)/typeset/references.tex)
+	  -M house-refs-only=true -t latex $(call SH_QUOTE,$(BOOK_MD)) -o $(BUILD)/typeset/references.tex)
 	@[ ! -f $(BUILD)/typeset/references.tex ] || grep -q '[^[:space:]]' $(BUILD)/typeset/references.tex \
 	  || rm -f $(BUILD)/typeset/references.tex
 <: endif :>	@for pass in 1 2; do \
-	  TEXINPUTS="$(TYPESET)/:tooling/latex/:" xelatex -interaction=nonstopmode -halt-on-error \
+	  TEXINPUTS="$(LOGO_TEXINPUTS)$(TYPESET)/:tooling/latex/:" xelatex -interaction=nonstopmode -halt-on-error \
 	    -output-directory=$(BUILD)/typeset $(TYPESET)/book.tex >/dev/null \
 	  || { echo "error: xelatex failed on pass $$pass; see $(BUILD)/typeset/book.log"; \
 	       grep -m1 -A2 '^!' $(BUILD)/typeset/book.log | sed 's/^/  /'; exit 1; }; \
@@ -228,15 +297,13 @@ print: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## set t
 <: if DOC_TYPE == 'business' -:>
 # ── Documents, one at a time ────────────────────────────────────────────────────────────
 # FILE names the document. A .tex renders with XeLaTeX LATEX_PASSES times (two, so every
-# \ref resolves; three for a contents page or a question map), finding the house preamble
-# in tooling/latex/ and logos in assets/. ISSUE=1 also copies the PDF beside its source,
-# where it is committed as the issued copy; otherwise it stays in build/.
+# \ref resolves; three for a contents page or a question map), finding logos in LOGO_DIRS
+# first, then the house preamble in tooling/latex/ and anything else in assets/. The output's
+# name is the path with each / turned into __ (and a leading dot into dot-, which TeX refuses).
 FILE           ?=
-ISSUE          ?=
 LATEX_PASSES   ?= 2
-DOCX_CONVERTER ?=
-FILE_STEM       = $(subst /,__,$(basename $(FILE)))
-TEXINPUTS_HOUSE = $(dir $(FILE)):tooling/latex//:assets//:
+FILE_STEM       = $(subst /,__,$(patsubst .%,dot-%,$(basename $(patsubst ./%,%,$(FILE)))))
+TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):tooling/latex//:assets//:
 MD_REFS         = <: if INCLUDE_REFERENCES :>$(MAKE) --no-print-directory refs && <: endif :>
 
 define need_file
@@ -244,22 +311,77 @@ define need_file
 @test -f "$(FILE)" || { echo "error: $(FILE) not found"; exit 1; }
 endef
 
+# ISSUE=1 also copies the PDF beside its source, where it is committed as the issued copy;
+# otherwise it stays in build/. It issues only a document whose status is one of
+# ISSUE_STATUSES (tooling/project.mk; final unless the project says otherwise) and that holds no
+# open item (the scan make flags runs: AUTHOR TO CONFIRM, VERIFY and FLAG_EXTRA_RE, outside %
+# comments), and it never replaces an issued copy: an issued document is a record, and a new
+# issue is a new version under its own name. FORCE=1 replaces one on purpose, and overrides
+# nothing else. All of it is checked before anything is built.
+# ISSUE and FORCE are switches: 1, yes or true turns one on, and empty leaves it off. Any other
+# value is refused, so ISSUE=0 can never issue and FORCE=0 can never replace.
+ISSUE      ?=
+FORCE      ?=
+SWITCH      = $(if $(strip $($(1))),$(if $(and $(filter 1,$(words $($(1)))),$(filter 1 yes true,$($(1)))),on,bad))
+ISSUE_ON    = $(filter on,$(call SWITCH,ISSUE))
+FORCE_ON    = $(filter on,$(call SWITCH,FORCE))
+ISSUE_OK    = $(or $(strip $(ISSUE_STATUSES)),final)
+ISSUE_COPY  = $(basename $(FILE)).pdf
+
+# A document's status: in a .tex, the `% status:` line of its leading block of % lines; in a
+# .md, the top-level status key of its frontmatter (quotes and a trailing comment dropped).
+define STATUS_AWK
+{ sub(/\r$$/, "") }
+FNR == 1 { tex = (FILENAME ~ /\.tex$$/); fm = 0 }
+tex && !/^%/ { exit }
+tex && /^%[[:space:]]*status:/ { v = $$0; sub(/^%[[:space:]]*status:[[:space:]]*/, "", v); sub(/[[:space:]]+$$/, "", v); print v; exit }
+!tex && FNR == 1 { if ($$0 ~ /^---[[:space:]]*$$/) { fm = 1; next } else exit }
+!tex && /^(---|\.\.\.)[[:space:]]*$$/ { exit }
+!tex && /^status:/ { v = $$0; sub(/^status:[[:space:]]*/, "", v); sub(/[[:space:]]+#.*$$/, "", v); gsub(/["\047]/, "", v); sub(/[[:space:]]+$$/, "", v); print v; exit }
+endef
+export STATUS_AWK
+
+define need_issuable
+@case '$(call SWITCH,ISSUE)' in bad) echo "error: ISSUE takes 1, yes or true; leave it out to build the proof only"; exit 1 ;; esac
+@case '$(call SWITCH,FORCE)' in bad) echo "error: FORCE takes 1, yes or true; leave it out to keep an issued copy"; exit 1 ;; esac
+@if [ -n "$(ISSUE_ON)" ]; then \
+  st=$$(awk "$$STATUS_AWK" "$(FILE)"); \
+  case " $(ISSUE_OK) " in *" $$st "*) [ -n "$$st" ] ;; *) false ;; esac || { \
+    echo "error: $(FILE) is at status '$${st:-none}', and ISSUE=1 issues only at: $(ISSUE_OK)"; \
+    echo "       (ISSUE_STATUSES in tooling/project.mk). Without ISSUE=1 the proof still builds."; exit 1; }; \
+  files="$(FILE)"; $(SCAN_FN) \
+  open=$$( { scan '$(FLAG_RE)'; $(if $(strip $(FLAG_EXTRA_RE)),$(FLAG_EXTRA_SCAN);) } | LC_ALL=C sort -u); \
+  if [ -n "$$open" ]; then \
+    echo "error: $(FILE) holds $$(printf '%s\n' "$$open" | grep -c .) open item(s), and ISSUE=1 never issues a document with one:"; \
+    printf '%s\n' "$$open" | sed 's/^/  /'; \
+    echo "       clear the open items first (make flags SCOPE=$(FILE)). FORCE=1 does not override this."; exit 1; \
+  fi; \
+  if [ -e "$(ISSUE_COPY)" ] && [ -z "$(FORCE_ON)" ]; then \
+    echo "error: $(ISSUE_COPY) is already issued, and ISSUE=1 never replaces an issued copy."; \
+    echo "       Issue a new version under its own name, or add FORCE=1 to replace this one on purpose."; exit 1; \
+  fi; \
+fi
+endef
+
 pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….md (Pandoc) to PDF; ISSUE=1 to issue
 	$(need_file)
+	$(need_issuable)
 	@mkdir -p $(BUILD)/latex
 	@case "$(FILE)" in \
 	  *.tex) for pass in $$(seq $(LATEX_PASSES)); do \
-	           TEXINPUTS="$(TEXINPUTS_HOUSE)" xelatex -interaction=nonstopmode -halt-on-error \
+	           $(TEX_ENV) TEXINPUTS="$(TEXINPUTS_HOUSE)" xelatex -interaction=nonstopmode -halt-on-error \
 	             -output-directory=$(BUILD)/latex -jobname=$(FILE_STEM) "$(FILE)" >/dev/null \
 	           || { echo "error: xelatex failed on pass $$pass; see $(BUILD)/latex/$(FILE_STEM).log"; exit 1; }; \
 	         done; \
 	         cp $(BUILD)/latex/$(FILE_STEM).pdf $(BUILD)/$(FILE_STEM).pdf ;; \
-	  *.md)  $(MD_REFS)pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) "$(FILE)" -o $(BUILD)/$(FILE_STEM).pdf || exit 1 ;; \
+	  *.md)  $(MD_REFS)$(TEX_ENV) pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(PANDOC_PDF) "$(FILE)" \
+	           -o $(BUILD)/$(FILE_STEM).pdf || exit 1 ;; \
 	  *)     echo "error: FILE must be a .tex or .md document"; exit 1 ;; \
 	esac
 	@echo "wrote $(BUILD)/$(FILE_STEM).pdf"
-	@if [ -n "$(ISSUE)" ]; then cp $(BUILD)/$(FILE_STEM).pdf "$(basename $(FILE)).pdf" && \
-	  echo "issued $(basename $(FILE)).pdf (commit it with its source)"; fi
+	@if [ -n "$(ISSUE_ON)" ]; then \
+	  if [ -e "$(ISSUE_COPY)" ]; then verb=replaced; else verb=issued; fi; \
+	  cp $(BUILD)/$(FILE_STEM).pdf "$(ISSUE_COPY)" && echo "$$verb $(ISSUE_COPY) (commit it with its source)"; fi
 
 docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_CONVERTER (no lossy conversion)
 	$(need_file)
@@ -268,8 +390,9 @@ docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_
 	  *.tex) if [ -z "$(DOCX_CONVERTER)" ]; then \
 	           echo "error: no lossless LaTeX-to-Word converter is configured. Pandoc's LaTeX reader"; \
 	           echo "       drops the house clause numbering and drafting notes, and a lossy .docx is"; \
-	           echo "       worse than none. Send the PDF, or run: make docx FILE=… DOCX_CONVERTER='<command>'"; \
-	           echo "       (the command is called as: <command> input.tex output.docx)"; exit 1; \
+	           echo "       worse than none. Send the PDF, or set DOCX_CONVERTER in tooling/project.mk"; \
+	           echo "       (or run: make docx FILE=… DOCX_CONVERTER='<command>'); the command is called"; \
+	           echo "       as: <command> input.tex output.docx"; exit 1; \
 	         fi; \
 	         $(DOCX_CONVERTER) "$(FILE)" $(BUILD)/$(FILE_STEM).docx || exit 1 ;; \
 	  *)     echo "error: FILE must be a .md or .tex document"; exit 1 ;; \
@@ -292,17 +415,31 @@ section-check: ## prove FILE=….tex carries a promoted section's exact words: S
 # (<name>.reading.md) and a Drive copy saved beside a tracked file (<name>.drive-DD-MM-YYYY.<ext>).
 NOT_COPIES := ! -name '*.reading.md' ! -name '*.drive-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9].*'
 
-flags: ## list every AUTHOR TO CONFIRM and VERIFY flag (SCOPE= narrows it); final needs none
-	@hits=$$( { find $(FLAGS_IN) -type f \( -name '*.md' -o -name '*.tex' \) ! -name CONTEXT.md \
-	    ! -name CLAUDE.md ! -name README.md ! -path '*/.base/*' $(NOT_COPIES) -exec grep -nHE '$(FLAG_RE)' {} + 2>/dev/null; \
-	    $(if $(FLAG_FILES),grep -nHE '$(FLAG_RE)' $(FLAG_FILES);) } \
-	    | grep -vE '^[^:]+\.tex:[0-9]+:[[:space:]]*%' | LC_ALL=C sort); \
-	total=0; \
+# What flags and lint read under $(1): Markdown and LaTeX, never a governance file, a folder
+# note, a Pandoc base or a copy. Each target then drops what git ignores (NOT_IGNORED) and says
+# how many files that left unread, so an ignored folder can never pass for a clean one.
+SCAN_FIND   = find $(1) -type f \( -name '*.md' -o -name '*.tex' \) ! -name CONTEXT.md ! -name CLAUDE.md \
+              ! -name README.md ! -path '*/.base/*' $(NOT_COPIES) -print 2>/dev/null
+UNREAD_NOTE = unread=$$(( $$(printf '%s' "$$all" | grep -c . || true) - $$(printf '%s' "$$files" | grep -c . || true) )); \
+              [ "$$unread" -eq 0 ] || echo "Not read: $$unread file(s) git ignores (ignored folders hold local-only material)";
+# scan PATTERN: every line of the files read that matches, as file:line:text, never one in a
+# LaTeX % comment.
+SCAN_FN     = scan() { [ -z "$$files" ] || printf '%s\n' "$$files" | tr '\n' '\000' \
+                | xargs -0 grep -nHE -e "$$1" 2>/dev/null | grep -vE '^[^:]+\.tex:[0-9]+:[[:space:]]*%' \
+                | LC_ALL=C sort; };
+REPORT_FN   = report() { n=$$(printf '%s' "$$2" | grep -c . || true); total=$$((total + n)); \
+                echo "$$1: $$n"; [ -z "$$2" ] || printf '%s\n' "$$2" | sed 's/^/  /'; };
+
+flags: ## list every open flag: AUTHOR TO CONFIRM, VERIFY and FLAG_EXTRA_RE (SCOPE= narrows it); final needs none
+	@all=$$( { $(call SCAN_FIND,$(FLAGS_IN)); $(if $(FLAG_FILES),printf '%s\n' $(FLAG_FILES);) } | LC_ALL=C sort -u); \
+	files=$$(printf '%s\n' "$$all" $(NOT_IGNORED)); \
+	total=0; $(SCAN_FN) $(REPORT_FN) \
+	hits=$$(scan '$(FLAG_RE)'); \
 	for kind in 'AUTHOR TO CONFIRM' 'VERIFY'; do \
-	  found=$$(printf '%s\n' "$$hits" | grep -E "(<!--[[:space:]]*|dnote\{)$$kind:" || true); \
-	  n=$$(printf '%s' "$$found" | grep -c . || true); total=$$((total + n)); \
-	  echo "$$kind: $$n"; [ -z "$$found" ] || printf '%s\n' "$$found" | sed 's/^/  /'; \
+	  report "$$kind" "$$(printf '%s\n' "$$hits" | grep -E "(<!--[[:space:]]*|dnote\{)$$kind:" || true)"; \
 	done; \
+	$(if $(strip $(FLAG_EXTRA_RE)),report 'Other open items (FLAG_EXTRA_RE in tooling/project.mk)' \
+	  "$$($(FLAG_EXTRA_SCAN))";) \
 <: if INCLUDE_REFERENCES -:>
 	if [ -z "$(SCOPE_GIVEN)" ] && [ -f tooling/seed-refs.sql ]; then \
 	  rows=$$(grep -n '^-- VERIFY:' tooling/seed-refs.sql || true); \
@@ -311,6 +448,7 @@ flags: ## list every AUTHOR TO CONFIRM and VERIFY flag (SCOPE= narrows it); fina
 	  [ -z "$$rows" ] || printf '%s\n' "$$rows" | sed 's|^|  tooling/seed-refs.sql:|'; \
 	fi; \
 <: endif -:>
+	$(UNREAD_NOTE) \
 	if [ -n "$(STRICT)" ] && [ "$$total" -gt 0 ]; then exit 1; fi
 
 # lint: one sentence per line in src/ artefacts (reflow a paragraph only when you edit it,
@@ -353,24 +491,24 @@ LINT_TWO := [^[:space:].][.!?][\047’\042)]*[[:space:]]+[\047‘\042(]*[[:upper
 LINT_IZE := ^[[:alpha:]][[:alpha:]][[:alpha:]]+(iz|yz)(e|es|ed|ing|er|ers|ation|ations)$$
 
 lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE == 'business' :>, and em dashes<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and dense conlang<: endif :> (SCOPE= narrows it)
-	@files=$$(find $(LINT_IN) -type f \( -name '*.md' -o -name '*.tex' \) ! -name CONTEXT.md \
-	    ! -name CLAUDE.md ! -name README.md ! -path '*/.base/*' $(NOT_COPIES) 2>/dev/null | LC_ALL=C sort); \
-	if [ -z "$$files" ]; then echo "lint: nothing to check under $(LINT_IN)"; exit 0; fi; \
-	total=0; \
-	report() { n=$$(printf '%s' "$$2" | grep -c . || true); total=$$((total + n)); \
-	  echo "$$1: $$n"; [ -z "$$2" ] || printf '%s\n' "$$2" | sed 's/^/  /'; }; \
-	found=$$(awk -v two='$(LINT_TWO)' -v us='^($(EN_US))$$' -v ize='$(LINT_IZE)' \
-	  <: if DOC_TYPE == 'business' :>-v dash=1 -v dashin='$(if $(SCOPE_GIVEN),,$(CONTENT)/src/)' <: endif :>"$$LINT_AWK" $$files); \
+	@all=$$($(call SCAN_FIND,$(LINT_IN)) | LC_ALL=C sort); \
+	files=$$(printf '%s\n' "$$all" $(NOT_IGNORED)); \
+	if [ -z "$$files" ]; then echo "lint: nothing to check under $(LINT_IN)"; $(UNREAD_NOTE) exit 0; fi; \
+	total=0; $(REPORT_FN) \
+	found=$$(printf '%s\n' "$$files" | tr '\n' '\000' | xargs -0 awk -v two='$(LINT_TWO)' -v us='^($(EN_US))$$' \
+	  -v ize='$(LINT_IZE)' <: if DOC_TYPE == 'business' :>-v dash=1 -v dashin='$(if $(SCOPE_GIVEN),,$(CONTENT)/src/)' <: endif :>"$$LINT_AWK"); \
 	report "Lines holding more than one sentence" "$$(printf '%s\n' "$$found" | sed -n 's/^two://p')"; \
 	report "en_US spellings" "$$(printf '%s\n' "$$found" | sed -n 's/^us://p')"; \
 <: if DOC_TYPE == 'business' -:>
 	report "Em dashes in client-facing copy (must be none)" "$$(printf '%s\n' "$$found" | sed -n 's/^dash://p')"; \
 <: endif -:>
 <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG -:>
-	prose=$$(printf '%s\n' $$files | grep '^$(CONTENT)/src/.*\.md$$' || true); \
-	dense=$$([ -z "$$prose" ] || $(CONLANG) tooling/lexicon.py density $$prose | grep -E '^[^:]+:[0-9]+:' || true); \
+	prose=$$(printf '%s\n' "$$files" | grep '^$(CONTENT)/src/.*\.md$$' || true); \
+	dense=$$([ -z "$$prose" ] || printf '%s\n' "$$prose" | tr '\n' '\000' | xargs -0 env $(CONLANG) tooling/lexicon.py density \
+	  | grep -E '^[^:]+:[0-9]+:' || true); \
 	report "Paragraphs with more than three unglossed conlang words" "$$dense"; \
 <: endif -:>
+	$(UNREAD_NOTE) \
 	if [ -n "$(STRICT)" ] && [ "$$total" -gt 0 ]; then exit 1; fi
 
 # ── Provenance ──────────────────────────────────────────────────────────────────────────
@@ -382,12 +520,13 @@ provenance: ## print the per-unit AI-disclosure table from standards/style/ledge
 # LANG names a folder in world/src/languages/. LANG is also the locale variable every shell
 # inherits, so only a LANG given on the make command line counts. Without one, the checks run on
 # every language (derive on every daughter, font on every language with a script), and
-# script-sample uses the only language with a script; with several, make asks which.
+# script-sample uses the only language with a script; with several, make asks which. A language
+# folder git ignores is never found, as in the tooling (tooling/conlang_common.py).
 LANGS       := world/src/languages
-LANG_DIRS   := $(patsubst %/lexicon.toml,%,$(wildcard $(LANGS)/*/lexicon.toml))
+LANG_DIRS   := $(patsubst %/lexicon.toml,%,$(shell printf '%s\n' $(wildcard $(LANGS)/*/lexicon.toml) $(NOT_IGNORED)))
 LANG_GIVEN  := $(filter command line,$(origin LANG))
 LANG_ARG    := $(if $(LANG_GIVEN),$(LANG))
-SCRIPT_DIRS := $(patsubst %/script/glyphs.toml,%,$(wildcard $(LANGS)/*/script/glyphs.toml))
+SCRIPT_DIRS := $(patsubst %/script/glyphs.toml,%,$(shell printf '%s\n' $(wildcard $(LANGS)/*/script/glyphs.toml) $(NOT_IGNORED)))
 LANG_SLUG   := $(if $(LANG_GIVEN),$(LANG),$(if $(filter 1,$(words $(SCRIPT_DIRS))),$(notdir $(SCRIPT_DIRS)),$(if $(filter 1,$(words $(LANG_DIRS))),$(notdir $(LANG_DIRS)))))
 CONLANG      = PYTHONUTF8=1 $(PY)
 

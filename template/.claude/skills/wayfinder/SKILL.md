@@ -1,14 +1,14 @@
 ---
 name: wayfinder
 description: >-
-  Chart work too big for one sitting into a decision map, then settle it across sessions.
-  SUGGEST mines open questions, open flags and stalled plans for bodies of work worth mapping;
-  CHART pins the destination and maps the frontier of open decisions into
-  planning/src/maps/MAP-<TOPIC>.md; RESOLVE settles the next batch of related nodes and graduates
-  each answer to its real home. Invoke by typing /wayfinder suggest, /wayfinder chart <topic> or
-  /wayfinder resolve <map>, or when <%AUTHOR_FIRST_NAME%> says 'map out part two', 'where do we
-  even start with the languages?', 'what is left to decide before drafting?' or 'this is too big
-  to settle today'. Not for one surface in one sitting (`grill-with-docs`), and it never drafts
+  Chart work too big for one sitting into a decision map, then settle it across sessions. SUGGEST
+  mines open questions, open flags and stalled plans for bodies of work worth mapping; CHART pins
+  the destination and maps the frontier of open decisions into a MAP-<TOPIC>.md in the decision maps
+  folder (by default planning/src/maps/); RESOLVE settles the next batch of related nodes and
+  graduates each answer to its real home. Invoke by typing /wayfinder suggest, /wayfinder chart
+  <topic> or /wayfinder resolve <map>, or when <%AUTHOR_FIRST_NAME%> says 'map out part two', 'where
+  do we even start with the languages?', 'what is left to decide before drafting?' or 'this is too
+  big to settle today'. Not for one surface in one sitting (`grill-with-docs`), and it never drafts
   prose (`draft-section`).
 ---
 
@@ -24,8 +24,9 @@ whole body of work's **frontier** and sends batches of related nodes to grilling
 cartographer; grilling is the per-node engine. Reach straight for `grill-with-docs` when the work
 is one surface.
 
-**The map is a Markdown index, never a vault:** `planning/src/maps/MAP-<TOPIC>.md`, registered in
-the index table in `planning/src/maps/CONTEXT.md`. Detail lives in the brief, note, plan file or
+**The map is a Markdown index, never a vault:** `MAP-<TOPIC>.md` in the decision maps folder
+`00-project.md` `## Paths` names (by default `planning/src/maps/MAP-<TOPIC>.md`), registered in
+the index table in that folder's `CONTEXT.md`. Detail lives in the brief, note, plan file or
 `.claude/MEMORY.md` entry each node links to. Facts are looked up, never asked; only decisions
 with a real trade-off go to <%AUTHOR_FIRST_NAME%>.
 
@@ -52,10 +53,11 @@ A session runs in one of three modes: **SUGGEST** (optional, before there is a t
 
 ### SUGGEST (steps 1 to 3)
 
-1. **Read the unfinished business.** `.claude/MEMORY.md` `Open questions`; the output of
-   `make flags` (every `AUTHOR TO CONFIRM` and `VERIFY`); stalled plans (an outline row with no
-   brief, a brief that has not moved status, a review in `planning/src/reviews/` whose decisions
-   were deferred). *Complete when:* every open item is in view with where it came from.
+1. **Read the unfinished business.** The `Open questions` heading of `.claude/MEMORY.md` (mapped in
+   `00-project.md` `## Memory headings`); the output of `make flags` (every `AUTHOR TO CONFIRM` and
+   `VERIFY`, and any extra open-item marker `tooling/project.mk` adds); stalled plans (an outline
+   row with no brief, a brief that has not moved status, a review in `planning/src/reviews/` whose
+   decisions were deferred). *Complete when:* every open item is in view with where it came from.
 2. **Cluster into candidate bodies of work.** Group items that share a cause, a surface or a
    dependency: five flags waiting on one undecided reading are one map, not five. An item that one
    grilling sitting would settle is not a map; say so and route it to `grill-with-docs`.
@@ -78,9 +80,10 @@ A session runs in one of three modes: **SUGGEST** (optional, before there is a t
 6. **Wire the blocking edges.** In a second pass, give each node its blockers as prose links to
    the nodes it depends on, so the unblocked edge is visible at a glance. *Complete when:* every
    frontier node names its blockers (or 'none') and at least one is unblocked.
-7. **Write the map and register it.** Create `planning/src/maps/MAP-<TOPIC>.md` in the shape
-   below, tag each frontier node with its type, and add a row to the index table in
-   `planning/src/maps/CONTEXT.md` (Map · Destination · Frontier open? · Charted).
+7. **Write the map and register it.** Create `MAP-<TOPIC>.md` in the decision maps folder (by
+   default `planning/src/maps/MAP-<TOPIC>.md`) in the shape below, tag each frontier node with its
+   type, and add a row to the index table in that folder's `CONTEXT.md` (Map · Destination ·
+   Frontier open? · Charted).
    *Complete when:* the map exists, is indexed, and reads as a route rather than a store of answers.
 8. **Dispatch the research nodes, then stop.** Send research nodes (facts, not decisions) to
    `research` or `fact-check` now; they need no human. Settle nothing else in a chart session.
@@ -135,14 +138,14 @@ A session runs in one of three modes: **SUGGEST** (optional, before there is a t
 
 | A settled decision that is… | Graduates to… |
 |---|---|
-| project-wide, hard to reverse, surprising without context, a genuine trade-off | `.claude/MEMORY.md` `Decisions`, through the gate in `grill-with-docs` |
+| project-wide, hard to reverse, surprising without context, a genuine trade-off | `.claude/MEMORY.md`, the `Decisions` heading, through the gate in `grill-with-docs` |
 | about what one unit does, its scope or its sections | the unit's brief in `planning/src/units/` |
 | about the shape or order of the whole work | `planning/src/outline.md` |
 | a checked fact | an evidence entry in `research/src/evidence/`, through `fact-check` |
-| an answered question | a note in `research/src/notes/`, through `research` |
+| an answered question | a note in the research notes folder (by default `research/src/notes/`), through `research` |
 | a term | `standards/style/terminology.md` |
 | a rule for the whole work | the standard, **author-confirmed**, then noted in `.claude/MEMORY.md` |
-| still open and blocking | `.claude/MEMORY.md` `Open questions`, naming what it blocks |
+| still open and blocking | `.claude/MEMORY.md`, the `Open questions` heading, naming what it blocks |
 
 The mode file adds this project's rows. `grill-with-docs` owns *which* home a decision lands in;
 wayfinder only makes sure it lands.
@@ -170,4 +173,5 @@ Frontier and Fog of war are both empty; it stays as the record.
 - `.claude/skills/research/SKILL.md` · `.claude/skills/fact-check/SKILL.md` — research nodes.
 - `.claude/skills/prototype/SKILL.md` — prototype nodes and probes.
 - `planning/src/maps/CONTEXT.md` — the index where a map is registered.
-- `.claude/MEMORY.md` — `Open questions` that SUGGEST mines, and `Decisions` that nodes graduate to.
+- `.claude/MEMORY.md` — the `Open questions` heading that SUGGEST mines, and the `Decisions`
+  heading that nodes graduate to (both mapped in `00-project.md` `## Memory headings`).

@@ -20,8 +20,8 @@ after it.
 
 ## Additions to the steps
 
-- **Step 1 — also:** the genre is in `.claude/CLAUDE.md` Section 1, and the genre lens reads against
-  it.
+- **Step 1 — also:** the genre is in `00-project.md` `## Brief`, and the genre lens reads
+  against it.
 - **Step 2 — also read:** the chain in `planning/src/causality.md` for every beat in scope; each
   point-of-view character's arc (want, need, the lie and the truth); the continuity ledger and the
   timeline.

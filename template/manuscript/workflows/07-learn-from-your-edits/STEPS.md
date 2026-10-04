@@ -102,5 +102,6 @@ those that yielded no note: they have been mined. An entry not yet promoted stay
 > **Skill:** `learn-voice` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
 If an approved note overturns an earlier voice decision, add a dated entry to `.claude/MEMORY.md`
-Decisions, superseding the old one rather than deleting it. Report the notes added, the notes
+Decisions (mapped in `00-project.md` `## Memory headings`), superseding the old one rather than
+deleting it. Report the notes added, the notes
 declined and why, the conflicts raised, and the entries marked. _Substantive._

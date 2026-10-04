@@ -51,7 +51,7 @@ are authoritative.
 - **Produces:** the updated chapter file `manuscript/src/NN-kebab-title/NN-kebab-title.md`.
 - **Also writes:** the draft's `status`; the ledger entry's author final, date and change ratio;
   a row in `standards/style/ledger/provenance.md`; the brief's section status; the chapter's line
-  under Status in `.claude/MEMORY.md`.
+  under Status in `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`).
 - **Generated (never hand-edit):** the optional proof under `build/`.
 - **Does not touch:** the brief's chapter `status:`, the ledger's `## AI original`, other sections'
   text, or any standard.

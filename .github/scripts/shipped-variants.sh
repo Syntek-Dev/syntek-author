@@ -16,7 +16,7 @@
 #                       Sections 3–5 transcribed), evaluated against the answers the render
 #                       recorded in .copier-answers.syntek-author.yml.
 #
-#                       Ten checks:
+#                       Eleven checks:
 #                         1. The answers file is present and records DOC_TYPE.
 #                         2. Every skill the variant needs is present, with its SKILL.md.
 #                         3. No skill the variant must not have, and no skill DESIGN.md does
@@ -31,7 +31,14 @@
 #                            .github/scripts/, .claude/agents/, .claude/commands/ …).
 #                         9. No template delimiter survives rendering.
 #                        10. The recorded answers match what DESIGN.md says the render should
-#                            record (only when generate-all.sh left a <tree>.expect beside it).
+#                            record (only when generate-all.sh left a <tree>.expect beside it);
+#                            a list answer (BUSINESS_FAMILIES) is compared value by value.
+#                        11. Business: every folder in library/src/ is a document family
+#                            DESIGN.md D39 names. A v0.1.0 family folder (proposals, contracts,
+#                            policies, correspondence, finance, marketing) is retired, and one
+#                            that ships again would compete with its successor for every
+#                            document. Whether each family ships exactly when it is chosen is
+#                            checks 2, 3 and 6, through the fam-<family> gates of _common.sh.
 #
 #                       Numbers are stable identifiers. Append, never renumber.
 #
@@ -55,7 +62,7 @@
 
 set -euo pipefail
 SCRIPT_NAME="shipped-variants.sh"
-# shellcheck source=_common.sh
+# shellcheck source=SCRIPTDIR/_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SELF_TEST=false
@@ -187,11 +194,25 @@ run_checks() {
     while IFS='=' read -r k v; do
       [[ -z "$k" ]] && continue
       got="$(answer_value "$k" "$TREE/$SA_ANSWERS_FILE")"
+      if [[ "$k" == BUSINESS_FAMILIES ]]; then
+        got="$(answer_list "$k" "$TREE/$SA_ANSWERS_FILE" | paste -sd, -)"
+      fi
       case "$k" in INCLUDE_*|SEED_EXAMPLES) [[ -z "$got" ]] && got=false ;; esac
       [[ "$k" == SEED_EXAMPLES && -z "$(answer_value "$k" "$TREE/$SA_ANSWERS_FILE")" ]] && got=true
       [[ -z "$got" && ( "$k" == MODEL_MECHANICAL || "$k" == AUDIENCE ) ]] && continue
       [[ "$got" == "$v" ]] || finding "check 10 — the render recorded $k=$got; DESIGN.md Section 2 gives $v for this profile"
     done < "$EXPECT"
+  fi
+
+  # ── 11. library/src/ holds only the D39 families ────────────────────────────
+  if [[ "$A_DOC_TYPE" == business && -d "$TREE/library/src" ]]; then
+    while IFS= read -r d; do
+      if [[ " $SA_RETIRED_FAMILIES " == *" $d "* ]]; then
+        finding "check 11 — library/src/$d/ is a v0.1.0 family folder, retired in v0.2.0 (DESIGN.md D39, D44)"
+      elif [[ " $SA_FAMILIES " != *" $d "* ]]; then
+        finding "check 11 — library/src/$d/ is not a document family DESIGN.md D39 names"
+      fi
+    done < <(find "$TREE/library/src" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
   fi
 }
 
@@ -213,8 +234,13 @@ build_tree() { # $1 = dir — every path the catalogue says the current answers 
     [[ "$m" != - ]] && printf 'x\n' > "$t/.claude/skills/$s/$(mode_for_doc "$A_DOC_TYPE")"
   done <<< "$SA_SKILLS"
   for s in $SA_MODED_STANDARDS; do printf 'x\n' > "$t/standards/$s/$(mode_for_doc "$A_DOC_TYPE")"; done
-  printf 'DOC_TYPE: theology\nINCLUDE_PROPOSAL: true\nINCLUDE_REFERENCES: true\nINCLUDE_SENSITIVE_CONTENT: false\nSEED_EXAMPLES: true\nMODEL_MECHANICAL: sonnet\nAUDIENCE: lay\n' \
-    > "$t/$SA_ANSWERS_FILE"
+  if [[ "$A_DOC_TYPE" == business ]]; then
+    { printf 'DOC_TYPE: business\nBUSINESS_FAMILIES:\n'; printf -- '- %s\n' $A_FAMILIES
+      printf 'INCLUDE_REFERENCES: false\nSEED_EXAMPLES: true\nMODEL_MECHANICAL: opus\nAUDIENCE: client\n'; } > "$t/$SA_ANSWERS_FILE"
+  else
+    printf 'DOC_TYPE: theology\nINCLUDE_PROPOSAL: true\nINCLUDE_REFERENCES: true\nINCLUDE_SENSITIVE_CONTENT: false\nSEED_EXAMPLES: true\nMODEL_MECHANICAL: sonnet\nAUDIENCE: lay\n' \
+      > "$t/$SA_ANSWERS_FILE"
+  fi
 }
 
 self_test() {
@@ -272,6 +298,33 @@ self_test() {
   printf 'DOC_TYPE=theology\nINCLUDE_REFERENCES=false\n' > "$tmp/expect"; EXPECT="$tmp/expect"
   probe "check 10 fires when the recorded answers differ from DESIGN.md's" "check 10 — the render recorded INCLUDE_REFERENCES=true"
   EXPECT=""
+
+  # A business tree with two of the six families chosen: the family gates in both directions.
+  A_DOC_TYPE=business; A_PROPOSAL=false; A_REFS=false; A_FAMILIES="business legal"
+  TREE="$tmp/biz"
+  build_tree "$TREE"
+  st_baseline "a business tree with the business and legal families"
+
+  mv "$TREE/.claude/skills/legal-documents" "$tmp/held"
+  probe "check 2 fires when a chosen family's skill is missing" "check 2 — skill legal-documents"
+  mv "$tmp/held" "$TREE/.claude/skills/legal-documents"
+
+  mkdir -p "$TREE/.claude/skills/msp-scp-documents"
+  probe "check 3 fires when an unchosen family's skill ships" "check 3 — skill msp-scp-documents leaked"
+  rm -rf "$TREE/.claude/skills/msp-scp-documents"
+
+  mkdir -p "$TREE/library/workflows/15-create-an-msp-scp-document"
+  probe "check 6 fires when an unchosen family's workflow ships" "check 6 — library/workflows/15-create-an-msp-scp-document leaked"
+  rmdir "$TREE/library/workflows/15-create-an-msp-scp-document"
+
+  printf 'BUSINESS_FAMILIES=business,legal,email\n' > "$tmp/expect"; EXPECT="$tmp/expect"
+  probe "check 10 fires when the recorded families differ from DESIGN.md's" "check 10 — the render recorded BUSINESS_FAMILIES=business,legal"
+  EXPECT=""
+
+  mkdir -p "$TREE/library/src/proposals"
+  probe "check 11 fires when a retired v0.1.0 family folder ships" "check 11 — library/src/proposals/ is a v0.1.0 family folder"
+  rmdir "$TREE/library/src/proposals"
+  A_FAMILIES=""
 
   st_finish "a correctly gated render from a leaking or incomplete one"
 }

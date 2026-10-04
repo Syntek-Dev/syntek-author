@@ -4,8 +4,8 @@ What a theology book charts with a map, and where its settled nodes go.
 
 ## Paths and unit
 
-- **Map files:** `planning/src/maps/MAP-<TOPIC>.md`, for example `MAP-PART-TWO.md` or
-  `MAP-CHAPTER-4-EVIDENCE.md`.
+- **Map files:** in the decision maps folder `00-project.md` `## Paths` names (by default
+  `planning/src/maps/MAP-<TOPIC>.md`), for example `MAP-PART-TWO.md` or `MAP-CHAPTER-4-EVIDENCE.md`.
 - **Reads (step 5):** `planning/src/outline.md`, the briefs in `planning/src/units/`, the argument
   maps in `planning/src/arguments/`, `research/src/contested-readings/`, `research/src/evidence/`
   and `research/src/notes/`.
@@ -14,8 +14,9 @@ What a theology book charts with a map, and where its settled nodes go.
 
 ## Additions to the steps
 
-- **Step 1 — also** read `.claude/MEMORY.md` for the book's standing commitments: whether the
-  objection left standing has been designated, and how the bias disclosure is handled.
+- **Step 1 — also** read the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+  `## Memory headings`) for the book's standing commitments: whether the objection left standing
+  has been designated, and how the bias disclosure is handled.
 - **Step 5 — also surface the standing commitments as the first frontier nodes** when they are
   undecided. The objection the book leaves standing, and which chapters form a proposal sample
   (where a proposal is in hand), block large parts of any map of the book; chart them first rather
@@ -33,8 +34,8 @@ What a theology book charts with a map, and where its settled nodes go.
 | a claim and its category | the brief's `## Claims and categories` |
 | a move in an argument, an objection or a concession | the argument map in `planning/src/arguments/` |
 | how a contested passage is read | its map in `research/src/contested-readings/` |
-| the objection left standing, or the bias disclosure | `.claude/MEMORY.md` `Decisions`, out of `Open questions` |
-| the chapters in a proposal sample | `.claude/MEMORY.md` `Decisions`; it also sets the drafting order |
+| the objection left standing, or the bias disclosure | `.claude/MEMORY.md`, the `Decisions` heading, out of the `Open questions` heading |
+| the chapters in a proposal sample | `.claude/MEMORY.md`, the `Decisions` heading; it also sets the drafting order |
 
 - **Variant anti-pattern:** charting the manuscript before the standing commitments are settled;
   a chapter drafted on one side of an undecided commitment is a defect waiting to be found.

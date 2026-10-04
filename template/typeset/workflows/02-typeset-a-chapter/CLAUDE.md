@@ -37,7 +37,7 @@ are authoritative.
 - **Never add or remove a scene break, an epigraph or a section in LaTeX.** They are the author's
   marks, made in the Markdown; the check cannot see them, so this rule is the only guard.
 - **Never edit the base**, and never overwrite an existing styled file: if one exists, this is the
-  wrong procedure (03 carries styling forward).
+  wrong procedure (`03-retypeset-after-edits` carries styling forward).
 - **Fit pages last.** Page-fitting commands go in after the proof shows the need, one at a time.
 
 ## Output & naming

@@ -44,9 +44,9 @@ chapter, and are the easiest thing to lose at a session boundary.
 ```markdown
 ## Standing commitments
 
-- Objection left standing: 'rest as privilege' (.claude/MEMORY.md Decisions, 03/10/2026). This
-  session's section 03-sabbath-rest/drafts/04-the-gift.md:31 comes close to answering it; flagged
-  for the author, not changed.
+- Objection left standing: 'rest as privilege' (the Decisions heading of .claude/MEMORY.md,
+  03/10/2026). This session's section 03-sabbath-rest/drafts/04-the-gift.md:31 comes close to
+  answering it; flagged for the author, not changed.
 - Bias disclosure: restated in chapter 1 only; chapter 3 does not need it (brief, line 22).
 - Open claims: drafts/04-the-gift.md has two claims without categories (lines 12, 40) and one
   VERIFY on the Hebrew of the commandment (line 18).

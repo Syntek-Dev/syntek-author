@@ -30,7 +30,7 @@ Render a document to a PDF or Word proof and read it, reporting every defect by 
   patch the `.docx`. A `.tex` gets a Word copy only through the author's lossless converter
   (`DOCX_CONVERTER`); without one, the author is asked and the PDF is sent instead.
 - **Proofs are not issue copies.** A proof never goes beside the `.tex` and is never sent; the issue
-  PDF comes from workflow 05 at `final`.
+  PDF comes from `library/workflows/05-review-a-document/` at `final`.
 - **Never fix a build by editing the house preamble or the `Makefile`.** Report the failure to the
   author: both are template-owned.
 - **Drafts are never built.** Files in a drafts folder are excluded on purpose.

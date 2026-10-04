@@ -28,8 +28,10 @@ Run, read and maintain the audits that prove the template keeps every promise `D
   4. Adding a check: give it the next number, say in the header why it exists and what it cannot
      check, add ONE mutation to the `--self-test` that produces exactly ONE finding from it, and
      run the self-test before and after.
-  5. Lint after any change:
-     `uvx --from shellcheck-py shellcheck -x -P SCRIPTDIR -S warning .github/scripts/*.sh`.
+  5. Lint after any change, as CI's job [1/3] does:
+     `uvx --from shellcheck-py shellcheck -S warning -x migrations/*.sh adopt/*.sh .github/scripts/*.sh template/.claude/hooks/*.sh`.
+     A script that sources `_common.sh` names it `# shellcheck source=SCRIPTDIR/_common.sh`, so
+     a variable it sets for `_common.sh` reads as used from any directory; never silence SC2034.
      Write awk that mawk also runs (no multibyte bracket classes — use `(├|└)`, not `[├└]`).
 - **Definition of done:** the changed script's `--self-test` passes, and `run-all.sh` exits 0, or
   exits 1 only with findings that are genuinely the template's to fix.

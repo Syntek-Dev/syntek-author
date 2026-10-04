@@ -6,14 +6,19 @@ is not thin: flow never trades an obligation for rhythm.
 
 ## Paths and unit
 
-- **The unit** is a document in a family under `library/src/<family>/`, its sections between
-  `% section: <slug>` markers in a `.tex` file, or the paired HTML comments in Markdown.
+- **The unit** is a document in one of the families this project selected, under
+  `library/src/<family>/` (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`),
+  its sections between `% section: <slug>` markers in a `.tex` file, or the paired HTML comments in
+  Markdown.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the
+  family's required sections and conventions.
 - **The pass** is step 9 of `library/workflows/05-review-a-document/`; agreed changes are applied
   only once the author accepts them.
-- **Extra reads:** `standards/brand/brand-voice.md` (the registers, the marks of running copy,
-  concision and its boundary); `standards/method/BUSINESS.md` rules 2 and 5;
-  `library/docs/reference/document-anatomy.md` (the parts in order); the house person in
-  `.claude/CLAUDE.md` Section 1.
+- **Extra reads:** the brand voice, in the brand folder `00-project.md` `## Paths` names (by
+  default `standards/brand/brand-voice.md`: the registers, the marks of running copy, concision
+  and its boundary); `standards/method/BUSINESS.md` rules 2 and 5;
+  `library/docs/reference/document-anatomy.md` (the parts in order); the house person, the voice
+  person in `00-project.md` `## Brief`.
 
 ## Additions to the steps
 
@@ -22,11 +27,10 @@ is not thin: flow never trades an obligation for rhythm.
 - **Step 3 — also:** each part opens with its point, and the document ends with a way forward: one
   next step for the reader. In an instrument's operative clauses the order is set by the anatomy
   guide and a clause needs no transition; read transitions only in running copy (proposals,
-  letters, recitals, the explanatory text of a policy).
+  emails and letters, recitals, the explanatory text of a policy).
 - **Step 5 — also:** repeating a defined term is correct and never a finding; a near-synonym for one
   goes to `clause-consistency`. Restating an attachment, a second and third worked example, and a
-  trailing reassurance are the first candidates for cutting (`standards/brand/brand-voice.md`
-  Section 4).
+  trailing reassurance are the first candidates for cutting (the brand voice's Section 4).
 - **Step 6 — also:** one voice across the document and its family, in the house person; the
   register set by the reader. `tone` runs after this pass and owns the house voice in detail.
 

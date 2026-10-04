@@ -21,7 +21,9 @@ recommendation rule and the surfaces; this file owns only where each answer is w
 decision resolves, record it in the right **existing** artefact. Never invent a new format, and
 never a new file where a section of an existing one will do.
 
-This file also keeps the **decision gate** that `.claude/MEMORY.md` points to.
+This file also keeps the **decision gate** that `.claude/MEMORY.md` points to. Memory headings are
+named here as the template names them (`Decisions`, `Facts`, `Open questions`); the project's own
+heading for each is mapped in `00-project.md` `## Memory headings`.
 
 Locale: en_GB · <%TIMEZONE%> · dates DD/MM/YYYY.
 
@@ -49,9 +51,9 @@ The mode file adds the doc-type procedures and their records.
 | commits the unit to a position | the brief's settled-positions slot (the mode names it) |
 | is a note for whoever drafts the unit, or a change the author declined and why | the brief's `## Draft notes` |
 | changes the shape or the order of the whole work | `planning/src/outline.md` |
-| is project-wide and passes the decision gate below | `.claude/MEMORY.md` `Decisions`, dated |
-| is a fact a later session needs and cannot read off the files | `.claude/MEMORY.md` `Facts` |
-| is still open, and only the author can settle it | `.claude/MEMORY.md` `Open questions`, naming what it blocks |
+| is project-wide and passes the decision gate below | `.claude/MEMORY.md`, the `Decisions` heading, dated |
+| is a fact a later session needs and cannot read off the files | `.claude/MEMORY.md`, the `Facts` heading |
+| is still open, and only the author can settle it | `.claude/MEMORY.md`, the `Open questions` heading, naming what it blocks |
 | pins a term: one canonical word per concept | `standards/style/terminology.md`, rejected synonyms under **Avoid** |
 | authorises a departure from a standard in one artefact | that artefact's internal note |
 | sets a rule for one folder, on the author's explicit word | that folder's `CLAUDE.md` |
@@ -62,12 +64,12 @@ in its home here, and the map's `Resolved decisions` entry links to it.
 
 ## The decision gate
 
-A decision enters `.claude/MEMORY.md` `Decisions` **only when all three hold together**: it is
-**hard to reverse**, it would be **surprising without its context**, and it settled a **genuine
-trade-off**. It must also pass the memory gate (needed again, not readable off the files, costly
-if wrong: `.claude/rules/syntek-author/08-naming-and-memory.md` Section 3). That keeps the log
-signal-dense enough to be read. A decision that fails the gate is still written down, in the
-narrower home the table gives it; say which.
+A decision enters the `Decisions` heading of `.claude/MEMORY.md` **only when all three hold
+together**: it is **hard to reverse**, it would be **surprising without its context**, and it
+settled a **genuine trade-off**. It must also pass the memory gate (needed again, not readable off
+the files, costly if wrong: `.claude/rules/syntek-author/08-naming-and-memory.md` Section 3). That
+keeps the log signal-dense enough to be read. A decision that fails the gate is still written down,
+in the narrower home the table gives it; say which.
 
 ## Steps
 
@@ -90,8 +92,8 @@ narrower home the table gives it; say which.
    what was rejected.`), superseding rather than deleting an older one. *Complete when:* every
    `MEMORY.md` entry passed both gates, and every decision that failed went to its narrower home.
 5. **Close with the summary and the record.** Summarise the settled design, get the explicit yes,
-   then list each file written and the decision it now holds; anything left open is in
-   `Open questions`. *Complete when:* the yes is given, the list is reported, and nothing open is
+   then list each file written and the decision it now holds; anything left open is under the
+   `Open questions` heading. *Complete when:* the yes is given, the list is reported, and nothing open is
    held only in the conversation.
 6. **Agree the brief (a unit being planned).** When the subject is a unit, write or complete its
    brief as `planning/workflows/01-plan-a-unit/` step 8 sets out: the guide's shape,

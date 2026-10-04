@@ -17,10 +17,11 @@ library/docs/
 
 ## What's here
 
-- `reference/` — six guides that ship with the template: what a section is, how the loop with the
+- `reference/` — six guides that ship with the template (what a section is, how the loop with the
   AI runs, the status ladders, the anatomy of a business document, the house LaTeX deliverable,
-  and versioning with the register. **Template-owned:** an edit here is overwritten or conflicts
-  on the next `copier update`.
+  and versioning with the register), and the standard of each document family this project uses,
+  `<family>-standards.md`. **Template-owned:** an edit here is overwritten or conflicts on the
+  next `copier update`.
 - `project/` — **author-owned.** Guides specific to this business: house positions, recurring
   document types, lessons that outgrew a single document. A file here with the same name as one
   in `reference/` replaces it for this project; its `## How we apply it here` section is where a
@@ -28,6 +29,7 @@ library/docs/
 
 ## Cross-references
 
-- `library/docs/reference/` — start with `drafting-with-ai.md` and `section-anatomy.md`.
+- `library/docs/reference/` — start with `drafting-with-ai.md`, `section-anatomy.md` and
+  `business-standards.md`.
 - `standards/` — the rules these guides serve.
 - `library/workflows/` — the procedures that cite these guides step by step.

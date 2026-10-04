@@ -1,7 +1,9 @@
 # CONTEXT.md — library/workflows/
 
-The procedures that run the authoring loop on a business document, from drafting one section to
-building a proof. Each numbered folder holds four files: `CONTEXT.md` (when to use it),
+The procedures that make a business document: the authoring loop every document runs, from
+drafting one section to building a proof, and the create procedure of each document family this
+project uses, which settles a new document's type, place and required parts and then drives the
+loop. Each numbered folder holds four files: `CONTEXT.md` (when to use it),
 `CLAUDE.md` (its rules), `STEPS.md` (the ordered procedure) and `CHECKLIST.md` (what to tick).
 They are procedural instructions Claude follows, not human-facing guides. Planning a document and
 keeping the register are procedures of `planning/workflows/`, not this folder.
@@ -20,14 +22,26 @@ library/workflows/
 ├── 06-build-a-proof/                   ← render a PDF or Word copy and read it
 ├── 07-learn-from-your-edits/           ← turn the author's edits into voice notes
 ├── 08-ingest-an-existing-document/     ← bring an existing document into the library
-└── local/                              ← your own procedures; a same-named one overrides these
+├── 10-create-a-business-document/      ← a new proposal, statement of work, guide or plan
+<: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>├── 11-create-a-legal-document/         ← a new agreement, NDA, DPA, terms or notice
+<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>├── 12-write-an-email/                  ← a new email to a client or a supplier
+<: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>├── 13-create-an-accounting-document/   ← a new invoice, report, budget or forecast
+<: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>├── 14-create-a-social-media-document/  ← a new plan, calendar, profile set or campaign
+<: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>├── 15-create-an-msp-scp-document/      ← a new IT policy, runbook or service report
+<: endif :>└── local/                              ← your own procedures; a same-named one overrides these
 ```
 
 ## What's here
 
 | You want to… | Procedure |
 |---|---|
-| have the AI write the next section of a document | `01-draft-a-section/` |
+| start a new proposal, statement of work, client guide or business plan | `10-create-a-business-document/` |
+<: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>| start a new contract, NDA, data processing agreement, terms or notice | `11-create-a-legal-document/` |
+<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>| write an email to a client or a supplier | `12-write-an-email/` |
+<: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>| raise an invoice, or start a financial report, budget or forecast | `13-create-an-accounting-document/` |
+<: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>| start a social media plan, content calendar, profile set or campaign | `14-create-a-social-media-document/` |
+<: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>| start an IT policy, runbook, service report or incident report | `15-create-an-msp-scp-document/` |
+<: endif :>| have the AI write the next section of a document | `01-draft-a-section/` |
 | revise an AI draft using your notes, or after editing it yourself | `02-adapt-a-draft/` |
 | turn a template into a document for a client | `02-adapt-a-draft/` |
 | have the AI suggest improvements to a section you wrote | `03-improve-your-draft/` |

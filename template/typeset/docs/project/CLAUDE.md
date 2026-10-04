@@ -19,7 +19,8 @@ reach them.
   this folder's list (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps to override a reference guide:**
   1. Confirm with the author that the book genuinely diverges from the reference practice, and
-     date that decision in `.claude/MEMORY.md` Decisions.
+     date that decision in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+     `## Memory headings`).
   2. Copy the reference guide here under the same filename and change only what differs.
   3. List it in this folder's `CONTEXT.md` as an override, with the date and the reason.
 - **Definition of done:** the guide is in the house guide format, listed in this folder's

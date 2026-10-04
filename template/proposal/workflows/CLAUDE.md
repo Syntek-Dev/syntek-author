@@ -36,7 +36,8 @@ and updating the tracker happen the same way every time.
 
 - **Scope discipline.** The package serves the writing and never delays it; if a procedure drifts
   into drafting chapters, stop and hand back.
-- **Draft, never send.** Every email is handed to the author. It is a step in `02` for a reason.
+- **Draft, never send.** Every email is handed to the author. It is a step in
+  `02-approach-a-reader` for a reason.
 - **Never offer what does not exist,** and never invent a comparable title, a figure, an
   endorsement, an interest, an offer or a deadline.
 - **Check the tracker before any approach.** A second first approach is entirely preventable.

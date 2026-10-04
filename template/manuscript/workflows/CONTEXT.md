@@ -47,7 +47,8 @@ The author's procedures are numbered separately in `manuscript/workflows/local/`
 ## Cross-references
 
 - `manuscript/workflows/local/` — the author's procedures, and same-named overrides of these.
-- `manuscript/docs/reference/drafting-with-ai.md` — how procedures 01 to 04 and 07 fit together.
+- `manuscript/docs/reference/drafting-with-ai.md` — how `01-draft-a-section` to
+  `04-promote-a-section` and `07-learn-from-your-edits` fit together.
 - `standards/verification/verification.md` — the gates the review procedure runs.
 - `.claude/rules/syntek-author/05-model-allocation.md` — what the checklist model tags mean.
 - `planning/workflows/` — the procedures that plan a chapter before anything here runs.

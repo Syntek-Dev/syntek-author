@@ -3,7 +3,8 @@
 Decision maps: `MAP-<TOPIC>.md` files charting a body of work too big to settle in one grilling
 session. A map is a low-resolution index of open decisions in dependency order, not a store of
 answers: the detail lives in the brief, research note, plan or `.claude/MEMORY.md` decision
-each entry links to. Written and resolved by the `wayfinder` skill.
+each entry links to. Written and resolved by the `wayfinder` skill. This is the default home: a
+project whose `00-project.md` `## Paths` names another ('Decision maps') keeps its maps there.
 
 This file is seeded once and is yours from then on: `wayfinder` appends a row to the index below
 for each map it charts, and `copier update` never changes it (delete it and the next update
@@ -34,4 +35,4 @@ row's `Frontier open?` as its nodes are resolved; a closed map keeps its row as 
   decisions go.
 - `.claude/skills/wayfinder/SKILL.md` — the procedure and the map format.
 - `.claude/MEMORY.md` — `Open questions` that a map must reckon with, and `Decisions` that
-  settled nodes graduate to.
+  settled nodes graduate to (both mapped in `00-project.md` `## Memory headings`).

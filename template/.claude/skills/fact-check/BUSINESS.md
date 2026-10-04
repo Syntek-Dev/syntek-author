@@ -7,27 +7,32 @@ something the author has agreed.
 
 ## Paths and unit
 
-- **The unit** is a document in a family under `library/src/<family>/`: a `.tex` deliverable with
-  its sections between `% section:` markers, or Markdown correspondence. Section drafts sit in
-  `library/src/<family>/drafts/<unit-slug>/`.
+- **The unit** is a document in one of the families this project selected, under
+  `library/src/<family>/` (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`):
+  a `.tex` deliverable with its sections between `% section:` markers, or Markdown copy such as an
+  email. Section drafts sit in `library/src/<family>/drafts/<unit-slug>/`.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the claims
+  its documents make and the checks it adds.
 - **The sweep** is step 5 of `library/workflows/05-review-a-document/`. A scheduled review sends
   every claim about the outside world here from step 4 of `planning/workflows/06-run-a-review-cycle/`.
 - **Flags:** `\dnote{VERIFY: …}` in a `.tex` file, `<!-- VERIFY: … -->` in Markdown.
-- **A client's facts** live once, under `## Facts` in the client folder's `CONTEXT.md` in
-  `library/src/contracts/client-docs/<client-slug>/`. Check against them and update them through
-  that file; never copy them elsewhere.
+- **A client's facts** live once, under `## Facts` in the client's `CONTEXT.md` at the
+  client facts path in `00-project.md` `## Paths` (by default
+  `library/src/business/client-docs/<client-slug>/CONTEXT.md`). Check against them and update them
+  through that file; never copy them elsewhere, and never create a client folder in another family
+  to hold them.
 - **Extra reads:** `standards/method/BUSINESS.md` rule 7; `standards/risk/BUSINESS.md` rule 5;
   `standards/verification/BUSINESS.md` (V5.1 and V5.2 follow this sweep);
-  `planning/src/precedence.md`; `standards/brand/disclaimers.md`; the jurisdiction in
-  `.claude/CLAUDE.md` Section 1.
+  `planning/src/precedence.md`; the disclaimers (`00-project.md` `## Paths`; by default
+  `standards/brand/disclaimers.md`); the jurisdiction in `00-project.md` `## Brief`.
 
 ## Additions to the steps
 
 - **Step 2 — also queue:** every legal entity named (its exact legal name, company or charity
   number, registered office); every statute, regulation, standard or framework cited; every price,
   fee, rate, date, deadline, period and service level; every certification, accreditation,
-  insurance or compliance claim; every claim of track record or results; every figure in a finance
-  document.
+  insurance or compliance claim; every claim of track record or results; every figure in an
+  accounting document.
 - **Step 5 — also, for an entity:** the public register for the jurisdiction, never the entity's
   own website, letterhead or email signature. For England and Wales: Companies House for companies
   and limited liability partnerships, and the Charity Commission's register for charities. Record

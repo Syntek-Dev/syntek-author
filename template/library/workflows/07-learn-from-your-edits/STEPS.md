@@ -55,20 +55,20 @@ before-and-after pairs quoted from the ledger. _Substantive._
 
 > **Skill:** `learn-voice` · **Guide:** `library/docs/reference/document-anatomy.md`
 
-Name the register each pattern belongs to: running copy (proposals, letters, emails, marketing),
+Name the register each pattern belongs to: running copy (proposals, letters, emails, posts),
 instruments and policies, or short functional copy. Then its home: a voice habit goes to
 `standards/style/voice-notes.md` `## Learned`; a preferred term to
 `standards/style/terminology.md`; a mechanical rule to `standards/style/style-sheet.md`; a change to
-`standards/method/` or `standards/brand/` becomes a proposal to the author only; a lesson about one
+`standards/method/` or the brand folder becomes a proposal to the author only; a lesson about one
 document stays in that document's brief or internal note. _Substantive._
 
 ## 6. Check against what is already written
 
 > **Skill:** `learn-voice` · **Guide:** `library/docs/reference/drafting-with-ai.md`
 
-Read the current voice notes, terminology, style sheet and `standards/brand/brand-voice.md`. Drop
-any pattern already recorded; flag any that contradicts a recorded rule, quoting both, so the
-author can say which stands. _Substantive._
+Read the current voice notes, terminology, style sheet and the brand voice
+(`00-project.md ## Paths`). Drop any pattern already recorded; flag any that contradicts a recorded
+rule, quoting both, so the author can say which stands. _Substantive._
 
 ## 7. Propose
 

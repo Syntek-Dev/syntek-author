@@ -45,8 +45,8 @@ recognises the source can identify the person who trusted the author with it.
 
 **Requirement.** A real person's story, words or likeness enters the work only with their
 explicit consent, given after they understood how it will be used, and recorded (who, what,
-when) in `.claude/MEMORY.md` `## Sensitivities`. Silence, an old conversation or 'they would not
-mind' is not consent.
+when) in `.claude/MEMORY.md` `## Sensitivities` (mapped in `00-project.md`
+`## Memory headings`). Silence, an old conversation or 'they would not mind' is not consent.
 
 **Why this rule exists.** Consent inferred by the writer is the writer's convenience, not the
 subject's choice, and it cannot be withdrawn once the work is printed.

@@ -8,8 +8,8 @@ scholarly register, Scripture references, the original languages, and LORD in sm
 - **Unit:** the chapter. Markdown `manuscript/src/NN-kebab-title/NN-kebab-title.md`; base
   `typeset/src/units/.base/NN-kebab-title.tex`; styled file `typeset/src/units/NN-kebab-title.tex`.
 - **Extra reads before styling:** `manuscript/docs/reference/main-text-and-footnotes.md` (what
-  belongs in the body and what in a note) and the default Bible translation in
-  `standards/style/style-sheet.md`, whose copyright notice the title verso will need.
+  belongs in the body and what in a note) and the default Bible translation named in
+  `00-project.md` `## Brief`, whose copyright notice the title verso will need.
 - **Page-design choices this book adds:** a Greek typeface and a Hebrew typeface (`greekfont=`,
   `hebrewfont=`), asked only if the book quotes either language.
 

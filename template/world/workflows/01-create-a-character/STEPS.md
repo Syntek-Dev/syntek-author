@@ -32,8 +32,9 @@ character can. If the answer is a single scene and no change, stop and route to
 
 Read `world/src/names-register.md`, every file in `world/src/characters/`, the places the
 character belongs to, `planning/src/continuity.md` and `planning/src/timeline.md`, and the
-premise in `.claude/CLAUDE.md` Section 1. List the constraints the new character must respect
-and the existing characters they would echo. _Substantive._
+premise in the project brief (`00-project.md` `## Paths`, 'Project brief'). List the
+constraints the new character must respect and the existing characters they would echo.
+_Substantive._
 
 ## 3. Draft the want, the need, the wound and the lie
 

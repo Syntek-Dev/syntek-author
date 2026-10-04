@@ -10,9 +10,13 @@
 %      (kebab-case, with its version and date when it is versioned). Never fill it in here.
 %   2. Replace every [BRACKETED] field. A field only the author can supply stays as
 %      \fillme until they do; a decision only the author can make is a \dnote whose
-%      text opens with AUTHOR TO CONFIRM and a colon (`make flags` lists every one).
-%   3. Keep the order: title block → disclaimer for the document's class → control block
-%      → the body (standards/brand/brand-guide.md rule 4).
+%      text opens with AUTHOR TO CONFIRM and a colon. `make flags` lists every one, and
+%      `make pdf ISSUE=1` refuses to issue the document while any is left.
+%   3. Keep the parts in the order library/docs/reference/document-anatomy.md sets out:
+%      this leading block → the preamble → the internal note → the title block → the
+%      disclaimer for the document's class → the Document Control block, ending with its
+%      version history → the body. Section 4 of the brand guide, in the brand folder
+%      00-project.md ## Paths names (by default standards/brand/), says the same.
 %   4. Render with: make pdf FILE=<this file>. XeLaTeX runs twice so every \ref resolves.
 %
 % The leading block comes first, always: `% unit:` names the unit brief in
@@ -31,13 +35,25 @@
 
 \hypersetup{pdftitle={[DOCUMENT TITLE]}, pdfauthor={[TRADING NAME]}}
 
+% Where the family's standard puts the classification in the page header (an msp-scp
+% policy, for example), uncomment this line and give the level the control block records.
+% \houseclassification{[CLASSIFICATION]}
+
+% ─────────────────────────────────────────────────────────────────────────────────────
+% INTERNAL NOTE (a comment: never rendered, kept for whoever works on this document next)
+%   Authorised deviations: [none, or each one: what, who authorised it, and when]
+%   Sources checked:       [each source, and the date it was checked]
+%   Unresolved:            [none, or each open question]
+% ─────────────────────────────────────────────────────────────────────────────────────
+
 \begin{document}
 
 \housetitle{[DOCUMENT TITLE]}{[TRADING NAME]}{[DD/MM/YYYY]}
 
-% Disclaimer: the wording for this document's class, copied unchanged from
-% standards/brand/disclaimers.md. Remove the block only on the author's recorded waiver,
-% noted in a % comment here so a later pass does not add it back.
+% Disclaimer: the wording for this document's class, copied unchanged from the disclaimers
+% file 00-project.md ## Paths names (by default standards/brand/disclaimers.md). Remove the
+% block when the document's class carries none (its family standard), or on the author's
+% recorded waiver noted here, so a later pass does not add it back.
 \begin{housenotice}
 [DISCLAIMER WORDING FOR THIS DOCUMENT CLASS]
 \end{housenotice}
@@ -51,6 +67,21 @@ Date        & [DD/MM/YYYY] \\
 Owner       & [TRADING NAME] \\
 Next review & [DD/MM/YYYY] \\
 \end{housecontrol}
+
+% Version history, the end of the Document Control block: one row per version, oldest
+% first. A new version adds its row and never rewrites a row above it. Keep each row's first
+% cell in braces: a row that opens with [ is read as a spacing setting, not as text.
+{\small\bfseries\color{housemuted}Version history\par}
+{\small\noindent
+\begin{tabularx}{\linewidth}{@{}lllXl@{}}
+\toprule
+\rowcolor{housesurface}
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Change description} & \textbf{Approved by} \\
+\midrule
+{[v1.0]} & [DD/MM/YYYY] & [NAME] & [First issue.] & [NAME OR ROLE] \\
+\bottomrule
+\end{tabularx}\par}
+\medskip
 
 % section: summary
 \section{Summary}

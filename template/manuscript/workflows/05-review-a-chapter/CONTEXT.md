@@ -53,5 +53,6 @@ earlier one have passed.
 - `standards/verification/verification.md` — the gates for every move up the ladder, and the
   further gates its mode file adds for this kind of book.
 - `manuscript/docs/reference/the-status-ladders.md` — the ladder, and reopening a promoted section.
-- `.claude/CLAUDE.md` Section 1 — the reader the comprehension pass reads as.
+- `.claude/rules/syntek-author/00-project.md` `## Brief` — the reader the comprehension pass reads
+  as.
 - `planning/src/reviews/` — where structural reviews are kept, as advice.

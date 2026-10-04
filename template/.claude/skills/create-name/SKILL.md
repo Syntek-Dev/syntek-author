@@ -74,9 +74,10 @@ are the procedure of record — do not restate them at length here.
    modelling a hostile people's names on a real ethnic group's language, because readers carry the
    association back to real people; suggest an ancient or extinct model, or a blend (fiction risk
    rule 8). On the author's word, record the style where the people's naming customs live: the
-   culture's file where the worldbuilding kit is installed, otherwise `.claude/MEMORY.md`
-   `## Decisions`. *Complete when:* the constraints on the name are listed, each with the file it
-   came from, and a name style is recorded.
+   culture's file where the worldbuilding kit is installed, otherwise the `Decisions` heading of
+   `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`). *Complete when:* the
+   constraints on the name are listed, each with the file it came from, and a name style is
+   recorded.
 
 3. **Offer three to five options.** For each: the name; its reasoning (sound palette or
    phonotactics, custom, meaning, and the model language's naming habit it follows); broad IPA with
@@ -126,8 +127,8 @@ are the procedure of record — do not restate them at length here.
 
 8. **Hand back.** Report the registered name with its IPA and respelling, any clash or unchecked
    meaning the author accepted, and for a renaming the sections still using the old name. A naming
-   custom or style the choice settled goes to `.claude/MEMORY.md` `## Decisions` through
-   `grill-with-docs` when it is hard to reverse. *Complete when:* the author has the report.
+   custom or style the choice settled goes under the `Decisions` heading of `.claude/MEMORY.md`
+   through `grill-with-docs` when it is hard to reverse. *Complete when:* the author has the report.
 
 ## Anti-patterns
 

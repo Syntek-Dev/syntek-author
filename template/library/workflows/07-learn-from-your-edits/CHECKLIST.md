@@ -30,7 +30,7 @@ model: opus
 
 - [ ] Each pattern backed by at least two real instances, with before-and-after pairs quoted. · _opus_
 - [ ] Each pattern given its register: running copy, instruments and policies, or functional copy. · _opus_
-- [ ] Each pattern given its home; changes to `standards/method/` or `standards/brand/` kept as proposals only. · _opus_
+- [ ] Each pattern given its home; changes to `standards/method/` or the brand folder kept as proposals only. · _opus_
 - [ ] Current voice notes, terminology, style sheet and brand voice checked; duplicates dropped, contradictions quoted. · _opus_
 
 **Approval and recording**

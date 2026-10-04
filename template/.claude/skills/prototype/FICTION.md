@@ -26,8 +26,9 @@ The two branches for a novel, SCENE and VOICE, and what each relaxes.
   and never becomes a fact in the story bible.
 - **Step 5 — also** record a SCENE verdict in the brief (`## Continuity facts` or
   `## Draft notes`) and, if the turn changed, in `planning/src/causality.md`; a VOICE verdict for
-  a character goes to their voice markers in their file, and one for the narration to
-  `.claude/MEMORY.md` `Decisions` through the gate.
+  a character goes to their voice markers in their file, and one for the narration to the
+  `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`)
+  through the gate.
 
 ## Domain rules
 

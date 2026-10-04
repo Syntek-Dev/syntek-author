@@ -11,6 +11,12 @@ among them, live in `standards/method/BUSINESS.md`. Not here: the mechanics of s
 punctuation (`standards/style/style-sheet.md`), the person the business writes in
 (`standards/style/voice-notes.md`), or logo files (`assets/`).
 
+**These are the default homes.** A project that keeps its brand voice and guide in another
+folder, or its disclaimer wordings in another file, names the place in `00-project.md`
+`## Paths` ('Brand folder', 'Disclaimers'); every skill reads it there, and the file here that it
+replaces is not used. Set `BRAND_DIRS` in `tooling/project.mk` to the same folder, or `make flags`
+keeps counting the open slots in the seeds here.
+
 ## Directory Tree
 
 ```text
@@ -30,7 +36,8 @@ standards/brand/
 - `brand-guide.md` — the visual identity, mapped to the colour and font names in
   `tooling/latex/house-preamble.tex`, so a brand change is one edit.
 - `disclaimers.md` — the wording for each document class, and where it goes. **Every document
-  takes its disclaimer from here**, never from memory or another document.
+  takes its disclaimer from here** (or from the file `00-project.md` `## Paths` names), never
+  from memory or another document.
 
 ## Cross-references
 

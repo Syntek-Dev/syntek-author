@@ -26,8 +26,10 @@ STOP: compaction intercepted. Do not compact this session; hand off instead.
 House rule: .claude/rules/syntek-author/07-session-boundaries.md (hand off, never compact).
   1. Record any durable knowledge in its real home FIRST: .claude/MEMORY.md (through the
      memory gate), the unit brief in planning/src/units/, or the folder CONTEXT.md / CLAUDE.md.
-  2. Invoke the `handoff` skill and write handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md,
-     including the part its mode file says this project must never drop.
+  2. Invoke the `handoff` skill and write the handoff in the handoffs folder, in the filename
+     form .claude/rules/syntek-author/00-project.md ## Paths names (by default
+     handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md), including the part its mode file says this
+     project must never drop.
   3. Print the handoff path and STOP the turn.
   4. <%AUTHOR_FIRST_NAME%> runs /clear and resumes from the handoff file in a fresh context window.
 MSG

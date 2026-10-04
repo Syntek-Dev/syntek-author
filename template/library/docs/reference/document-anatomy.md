@@ -17,14 +17,14 @@ the loop. A part missing from a document is a structural finding, not a style pr
 ## The parts, in order
 
 1. **The leading status block:** `% unit:`, `% status:` and `% last_updated:` comment lines, first.
-2. **The preamble**, taken unchanged from `tooling/latex/skeleton.tex`, which inputs the house
-   preamble `tooling/latex/house-preamble.tex`.
+2. **The preamble**, taken unchanged from the house skeleton `00-project.md ## Paths` names (by
+   default `tooling/latex/skeleton.tex`, which inputs `tooling/latex/house-preamble.tex`).
 3. **The internal note:** a `%` comment block under the preamble recording authorised deviations,
    sources checked with their dates, and anything unresolved. It is never rendered.
 4. **The title block:** title, the business's trading name, the date.
-5. **The disclaimer,** where the document's class carries one, copied verbatim from
-   `standards/brand/disclaimers.md`. Never paraphrased, never improvised; a class with none has
-   none.
+5. **The disclaimer,** where the document's class carries one, copied verbatim from the
+   disclaimers file `00-project.md ## Paths` names (by default `standards/brand/disclaimers.md`).
+   Never paraphrased, never improvised; a class with none has none.
 6. **The Document Control block** on versioned and external documents, ending with the version
    history table (Version · Date · Author · Change description · Approved by).
 7. **The reader's map** for a long document: 'How to read this document' (Where · What), then a
@@ -35,14 +35,17 @@ the loop. A part missing from a document is a structural finding, not a style pr
 
 ## Required parts by family
 
-| Family | Document Control rows | The body must include |
-|---|---|---|
-| Proposals | Title, Client, Version, Status, Date, Valid until, Owner | summary; scope with In scope and Out of scope; deliverables; timeline (Milestone · Description · Target date); investment as line items, never one total; terms summary; next steps |
-| Contracts | Title, Parties, Version, Status, Effective date, Owner, Next review | parties; background; definitions and interpretation first; numbered clauses (services, duration, fees and payment, confidentiality, intellectual property, liability, termination); precedence where the contract belongs to a family; signature block |
-| Policies | Title, Owner, Version, Status, Last reviewed, Next review, Classification | purpose and scope; the rules as must-statements; roles and responsibilities; compliance; review and approval; the review-date notice |
-| Correspondence | none | email: H1, To, From, Attachment and Status lines, internal note, rule, Subject, body; letter: heading, date, recipient, subject, body, sign-off |
-| Finance | Title, Period, Version, Date produced, Owner (reports) | figures with their basis and period; notes on every estimate; invoices: every field the template carries, none left blank |
-| Marketing | Title, Period, Version, Status, Owner, Next review (plans) | audience and purpose; the copy; every claim backed by a number or cut |
+Each family's standard, `library/docs/reference/<family>-standards.md`, names its document types
+and what each adds to the parts above: the rows of its Document Control block, the sections its
+body must include, and the disclaimer class it carries, if any. Read it before the brief's
+`sections:` list is settled, so every required part is planned as a section or filled from data.
+
+| Part | Comes from |
+|---|---|
+| Document Control rows | the family standard, per document type |
+| Required body sections | the family standard, planned as sections in the unit brief |
+| Disclaimer | the disclaimers file, for the class the family standard names |
+| An authored email's parts | the email anatomy, when this project has the email family |
 
 ## Families of documents
 
@@ -58,8 +61,8 @@ instrument: reproduce the substance, never the clause number.
 - Fill every field from a fact the author gave or a check recorded in `research/src/evidence/`;
   an unfilled template field stays `[AWAITING USER INPUT]` and blocks `final`.
 - The register is set by the reader: an instrument or policy keeps the formal register, and brand
-  voice does not soften it; proposals, letters and marketing copy use
-  `standards/brand/brand-voice.md`.
+  voice does not soften it; proposals, letters, emails and social copy use the brand voice in the
+  brand folder `00-project.md ## Paths` names.
 
 ## Who implements it
 
@@ -70,5 +73,5 @@ instrument: reproduce the substance, never the clause number.
 ## Governing standard
 
 `standards/method/BUSINESS.md` owns the drafting principles (stated precedence, defined terms
-defined once); `standards/brand/disclaimers.md` owns the disclaimer wording. This guide owns the
-order the parts appear in, and which family needs which.
+defined once); the disclaimers file owns the disclaimer wording; each family standard owns its
+types' parts. This guide owns the order the parts appear in.

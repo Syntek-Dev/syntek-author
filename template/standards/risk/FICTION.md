@@ -16,8 +16,8 @@ Dates DD/MM/YYYY.
 
 **Requirement.** Depicting harm is not endorsing it, but how it is depicted is the author's
 decision, made knowingly. The subjects that need a content note are recorded once in
-`.claude/MEMORY.md` `## Sensitivities`; whether the work carries content notes, and where, is an
-`AUTHOR TO CONFIRM` decision recorded there too.
+`.claude/MEMORY.md` `## Sensitivities` (mapped in `00-project.md` `## Memory headings`); whether
+the work carries content notes, and where, is an `AUTHOR TO CONFIRM` decision recorded there too.
 
 **Why this rule exists.** Readers who need a warning need it before the scene, not after, and a
 decision taken scene by scene drifts.

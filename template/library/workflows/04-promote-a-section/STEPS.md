@@ -42,8 +42,9 @@ outstanding goes back to the author; promotion waits. _Mechanical._
 
 Find the deliverable: the newest `.tex` in the unit's family whose first line is
 `% unit: <unit-slug>`. If its register row or Document Control block shows it has been circulated,
-stop: a new version is opened first. If the document's `.tex` does not exist yet, create it from
-`tooling/latex/skeleton.tex` at its versioned path, with the leading status block matching the
+stop: a new version is opened first. If the document's `.tex` does not exist yet, create it from the
+house skeleton `00-project.md ## Paths` names (by default `tooling/latex/skeleton.tex`), or from the
+family template the brief names, at its versioned path, with the leading status block matching the
 brief and one marker pair per planned section, in the brief's order. A Markdown deliverable (web
 copy) is found by its frontmatter `unit:` instead and, when new, opens with frontmatter `unit:`,
 `status:` and `last_updated:` matching the brief (`library/docs/reference/the-status-ladders.md`).

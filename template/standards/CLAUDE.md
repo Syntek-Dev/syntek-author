@@ -20,8 +20,9 @@ You are usually **reading** a standard to apply it elsewhere, not editing it.
   - `method/` → `fact-check` (with `research` for delegated search); the mode file names the
     variant skills that enforce the rest.
   - `risk/` → `structure-review` (its risk lens) and `fact-check`; the mode file adds the domain.
-  - `verification/` → the review workflow (05) in the content layer, which runs the gates in
-    order.<: if INCLUDE_REFERENCES :>
+  - `verification/` → the content layer's review workflow,<: if DOC_TYPE != 'business' :>
+    `manuscript/workflows/05-review-a-chapter/`,<: endif :><: if DOC_TYPE == 'business' :>
+    `library/workflows/05-review-a-document/`,<: endif :> which runs the gates in order.<: if INCLUDE_REFERENCES :>
   - `referencing/` → `add-reference` (a source becomes a row with a key) and `build`.<: endif :><: if DOC_TYPE == 'business' :>
   - `brand/` → `tone` (the voice at line edit) and `draft-section` (disclaimer by class).<: endif :>
 - **Model:** **Opus** for any change to a standard and any judgement against one; the mechanical
@@ -33,8 +34,8 @@ You are usually **reading** a standard to apply it elsewhere, not editing it.
   3. Draft the rule prescriptively: the requirement, a right and a wrong example, and why the
      rule exists. No preferences, no invented facts.
   4. **Confirm with the author.** A standards change has repository-wide reach.
-  5. Record the decision, dated, in `.claude/MEMORY.md` `## Decisions`, and flag the units that
-     need a conformity pass.
+  5. Record the decision, dated, in `.claude/MEMORY.md` `## Decisions` (mapped in `00-project.md`
+     `## Memory headings`), and flag the units that need a conformity pass.
 - **Definition of done:** the rule is unambiguous and testable; it agrees with every other
   standard and with `tooling/`; existing units comply or are listed for a pass; the change is
   author-confirmed and recorded in `MEMORY.md`.

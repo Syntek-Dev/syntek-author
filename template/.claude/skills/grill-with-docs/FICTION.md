@@ -41,14 +41,15 @@ kit is installed, each language's own data files.
 
 - **Step 4 — also gate the language family's model.** The model chosen for a language, a family
   of languages or an antagonist people's tongue is hard to reverse once names are coined, would
-  surprise a reader of the files, and settled a real trade-off: it goes to `.claude/MEMORY.md`
-  `Decisions` as well, with the options rejected and why.
+  surprise a reader of the files, and settled a real trade-off: it goes under the `Decisions`
+  heading of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) as well, with
+  the options rejected and why.
 
 ## Domain rules
 
 - **No inspiration without its research.** An `[[inspiration]]` or `[meta.inspiration]` entry
   names in `sources` the note in `research/src/setting/` that establishes how the model actually
-  works. Until `research` has written it, record the decision in `.claude/MEMORY.md`, leave
+  works. Until `research` has written it, record the decision under the `Decisions` heading, leave
   `sources` empty, and say that the language's sound cannot be built on it yet.
 - **An echo is never recorded from memory.** The real word, its meaning and its source are
   verified first, and a prominent word also gets the false-friend check (unintended meanings in
@@ -73,12 +74,12 @@ family = "Germanic"
 weight = "primary"
 borrows = ["phonology", "phonotactics", "prosody"]
 sources = ["research/src/setting/old-english-c900-sounds.md"]
-notes = "c. 900; the hill-trade accent is a second entry; MEMORY Decisions 03/10/2026"
+notes = "c. 900; the hill-trade accent is a second entry; MEMORY.md, Decisions heading, 03/10/2026"
 ```
 
 A word's history, in its lexicon entry: `stratum = "early-loan"`, `entered_after = 2`, `echo = ""`.
 
-The same choice in `.claude/MEMORY.md` `Decisions`: `- **03/10/2026** — **Fenward's model: Old
+The same choice under the `Decisions` heading of `.claude/MEMORY.md`: `- **03/10/2026** — **Fenward's model: Old
 English c. 900, with a Celtic accent.** The hill trade in era 2 is the world's defining contact.
 Rejected: an Old Norse accent (it voices a sea contact the history does not have) and one model
 alone (loans would not sound borrowed).`

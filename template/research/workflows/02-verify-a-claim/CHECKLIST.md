@@ -35,7 +35,7 @@ model: opus
 - [ ] Conflations checked, including the field-specific ones in the `fact-check` mode file. · _opus_
 - [ ] **Kept going past the first agreeable source;** where that changed the answer, it is in the entry. · _opus_
 - [ ] For a legal claim: jurisdiction and date named, unsettled parts said plainly, no section number cited unread. · _opus_
-- [ ] Claims about the author checked against `.claude/MEMORY.md` (Facts) and, where silent, put to the author. · _opus_
+- [ ] Claims about the author checked against `.claude/MEMORY.md` (Facts, mapped in `00-project.md` `## Memory headings`) and, where silent, put to the author. · _opus_
 
 **Recording**
 

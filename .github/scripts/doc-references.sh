@@ -18,7 +18,10 @@
 #                       2. A routing frontmatter `skills:` list names a skill this tree lacks.
 #                       3. A `> **Skill:**` line names a skill this tree lacks.
 #                       4. A backticked skill name (one DESIGN.md Section 5 lists) that this
-#                          tree lacks — a shared file naming a variant's skill.
+#                          tree lacks — a shared file naming a variant's skill, or a skill's
+#                          `description:` naming a boundary skill that is gated out (a business
+#                          family's skill in a project without that family). The description is
+#                          read whole, folded lines joined, and feeds check 4 only.
 #
 #                     A token is tested as a path when it has no spaces, contains a slash, and
 #                     is not a placeholder: anything with < > { } * ? [ ] … | = ( ) $ % @ # , ;
@@ -44,8 +47,9 @@
 #                     generic folder name, which reads as a class name.
 #
 # SELF-TEST. --self-test builds a small tree at runtime, proves it clean (placeholders, a fenced
-#            sample, a marker, a layer-relative path and generated output all pass), then
-#            applies one mutation per check and asserts exactly one finding each.
+#            sample, a marker, a layer-relative path, generated output and a skill description
+#            folded over two lines all pass), then applies one mutation per check, and a second
+#            for check 4's description reading, and asserts exactly one finding each.
 #
 # Requirements: bash 4+, awk, find. No network. Pass trees that generate-all.sh produced.
 #
@@ -57,7 +61,7 @@
 
 set -euo pipefail
 SCRIPT_NAME="doc-references.sh"
-# shellcheck source=_common.sh
+# shellcheck source=SCRIPTDIR/_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SELF_TEST=false
@@ -95,12 +99,28 @@ declare -A CATALOGUE=()
 while read -r s _; do [[ -n "$s" ]] && CATALOGUE["$s"]=1; done <<< "$SA_SKILLS"
 
 # Records per file: L<TAB>line<TAB>S|T<TAB>token  for backticked tokens outside fences and
-# markers (S = on a Skill line), and F<TAB>line<TAB>-<TAB>name for each frontmatter skill.
+# markers (S = on a Skill line), F<TAB>line<TAB>-<TAB>name for each frontmatter skill, and
+# D<TAB>line<TAB>-<TAB>token for each backticked token in the frontmatter description (line =
+# the description: key, since a folded block is joined before it is read).
 EXTRACT='
+function flushdesc(   s, i, rest, j, tok) {
+  if (!indesc) return
+  indesc = 0; s = desc
+  while ((i = index(s, "`")) > 0) {
+    rest = substr(s, i + 1); j = index(rest, "`")
+    if (!j) break
+    tok = substr(rest, 1, j - 1)
+    if (tok != "") print "D\t" dline "\t-\t" tok
+    s = substr(rest, j + 1)
+  }
+}
 NR == 1 && $0 == "---" { infm = 1; next }
-infm && /^---[[:space:]]*$/ { infm = 0; next }
+infm && /^---[[:space:]]*$/ { flushdesc(); infm = 0; next }
 infm {
-  if ($0 ~ /^skills:[[:space:]]*\[/) {
+  if (indesc && $0 ~ /^[[:space:]]/) { desc = desc " " $0; next }
+  flushdesc()
+  if ($0 ~ /^description:/) { indesc = 1; dline = NR; desc = $0; sub(/^description:[[:space:]]*/, "", desc); inlist = 0 }
+  else if ($0 ~ /^skills:[[:space:]]*\[/) {
     s = $0; sub(/^skills:[[:space:]]*\[/, "", s); sub(/\].*$/, "", s)
     n = split(s, a, ",")
     for (i = 1; i <= n; i++) { v = a[i]; gsub(/[[:space:]"\047]/, "", v); if (v != "") print "F\t" NR "\t-\t" v }
@@ -125,7 +145,8 @@ fence { next }
     if (tok != "") print "L\t" NR "\t" kind "\t" tok
     line = substr(rest, j + 1)
   }
-}'
+}
+END { flushdesc() }'
 
 is_pathlike() { # sets P to the testable path, or returns 1
   local t="$1"
@@ -185,6 +206,11 @@ run_checks() {
       case "$rec" in
         F)
           [[ -n "${skills[$tok]:-}" ]] || finding "check 2 — $f:$ln routes to skill '$tok', which this project does not have" ;;
+        D)
+          TOKENS=$((TOKENS + 1))
+          if [[ "$tok" =~ ^[a-z0-9-]+$ && -n "${CATALOGUE[$tok]:-}" && -z "${skills[$tok]:-}" ]]; then
+            finding "check 4 — $f:$ln description names the skill '$tok', which this project does not have"
+          fi ;;
         L)
           TOKENS=$((TOKENS + 1))
           if [[ "$kind" == S && "$tok" =~ ^[a-z0-9-]+$ ]]; then
@@ -219,7 +245,16 @@ self_test() {
   g="$t/manuscript/docs/reference/guide.md"
   wf="$t/manuscript/workflows/01-draft-a-section"
   mkdir -p "$t/.claude/skills/flow" "$t/.claude/skills/research" "$t/manuscript/docs/reference" "$t/manuscript/src" "$wf" "$t/planning/src/units"
-  printf 'x\n' > "$t/.claude/skills/flow/SKILL.md"
+  cat > "$t/.claude/skills/flow/SKILL.md" <<'EOF'
+---
+name: flow
+description: >-
+  Read the transitions as `00-project.md
+  ## Brief` sets the reader. Not a fact check (`research`).
+---
+
+# Skill: Flow
+EOF
   cat > "$g" <<'EOF'
 ---
 type: guide
@@ -279,6 +314,11 @@ EOF
   probe "check 4 fires on prose naming a variant skill this tree lacks" "check 4"
   sed -i '$d' "$g"
 
+  sed -i 's/(`research`)/(`continuity`)/' "$t/.claude/skills/flow/SKILL.md"
+  probe "check 4 fires on a folded description naming a skill this tree lacks" \
+    "check 4 — .claude/skills/flow/SKILL.md:3 description"
+  sed -i 's/(`continuity`)/(`research`)/' "$t/.claude/skills/flow/SKILL.md"
+
   st_finish "a tree whose citations resolve from one with dead ends"
 }
 
@@ -309,5 +349,6 @@ if [[ "$STATUS" -eq 0 ]]; then
   exit 0
 fi
 log "  A shared file may only name what every variant ships. Gate the row in its index file"
-log "  (DESIGN.md Section 2), name the path in the mode file instead, or fix the path."
+log "  (DESIGN.md Section 2), name the path in the mode file instead, or fix the path. A"
+log "  description naming a gated-out skill names it in words, without backticks."
 exit 1

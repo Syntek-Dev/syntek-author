@@ -71,8 +71,9 @@ Promoted. _Mechanical._
 
 Set the draft's `status: promoted` and `last_updated`. Set the section's entry in the brief's
 `sections:` list to `promoted`. **Leave the chapter's own `status:` where it is.** Bring the
-chapter's line under Status in `.claude/MEMORY.md` up to date (for example, how many of its sections
-are promoted), superseding the previous line rather than deleting it. Apply any extra records the
+chapter's line under Status in `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`)
+up to date (for example, how many of its sections are promoted), superseding the previous line
+rather than deleting it. Apply any extra records the
 skill's mode file names. _Mechanical._
 
 ## 7. Read it in place

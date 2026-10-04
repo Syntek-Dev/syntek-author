@@ -29,7 +29,7 @@ rather than re-deriving it: duplicated exegesis drifts between chapters. _Mechan
 
 > **Skill:** `research` · **Guide:** `research/src/contested-readings/CONTEXT.md`
 
-Quote it in the default translation named in `standards/style/style-sheet.md`, from the
+Quote it in the default translation named in `00-project.md` `## Brief`, from the
 translation itself and never from memory, with enough surrounding context that the dispute is
 visible rather than asserted. Where another translation makes the disputed point clearer, quote it
 too and name it. _Substantive._

@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. Project-specific rules belong in `.claude/CLAUDE.md` Section 3.
+> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 Skills live in `.claude/skills/<skill>/SKILL.md`. This file is the roster: which skills ship in
 this project, what each does, and which carry a mode file. The `.claude/skills/` pair routes here
@@ -13,17 +13,23 @@ rather than keeping a second list.
 
 ## 1. Skills only
 
-**This project has no commands and no agents.** Every procedure is a skill. A skill runs when it
-is named (`/draft-section`) or when the author describes its job ("draft the next section of
-the unit"). A described job that no skill matches, a request such as "what's next?", "pick up
-where we left off" or "run workflow 05", goes to `run-workflow`, which resolves it to a workflow
-(and reads a handoff newer than `MEMORY.md` first). Every skill that carries out a workflow runs the
+**The template ships no commands and no agents.** Every template procedure is a skill. A skill
+runs when it is named (`/draft-section`) or when the author describes its job ("draft the next
+section of the unit"). A described job that no skill matches, a request such as "what's next?",
+"pick up where we left off" or "run the review workflow", goes to `run-workflow`, which resolves
+it to a workflow (and reads a handoff newer than `MEMORY.md` first). Every skill that carries out
+a workflow runs the project's alias for it (`00-project.md` `## Workflow aliases`) or the
 author's procedure of the same name in `workflows/local/` instead, where one exists. Where work
 benefits from a separate context, such as a delegated search or a multi-lens review, the skill
 runs itself as a forked subagent (`context: fork`) instead of handing off to an agent file.
 
-A skill that is not listed here does not ship in this project on purpose. Never recreate one, and
-never improvise a substitute under its name: say which skill is missing and why it matters.
+A template skill that is not listed here does not ship in this project on purpose. Never recreate
+one, and never improvise a substitute under its name: say which skill is missing and why it
+matters. Any other folder in `.claude/skills/` is the project's own (Section 7).
+
+The paths in these tables are the template's defaults. Where `00-project.md` `## Paths` gives
+another path for the same role, a skill uses that one, and where a skill names a heading of
+`MEMORY.md`, it means the heading `## Memory headings` maps it to.
 
 ---
 
@@ -40,13 +46,19 @@ that ships beside it. Every moded `SKILL.md` carries this paragraph before step 
 Every mode file has the same four sections, so the split can be checked: `## Paths and unit`,
 `## Additions to the steps` (keyed by step number), `## Domain rules` and `## Examples`.
 
+**A mode file applies only when its `SKILL.md` carries the Mode paragraph above.** A project's
+own skill kept under a template skill's name (an adopted project,
+`.claude/rules/syntek-author/01-layout-and-routing.md` Section 9) does not carry it, so the mode
+file beside it is ignored: its steps are keyed to a procedure that is not there, and the
+project's `SKILL.md` is the whole skill.
+
 ---
 
 ## 3. Shared writing skills
 
 | Skill | What it does | Mode |
 |---|---|---|
-| `run-workflow` | The router for a request no other skill matches, "what's next?" or "resume from the handoff": resolves it to a workflow (`workflows/local/` first), loads `STEPS.md` with `CHECKLIST.md` open, obeys the gates, and biases towards producing prose | none |
+| `run-workflow` | The router for a request no other skill matches, "what's next?" or "resume from the handoff": resolves it to a workflow (`00-project.md` `## Workflow aliases` first, then `workflows/local/`; it lists the workflow folders directly where an index has no 'You want to…' table), loads `STEPS.md` with `CHECKLIST.md` open, obeys the gates, and biases towards producing prose | none |
 | `draft-section` | Drafts **one** section of 300 to 500 words from the unit brief, the plan, the voice notes and the samples; opens its ledger entry | moded |
 | `adapt-section` | Revises a draft from the author's notes or edits: changes only what was flagged, offers alternatives for contested lines; also adapts source material when asked | moded |
 | `improve-section` | The author drafted: proposes improvements as a numbered diff, one reason each, at strength `light`, `edit` or `rework`; applies only what is accepted | moded |
@@ -55,7 +67,7 @@ Every mode file has the same four sections, so the split can be checked: `## Pat
 | `fact-check` | Isolates and verifies checkable claims against primary sources; one verdict vocabulary; records evidence entries and `VERIFY` flags | moded |
 | `spelling` | en_GB spelling against the style sheet and terminology; a supportive report grouped by recurring item. "Proofread …" runs `grammar` first, then this pass, as one report | moded |
 | `grammar` | Grammar and punctuation against the style sheet; respects deliberate fragments and dialect | moded |
-| `comprehension` | Reads as the stated reader (`.claude/CLAUDE.md` Section 1): undefined terms, leaps, buried points, by location | moded |
+| `comprehension` | Reads as the stated reader (`00-project.md` `## Brief`: the audience and the reader test): undefined terms, leaps, buried points, by location | moded |
 | `flow` | Transitions, paragraph order, rhythm, repetition, one voice across sections drafted out of order | moded |
 | `structure-review` | Multi-lens structural review; writes advice only to `planning/src/reviews/` | moded |
 | `build` | Builds a proof with `make`, reads it, and reports | moded |
@@ -108,6 +120,18 @@ column says otherwise.
 <: endif :><: if DOC_TYPE == 'business' :>| `clause-consistency` | Defined terms defined and bolded once, cross-references resolve, near-synonyms disambiguated, precedence stated | none |
 | `tone` | House voice and plain English by register; never changes a figure, date, scope or commitment | none |
 | `obligation-check` | shall, may and must used deliberately; every commitment traced to a clause or flagged new; prices, dates and service levels flagged `VERIFY` | none |
+| `business-documents` | The business family: proposals, statements of work, client guides and the business's internal policies<: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :> on HR and staff conduct (its IT and information-security policies are `msp-scp-documents`')<: endif :>; their document types, required sections, house conventions and checks; runs `library/workflows/10-create-a-business-document/` | none |
+<: endif :><: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>| `legal-documents` | The legal family: contracts, non-disclosure and data processing agreements, and terms; runs `library/workflows/11-create-a-legal-document/` | none |
+<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>| `email-documents` | The email family: client and supplier correspondence; runs `library/workflows/12-write-an-email/` | none |
+<: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>| `accounting-documents` | The accounting family: invoices, expenses and financial reports; runs `library/workflows/13-create-an-accounting-document/` | none |
+<: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>| `social-media-documents` | The social media family: plans, content calendars and profiles; runs `library/workflows/14-create-a-social-media-document/` | none |
+<: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>| `msp-scp-documents` | The managed-service family: IT and information-security policies, plans and reports for managed-service clients and for the business itself; runs `library/workflows/15-create-an-msp-scp-document/` | none |
+<: endif :><: if DOC_TYPE == 'business' :>
+**The family skills** ship one per family in this project
+(`.claude/rules/syntek-author/01-layout-and-routing.md` Section 4). Each holds its family's
+document types, required sections, house conventions and checks, and routes to the family's
+standard, `library/docs/reference/<family>-standards.md`. When a shared skill works on a document
+in a family folder, the family skill and its standard hold the conventions that work must keep.
 <: endif :>
 ---
 
@@ -125,13 +149,17 @@ questions (`README.md`, "Updating from the template").
 
 ## 7. Working with skills
 
-- **Read the whole `SKILL.md`, then its mode file, before step 1.** A skill's steps each end with
-  a completion test; a step is not done until its test passes.
+- **Read the whole `SKILL.md`, then its mode file if it carries the Mode paragraph, before
+  step 1.** A skill's steps each end with a completion test; a step is not done until its test
+  passes.
 - **Skills never edit themselves or each other.** No skill rewrites a skill, standard, rules file
   or `CLAUDE.md` without the author's explicit instruction
   (`.claude/rules/syntek-author/06-global-rules.md` Section 3).
-- **A project-specific change to how a skill behaves** is written as a rule in `.claude/CLAUDE.md`
-  Section 3. Editing the skill itself is undone, or turned into a conflict, by the next update.
+- **A project-specific change to how a skill behaves** is written in `00-project.md`
+  `## Overrides` (naming the skill and step it replaces), or as a project rule where its
+  `## Paths` says. Editing the skill itself is undone, or turned into a conflict, by the next
+  update.
 - **A skill of the author's own** goes in a new folder whose name collides with no skill in this
   file. Its frontmatter `name` equals the folder name. It belongs to the author, and Copier never
-  touches it.
+  touches it. A project that adopted the template may also keep its own skill under a template
+  skill's name; that folder is the project's, and Section 2 says how its mode file is treated.

@@ -53,10 +53,11 @@ Note any condition, caveat or linked document. _Substantive._
 
 > **Skill:** none · **Guide:** `planning/docs/reference/the-document-register.md`
 
-Create `planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md`, dated by the event, in the
-shape `planning/src/approvals/CONTEXT.md` gives: the heading, the date line, the `Field | Detail`
-table, and a `## Documents Approved` table for a batch. Leave no field guessed and no
-placeholder. _Mechanical._
+Create the record in the Approvals path (`00-project.md` `## Paths`; by default
+`planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md`), dated by the event, in the shape
+that folder's `CONTEXT.md` gives (where it has none, `planning/src/approvals/CONTEXT.md`): the
+heading, the date line, the `Field | Detail` table, and a `## Documents Approved` table for a
+batch. Leave no field guessed and no placeholder. _Mechanical._
 
 ## 6. Update the register
 

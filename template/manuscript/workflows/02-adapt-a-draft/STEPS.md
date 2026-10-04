@@ -66,7 +66,7 @@ the original line in the file until the author chooses, then apply the choice. _
 
 When the author asks for a section to be made from their own earlier material, treat the source as
 read-only. Quarry it, never paste it: keep the argument or the events, change the register to the
-reader named in `.claude/CLAUDE.md` Section 1, and cut what this section's one job does not need.
+reader named in `00-project.md` `## Brief`, and cut what this section's one job does not need.
 Name the source (path and date) in an `<!-- INTERNAL NOTE: … -->` under the frontmatter. Then read
 the result against the source: nothing in it may claim more than the source did. _Substantive._
 

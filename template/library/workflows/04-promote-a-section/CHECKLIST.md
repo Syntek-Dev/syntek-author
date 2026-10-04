@@ -30,7 +30,7 @@ model: opus
 
 **Into the document**
 
-- [ ] Deliverable found by its `% unit:` line, or created from `tooling/latex/skeleton.tex` with its status block and one marker pair per planned section. · _sonnet_
+- [ ] Deliverable found by its `% unit:` line, or created from the house skeleton (`00-project.md ## Paths`) with its status block and one marker pair per planned section. · _sonnet_
 - [ ] On a re-promotion, the author shown the text to be replaced and confirmed. · _opus_
 - [ ] Draft converted to LaTeX per the guide's table: every approved word, nothing added, one sentence per line. · _opus_
 - [ ] Text inserted only between `% section: <slug>` and `% end section: <slug>`; no marker deleted, renamed or moved. · _sonnet_

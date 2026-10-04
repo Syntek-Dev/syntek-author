@@ -50,14 +50,16 @@ The mode file adds this project's folders and its primary sources.
 
 1. **Take one answerable question, and check the project first.** Reduce the ask to a single
    question a note can settle. Search `research/src/` (notes, evidence, sources and the mode's
-   folders) and `.claude/MEMORY.md` `Facts`: an answer already held and checked within about
-   twelve months is reported, not redone. A question that will not reduce to one sentence goes
+   folders) and the `Facts` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`): an answer already held and checked within about twelve months is
+   reported, not redone. A question that will not reduce to one sentence goes
    back to the caller with the reframing it needs. *Complete when:* the question is one sentence,
    the project does not already answer it, and it is research rather than a lookup.
 2. **Route it before reading.** Use the routing table in `research/src/CONTEXT.md`: a question
-   answered from several sources makes a note in `research/src/notes/`; one work's argument makes
-   a reading note in `research/src/sources/` by `research/workflows/01-ingest-a-source/`; a single
-   checkable claim goes back to `fact-check`, which owns its verdict and its evidence entry.
+   answered from several sources makes a note in the research notes folder `00-project.md`
+   `## Paths` names (by default `research/src/notes/`); one work's argument makes a reading note
+   in `research/src/sources/` by `research/workflows/01-ingest-a-source/`; a single checkable claim
+   goes back to `fact-check`, which owns its verdict and its evidence entry.
    *Complete when:* the destination folder and its format are named.
 3. **Name what a complete answer needs.** Before searching: what exactly is asked, the kind of
    source that owns such a fact (the mode lists them), and the period, place or jurisdiction it
@@ -75,14 +77,15 @@ The mode file adds this project's folders and its primary sources.
    both, say which governs and why; never average them into a confident middle. *Complete when:*
    every conflict is stated with the source that governs, and the search went past the first
    agreeable answer.
-6. **Write the note.** A question-led note is `research/src/notes/<topic>.md` in the format in
-   that folder's `CONTEXT.md`: `## Question`, `## Verdict`, `## Claims` (each ending in its
-   citation and the date checked), `## Conflicts`, `## Sources`, `## Feeds`, `## History`. A
-   reading note follows `research/src/sources/CONTEXT.md` and records what the work says, never
-   what the project should conclude; where the project keeps a citation database, the work is
-   keyed in the same pass (step 9 of the ingest procedure). Never overwrite a note; supersede it
-   under `## History`. *Complete when:* the note exists, every claim carries a citation and a
-   checked date, and no earlier note was overwritten.
+6. **Write the note.** A question-led note is `<topic>.md` in the research notes folder (by default
+   `research/src/notes/<topic>.md`), in the format in `research/src/notes/CONTEXT.md`:
+   `## Question`, `## Verdict`, `## Claims` (each ending in its citation and the date checked),
+   `## Conflicts`, `## Sources`, `## Feeds`, `## History`. A reading note follows
+   `research/src/sources/CONTEXT.md` and records what the work says, never what the project should
+   conclude; where the project keeps a citation database, the work is keyed in the same pass (step 9
+   of the ingest procedure). Never overwrite a note; supersede it under `## History`.
+   *Complete when:* the note exists, every claim carries a citation and a checked date, and no
+   earlier note was overwritten.
 7. **Wire it, then hand back.** Link the note from what it feeds (a brief's `sources:` and
    `## Draws on`, the evidence entry `fact-check` is writing, a map node), and hand back to the
    caller: the verdict, the note's path, the conflicts, what could not be found, and **what tells

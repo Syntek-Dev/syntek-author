@@ -65,8 +65,8 @@ One vocabulary, used everywhere. The `fact-check` skill returns it, and every en
 - **Legal claims carry jurisdiction and date**, and say where the matter is unsettled.
 - **Correct against the work's interest, out loud.** A fact that tells against the argument is
   reported plainly in the verdict.
-- **Claims about the author** are checked against `.claude/MEMORY.md` (Facts) and, where it is
-  silent, put to the author; never inferred.
+- **Claims about the author** are checked against `.claude/MEMORY.md` (Facts, mapped in
+  `00-project.md` `## Memory headings`) and, where it is silent, put to the author; never inferred.
 
 ## Who implements it
 

@@ -1,0 +1,177 @@
+% symbol-fallback.tex — symbol glyphs the text font lacks, for XeLaTeX.
+%
+% A text font rarely draws every symbol a document uses: check marks and crosses, ballot
+% boxes, a warning sign, stars, arrows, the box-drawing lines of a folder tree. XeLaTeX prints
+% a character its font cannot draw as nothing, with only a 'Missing character' line in the
+% log, so a ticked box vanishes from the page without an error. This file stops that.
+%
+% Where it is used: the Makefile adds it to every Pandoc PDF build (--include-in-header, which
+% pastes it into Pandoc's preamble), and house-preamble.tex loads it with
+% \input{symbol-fallback}. Template-owned: `copier update` merges improvements here. A
+% project's own typefaces are set in tooling/project.mk (MAINFONT, SANSFONT, MONOFONT), never
+% here.
+%
+% How each character below is drawn, first match wins:
+%   1. by the current font, when it has the glyph (nothing changes);
+%   2. by the first installed fallback font that has it, in the order listed below; in
+%      monospaced text (a code block) the monospaced fallbacks are tried first, so a
+%      folder tree keeps its columns;
+%   3. otherwise by the current font, and XeLaTeX logs the missing character as before.
+% A fallback font that is not installed is skipped without a word. Emoji variation selectors
+% (U+FE0E, U+FE0F) are dropped: no text font draws them. Colour emoji fonts are never listed,
+% because XeLaTeX cannot draw them.
+%
+% To add a character: one \housesymbolchar line, the character then its code point in
+% UPPER-CASE hexadecimal. To add a font: one \housesymbolfont (or \housesymbolmonofont) line.
+% Looking for a one-word font name that is not installed (FreeSans, Symbola) makes TeX try to
+% generate a bitmap font of that name and print the attempt; the Makefile's PDF builds set
+% MKTEXTFM=0, which turns that off. Needs fontspec (Pandoc's XeLaTeX template and
+% house-preamble.tex both load it) and the newunicodechar package (TeX Live has it).
+
+\usepackage{newunicodechar}
+\makeatletter
+
+\newcount\house@symcode
+\newcount\house@symfonts@n
+\newif\ifhouse@symfound
+\newcommand*\house@symfonts{}
+\newcommand*\house@symmonofonts{}
+
+% \house@addsymfont<list>{<font name>}: declare the font and append it to <list> when installed.
+\newcommand*\house@addsymfont[2]{%
+  \IfFontExistsTF{#2}{%
+    \global\advance\house@symfonts@n\@ne
+    \expandafter\newfontfamily\csname house@symfont@\the\house@symfonts@n\endcsname{#2}%
+    \edef\house@tmp{\noexpand\house@trysym
+      \expandafter\noexpand\csname house@symfont@\the\house@symfonts@n\endcsname}%
+    \expandafter\g@addto@macro\expandafter#1\expandafter{\house@tmp}%
+  }{}}
+\newcommand*\housesymbolfont[1]{\house@addsymfont\house@symfonts{#1}}
+\newcommand*\housesymbolmonofont[1]{\house@addsymfont\house@symmonofonts{#1}}
+
+% \house@trysym<family switch>: draw \house@symcode in that family if it has the glyph.
+\newcommand*\house@trysym[1]{%
+  \ifhouse@symfound\else
+    \begingroup#1%
+      \iffontchar\font\house@symcode
+        \char\house@symcode\global\house@symfoundtrue
+      \fi
+    \endgroup
+  \fi}
+
+% True when the current family is the monospaced one.
+\newcommand*\house@ifmono{%
+  \edef\house@a{\f@family}\edef\house@b{\ttdefault}%
+  \ifx\house@a\house@b\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+
+% \housesymbol{<HEX>}: draw one code point by the rule in the header.
+\DeclareRobustCommand*\housesymbol[1]{%
+  \house@symcode="#1\relax
+  \ifmmode
+    \char\house@symcode
+  \else
+    \iffontchar\font\house@symcode
+      \char\house@symcode
+    \else
+      \global\house@symfoundfalse
+      \house@ifmono{\house@symmonofonts\house@symfonts}{\house@symfonts\house@symmonofonts}%
+      \ifhouse@symfound\else\char\house@symcode\fi
+    \fi
+  \fi}
+
+% In a PDF bookmark (a heading that holds a symbol), the character itself.
+\newcommand*\house@pdfsymbol[1]{\Uchar"#1 }
+\AtBeginDocument{\@ifundefined{pdfstringdefDisableCommands}{}{%
+  \pdfstringdefDisableCommands{\let\housesymbol\house@pdfsymbol}}}
+
+% \housesymbolchar{<character>}{<HEX>}: route one character through \housesymbol.
+\newcommand*\housesymbolchar[2]{\newunicodechar{#1}{\housesymbol{#2}}}
+
+% ── Fallback fonts, in order of preference (free fonts most systems carry) ────────────
+\housesymbolfont{DejaVu Sans}
+\housesymbolfont{FreeSans}
+\housesymbolfont{FreeSerif}
+\housesymbolfont{Noto Sans Symbols2}
+\housesymbolfont{Noto Sans Symbols}
+\housesymbolfont{Noto Sans Math}
+\housesymbolfont{Symbola}
+\housesymbolfont{Segoe UI Symbol}
+\housesymbolfont{Apple Symbols}
+\housesymbolmonofont{DejaVu Sans Mono}
+\housesymbolmonofont{FreeMono}
+\housesymbolmonofont{Noto Sans Mono}
+
+% ── Characters ───────────────────────────────────────────────────────────────────────
+% Check marks, crosses and ballot boxes
+\housesymbolchar{✓}{2713}
+\housesymbolchar{✔}{2714}
+\housesymbolchar{✗}{2717}
+\housesymbolchar{✘}{2718}
+\housesymbolchar{✅}{2705}
+\housesymbolchar{❌}{274C}
+\housesymbolchar{❎}{274E}
+\housesymbolchar{☐}{2610}
+\housesymbolchar{☑}{2611}
+\housesymbolchar{☒}{2612}
+% Warnings, marks and stars
+\housesymbolchar{⚠}{26A0}
+\housesymbolchar{❗}{2757}
+\housesymbolchar{❓}{2753}
+\housesymbolchar{ℹ}{2139}
+\housesymbolchar{★}{2605}
+\housesymbolchar{☆}{2606}
+\housesymbolchar{✉}{2709}
+\housesymbolchar{☎}{260E}
+% Shapes and bullets
+\housesymbolchar{•}{2022}
+\housesymbolchar{●}{25CF}
+\housesymbolchar{○}{25CB}
+\housesymbolchar{■}{25A0}
+\housesymbolchar{□}{25A1}
+\housesymbolchar{▪}{25AA}
+\housesymbolchar{▶}{25B6}
+\housesymbolchar{►}{25BA}
+\housesymbolchar{▸}{25B8}
+\housesymbolchar{◆}{25C6}
+\housesymbolchar{◇}{25C7}
+% Arrows
+\housesymbolchar{←}{2190}
+\housesymbolchar{↑}{2191}
+\housesymbolchar{→}{2192}
+\housesymbolchar{↓}{2193}
+\housesymbolchar{↔}{2194}
+\housesymbolchar{↗}{2197}
+\housesymbolchar{↘}{2198}
+\housesymbolchar{⇐}{21D0}
+\housesymbolchar{⇒}{21D2}
+\housesymbolchar{⇔}{21D4}
+\housesymbolchar{➔}{2794}
+\housesymbolchar{➜}{279C}
+% Comparisons written in running text
+\housesymbolchar{≤}{2264}
+\housesymbolchar{≥}{2265}
+\housesymbolchar{≠}{2260}
+\housesymbolchar{≈}{2248}
+% Box drawing (folder trees and diagrams in code blocks)
+\housesymbolchar{─}{2500}
+\housesymbolchar{│}{2502}
+\housesymbolchar{┌}{250C}
+\housesymbolchar{┐}{2510}
+\housesymbolchar{└}{2514}
+\housesymbolchar{┘}{2518}
+\housesymbolchar{├}{251C}
+\housesymbolchar{┤}{2524}
+\housesymbolchar{┬}{252C}
+\housesymbolchar{┴}{2534}
+\housesymbolchar{┼}{253C}
+\housesymbolchar{═}{2550}
+\housesymbolchar{║}{2551}
+\housesymbolchar{╔}{2554}
+\housesymbolchar{╗}{2557}
+\housesymbolchar{╚}{255A}
+\housesymbolchar{╝}{255D}
+% Emoji variation selectors: drawn by no text font, so dropped
+\newunicodechar{^^^^fe0e}{}
+\newunicodechar{^^^^fe0f}{}
+
+\makeatother

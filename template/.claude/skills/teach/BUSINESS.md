@@ -6,9 +6,10 @@ The families a business writer learns in, and the house sources each practises a
 
 - **Workspace:** `learning/<topic>/`. Practice documents imitate a document in `library/src/`,
   but never sit there, are never registered and are never given a `DOC-NNN`.
-- **House sources:** `standards/method/BUSINESS.md`, `standards/brand/`, the guides in
+- **House sources:** `standards/method/BUSINESS.md`, the brand folder named in `00-project.md`
+  `## Paths` (by default `standards/brand/`), the guides and family standards in
   `library/docs/reference/` and `planning/docs/reference/`, and the template instruments in each
-  family's `templates/` folder under `library/src/`.
+  selected family's `templates/` folder under `library/src/`.
 
 ## Additions to the steps
 
@@ -24,7 +25,7 @@ The families a business writer learns in, and the house sources each practises a
 
 | Family | What is practised | House source |
 |---|---|---|
-| Document craft | stating a rule and bounding its exception; a scope boundary; a one-page summary that carries the decision; a fee table that sums; defined terms defined once; the house voice; LaTeX deliverables; correspondence anatomy | `standards/method/BUSINESS.md`; `standards/brand/brand-voice.md`; `library/docs/reference/document-anatomy.md`; `library/docs/reference/latex-deliverables.md` |
+| Document craft | stating a rule and bounding its exception; a scope boundary; a one-page summary that carries the decision; a fee table that sums; defined terms defined once; the house voice; LaTeX deliverables; the anatomy of an email | `standards/method/BUSINESS.md`; the brand voice (by default `standards/brand/brand-voice.md`); `library/docs/reference/document-anatomy.md`; `library/docs/reference/latex-deliverables.md`; the family's standard |
 | Process | adding, reversioning and superseding a register row; review cycles and approvals; versioning | `planning/docs/reference/the-document-register.md`; `library/docs/reference/versioning-and-the-register.md` |
 | Domain | data protection, sector conventions, tax basics, information-security standards: each from its primary source | the note `research` writes, cited and dated |
 

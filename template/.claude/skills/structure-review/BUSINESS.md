@@ -8,8 +8,13 @@ structural friction between documents.
 
 ## Paths and unit
 
-- **The unit** is a document in a family under `library/src/<family>/` (`proposals`, `contracts`,
-  `policies`, `correspondence`, `finance`, `marketing`), with its brief in `planning/src/units/`.
+- **The unit** is a document in one of the families this project selected, under
+  `library/src/<family>/` (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`),
+  with its brief in `planning/src/units/`.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the parts
+  its documents require and the checks it adds.
+- **Project paths:** the 'Client facts', 'Brand folder' and 'Disclaimers' rows of `00-project.md`
+  `## Paths` say where those live; this file names the template defaults.
 - **One document before `final`:** step 3 of `library/workflows/05-review-a-document/`; scope is the
   unit slug. V5.1 and V5.2 in `standards/verification/BUSINESS.md` follow at fact check.
 - **A scheduled review of a live document:** step 4 of `planning/workflows/06-run-a-review-cycle/`;
@@ -17,15 +22,16 @@ structural friction between documents.
 - **The whole library, or one family:** `planning/workflows/09-review-the-whole-work/`; scope is
   `library` or the family's name.
 - **Extra reads:** `library/docs/reference/document-anatomy.md` (the parts in order, and the parts
-  each family requires); `standards/method/BUSINESS.md`; `standards/risk/BUSINESS.md`;
-  `standards/brand/brand-voice.md` and `standards/brand/disclaimers.md`;
+  each family requires) and the family's standard, `library/docs/reference/<family>-standards.md`;
+  `standards/method/BUSINESS.md`; `standards/risk/BUSINESS.md`; the brand voice and the
+  disclaimers (by default `standards/brand/brand-voice.md` and `standards/brand/disclaimers.md`);
   `planning/src/precedence.md`; `planning/src/document-register.md`;
   `planning/src/review-schedule.md`.
 
 ## Additions to the steps
 
-- **Step 2 — also, for one document:** the client's facts (`## Facts` in the client folder's
-  `CONTEXT.md` under `library/src/contracts/client-docs/`); every document in the family it relies
+- **Step 2 — also, for one document:** the client's facts (`## Facts` in the client's `CONTEXT.md`,
+  by default under `library/src/business/client-docs/`); every document in the family it relies
   on or is relied on by; for a new version, the version it replaces and its register row.
 - **Step 2 — also, for a scheduled review:** the register row and the review-schedule row; the
   document's Document Control block and version history; the family's guides in
@@ -39,7 +45,8 @@ structural friction between documents.
   3. *Client reader* — the person the brief names: can they find what they must decide, what it
      costs and what to do next?
   4. *Brand* — the house voice in running copy, the formal register in instruments, the house
-     person, the trading name exactly as printed, the disclaimer for the document's class.
+     person, the trading name exactly as `00-project.md` `## Brief` gives it, the disclaimer for
+     the document's class.
 - **Step 4 — also, for a scheduled review, a fifth lens, *currency*:** what is no longer true?
   Services, prices, contacts, legislation, entities and suppliers each go to `fact-check` as claims
   to verify.
@@ -98,7 +105,7 @@ The whole-library scope looks for friction between documents rather than within 
 
 > **Library candidate 1 (Strong): duplication.** The payment terms are written into the proposal
 > template, the statement-of-work template and the invoice template, in three wordings. Source of
-> truth: the contract family's master terms; the others cite it. Wins: one change instead of three;
+> truth: the master terms in the legal family; the others cite it. Wins: one change instead of three;
 > no contradiction to settle in a dispute.
 
 > **Claim to verify (currency lens).** The privacy policy names a supplier for data storage that

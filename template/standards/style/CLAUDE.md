@@ -27,7 +27,8 @@ every section, whoever drafted it and whenever, is checked against the same call
   2. On the author's approval, add one dated bullet (or one table row in `terminology.md`) under
      the right heading, with the reason.
   3. If it overturns an earlier entry, mark the old one superseded rather than deleting it, and
-     record the decision in `.claude/MEMORY.md` `## Decisions`.
+     record the decision in `.claude/MEMORY.md` `## Decisions` (mapped in `00-project.md`
+     `## Memory headings`).
   4. List the promoted sections the entry affects, for a conformity pass.
 - **Definition of done:** the entry is approved, dated, evidenced and checkable; no other entry
   contradicts it; the affected sections are listed.

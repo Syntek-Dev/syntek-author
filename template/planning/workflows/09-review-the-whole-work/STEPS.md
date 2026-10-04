@@ -29,10 +29,11 @@ _Substantive._
 
 > **Skill:** `structure-review` · **Guide:** `planning/docs/reference/reviews-are-advice.md`
 
-Read `.claude/CLAUDE.md` Section 1 (the brief and the stated reader), `.claude/MEMORY.md`
-(Decisions, Open questions), `planning/src/outline.md`, every unit brief in scope, the doc
-type's plans in `planning/src/`, open maps, and the most recent review of the same scope. Note
-which units exist as prose and which only as plans. _Substantive._
+Read the project brief (`00-project.md` `## Paths`, 'Project brief') and the stated reader
+(`00-project.md` `## Brief`), `.claude/MEMORY.md` (Decisions, Open questions, mapped in
+`00-project.md` `## Memory headings`), `planning/src/outline.md`, every unit brief in scope, the
+doc type's plans in `planning/src/`, open maps, and the most recent review of the same scope.
+Note which units exist as prose and which only as plans. _Substantive._
 
 ## 3. Run the lenses
 
@@ -65,7 +66,8 @@ advice-only status line, and name the earlier review it supersedes, if any. _Mec
 
 Present the open decisions in order. For each, the author accepts, rejects or defers. Record what
 passes the memory gate in `.claude/MEMORY.md`, dated and citing the review; deferred items go to
-`Open questions`. Record nothing the author has not decided. _Substantive._
+`Open questions` (mapped in `00-project.md` `## Memory headings`). Record nothing the author has
+not decided. _Substantive._
 
 ## 7. Hand on
 

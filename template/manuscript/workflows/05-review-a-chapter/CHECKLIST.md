@@ -44,7 +44,7 @@ model: opus
 
 **The line (`line-edit → final`)**
 
-- [ ] `comprehension` run as the reader in `.claude/CLAUDE.md` Section 1. · _opus_
+- [ ] `comprehension` run as the reader in `00-project.md` `## Brief`. · _opus_
 - [ ] `flow` run, with the seams between sections checked for one voice. · _opus_
 - [ ] `grammar` run against the style sheet. · _opus_
 - [ ] `spelling` run: supportive, recurring items grouped. · _opus_
@@ -58,7 +58,7 @@ model: opus
 - [ ] Zero `AUTHOR TO CONFIRM` and zero `VERIFY` in the chapter (`make flags SCOPE=manuscript/src/NN-kebab-title`). · _sonnet_
 - [ ] Where the project has the sensitive-content option and the chapter touches a recorded sensitivity, the sensitivity pass run and every item answered. · _opus_
 - [ ] **`status: final` set only on the author's explicit word**: V6 (line-edit → final) dated. · _opus_
-- [ ] The author's word, with its date, added to `.claude/MEMORY.md` `## Status`. · _sonnet_
+- [ ] The author's word, with its date, added to `.claude/MEMORY.md` `## Status` (mapped in `00-project.md` `## Memory headings`). · _sonnet_
 
 ## Done When
 

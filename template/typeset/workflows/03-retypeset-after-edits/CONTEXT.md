@@ -24,7 +24,7 @@ typeset/workflows/03-retypeset-after-edits/
 
 Reach for a **different** procedure when: the chapter has never been typeset
 (`typeset/workflows/02-typeset-a-chapter/`); or only the styling needs changing and the words have
-not moved (style in place, then `make tex-check`, as in procedure 02 from step 4).
+not moved (style in place, then `make tex-check`, as in `02-typeset-a-chapter` from step 4).
 
 ## What it produces, and where
 

@@ -5,20 +5,22 @@ figure, a compliance claim or an entity detail.
 
 ## Paths and unit
 
-- **Question-led notes:** `research/src/notes/<topic>.md`, for what the law requires, what a
-  regulator's guidance says, who a counterparty legally is, or what a standard's control demands.
+- **Question-led notes:** in the research notes folder `00-project.md` `## Paths` names (by
+  default `research/src/notes/<topic>.md`), for what the law requires, what a regulator's guidance
+  says, who a counterparty legally is, or what a standard's control demands.
 - **Checked claims:** `research/src/evidence/`, through `fact-check`; **reading notes:**
   `research/src/sources/`.
 - **Feeds:** the document's brief in `planning/src/units/` and its `DOC-NNN` in
-  `planning/src/document-register.md`; a client fact found is recorded once, in the client's
-  `CONTEXT.md` `## Facts` under `library/src/contracts/client-docs/`.
+  `planning/src/document-register.md`; a client fact found is recorded once, under `## Facts` in
+  the client's `CONTEXT.md` at the client facts path in `00-project.md` `## Paths` (by default
+  `library/src/business/client-docs/<client-slug>/CONTEXT.md`).
 
 ## Additions to the steps
 
 - **Step 1 — also** read the client's `CONTEXT.md` and the register first: an entity detail or a
   document status already recorded is a lookup, not research.
 - **Step 3 — also name the jurisdiction and the date** a legal or regulatory question must hold
-  for; the default jurisdiction is in `.claude/rules/syntek-author/06-global-rules.md` Section 1.
+  for; the default jurisdiction is in `00-project.md` `## Brief`.
 - **Step 4 — also, the primary sources:** the legislation itself, from the official legislation
   site for the jurisdiction, never a summary of it; the regulator's own guidance (for England and
   Wales, for example, the data-protection regulator, the tax authority, the register of

@@ -24,7 +24,7 @@ model: opus
 
 - [ ] `make pdf FILE=<path>.tex` run; on failure, the first error in the log read and its cause found. · _sonnet_
 - [ ] The echoed source is the file the author meant; the output in `build/` is newer than it. · _sonnet_
-- [ ] Word copy only if asked for: a `.tex` through `make docx FILE=<path>.tex DOCX_CONVERTER='<command>'` with the author's lossless converter, or, without one, the author asked and the PDF sent instead; Markdown copy through `make docx FILE=<path>.md`. · _sonnet_
+- [ ] Word copy only if asked for: a `.tex` through `make docx FILE=<path>.tex`, which uses `DOCX_CONVERTER` from `tooling/project.mk`; only where that is empty, the author asked for a lossless converter, or the PDF sent instead; Markdown copy through `make docx FILE=<path>.md`. · _sonnet_
 
 **Reading**
 
@@ -37,6 +37,7 @@ model: opus
 **Reporting**
 
 - [ ] Proof path, source and status, checks made, defects by page and section, and the procedure that fixes each. · _opus_
+- [ ] A Word copy that is sent copied from `build/` beside its source on the author's word, named as the issued PDF, and committed with it. · _sonnet_
 
 ## Done When
 

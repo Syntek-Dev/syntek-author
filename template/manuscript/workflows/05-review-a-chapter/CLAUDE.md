@@ -47,8 +47,8 @@ are authoritative.
   accepted spelling or punctuation correction, which may be applied in the chapter file directly if
   it is logged in that section's ledger.
 - **Never mark a chapter `final`** without zero flags, every gate passed, and the author's explicit
-  word, recorded with its date in `.claude/MEMORY.md` `## Status`. A gate waived by the author is
-  dated in `verified:` with the reason.
+  word, recorded with its date in `.claude/MEMORY.md` `## Status` (mapped in `00-project.md`
+  `## Memory headings`). A gate waived by the author is dated in `verified:` with the reason.
 - **A material change reopens gates.** It clears the date of the gate it reopens and every later
   one, and steps the status back (`STEPS.md`, 'Applying agreed fixes').
 - **Never overwrite promoted text** without confirming with the author.
@@ -58,7 +58,7 @@ are authoritative.
 - **Produces:** `planning/src/reviews/REVIEW-<scope>-DD-MM-YYYY.md`; the line-edit report; the
   chapter's `status:` and `verified:` in its brief.
 - **Also writes:** evidence entries; `VERIFY` flags; ledger rows for accepted corrections; the
-  author's dated word in `.claude/MEMORY.md` `## Status` at `final`.
+  author's dated word in `.claude/MEMORY.md` `## Status` (its mapped heading) at `final`.
 - **Generated (never hand-edit):** any proof under `build/`.
 - **Does not touch:** any standard, or `.claude/MEMORY.md` beyond decisions the author has dated
-  and the author's dated word that the chapter is `final`, under `## Status`.
+  and the author's dated word that the chapter is `final`, under `## Status` (its mapped heading).

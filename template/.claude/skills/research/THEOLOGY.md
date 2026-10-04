@@ -17,8 +17,9 @@ Where a theology book's research goes, and what counts as a primary source for i
 - **Step 2 — also route a disputed passage** to `research/workflows/03-map-a-contested-reading/`
   rather than a note: a reading is mapped, not concluded.
 - **Step 3 — also name the translation** a scriptural question is asked in (the project's default
-  is named in the style sheet), and whether the question is about the text, an original-language
-  word, the history of interpretation or a church's teaching: each has its own primary source.
+  is named in `00-project.md` `## Brief`), and whether the question is about the text, an
+  original-language word, the history of interpretation or a church's teaching: each has its own
+  primary source.
 - **Step 4 — also, the primary sources:** the biblical text in its original languages from a
   standard critical edition, and the translation used; standard lexicons and grammars for a
   word's meaning; a church's confessions, catechisms and council texts from their official

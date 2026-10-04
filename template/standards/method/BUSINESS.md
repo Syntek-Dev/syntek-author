@@ -8,6 +8,11 @@ The method particular to business, legal and client documents, read with `method
 enforces rules 1, 5 and 10 at line edit; `draft-section` writes to all of them. The parties in
 the examples are invented and named only by their defined terms.
 
+The documents themselves are grouped into the **document families** chosen for this project,
+one folder each under `library/src/` (`business` always, with any of `legal`, `email`,
+`accounting`, `social-media` and `msp-scp`); each family's own conventions are in its standard,
+`library/docs/reference/<family>-standards.md`. These rules hold in every family.
+
 Dates DD/MM/YYYY (spelled out in correspondence where house style prefers); 24-hour time.
 
 ---
@@ -40,9 +45,10 @@ limit of liability is not better written; it is a different, worse agreement.
 
 ## 3. Stated precedence
 
-**Requirement.** Every document family states which document governs when two conflict (for
-example a master agreement over an order form, and an order form over a proposal), in each
-document, in the same words.
+**Requirement.** Every set of documents that can conflict states which one governs (for example
+a master agreement over an order form, and an order form over a proposal), in each document, in
+the same words, even where the set spans two families (a proposal in one, the contract that
+follows it in another).
 
 **Why this rule exists.** Conflicts between documents are inevitable over a long engagement;
 unstated precedence turns each one into a dispute.
@@ -53,8 +59,9 @@ unstated precedence turns each one into a dispute.
 
 **Requirement.** A defined term is defined exactly once, in bold at its definition, and used in
 exactly that form everywhere after. Near-synonyms are never used for a defined term ('the
-Services' is never also 'the work'). Terms shared across a document family are listed in
-`standards/style/terminology.md`, and every cross-reference resolves.
+Services' is never also 'the work'). Terms shared across related documents, in whichever
+family each sits, are listed in `standards/style/terminology.md`, and every cross-reference
+resolves.
 
 **Why this rule exists.** In an instrument, a second word for the same thing invites the
 argument that it means a second thing.
@@ -77,7 +84,12 @@ document that buries its point makes them hunt for it, and they resent it.
 **Requirement.** Before drafting, five facts are known, asked rather than assumed: the
 counterparty's exact legal name (and company or charity number); the jurisdiction; whether the
 audience is internal or external; what existing content or precedent applies; and the register,
-formal or plain. These are the floor; `grilling` sharpens everything above it.
+formal or plain. These are the floor; `grilling` sharpens everything above it. A client's facts
+are read before anything about them is asked, from their one home, the file `00-project.md`
+`## Paths` names ('Client facts'; by default `## Facts` in
+`library/src/business/client-docs/<client-slug>/CONTEXT.md`). A fact the author then gives is
+recorded there, once, and cited from every other family; never copied, and never the reason for
+a client folder in a second family.
 
 **Why this rule exists.** A guessed legal name voids a signature block, and a guessed register
 produces a document that has to be rewritten rather than revised.
@@ -134,9 +146,10 @@ policy) opens and closes as rule 5 says, and between them carries these marks:
 8. **Plainly British:** 'tailored', not 'customized'; en_GB spelling throughout.
 
 The business's own marks, and any mark here it sets aside, are recorded with their reasons in
-`standards/brand/brand-voice.md` Section 3; where the two differ, that record wins for this
+the brand voice (`standards/brand/brand-voice.md` Section 3, or the brand folder
+`00-project.md` `## Paths` names instead); where the two differ, that record wins for this
 business. Legal instruments keep their formal register, and these marks reach into them only as
-far as `brand-voice.md` Section 2 records.
+far as the brand voice's register entry (`brand-voice.md` Section 2) records.
 
 > **Wrong:** 'An exciting, transformative solution that will unlock real value for your team.'
 >

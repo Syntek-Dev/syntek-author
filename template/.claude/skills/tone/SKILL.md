@@ -1,17 +1,17 @@
 ---
 name: tone
 description: >-
-  Line-edit the voice of a business document: the house voice and plain English in running copy
-  (the house marks in standards/method/BUSINESS.md rule 10 and the business's own in
-  standards/brand/brand-voice.md; concision with its boundary; what a copy review keeps and what it
-  tidies), microcopy terse and action-first, contracts and policies kept in their
-  formal register, and the person ('I' or 'we') set in standards/style/voice-notes.md. Never changes
-  a figure, date, scope boundary or commitment; anything that would is raised with the author
-  instead. Gate V6.1 at line edit. Use when the author says 'tidy the tone', 'make this sound like
-  us', 'is this too salesy?', 'de-jargon this', 'plain English pass on the proposal' or 'check this
-  email before it goes'. Reports by location, then applies only what the author accepts. Not
-  obligations or modal verbs (`obligation-check`); not defined terms (`clause-consistency`); not
-  grammar or spelling (`grammar`, `spelling`); not reshaping a section (`improve-section`).
+  Line-edit the voice of a business document: the house voice and plain English in running copy (the
+  house marks in standards/method/BUSINESS.md rule 10 and the business's own in its brand voice;
+  concision with its boundary; what a copy review keeps and what it tidies), microcopy terse and
+  action-first, contracts and policies kept in their formal register, and the voice person ('I' or
+  'we') in 00-project.md ## Brief. Never changes a figure, date, scope boundary or commitment;
+  anything that would is raised with the author instead. Gate V6.1 at line edit. Use when the author
+  says 'tidy the tone', 'make this sound like us', 'is this too salesy?', 'de-jargon this', 'plain
+  English pass on the proposal' or 'check the tone of this email'. Reports by location, then
+  applies only what the author accepts. Not obligations or modal verbs (`obligation-check`); not
+  defined terms (`clause-consistency`); not grammar or spelling (`grammar`, `spelling`); not
+  reshaping a section (`improve-section`).
 ---
 
 # Skill: Tone (<%PROJECT_NAME%>)
@@ -31,14 +31,17 @@ These are the procedure of record — do not restate them at length here.
 
 - `library/workflows/05-review-a-document/` — step 10, where this skill is gate V6.1
   (`standards/verification/BUSINESS.md`); its guardrails say how an accepted change is applied.
-- `standards/brand/brand-voice.md` — the voice standard this skill enforces: registers, the
-  business's own marks and any house mark it sets aside, concision, what a review keeps and
+- The document's family skill, `<family>-documents` — the family's own conventions (for an email,
+  the email family's skill); read it before step 1.
+- The brand voice, `brand-voice.md` in the brand folder `00-project.md` `## Paths` names (by
+  default `standards/brand/brand-voice.md`) — the voice standard this skill enforces: registers,
+  the business's own marks and any house mark it sets aside, concision, what a review keeps and
   tidies, the highest-stakes copy.
 - `standards/method/BUSINESS.md` — rules 1 (specificity over superlatives), 2 (shorten the
   writing, never the obligation), 5 (lead with the point; end with a way forward) and 10 (the
   marks of running copy).
-- `standards/style/voice-notes.md` — the person the business writes in, and the marks learned
-  from the author's own edits.
+- `00-project.md` `## Brief` — the voice person the business writes in;
+  `standards/style/voice-notes.md` — the marks learned from the author's own edits.
 - `library/docs/reference/document-anatomy.md` — which families keep the formal register.
 
 ## How to run the tone pass
@@ -46,14 +49,15 @@ These are the procedure of record — do not restate them at length here.
 1. **Fix the scope and map the registers.** Agree with <%AUTHOR_FIRST_NAME%> which document, and
    mark each part with its register: **running copy** (proposals, letters, emails, articles),
    **microcopy** (subject lines, labels, short notices) or **formal** (the operative text of a
-   contract or policy). Where `standards/brand/brand-voice.md` has not yet settled how far the
-   brand voice reaches into instruments, treat every instrument as formal throughout and say so.
+   contract or policy). Where the brand voice has not yet settled how far it reaches into
+   instruments, treat every instrument as formal throughout and say so.
    *Complete when:* every part of the document has a register, and any unsettled register decision
    is named.
 
-2. **Read the voice.** Read `standards/brand/brand-voice.md`, `standards/style/voice-notes.md`
-   (the person, `## Learned`, what a review preserves), `standards/style/terminology.md` (product
-   and trading-name casing, family terms) and the mechanics in `standards/style/style-sheet.md`.
+2. **Read the voice.** Read the brand voice, the voice person in `00-project.md` `## Brief`,
+   `standards/style/voice-notes.md` (`## Learned`, what a review preserves),
+   `standards/style/terminology.md` (product and trading-name casing, family terms) and the
+   mechanics in `standards/style/style-sheet.md`.
    Note every voice decision still flagged `AUTHOR TO CONFIRM` in those files: the pass applies the
    house principles there and labels any finding that rests on an unconfirmed one.
    *Complete when:* the marks, the person, the casing and the open voice decisions are in hand.
@@ -76,7 +80,7 @@ These are the procedure of record — do not restate them at length here.
    `standards/method/BUSINESS.md` rule 10 (show the work, concrete over abstract, active voice, the
    honest trade-off, a peer not a lead, verbs over nouns, short sentences for important ideas,
    plainly British), opening with the point and closing with a way forward (rule 5); then against
-   the business's own marks in `standards/brand/brand-voice.md` Section 3, where an entry that sets
+   the business's own marks in the brand voice's Section 3, where an entry that sets
    a house mark aside wins. Then concision within its boundary (Section 4) and the highest-stakes
    copy (Section 7: claims and guarantees, pricing, errors and apologies, legal-adjacent copy).
    Read the formal parts only for plain-English slips the formal register allows; the brand voice
@@ -120,14 +124,17 @@ Close with a verdict: **V6.1 pass or fail**, with the frozen-list check result.
   answer the reader needed is not better written.
 - **Rewriting the whole document.** Propose by line; the author's voice survives only if every
   change is visible and refusable.
-- **Paraphrasing a disclaimer.** Its wording comes verbatim from `standards/brand/disclaimers.md`.
+- **Paraphrasing a disclaimer.** Its wording comes verbatim from the disclaimers file
+  (`00-project.md` `## Paths`; by default `standards/brand/disclaimers.md`).
 - **Inventing a voice.** Where the voice standard is still unconfirmed, say so; never fill it with
   a voice the author did not choose.
 
 ## Cross-references
 
+- `.claude/rules/syntek-author/00-project.md` — `## Paths` (the brand folder and the disclaimers)
+  and `## Brief` (the trading name and the voice person).
 - `standards/brand/brand-voice.md` — the voice standard; `standards/brand/disclaimers.md` — the
-  trading name and disclaimer wordings.
+  disclaimer wordings (the defaults, where `00-project.md` names no other).
 - `standards/style/voice-notes.md` · `standards/style/terminology.md` ·
   `standards/style/style-sheet.md` — person, casing, mechanics.
 - `standards/verification/BUSINESS.md` — gate V6.1, and V6.2 issue readiness after it.

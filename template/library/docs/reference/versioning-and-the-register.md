@@ -51,8 +51,9 @@ A document is registered before the issue proof, as the last step of line edit: 
 `planning/src/document-register.md` with a permanent `DOC-NNN` identifier at Status `Draft`, and
 a row in `planning/src/review-schedule.md` if it has a review cycle. A new version keeps its
 identifier; its row's Version, File Path and dates move to the new file. Rows are never deleted.
-Approval of an instrument or policy is recorded in `planning/src/approvals/`. The columns, Status
-vocabulary and order of updates belong to `planning/docs/reference/the-document-register.md`.
+Approval of an instrument or policy is recorded in the Approvals path (`00-project.md` `## Paths`;
+by default `planning/src/approvals/`). The columns, Status vocabulary and order of updates belong
+to `planning/docs/reference/the-document-register.md`.
 
 ## How we apply it here
 

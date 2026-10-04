@@ -1,17 +1,17 @@
 ---
 name: argument-audit
 description: >-
-  Audit a theology chapter's argument against its argument map in planning/src/arguments/
-  (thesis → claims → supporting claims → evidence → objections → concessions): flag unsupported
-  moves, missing premises, conclusions stated beyond their evidence, and moves in the prose that
-  the map does not carry. Runs on an existing map (planning workflow 02) and on the prose at
-  structural review (gate V4.1). Use when the author says 'audit the argument in chapter 3',
-  'does this chapter's argument hold?', 'is a premise missing here?', 'am I concluding more than
-  I have shown?', 'check the prose against the map' or 'audit my argument map'. Reports, and
-  never repairs the argument. Not building a new map (`planning/workflows/02-map-the-argument/`,
-  through `run-workflow`); not labelling claim categories (`category-check`); not how other
-  traditions read a passage (`tradition-check`); not whether objections are stated fairly or
-  concessions placed first (`steelman`); not whether a fact or quotation is true (`fact-check`).
+  Audit a theology chapter's argument against its argument map in planning/src/arguments/ (thesis →
+  claims → supporting claims → evidence → objections → concessions): flag unsupported moves, missing
+  premises, conclusions stated beyond their evidence, and moves in the prose that the map does not
+  carry. Runs on an existing map and on the prose at structural review (gate V4.1). Use when the
+  author says 'audit the argument in chapter 3', 'does this chapter's argument hold?', 'is a premise
+  missing here?', 'am I concluding more than I have shown?', 'check the prose against the map' or
+  'audit my argument map'. Reports, and never repairs the argument. Not building a new map
+  (`planning/workflows/02-map-the-argument/`, through `run-workflow`); not labelling claim
+  categories (`category-check`); not how other traditions read a passage (`tradition-check`); not
+  whether objections are stated fairly or concessions placed first (`steelman`); not whether a fact
+  or quotation is true (`fact-check`).
 ---
 
 # Skill: Argument audit (<%PROJECT_NAME%>)
@@ -43,10 +43,11 @@ These are the procedure of record — do not restate them at length here.
    a **map audit** (the map, before or between drafting) or a **prose audit** (the promoted chapter
    against its map, gate V4.1). Read the chapter's brief in `planning/src/units/`, its map in
    `planning/src/arguments/` (named exactly as the brief), `standards/method/THEOLOGY.md` rules 3
-   to 7, and `.claude/MEMORY.md` `## Decisions` for anything binding the chapter, above all an
-   objection designated as left standing. Either audit with no map stops here: there is nothing
-   to audit, and the map is built first, through `planning/workflows/02-map-the-argument/` (run
-   by `run-workflow`). *Complete when:* the scope, the use and the map's path are stated, and
+   to 7, and the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`) for anything binding the chapter, above all an objection designated as
+   left standing. Either audit with no map stops here: there is nothing to audit, and the map is
+   built first, through `planning/workflows/02-map-the-argument/` (run by `run-workflow`).
+   *Complete when:* the scope, the use and the map's path are stated, and
    every file above has been read, or the run has stopped for want of a map.
 
 2. **Read the thesis.** The thesis is one sentence saying what the chapter lands. If it takes two,

@@ -14,8 +14,8 @@ The families a theology author learns in, and the house sources each practises a
 
 - **Step 1 — also record the family:** theology and method, craft, evidence, or publishing.
 - **Step 3 — also,** a lesson on a passage of scripture cites the text in the project's default
-  translation (the style sheet names it) and, for an original-language point, a standard lexicon
-  or grammar through `research`. Never teach a word's meaning from memory.
+  translation (`00-project.md` `## Brief` names it) and, for an original-language point, a
+  standard lexicon or grammar through `research`. Never teach a word's meaning from memory.
 - **Step 4 — also,** a practice argument uses a question nobody in the work is answering, so the
   practice cannot leak into a chapter's position.
 

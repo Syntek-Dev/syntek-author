@@ -40,7 +40,8 @@ question (`research/workflows/02-verify-a-claim/`).
 - **A dated gate entry** in the chapter brief's `verified:` record when the audit runs as the review
   gate and passes.
 - **A flag to the author** when an objection the book leaves standing has been answered, and, once
-  the author decides, a dated entry in `.claude/MEMORY.md` Decisions.
+  the author decides, a dated entry in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+  `## Memory headings`).
 
 ## What it must never do
 

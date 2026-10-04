@@ -402,7 +402,7 @@ jobs:
                   print(f'  Skipped (deleted or missing locally): {rel}')
                   continue
               # Strip the 'library/src' prefix to mirror the subfolder structure on Drive:
-              # library/src/proposals/x.pdf -> Drive root / proposals / x.pdf
+              # library/src/business/x.pdf -> Drive root / business / x.pdf
               parts  = p.parts[2:]
               parent = ROOT_FOLDER
               for part in parts[:-1]:

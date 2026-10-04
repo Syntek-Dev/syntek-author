@@ -34,4 +34,5 @@ be traced to evidence.
 ## Output & naming
 
 - **Hand-written (author-confirmed):** `approval-<doc-type>-DD-MM-YYYY.md`, dated by the approval,
-  kebab-case `<doc-type>` naming the document or group.
+  kebab-case `<doc-type>` naming the document or group, in the Approvals path (`00-project.md`
+  `## Paths`): this folder unless that row names another.

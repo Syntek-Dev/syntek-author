@@ -7,7 +7,11 @@ pair, proving every word arrived, and proving the document still renders.
 ## Paths and unit
 
 - **Unit:** a document. **Procedure:** `library/workflows/04-promote-a-section/`.
-- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`.
+- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`, in one of the
+  families this project selected (`business`, `legal`, `email`, `accounting`, `social-media`,
+  `msp-scp`).
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the parts
+  the family's documents require and its conventions.
 - **Unit file:** the newest `.tex` in the unit's family whose leading block opens
   `% unit: <unit-slug>`, then `% status:` and `% last_updated:`. Each section sits between a
   marker pair, `% section: <slug>` and `% end section: <slug>`, in the brief's order. A Markdown
@@ -15,7 +19,8 @@ pair, proving every word arrived, and proving the document still renders.
   `<!-- section: <slug> -->` and `<!-- end section: <slug> -->`, and needs no conversion; web copy
   is found by `unit: <unit-slug>` in its frontmatter, which also carries its `status:` and, when
   new, opens with `unit:`, `status:` and `last_updated:` matching the brief.
-- **Starting point:** `tooling/latex/skeleton.tex`, which inputs the house preamble.
+- **Starting point:** the LaTeX skeleton named in `00-project.md` `## Paths` (by default
+  `tooling/latex/skeleton.tex`, which inputs the house preamble).
 - **Review procedure (step 9):** `library/workflows/05-review-a-document/`.
 - **Guides:** `library/docs/reference/latex-deliverables.md` (the conversion table and the
   markers), `library/docs/reference/versioning-and-the-register.md` and
@@ -24,7 +29,8 @@ pair, proving every word arrived, and proving the document still renders.
 ## Additions to the steps
 
 - **Step 2 — also stop on an open field.** A draft holding `[AWAITING USER INPUT]` is not promoted:
-  the field goes back to the author.
+  the field goes back to the author. `make flags` lists these fields as well as the two flags
+  (`FLAG_EXTRA_RE` in `tooling/project.mk`).
 - **Step 2 — also stop on a citation key bound for a `.tex`.** Citation keys (`[@key]`) resolve
   only in Markdown deliverables; in a `.tex` they print raw while the build still succeeds. A
   draft whose unit file is a `.tex` and whose body contains `[@` is not promoted: the author
@@ -32,8 +38,8 @@ pair, proving every word arrived, and proving the document still renders.
 - **Step 3 — also never promote into a circulated version.** If the document's register row or
   Document Control block shows it has been sent, stop: a new version is opened first
   (`library/docs/reference/versioning-and-the-register.md`). If no `.tex` exists yet, create it
-  from `tooling/latex/skeleton.tex` at its versioned path, with the leading block matching the
-  brief and one marker pair per planned section, in the brief's order.
+  from the LaTeX skeleton at its versioned path, with the leading block matching the brief and
+  one marker pair per planned section, in the brief's order.
 - **Step 4 — also convert to house LaTeX.** Convert the draft's body using the table in
   `library/docs/reference/latex-deliverables.md`: headings, emphasis, lists (numbered clauses
   into the house `clause` list, with `\label{cl:<slug>}` where other clauses refer to them),
@@ -52,9 +58,10 @@ pair, proving every word arrived, and proving the document still renders.
   is written to the ledger or the provenance register while `make section-check` fails. `## Author final`
   holds the draft's approved Markdown body, not the LaTeX, so the change ratio compares like with
   like.
-- **Step 7 — also add one dated line** to `.claude/MEMORY.md` `## Status` for the document. The
-  register row is written at the end of the line edit, in `library/workflows/05-review-a-document/`
-  step 12, never at promotion.
+- **Step 7 — also add one dated line** for the document under the `Status` heading of
+  `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`). The register row is
+  written at the end of the line edit, in `library/workflows/05-review-a-document/` step 12, never
+  at promotion.
 - **Step 8 — also** the proof from step 5 is this step's reading; note any seam with the sections
   either side.
 

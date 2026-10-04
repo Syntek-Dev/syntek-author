@@ -112,10 +112,10 @@ borrowed examples is a hypothesis, and one written without the author's approval
    and every entry's texts are untouched.
 
 9. **Record and hand back.** If an approved note overturns an earlier voice decision, or the author
-   makes a voice call that passes the memory gate, add a dated entry to `.claude/MEMORY.md`
-   `## Decisions`, superseding rather than deleting the old one. Report how many entries were
-   read, the notes added and where, the notes declined (so they are not proposed again), the
-   conflicts raised, and the entries marked.
+   makes a voice call that passes the memory gate, add a dated entry under the `Decisions` heading
+   of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`), superseding rather than
+   deleting the old one. Report how many entries were read, the notes added and where, the notes
+   declined (so they are not proposed again), the conflicts raised, and the entries marked.
    *Complete when:* the author has the report, and `MEMORY.md` holds any voice decision made.
 
 ## Anti-patterns

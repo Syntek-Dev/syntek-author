@@ -23,9 +23,9 @@ as you go.
 
 Read the chapter brief's claims-and-categories section and its argument map in
 `planning/src/arguments/` (claim, supporting claims, evidence, objections, concessions). Read
-`.claude/MEMORY.md` Decisions for any objection the book has chosen to leave standing. If none is
-designated, note it for the report: leaving one standing is something the method allows, not
-something it requires. _Substantive._
+`.claude/MEMORY.md` Decisions (mapped in `00-project.md` `## Memory headings`) for any objection
+the book has chosen to leave standing. If none is designated, note it for the report: leaving one
+standing is something the method allows, not something it requires. _Substantive._
 
 ## 2. List every objection the chapter raises
 
@@ -90,7 +90,8 @@ sense, or the author's conclusion presented as what the Church has always held. 
 If the book has designated an objection to leave unanswered, sweep the chapter for anything that
 answers it, including partly, in a footnote, or by implication. If it has been answered, **report
 and stop**: do not resolve it, do not re-designate it. The author decides whether the chapter or
-the designation changes, and the decision is dated in `.claude/MEMORY.md` Decisions. _Substantive._
+the designation changes, and the decision is dated in `.claude/MEMORY.md` Decisions (mapped in
+`00-project.md` `## Memory headings`). _Substantive._
 
 ## 9. Posture check
 

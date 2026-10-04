@@ -1,12 +1,17 @@
 # defaults.yaml — Pandoc defaults for <%PROJECT_NAME%>, shared by every Pandoc build.
 #
 # Run builds through make (make pdf, make docx…), never pandoc by hand: the Makefile
-# chooses the files, excludes governance files and drafts, adds the LaTeX header for
-# PDF builds only, and refreshes the references first where they are on.
+# chooses the files, excludes governance files, drafts and anything git ignores, adds the
+# LaTeX headers and the project's typefaces for PDF builds only, and refreshes the
+# references first where they are on.
 #
-# The title and author below come from the answers given when the project was
-# generated. They live here and in .claude/CLAUDE.md Section 1, nowhere else.
-
+<: if DOC_TYPE != 'business' :># The title and author below come from the answers given when the project was
+# generated. They live here and in the project brief (the file the 'Project brief' row of
+# .claude/rules/syntek-author/00-project.md ## Paths names), nowhere else; change both together.
+<: endif :><: if DOC_TYPE == 'business' :># The author below is the trading name, from the answers given when the project was
+# generated. It lives here and in .claude/rules/syntek-author/00-project.md ## Brief,
+# nowhere else; change both together.
+<: endif :>
 from: markdown
 
 <: if INCLUDE_REFERENCES -:>
@@ -41,8 +46,8 @@ variables:<: if DOC_TYPE != 'business' :>
   geometry:
     - margin=20mm<: endif :>
   linkcolor: black
-  # To use a specific installed typeface, uncomment and set:
-  # mainfont: "Name Of An Installed Font"
+  # Typefaces are set in tooling/project.mk (MAINFONT, SANSFONT, MONOFONT), the project's own
+  # file, which every PDF build reads; set them there, never here.
 
 metadata:<: if DOC_TYPE != 'business' :>
   title: "<%WORKING_TITLE%>"<: if SUBTITLE :>

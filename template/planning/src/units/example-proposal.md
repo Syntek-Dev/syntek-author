@@ -20,7 +20,7 @@ sections:
 <!-- WORKED EXAMPLE: a seeded brief that shows the shape of a unit brief for a document. It is
      not a real proposal. Example Client Ltd and every detail below are invented, and every
      figure is left for you to supply. Delete this file, the example proposal in
-     library/src/proposals/drafts/ and its ledger entry,
+     library/src/business/drafts/ and its ledger entry,
      standards/style/ledger/example-proposal--scope.md, once your first real document is
      planned; they will not come back. -->
 

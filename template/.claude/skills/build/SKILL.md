@@ -47,10 +47,10 @@ edits anything under `build/` and never changes a source to make a build pass.
 
 2. **Check before an export leaves the author.** A working proof skips this step. If the output is
    going beyond the author (an editor, a publisher, a client, a shared drive), check the unit's
-   status: release needs `final`, or the author's explicit, recorded decision to send a proof
-   marked as such (`standards/verification/verification.md` Section 5). Apply the mode file's
-   pre-export checks, and report anything stale to the author: whether it blocks the export is
-   their call.
+   status: release needs `final` (or, where the mode file names them, a status the project's build
+   settings allow), or the author's explicit, recorded decision to send a proof marked as such
+   (`standards/verification/verification.md` Section 5). Apply the mode file's pre-export checks,
+   and report anything stale to the author: whether it blocks the export is their call.
    *Complete when:* the export's status is confirmed, or this is a working proof.
 
 3. **Regenerate the references, where the project keeps them.** If `make help` lists `refs`, run
@@ -93,6 +93,8 @@ edits anything under `build/` and never changes a source to make a build pass.
 - Hand-editing anything under `build/`, or a rendered PDF, to fix what the proof shows.
 - Running `make init`, or rebuilding the references database, in the middle of a build.
 - Sending a proof beyond the author without the unit's `final` status or their recorded decision.
+- Overwriting an issued copy, or forcing a build past a refusal, without the author's word for
+  that file.
 - Fixing a wording defect in place instead of sending it back through the loop.
 - Handing over a lossy conversion as the deliverable.
 

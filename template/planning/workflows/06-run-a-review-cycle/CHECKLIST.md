@@ -27,7 +27,7 @@ model: opus
 **Reading**
 
 - [ ] Each document's register row and the document itself read, including Document Control and version history. · _sonnet_
-- [ ] The family's guides, `standards/method/BUSINESS.md` and, where relevant, `standards/brand/disclaimers.md` read; missing guides noted. · _sonnet_
+- [ ] The family's standard and guides, `standards/method/BUSINESS.md` and, where relevant, the disclaimers (`standards/brand/disclaimers.md`, or the file `00-project.md` `## Paths` names) read; missing guides noted. · _sonnet_
 
 **Review**
 

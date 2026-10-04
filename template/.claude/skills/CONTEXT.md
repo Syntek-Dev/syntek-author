@@ -25,12 +25,17 @@ kept here.
   `CONTEXT.md` or `CLAUDE.md`, because a skill is its own manual.
 - **Mode files** — a moded skill's `SKILL.md` is the same in every kind of project; the domain
   (paths, the unit, extra reads, domain rules, examples) lives in the single mode file that ships
-  beside it.
+  beside it. A mode file applies only beside a `SKILL.md` that carries the Mode paragraph: where
+  the project keeps its own skill under a template skill's name, that skill ignores the mode file.
 - **The author's own skills** — any folder whose name is not in the roster. They belong to the
   project, and Copier never touches them.
+- **Project values** — no skill holds a project's settings. Each reads them, by heading, from
+  `.claude/rules/syntek-author/00-project.md`: the reader, the paths, the memory headings, the
+  workflow aliases and the overrides.
 
 ## Cross-references
 
 - `.claude/rules/syntek-author/02-skills.md` — the roster and the mode-file contract.
 - `.claude/rules/syntek-author/06-global-rules.md` — never self-edit (Section 3).
-- `.claude/CLAUDE.md` Section 3 — where a project-specific change to a skill's behaviour is written.
+- `.claude/rules/syntek-author/00-project.md` — `## Overrides`, where a project-specific change to
+  a skill's behaviour is written, and `## Paths`, which says where project rules live.

@@ -2,15 +2,16 @@
 name: promote-section
 description: >-
   On the author's explicit word, move one approved section from its drafts folder into the unit:
-  check the section's gate and that it carries zero flags, insert it at its section marker in
-  plan order, strip draft-only comments, record the author's final text and the change ratio in
-  the ledger (python3 tooling/provenance.py), add the provenance row, set the section to
-  promoted in the draft and the unit brief, and bring MEMORY.md Status up to date. Never moves
-  the unit's own status. Use when the author says 'promote section 2', 'that one's ready, put it
-  in the chapter', 'move the scope section into the proposal', 'yes, promote the-turn' or
-  'approved, add it to the document'. A casual 'looks fine' is not the word: ask. Not for revising
-  the draft first (`adapt-section`). Not for reviewing or finalising the whole unit
-  (`structure-review`). Not for building a proof (`build`).
+  check the section's gate and that it carries zero flags, insert it at its section marker in plan
+  order, strip draft-only comments, record the author's final text and the change ratio in the
+  ledger (python3 tooling/provenance.py), add the provenance row, set the section to promoted in the
+  draft and the unit brief, and bring the Status heading of MEMORY.md (as mapped in
+  00-project.md ## Memory headings) up to date. Never moves the unit's own status. Use when the
+  author says 'promote section 2', 'that one's ready, put it in the chapter', 'move the scope
+  section into the proposal', 'yes, promote the-turn' or 'approved, add it to the document'. A
+  casual 'looks fine' is not the word: ask. Not for revising the draft first (`adapt-section`). Not
+  for reviewing or finalising the whole unit (`structure-review`). Not for building a proof
+  (`build`).
 ---
 
 # Skill: Promote Section (<%PROJECT_NAME%>)
@@ -39,8 +40,9 @@ workflow and the author's word.
   register and the steps at promotion.
 - The content layer's `docs/reference/section-anatomy.md`, `docs/reference/the-status-ladders.md`
   and `docs/reference/drafting-with-ai.md`.
-- `.claude/rules/syntek-author/08-naming-and-memory.md` — how a `MEMORY.md` Status line is
-  superseded, never deleted.
+- `.claude/rules/syntek-author/08-naming-and-memory.md` — how a line under the `Status` heading
+  of `MEMORY.md` is superseded, never deleted; `00-project.md` `## Memory headings` maps that
+  heading to the project's own.
 
 ## Steps
 
@@ -95,8 +97,9 @@ workflow and the author's word.
 7. **Update the statuses and memory.** Set the draft's `status: promoted` and `last_updated`; the
    draft stays in its drafts folder as the record of the section. Set the section's entry in the
    brief's `sections:` list to `promoted`. **Leave the unit's own `status:` where it is.** Bring
-   the unit's line under `## Status` in `.claude/MEMORY.md` up to date (for example, 'three of
-   five sections promoted'), superseding the previous line rather than deleting it. Apply any
+   the unit's line under the `Status` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`) up to date (for example, 'three of five sections promoted'), superseding
+   the previous line rather than deleting it. Apply any
    further records the mode file names.
    *Complete when:* the draft, the brief, the ledger, the provenance register and `MEMORY.md` all
    agree, and the unit's status has not moved.

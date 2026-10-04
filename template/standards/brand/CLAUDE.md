@@ -24,8 +24,9 @@ in the same words.
   1. Run `make flags` to list the open `AUTHOR TO CONFIRM` flags in this folder.
   2. Put each question to the author, with the options and what each would change.
   3. On the author's answer, add it as a dated entry under the section's heading, remove the
-     flag, and record the decision in `.claude/MEMORY.md` `## Decisions`. These files are the
-     author's, so the entry is written in place.
+     flag, and record the decision in `.claude/MEMORY.md` `## Decisions` (mapped in
+     `00-project.md` `## Memory headings`). These files are the author's, so the entry is written
+     in place.
   4. For a colour or font, set it in the author's own `house-brand.tex` override (see
      `tooling/latex/CONTEXT.md`), then build a proof.
 - **Definition of done:** no flag remains in the section touched; the preamble and the guide
@@ -36,8 +37,12 @@ in the same words.
 - **The author decides every brand fact.** A tagline, a colour, a font, a mark or a disclaimer
   wording is never invented, borrowed from another business or 'improved' without the author's
   word.
-- **One wording per disclaimer class**, in `disclaimers.md` only. Never paraphrase it in a
-  document, a skill or a template.
+- **One wording per disclaimer class**, in `disclaimers.md` only, or in the file
+  `00-project.md` `## Paths` names instead ('Disclaimers'). Never paraphrase it in a document, a
+  skill or a template.
+- **A folder named in `00-project.md` `## Paths` replaces this one.** Where 'Brand folder' or
+  'Disclaimers' names another place, work there, and leave the unused file here as shipped; set
+  `BRAND_DIRS` in `tooling/project.mk` to that folder so `make flags` stops reading the seeds here.
 - **The voice never changes the substance.** A tone pass never alters a figure, a date, a scope
   or a commitment (`standards/method/BUSINESS.md` rule 2).
 - **Legal instruments keep a formal register.** The brand voice governs running copy; its reach

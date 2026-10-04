@@ -10,14 +10,16 @@ To add an entry: one bullet under the right heading —
 Supersede, never delete: append `*(Superseded DD/MM/YYYY — see below.)*` to the old bullet.
 Decisions pass the gate in `.claude/skills/grill-with-docs/SKILL.md` first. Past 300 lines,
 split into `.claude/memory/<topic>.md` and leave this file as the index.
+Skills cite the six headings below; if you rename one, record the new name in
+`.claude/rules/syntek-author/00-project.md` under `## Memory headings`.
 
 ---
 
 ## Facts
 
-Three facts belong here as soon as they are known, so they are never forgotten:
-`Target length:`, `Delivery date:` and `Reader test:` (once it differs from the answer in
-`.claude/CLAUDE.md` Section 1).
+Two facts belong here as soon as they are known, so they are never forgotten:
+`Target length:` and `Delivery date:`. The audience and reader test live in
+`.claude/rules/syntek-author/00-project.md` `## Brief`; change them there.
 
 _No entries yet._
 

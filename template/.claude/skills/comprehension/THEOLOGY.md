@@ -11,7 +11,7 @@ the stated reader and checks that nothing they need has been sent below the line
 - **Extra reads:** `manuscript/docs/reference/main-text-and-footnotes.md` (the two registers, and
   the four things never demoted to a footnote); the claim categories in
   `standards/method/THEOLOGY.md` rule 1; the contested terms in `standards/style/terminology.md`.
-- **The audience** in `.claude/CLAUDE.md` Section 1 is one of lay, ministry leaders or academic.
+- **The audience** in `00-project.md` `## Brief` is one of lay, ministry leaders or academic.
 
 ## Additions to the steps
 
@@ -19,7 +19,7 @@ the stated reader and checks that nothing they need has been sent below the line
   familiarity that varies widely, no knowledge of church history assumed. Ministry leaders: church
   practice and the common terms of their own tradition, not technical scholarship or other
   traditions' vocabulary. Academic: the technical vocabulary, but the main text is still written to
-  be read, and the reader test in Section 1 still governs it.
+  be read, and the reader test in `00-project.md` `## Brief` still governs it.
 - **Step 3 — also:** theological terms ('eschatology', 'sanctification'), terms that mean different
   things in different traditions (a word one church uses of a sacrament and another of a memorial),
   and transliterated Hebrew and Greek: each glossed in the body at its first use, in a phrase,

@@ -39,8 +39,8 @@ are authoritative: `opus` items are judgement; `sonnet` items belong to the mech
 - **Legal claims carry jurisdiction and date** and say where the matter is unsettled.
 - **Correct against the work's interest, out loud.** Where a fact tells against the argument's
   convenience, say so plainly in the verdict.
-- **Claims about the author** are checked against `.claude/MEMORY.md` (Facts), and put to the
-  author where it is silent; never inferred.
+- **Claims about the author** are checked against `.claude/MEMORY.md` (Facts, mapped in
+  `00-project.md` `## Memory headings`), and put to the author where it is silent; never inferred.
 - **Never mark anything verified without a real source,** and never invent a figure, a source or a
   key.
 - **Never overwrite an entry;** supersede it with a dated addition. Figures move, and the history

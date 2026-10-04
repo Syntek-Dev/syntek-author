@@ -12,7 +12,7 @@ The units a reader will receive as the sample: pointers into `manuscript/src/`, 
 ## Rules
 
 - One row per unit the author chose, and only units whose planned sections are all promoted; nothing still in a unit's `drafts/` is offered.
-- The selection is the author's, recorded in `.claude/MEMORY.md` (Decisions) with its date.
+- The selection is the author's, recorded in `.claude/MEMORY.md` (Decisions, mapped in `00-project.md` `## Memory headings`) with its date.
 - Each reason says what the unit shows a reader, in one or two sentences.
 - Each unit is built from the manuscript, never from a copy: `make docx SCOPE=manuscript/src/<unit>`.
 - `Promoted` is the date the unit's last section was promoted.

@@ -20,7 +20,7 @@ model: opus
 ## Pre-Conditions
 
 - [ ] **Read `standards/risk/sensitive-content.md` in full for this task.** · _opus_
-- [ ] Read `.claude/MEMORY.md` (Sensitivities), the guide, and `research/src/testimony/CONTEXT.md` and `CLAUDE.md`. · _opus_
+- [ ] Read `.claude/MEMORY.md` (Sensitivities, mapped in `00-project.md` `## Memory headings`), the guide, and `research/src/testimony/CONTEXT.md` and `CLAUDE.md`. · _opus_
 - [ ] Author confirmed willing to work on this material now; their own support in the picture. · _opus_
 
 ## Execution Checklist

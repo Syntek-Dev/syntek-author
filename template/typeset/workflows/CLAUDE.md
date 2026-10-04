@@ -22,9 +22,9 @@ call).
 
 | You want to… | Procedure | Usually followed by |
 |---|---|---|
-| Design the page | `typeset/workflows/01-design-the-page/` | 02 for the first chapter |
-| Typeset a chapter | `typeset/workflows/02-typeset-a-chapter/` | 02 for the next chapter, or 04 |
-| Re-typeset after edits | `typeset/workflows/03-retypeset-after-edits/` | 04, when the book is due |
+| Design the page | `typeset/workflows/01-design-the-page/` | `02-typeset-a-chapter` for the first chapter |
+| Typeset a chapter | `typeset/workflows/02-typeset-a-chapter/` | `02-typeset-a-chapter` for the next chapter, or `04-typeset-the-book` |
+| Re-typeset after edits | `typeset/workflows/03-retypeset-after-edits/` | `04-typeset-the-book`, when the book is due |
 | Typeset the book | `typeset/workflows/04-typeset-the-book/` | the author's release decision |
 
 - **Routing:** read the procedure's `CONTEXT.md` → `CLAUDE.md` → `STEPS.md`, then work the steps
@@ -37,7 +37,8 @@ call).
   tick `CHECKLIST.md` → hand back with anything waived and why.
 - **Concrete steps (changing one):** confirm with the author first. A template procedure is
   changed by overriding it in `typeset/workflows/local/` under the same folder name, never in
-  place. Change all four files together, and date the decision in `.claude/MEMORY.md` Decisions.
+  place. Change all four files together, and date the decision in `.claude/MEMORY.md` Decisions
+  (mapped in `00-project.md` `## Memory headings`).
 - **Definition of done (running):** every checklist item ticked or explicitly waived with a
   reason; every styled chapter touched passes `make tex-check`; the proof has been read.
 

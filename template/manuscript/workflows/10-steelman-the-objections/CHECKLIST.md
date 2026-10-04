@@ -16,7 +16,7 @@ model: opus
 ## Pre-Conditions
 
 - [ ] Read **`standards/method/THEOLOGY.md` in full**: it holds the rules this procedure applies. · _opus_
-- [ ] Read `.claude/MEMORY.md` Decisions for any objection the book leaves standing; none designated noted for the report. · _opus_
+- [ ] Read `.claude/MEMORY.md` Decisions (mapped in `00-project.md` `## Memory headings`) for any objection the book leaves standing; none designated noted for the report. · _opus_
 - [ ] Read the chapter brief's claims-and-categories section and its argument map in `planning/src/arguments/`. · _opus_
 - [ ] Read this folder's `CONTEXT.md` and `CLAUDE.md`, and `manuscript/docs/reference/main-text-and-footnotes.md`. · _opus_
 

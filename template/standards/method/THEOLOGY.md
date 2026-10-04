@@ -108,8 +108,9 @@ who already agree, and omission is the commonest way a steelman fails.
 
 **Requirement.** An objection the work cannot answer is named as unanswered when it is raised,
 never quietly dropped and never answered by implication later. Which objections stand is the
-author's decision, recorded in `.claude/MEMORY.md` `## Decisions`. A later unit that quietly
-answers a designated standing objection is a defect in that unit, reported to the author.
+author's decision, recorded in `.claude/MEMORY.md` `## Decisions` (mapped in `00-project.md`
+`## Memory headings`). A later unit that quietly answers a designated standing objection is a
+defect in that unit, reported to the author.
 
 **Why this rule exists.** A work that resolves every objection it raises tells the reader it was
 never at risk. One honest 'I do not have an answer to this' makes the other answers credible.
@@ -136,7 +137,7 @@ the bias has become a licence for it.
 **Requirement.** Every quotation of Scripture is checked against the named translation, word for
 word, before promotion; every reference is checked to the verse. Every claim about a Hebrew,
 Aramaic or Greek word (its meaning, form or range) cites a lexicon or grammar, and stays flagged
-`VERIFY` until it does. The default translation's key is in `standards/style/style-sheet.md`.
+`VERIFY` until it does. The default translation's key is in `00-project.md` `## Brief`.
 
 **Why this rule exists.** A misquoted verse or an invented word-meaning is the error a careful
 reader spots first, and in a theology work it discredits the argument that rests on it.

@@ -1,16 +1,16 @@
 ---
 name: sensitivity-pass
 description: >-
-  Review sensitive material against standards/risk/sensitive-content.md before it is called done:
-  a testimony note, a section draft or a unit touching the subjects recorded in .claude/MEMORY.md
-  Sensitivities. Runs four checks (careful handling, the hardest claims sourced, help signposted,
-  safeguarding and the author's wellbeing) and holds every use of first-person testimony to the
-  consent recorded in its note. Use when the author says 'run a sensitivity pass', 'is this passage
-  safe to publish?', 'check the signposting', 'can I use this part of my story?', 'is anyone
-  identifiable here?' or 'check this statistic before it goes in'. Reports issues by location;
-  never rewrites testimony and never infers consent. Not verifying a claim against its source
-  (`fact-check`); not the good faith of an argument or the craft of a scene (`structure-review`);
-  not proofreading (`spelling`, `grammar`).
+  Review sensitive material against standards/risk/sensitive-content.md before it is called done: a
+  testimony note, a section draft or a unit touching the subjects recorded under the Sensitivities
+  heading of .claude/MEMORY.md (mapped in 00-project.md ## Memory headings). Runs four checks
+  (careful handling, the hardest claims sourced, help signposted, safeguarding and the author's
+  wellbeing) and holds every use of first-person testimony to the consent recorded in its note. Use
+  when the author says 'run a sensitivity pass', 'is this passage safe to publish?', 'check the
+  signposting', 'can I use this part of my story?', 'is anyone identifiable here?' or 'check this
+  statistic before it goes in'. Reports issues by location; never rewrites testimony and never
+  infers consent. Not verifying a claim against its source (`fact-check`); not the good faith of an
+  argument or the craft of a scene (`structure-review`); not proofreading (`spelling`, `grammar`).
 ---
 
 # Skill: Sensitivity pass (<%PROJECT_NAME%>)
@@ -47,8 +47,9 @@ These are the procedure of record — do not restate them at length here.
 ## How to run the pass
 
 1. **Read in before opening anything.** Read `standards/risk/sensitive-content.md`,
-   `standards/risk/risk.md` and `.claude/MEMORY.md` `## Sensitivities` (the subjects, the
-   highest-risk class of claim, consent decisions and hard lines). For testimony, also read
+   `standards/risk/risk.md` and the `Sensitivities` heading of `.claude/MEMORY.md`, mapped in
+   `00-project.md` `## Memory headings` (the subjects, the highest-risk class of claim, consent
+   decisions and hard lines). For testimony, also read
    `research/src/testimony/CONTEXT.md` and `CLAUDE.md` and `research/docs/reference/handling-testimony.md`.
    Then agree the scope with <%AUTHOR_FIRST_NAME%>: a testimony note, a section draft, or a unit.
    *Complete when:* every file above has been read and the scope is named; no note has been
@@ -105,9 +106,9 @@ These are the procedure of record — do not restate them at length here.
    protected or flagged, and every risk is with the author.
 
 9. **Report, and hand back only what the author chooses.** Deliver the report below. Record a
-   decision in `.claude/MEMORY.md` `## Sensitivities`, dated, only when the author makes it. In the
-   testimony procedure, name the passages that may move towards a chapter only on the author's
-   word and within recorded consent. Nothing is called done that the author has not chosen.
+   decision under the `Sensitivities` heading of `.claude/MEMORY.md`, dated, only when the author
+   makes it. In the testimony procedure, name the passages that may move towards a chapter only on
+   the author's word and within recorded consent. Nothing is called done that the author has not chosen.
    *Complete when:* the report is delivered, every decision taken is dated, and what waits on the
    author is listed.
 
@@ -136,15 +137,16 @@ author.
 - **Choosing the alarming figure.** A sensational statistic that collapses under scrutiny
   discredits the whole work on the subject where it most needs trust.
 - **Pushing through.** A hard passage is paused, not finished to schedule.
-- **Recording the subjects in a skill or a guide.** They live once, in `.claude/MEMORY.md`
-  `## Sensitivities`.
+- **Recording the subjects in a skill or a guide.** They live once, under the `Sensitivities`
+  heading of `.claude/MEMORY.md`.
 
 ## Cross-references
 
 - `standards/risk/sensitive-content.md` · `standards/risk/risk.md` — the governing standards.
 - `research/src/testimony/` — notes and their consent records; `research/src/evidence/` — verdicts.
 - `research/docs/reference/handling-testimony.md` — the day-to-day guide.
-- `.claude/MEMORY.md` — `## Sensitivities`: subjects, the highest-risk class, decisions.
+- `.claude/MEMORY.md` — the `Sensitivities` heading (mapped in `00-project.md`
+  `## Memory headings`): subjects, the highest-risk class, decisions.
 - `.claude/skills/fact-check/SKILL.md` — verifies the hardest claims and every signposted contact.
 - `.claude/skills/spelling/SKILL.md` · `.claude/skills/grammar/SKILL.md` — supportive proofreading
   of a settled note, as a report.

@@ -3,7 +3,9 @@
 One approval record per approval event: an instrument signed by all parties, a policy approved
 as `Active`, or a notice issued. Each record names what was approved, which version, by whom,
 when, how and within what scope. The record is evidence that the event happened; the register
-row it updates is the summary.
+row it updates is the summary. This folder is the default Approvals path: where `00-project.md`
+`## Paths` names another, the records are kept there, and this file still gives their shape
+unless that folder has a `CONTEXT.md` of its own that does.
 
 ## Directory Tree
 

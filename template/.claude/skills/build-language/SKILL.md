@@ -78,8 +78,9 @@ are the procedure of record — do not restate them at length here.
    actually sounds and works, into cited notes in `research/src/setting/`; nothing about a real
    language is asserted from memory. Each model becomes an `[[inspiration]]` entry (`language`,
    `period`, `family`, `weight`, `borrows`, `sources` pointing at the notes, `notes`). Words are
-   never borrowed, only structure and flavour. Record the choice in `.claude/MEMORY.md`
-   `## Decisions` through `grill-with-docs`, because it is hard to reverse. *Complete when:* every
+   never borrowed, only structure and flavour. Record the choice under the `Decisions` heading of
+   `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) through `grill-with-docs`,
+   because it is hard to reverse. *Complete when:* every
    chosen model has its entry drafted and every source is a real note.
 
 5. **Place the language in its family.** Proto, daughter or isolate (conlang rule 18). A daughter

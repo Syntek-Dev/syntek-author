@@ -50,9 +50,11 @@ compaction blocked at the hard limit leaves the current request to fail), and st
 
 ## Where the handoff lives
 
-`handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, committed so it travels with the repository. The
-descriptor names **the work, not the session**: `HANDOFF-OPENING-SECTIONS-03-10-2026.md`, never
-`HANDOFF-TUESDAY-03-10-2026.md`. Prune a handoff once its work has resumed and landed.
+The handoffs folder, in the filename form `00-project.md` `## Paths` gives (by default
+`handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, the form used below), committed so it travels with
+the repository. The descriptor names **the work, not the session**:
+`HANDOFF-OPENING-SECTIONS-03-10-2026.md`, never `HANDOFF-TUESDAY-03-10-2026.md`. Prune a handoff
+once its work has resumed and landed.
 
 ## How to write a handoff
 
@@ -85,11 +87,11 @@ descriptor names **the work, not the session**: `HANDOFF-OPENING-SECTIONS-03-10-
    maps, commits: by path, so the fresh session opens them itself. Anything confidential is named
    and located, never reproduced. *Complete when:* every artefact is a path, and no confidential
    value or quoted passage of the work appears.
-9. **Write the file, print the path, then stop.** Write the handoff to
-   `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, print that path for <%AUTHOR_FIRST_NAME%>, and
+9. **Write the file, print the path, then stop.** Write the handoff in the handoffs folder, in
+   the filename form `00-project.md` `## Paths` names (by default
+   `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`), print that path for <%AUTHOR_FIRST_NAME%>, and
    **end the turn**, so the author can run `/clear` and resume from the file in a fresh window.
-   *Complete when:* the file exists under `handoffs/`, its path is printed, and the turn has
-   stopped.
+   *Complete when:* the file exists there, its path is printed, and the turn has stopped.
 
 ## What the handoff carries
 
@@ -103,20 +105,21 @@ A complete handoff has these parts, top to bottom; treat the list as the final c
 - **Next skills** — what the next session loads.
 - **Artefacts** — everything else the work touches, by path.
 
-Add an **Open questions** line only when the session left a decision genuinely unresolved, and
-make sure it is also in `.claude/MEMORY.md` `Open questions`. A **teaching detour** (the work
-pauses while a gap is closed with `teach`) is named in the descriptor,
-`HANDOFF-TEACH-<TOPIC>-DD-MM-YYYY.md`, with a `Teaching detour` line giving the topic, the concept
-that missed and the opening lesson, and `teach` first among the next skills.
+Add an **Open questions** line only when the session left a decision genuinely unresolved, and make
+sure it is also under the `Open questions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+`## Memory headings`). A **teaching detour** (the work pauses while a gap is closed with `teach`) is
+named in the descriptor, `HANDOFF-TEACH-<TOPIC>-DD-MM-YYYY.md`, with a `Teaching detour` line giving
+the topic, the concept that missed and the opening lesson, and `teach` first among the next skills.
 
 ## What stays out
 
-- Facts, decisions, feedback, status and sensitivities: `.claude/MEMORY.md`.
+- Facts, decisions, feedback, status and sensitivities: each under its heading in
+  `.claude/MEMORY.md`.
 - What a unit argues, tells or commits to: its brief in `planning/src/units/`.
-- What the evidence supports: `research/src/evidence/`; a researched question:
-  `research/src/notes/`.
-- An unresolved decision blocking a body of work: `.claude/MEMORY.md` `Open questions`, or the
-  frontier of a map in `planning/src/maps/`.
+- What the evidence supports: `research/src/evidence/`; a researched question: the research notes
+  folder (by default `research/src/notes/`).
+- An unresolved decision blocking a body of work: the `Open questions` heading of
+  `.claude/MEMORY.md`, or the frontier of a decision map (by default in `planning/src/maps/`).
 
 ## Anti-patterns
 

@@ -27,6 +27,9 @@ a broken build says exactly what broke.
      script by hand, because the targets encode the file selection, the filter and the exclusions.
   2. Read the file list the target echoes, and confirm it is what the author meant.
   3. Open the output in `build/` and read it before reporting it built.
+- **Concrete steps (a project setting):** a logo folder, a typeface, an extra open-item mark<: if DOC_TYPE == 'business' :>, a
+  Word converter or an issuing status<: endif :> is a line in `tooling/project.mk`, the project's own file,
+  never a change to the `Makefile`; confirm it with the author, then run the target it affects.
 - **Concrete steps (changing the machinery):** describe the change and why to the author first;
   keep every script standard-library only<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> (`font.py` alone declares one dependency, inline,
   and runs with `uv run`)<: endif :>; run the target on a real file before and after, and any
@@ -43,6 +46,10 @@ a broken build says exactly what broke.
 - **Do not defeat the exclusions.** `CONTEXT.md`, `CLAUDE.md`, `README.md` and anything under a
   `drafts/` folder never build: governance is not prose, and an unpromoted draft must never reach
   an editor.
+- **Never read what git ignores.** Every scan filters its files through `git check-ignore`,
+  because ignored folders hold credentials and local-only material. When `make flags` or
+  `make lint` reports files 'Not read', never grep, cat or open them to make up the difference:
+  they are ignored on purpose, and the report says so.
 - **One filter for every output.** Every Pandoc run passes through `tooling/pandoc/house.lua`; a
   build that skips it renders the author's marks as plain text.
 - **Fail loudly.** A script that cannot do its job exits non-zero with a message that names the
@@ -52,7 +59,8 @@ a broken build says exactly what broke.
 ## Output & naming
 
 - **Hand-written:** every file here; the scripts carry a usage docstring and exit codes
-  (0 done, 1 problems found, 2 usage or file error).
+  (0 done, 1 problems found, 2 usage or file error). `project.mk` is the project's own, seeded
+  once; every other file here is template-owned and updated by `copier update`.
 - **Generated (never hand-edit):** everything under `build/`, named after the scope or file with
   `/` replaced by `__`<: if INCLUDE_REFERENCES :>; the text dump `references.dump.sql`, written by `make dump`<: endif :>.
 - New scripts: `snake_case.py`, standard library only, each with a `make` target.

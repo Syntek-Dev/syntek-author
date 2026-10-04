@@ -35,7 +35,8 @@ brief).
 
 - **The original, unchanged,** in its family: at the family root, in
   `library/src/<family>/templates/`, or in `library/src/<family>/client-docs/<client-slug>/`,
-  renamed only to the house kebab-case pattern.
+  renamed only to the house kebab-case pattern; the email family files by correspondent instead
+  (its folder's CONTEXT.md sets the layout).
 - **A Markdown reading copy** beside it, `<name>.reading.md` (same basename), with an internal
   note listing anything the conversion lost. The suffix keeps it out of Drive sync: it is derived,
   never issued.

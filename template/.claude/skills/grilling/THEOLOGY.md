@@ -58,7 +58,7 @@ live, and the rule that a conclusion is never grilled without its category.
 
 ```text
 **Settled — Chapter 3's question:** 'Is rest commanded or commended?' (planning/src/units/03-sabbath-rest.md:18)
-**Settled — Translation:** the default key in the style sheet (standards/style/style-sheet.md:22)
+**Settled — Translation:** the default key in the brief (.claude/rules/syntek-author/00-project.md:22)
 
 **Q1 — The category of the chapter's main conclusion**
 

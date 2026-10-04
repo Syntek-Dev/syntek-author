@@ -133,6 +133,39 @@ _exclude:
   - "<: if not (DOC_TYPE == 'fiction') :>/manuscript/docs/reference/scene-craft.md<: endif :>"
   - "<: if not (DOC_TYPE == 'theology') :>/manuscript/workflows/10-steelman-the-objections<: endif :>"
   #
+  # ── library/ (business, gated above): the document families (DESIGN.md D39, Section 3.5) ──
+  #
+  # A family is four things that travel together: its folder in library/src/, its standard in
+  # library/docs/reference/, its <family>-documents skill (in the skills block below) and its
+  # create workflow (Section 4.4, 11–15). `business` is always chosen — BUSINESS_FAMILIES'
+  # validator refuses a list without it — so its folder, standard and workflow 10 carry no line
+  # of their own: library/ itself is their gate. Each line reads BUSINESS_FAMILIES even though
+  # library/ is already shut outside business, because a hidden question keeps its default in
+  # the render context and every gate carries its DOC_TYPE test (DESIGN.md Section 2).
+  #
+  # These replace v0.1.0's six family folders (proposals, contracts, policies, correspondence,
+  # finance, marketing), which shipped to every business project with no gate at all. The
+  # v0.2.0 migration below moves what an author kept in them (D44).
+  - "<: if not (DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES) :>/library/src/legal<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES) :>/library/src/email<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES) :>/library/src/accounting<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES) :>/library/src/social-media<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES) :>/library/src/msp-scp<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES) :>/library/docs/reference/legal-standards.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES) :>/library/docs/reference/email-standards.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES) :>/library/docs/reference/accounting-standards.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES) :>/library/docs/reference/social-media-standards.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES) :>/library/docs/reference/msp-scp-standards.md<: endif :>"
+  # A standard over the line cap splits into SCREAMING-SNAKE-CASE sub-documents behind its thin
+  # index (D25); each sub-document carries its standard's gate.
+  - "<: if not (DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES) :>/library/docs/reference/EMAIL-ANATOMY-AND-NAMING.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES) :>/library/docs/reference/MSP-SCP-POLICY-SUITE.md<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES) :>/library/workflows/11-create-a-legal-document<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES) :>/library/workflows/12-write-an-email<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES) :>/library/workflows/13-create-an-accounting-document<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES) :>/library/workflows/14-create-a-social-media-document<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES) :>/library/workflows/15-create-an-msp-scp-document<: endif :>"
+  #
   # ── planning/ (all variants): variant sources, guides and workflows ──
   - "<: if not (DOC_TYPE == 'theology') :>/planning/src/arguments<: endif :>"
   - "<: if not (DOC_TYPE == 'fiction') :>/planning/src/causality.md<: endif :>"
@@ -276,6 +309,14 @@ _exclude:
   - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/clause-consistency<: endif :>"
   - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/tone<: endif :>"
   - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/obligation-check<: endif :>"
+  # One skill per document family (DESIGN.md D39, Section 5.3). business-documents ships with
+  # every business project, because the `business` family is always chosen.
+  - "<: if not (DOC_TYPE == 'business') :>/.claude/skills/business-documents<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES) :>/.claude/skills/legal-documents<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES) :>/.claude/skills/email-documents<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES) :>/.claude/skills/accounting-documents<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES) :>/.claude/skills/social-media-documents<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES) :>/.claude/skills/msp-scp-documents<: endif :>"
   - "<: if not (INCLUDE_REFERENCES) :>/.claude/skills/add-reference<: endif :>"
   - "<: if not (DOC_TYPE != 'business' and INCLUDE_PROPOSAL) :>/.claude/skills/approach-a-reader<: endif :>"
   - "<: if not (DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT) :>/.claude/skills/sensitivity-pass<: endif :>"
@@ -297,7 +338,9 @@ _exclude:
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/manuscript/src/01-example-chapter<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/01-example-chapter.md<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/arguments/01-example-chapter.md<: endif :>"
-  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/proposals/drafts/example-proposal<: endif :>"
+  # The business example lives in the `business` family, which every business project ships
+  # (v0.1.0 kept it in library/src/proposals/; the v0.2.0 migration moves a kept copy, D44).
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/business/drafts/example-proposal<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/example-proposal.md<: endif :>"
   # The example drafts' ledger entries, so each draft's `ledger:` pointer resolves and
   # learn-voice has something to practise on. The author-drafted opening carries a filled
@@ -429,15 +472,24 @@ _exclude:
 # author writes in is a merge conflict on every update.
 #
 # THE ONE THING A SEED DOES NOT SURVIVE is its option being turned off. `copier update` with
-# an INCLUDE_* answer changed to false deletes every file that option generated, seeds
-# included, even ones the author has filled in (reproduced on 9.18.2, 03/10/2026). The
-# _message_before_update below names them, and the generated README tells the author to copy
-# them out first.
+# an INCLUDE_* answer changed to false — or a family dropped from BUSINESS_FAMILIES — deletes
+# every file that answer generated, seeds included, even ones the author has filled in
+# (reproduced on 9.18.2, 03/10/2026). The _message_before_update below names them, and the
+# generated README tells the author to copy them out first.
 #
 # A seed is listed only once its file is on disk: shipped-seeds.sh fails on a seed that is
 # not. Add each line in the change that adds its file, and keep the list explicit (no globs):
 # adopt/adopt.sh and the audits read it path by path.
 _skip_if_exists:
+  # ── The project's own settings (DESIGN.md D40, D43) ──
+  # 00-project.md sits in the template-owned rules folder because Claude Code loads that folder
+  # at launch, but it is the PROJECT's file: written once from the answers (brief, paths,
+  # memory-heading map, workflow aliases, overrides), never overwritten, and outranking every
+  # other rules file. tooling/project.mk is its build-side twin, read by the Makefile with
+  # -include. Both are listed by full path: an unanchored `00-project.md` or `project.mk`
+  # would match at every depth.
+  - /.claude/rules/syntek-author/00-project.md
+  - /tooling/project.mk
   # ── Shared root files ──
   - /README.md
   - /CONTEXT.md
@@ -827,6 +879,56 @@ BUSINESS_VOICE_PERSON:
   default: singular
   when: "<% DOC_TYPE == 'business' %>"
 
+# The document families (DESIGN.md D39). Each chosen family ships its folder in library/src/,
+# its standard, its <family>-documents skill and its create workflow; each family left out
+# ships none of them, so a library that never sends an invoice is never offered an
+# accounting skill that would fire on description match.
+#
+# `business` is the core — proposals, statements of work and client guides, and the home of a
+# client's facts (library/src/business/client-docs/<client-slug>/) — so the validator refuses
+# a list without it. `msp-scp` is opt-in: it serves only managed-service providers.
+#
+# The default is a YAML list (Copier stores a multiselect answer as one), and a hidden question
+# keeps it in the render context, which is why every family gate also tests DOC_TYPE.
+# Unticking a family on update deletes its template files like an INCLUDE_* option turned off
+# (_message_before_update says so): the folder's signposts, its standard and the standard's
+# sub-documents (EMAIL-ANATOMY-AND-NAMING.md, MSP-SCP-POLICY-SUITE.md), its skill and its
+# workflow, the author's edits to any of them included. No family folder ships a seed. The
+# author's own documents elsewhere in the folder stay, except in a repository adopted
+# additively, where a file of its own at one of those template paths (its skill, its folder
+# pairs) is deleted with them.
+BUSINESS_FAMILIES:
+  type: str
+  multiselect: true
+  help: >-
+    Which kinds of document does the library hold? Each family adds its folder in
+    library/src/, its standard, its skill and its create workflow. 'business' is always
+    included; 'msp-scp' is only for managed-service providers. Unticking a family later
+    deletes its folder's signposts, library/docs/reference/<family>-standards.md and its
+    sub-documents (EMAIL-ANATOMY-AND-NAMING.md, MSP-SCP-POLICY-SUITE.md), its skill and its
+    workflow, including your edits to any of these files; your own documents elsewhere in its
+    folder stay. In a repository adopted additively, a file of yours at the family's template
+    path (its skill, its folder pairs) is deleted with it: copy it out first.
+  choices:
+    "business — proposals, statements of work, client guides (always)": business
+    "legal — contracts, NDAs, data processing agreements, terms": legal
+    "email — client and supplier correspondence": email
+    "accounting — invoices, expenses, financial reports": accounting
+    "social-media — plans, content calendars, profiles": social-media
+    "msp-scp — IT policies, plans and reports for managed-service clients": msp-scp
+  default:
+    - business
+    - legal
+    - email
+    - accounting
+    - social-media
+  when: "<% DOC_TYPE == 'business' %>"
+  validator: >-
+    <: if 'business' not in BUSINESS_FAMILIES :>
+    Keep 'business' ticked: it holds proposals, statements of work, client guides and each
+    client's facts, and every other family routes to it.
+    <: endif :>
+
 # Ships template/.github/ — the Drive push and pull workflows — and nothing else. Off by
 # default (a new optional surface defaults false): the workflows need Google credentials as
 # repository secrets, and a workflow without its secrets is a red job on every push.
@@ -963,10 +1065,10 @@ UNIT_NOUN:
 # governance pair to the new path and leaves every draft, unit brief and ledger entry behind
 # — with no conflict and no error.
 #
-# NONE AT 0.1.0. The rule from the first release: folder names and workflow numbers are
-# frozen and append-only (DESIGN.md D26), and any release that renames or moves a folder that
-# can hold author work ships a version-keyed migration IN THE SAME COMMIT, or it silently
-# strands that work.
+# The rule from the first release: folder names and workflow numbers are frozen and
+# append-only (DESIGN.md D26), and any release that renames or moves a folder that can hold
+# author work ships a version-keyed migration IN THE SAME COMMIT, or it silently strands that
+# work (D44).
 #
 # Seeds are the second case. .claude/settings.json, .gitignore and the rest of DESIGN.md
 # Section 3.1 are never re-rendered once they exist (D17), so a release that changes what a
@@ -974,17 +1076,45 @@ UNIT_NOUN:
 #
 # House shape for a migration script: it lives in migrations/ at this repository's root
 # (outside template/, so it never ships) and is read from the template clone through
-# _copier_conf.src_path. It is idempotent; it never overwrites; it acts only where exactly
-# one destination or value is correct and reports everything else with file and line; it
-# guards on the folder's CONTEXT.md marker, so a folder Copier has not renamed yet is never
-# touched; and it always exits 0, because a non-zero exit aborts every migration declared
-# after it and leaves the project half-upgraded. Key it to the release the folder MOVED in,
-# never the release somebody noticed. The first entry will look like:
+# _copier_conf.src_path. It is idempotent; it never overwrites and never deletes; it acts only
+# where exactly one destination or value is correct and reports everything else with file and
+# line; it guards on the folders' CONTEXT.md markers, so a folder Copier has not retired (or a
+# destination it has not delivered) is never touched; and it always exits 0, because a
+# non-zero exit aborts every migration declared after it and leaves the project half-upgraded.
+# Key it to the release the folder MOVED in, never the release somebody noticed. Migrations
+# run in declaration order, so a later release's entry goes ABOVE this one only if it must run
+# first; otherwise append.
 #
-#   - version: v0.2.0
-#     command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-<what>.sh"
-#     when: "<% _stage == 'after' %>"
-_migrations: []
+# A `version:` entry runs only when the update crosses that version, which Copier reads from
+# the template's git tags (PEP 440): an update to an untagged HEAD that is still numbered
+# 0.1.x does not run it. update-test.sh tags its snapshot with VERSION to prove the real path.
+_migrations:
+  # v0.2.0 retires v0.1.0's six business family folders for the D39 families. Copier removes
+  # the governance files it generated in the old folders and leaves everything an author
+  # created there, in folders nothing routes to any more. This moves those files to their D44
+  # destination (proposals → business, contracts → legal, policies → business, or msp-scp when
+  # it is chosen, correspondence → email, finance → accounting, marketing → social-media), only
+  # into a family the update delivered and only where the destination is free, and lists what
+  # it left, the old signposts the update deleted (edits included) and every file that still
+  # cites an old path. Business projects only: the script also checks DOC_TYPE itself, so a
+  # hand run in a book is a no-op.
+  - version: v0.2.0
+    command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-business-families.sh"
+    when: "<% _stage == 'after' and DOC_TYPE == 'business' %>"
+  # v0.2.0 also moved every project value the skills read into the new seed
+  # .claude/rules/syntek-author/00-project.md, which they now read from `## Brief` alone (D40).
+  # The update writes that seed from the answers, but v0.1.0 told the author to keep the brief
+  # current in .claude/CLAUDE.md Section 1 (and the reader test in MEMORY.md, the trading name in
+  # disclaimers.md, the currency, jurisdiction and translation in the style sheet), all seeds
+  # the update never rewrites, so an edited value would silently revert to the answer. This
+  # copies a value into `## Brief` only where the bullet still reads the answer and the sources
+  # hold exactly one other value, and never over an answer given during the update itself (it
+  # differs from the answer recorded before v0.2.0, read from git history), where the older
+  # value is listed as a conflict. It lists every other difference with file:line, and every
+  # seed line that still gives v0.1.0's guidance. Every variant: no DOC_TYPE test (D44).
+  - version: v0.2.0
+    command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-project-settings.sh"
+    when: "<% _stage == 'after' %>"
 
 # ── Before an update ─────────────────────────────────────────────────────────
 #
@@ -997,7 +1127,9 @@ _message_before_update: |
 
   Before you answer: turning an option off deletes EVERY file it generated, including the
   seeds you have filled in (git history keeps the last committed copy). Copy out and commit
-  anything you need first. Your own files are never deleted.
+  anything you need first. Your own files are never deleted, except in one case. In a
+  repository adopted additively, a file of yours at an unticked family's or option's template
+  path (its skill, its folder pairs) is deleted with it: copy it out first.
 
     INCLUDE_PROPOSAL=false           proposal/: theology book-proposal/01-08,
                                      endorsements/tracker.md; fiction query-letter.md,
@@ -1016,10 +1148,35 @@ _message_before_update: |
     INCLUDE_SENSITIVE_CONTENT=false  standards/risk/sensitive-content.md, the testimony
                                      workflow and sensitivity-pass
     INCLUDE_DRIVE_SYNC=false         .github/, the Drive push and pull workflows
+    BUSINESS_FAMILIES, a family      library/src/<family>/ with its signposts (the
+    unticked                         CONTEXT.md and CLAUDE.md of it and its sub-folders,
+                                     drafts/README.md),
+                                     library/docs/reference/<family>-standards.md and its
+                                     sub-documents (EMAIL-ANATOMY-AND-NAMING.md,
+                                     MSP-SCP-POLICY-SUITE.md), the <family>-documents skill
+                                     and the family's create workflow, including your edits
+                                     to any of these files (your own documents elsewhere in
+                                     the folder stay)
 
   DOC_TYPE never changes: the update refuses it, because a different variant is a new project.
   After any option change, edit by hand the seeds that describe your options: README.md,
-  CONTEXT.md, .claude/CLAUDE.md Section 1, .claude/settings.json and .gitignore.
+  CONTEXT.md, .claude/CLAUDE.md, .claude/rules/syntek-author/00-project.md (## Brief),
+  .claude/settings.json and .gitignore.
+
+  In a repository adopted additively, a file you kept at a template path comes back with
+  conflict markers whenever the template changed it: keep your version, and extend it by hand
+  if you want the template's change.
+
+  Every project, updating from v0.1.0: Brief values (audience, reader test and the variant's
+  answers) are now read only from .claude/rules/syntek-author/00-project.md ## Brief; the
+  migration copies a value you changed in .claude/CLAUDE.md Section 1 where that is
+  unambiguous and lists the rest.
+
+  Business, updating from v0.1.0: the families replace proposals/, contracts/, policies/,
+  correspondence/, finance/ and marketing/ under library/src/. A migration moves the files
+  you created there into the new families where the destination is free, and lists anything
+  it left behind and every file that still names an old folder. The old folders' signposts
+  are deleted even where you edited them; your lines remain in git history.
 
 # ── Post-generation ──────────────────────────────────────────────────────────
 

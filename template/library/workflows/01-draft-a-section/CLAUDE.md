@@ -34,10 +34,10 @@ gap flagged rather than filled.
   figure was wrong.
 - **Prices, dates and service levels come from the author.** Never supply one; flag it.
 - **Never invent a statute, a section number, a certification or a client's detail.**
-- **The formal register stays formal.** Brand voice applies to proposals, letters and marketing;
-  it never softens an instrument or a policy.
+- **The formal register stays formal.** Brand voice applies to proposals, letters, emails and
+  social copy; it never softens an instrument or a policy.
 - **Never overwrite an existing draft or ledger entry** (step 5 exists to catch this), and never
-  promote: that is workflow 04, on the author's word.
+  promote: that is `library/workflows/04-promote-a-section/`, on the author's word.
 
 ## Output & naming
 

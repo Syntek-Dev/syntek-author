@@ -16,7 +16,8 @@ the depiction rules the four checks apply here.
 - **Where the project builds peoples, cultures and languages,** also read the files for each one
   the scope draws on: a culture's depiction-check internal note, and each language's recorded
   real-world models and deliberate echoes.
-- **Decisions** that bind this pass live in `.claude/MEMORY.md` `## Sensitivities`: the subjects
+- **Decisions** that bind this pass live under the `Sensitivities` heading of `.claude/MEMORY.md`
+  (mapped in `00-project.md` `## Memory headings`): the subjects
   that need a content note, whether and where content notes appear, and whether a sensitivity
   reader is engaged.
 

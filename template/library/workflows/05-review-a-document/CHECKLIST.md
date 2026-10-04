@@ -26,7 +26,7 @@ model: opus
 
 - [ ] V2 and V3 (draft → structural-review) dated; status moved to `structural-review` in the brief and the `.tex` block together. · _sonnet_
 - [ ] `structure-review` run, forked, with the business lenses; synthesis written to `planning/src/reviews/`, marked advice only. · _opus_
-- [ ] Findings put to the author; each agreed change reopened through 02 or 03 and promoted again through 04. · _opus_
+- [ ] Findings put to the author; each agreed change reopened through `02-adapt-a-draft` or `03-improve-your-draft` and promoted again through `04-promote-a-section`. · _opus_
 - [ ] A material change cleared its gate and every later one, and stepped the status back (`standards/verification/verification.md` Section 3); any other reopened section had the stages already passed run again over it. · _opus_
 - [ ] V4 (structural-review → fact-check) dated; status moved to `fact-check`. · _sonnet_
 
@@ -51,7 +51,7 @@ model: opus
 - [ ] Registered before the issue proof via `planning/workflows/08-update-the-register/`: `DOC-NNN` issued, row at Status `Draft`, review-schedule row where the document has a cycle. · _sonnet_
 - [ ] The `DOC-NNN` written into the Document Control Reference and the brief's `number`. · _sonnet_
 - [ ] `make flags SCOPE=<path>.tex` empty; no `\dnote`, `\fillme`, redline mark or `[AWAITING USER INPUT]` left. · _sonnet_
-- [ ] Disclaimer matches `standards/brand/disclaimers.md` word for word; Document Control and version history complete; register row present (V6.2). · _opus_
+- [ ] Disclaimer matches the disclaimers file (`00-project.md ## Paths`) word for word; Document Control and version history complete; register row present (V6.2). · _opus_
 - [ ] Issue proof rendered and read in full. · _opus_
 
 **Final**
@@ -59,7 +59,7 @@ model: opus
 - [ ] **The author's word, in words: final.** · _opus_
 - [ ] V6 (line-edit → final), V6.1 and V6.2 dated; `final` set in the brief and the `.tex` block; Document Control Status as the author confirmed. · _sonnet_
 - [ ] The author's word, dated, added to `.claude/MEMORY.md` `## Status`. · _sonnet_
-- [ ] Issue PDF placed beside the `.tex`, same basename (`make pdf FILE=<path>.tex ISSUE=1`). · _sonnet_
+- [ ] Issue PDF placed beside the `.tex`, same basename (`make pdf FILE=<path>.tex ISSUE=1`, never `FORCE=1` without the author's word); none for an authored email. · _sonnet_
 - [ ] Approval recorded via `planning/workflows/07-record-an-approval/` where the document is approved or executed; the register Status moved on from `Draft` only on the author's word. · _sonnet_
 - [ ] Handed back: status, paths, register ID, review file, corrections, reopened sections, waivers; sending left to the author. · _opus_
 

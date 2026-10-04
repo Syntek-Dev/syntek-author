@@ -75,8 +75,9 @@ are the procedure of record — do not restate them at length here.
 
 6. **Test for coincidence.** Chance may put a character into trouble; it may never get them out.
    Flag every beat where luck, a timely arrival or a convenient discovery resolves a problem. A
-   coincidence the author keeps is recorded in `.claude/MEMORY.md` `## Decisions` with their reason,
-   so a later pass does not 'fix' it. *Complete when:* every resolving beat has been tested, and
+   coincidence the author keeps is recorded, with their reason, under the `Decisions` heading of
+   `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`), so a later pass does not
+   'fix' it. *Complete when:* every resolving beat has been tested, and
    each flagged coincidence is decided.
 
 7. **Pair set-ups with payoffs.** Each beat that plants something names its payoff beat, or goes

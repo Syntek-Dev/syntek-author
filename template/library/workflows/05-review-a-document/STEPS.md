@@ -35,7 +35,9 @@ and stop. _Mechanical._
 
 > **Skill:** `structure-review` · **Guide:** `library/docs/reference/document-anatomy.md`
 
-Read the unit brief, the client's facts, `planning/src/precedence.md`, every document in the family
+Read the unit brief, the family's standard (`library/docs/reference/<family>-standards.md`), the
+client's facts (`## Facts` in `library/src/business/client-docs/<client-slug>/CONTEXT.md`, or where
+`00-project.md ## Paths` says), `planning/src/precedence.md`, every document in the family
 this one relies on or is relied on by, and, for a new version, the version it replaces and its
 register row. _Substantive._
 
@@ -92,8 +94,9 @@ its sub-gates V5.1 and V5.2: date them and move the status to `line-edit`. _Subs
 
 > **Skill:** `comprehension` · **Guide:** `library/docs/reference/document-anatomy.md`
 
-Read the document as the reader the brief names (and the reader test in `.claude/CLAUDE.md`
-Section 1): undefined terms, leaps, buried points, a long document without its reader's map.
+Read the document as the reader the brief names (and the audience and reader test in
+`00-project.md ## Brief`): undefined terms, leaps, buried points, a long document without its
+reader's map.
 Report by location. _Substantive._
 
 ## 9. Flow
@@ -134,11 +137,12 @@ the Document Control block's Reference and the brief's `number`. _Mechanical._
 
 > **Skill:** `build` · **Guide:** `library/docs/reference/latex-deliverables.md`
 
-`make flags SCOPE=<path>.tex` lists nothing; no `\dnote`, `\fillme`, redline mark or
-`[AWAITING USER INPUT]` remains; the disclaimer matches `standards/brand/disclaimers.md` word for
-word; the Document Control block, its Reference included, and the version history are complete;
-the register row exists. V6.2 can now pass. Render with `make pdf FILE=<path>.tex` and read the
-whole proof. _Substantive._
+`make flags SCOPE=<path>.tex` lists nothing (it counts the project's own open-item markers too,
+`FLAG_EXTRA_RE` in `tooling/project.mk`); no `\dnote`, `\fillme`, redline mark or
+`[AWAITING USER INPUT]` remains; the disclaimer matches the disclaimers file
+`00-project.md ## Paths` names, word for word; the Document Control block, its Reference included,
+and the version history are complete; the register row exists. V6.2 can now pass. Render with
+`make pdf FILE=<path>.tex` and read the whole proof. _Substantive._
 
 ## 14. The author's word: final
 
@@ -148,8 +152,11 @@ Ask the author, in words, whether the document is final. On a yes: date V6 (line
 V6.1 and V6.2; set `final` in the brief and the `.tex` status block; set the Document Control
 Status to the value the author confirms it is issued with; and add the author's word, dated, to
 `.claude/MEMORY.md` `## Status`. Render once more with `make pdf FILE=<path>.tex ISSUE=1`, which
-places the issue PDF beside the `.tex` under the same basename. On anything else, record what is
-outstanding and stop. _Substantive._
+places the issue PDF beside the `.tex` under the same basename. It refuses a status outside
+`ISSUE_STATUSES` (`tooling/project.mk`) and refuses to overwrite a file already there: an issued
+PDF is a record, so `FORCE=1` is passed only on the author's explicit word. An authored email has
+no issue PDF; record this render as not applying. On anything else, record what is outstanding
+and stop. _Substantive._
 
 ## 15. Record the approval
 

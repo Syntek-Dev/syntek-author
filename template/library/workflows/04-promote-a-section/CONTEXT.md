@@ -5,7 +5,7 @@ author's explicit word, the section's gates are checked, the Markdown draft is c
 LaTeX and inserted into the `.tex` between its `% section: <slug>` markers, a word-check proves
 nothing was lost or added, and the author's final text and change ratio are recorded in the
 ledger. Promotion never makes a document `final`; that
-takes the review in workflow 05 and the author's word again.
+takes the review in `library/workflows/05-review-a-document/` and the author's word again.
 
 ## Directory Tree
 
@@ -32,9 +32,9 @@ case a new version is opened first (`library/docs/reference/versioning-and-the-r
 
 ## What it produces, and where
 
-- **The section in the deliverable**, between its markers in the document's `.tex` (or `.md` for
-  an authored email or web copy); the `.tex` created from `tooling/latex/skeleton.tex` if this is
-  the document's first promotion.
+- **The section in the deliverable**, between its markers in the document's `.tex` (or `.md` for an
+  authored email or web copy); the `.tex` created from the house skeleton (`00-project.md ## Paths`)
+  if this is the document's first promotion.
 - **The ledger entry completed:** `## Author final` holding the approved text, the `promoted` date
   and the `change_ratio`.
 - **A row in `standards/style/ledger/provenance.md`.**

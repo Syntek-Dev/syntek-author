@@ -13,8 +13,10 @@ checklist and skill can cite the gate instead of restating it.
 
 ## How to work here
 
-- **Routing:** the review workflow (05) in the content layer runs the gates in order, each by
-  the skill `verification.md` names; `promote-section` holds each section to V2's terms as it
+- **Routing:** the content layer's review workflow,<: if DOC_TYPE != 'business' :>
+  `manuscript/workflows/05-review-a-chapter/`,<: endif :><: if DOC_TYPE == 'business' :>
+  `library/workflows/05-review-a-document/`,<: endif :> runs the gates in order, each by the skill
+  `verification.md` names; `promote-section` holds each section to V2's terms as it
   promotes it; `build` produces the proof V3 needs. A workflow cites a gate with its transition,
   as 'V2 (draft → structural-review)' or 'V4.2', never by copying its wording.
 - **Model:** **Opus** to judge a gate; the mechanical tier to record a date in the `verified:`
@@ -26,7 +28,7 @@ checklist and skill can cite the gate instead of restating it.
      number in the unit brief's `verified:` map. When every gate for the transition is dated
      (V2 and V3 both, for `draft → structural-review`), move `status:` up one rung.
   4. For `final`, also record the author's explicit word, dated, in `.claude/MEMORY.md`
-     `## Status`.
+     `## Status` (mapped in `00-project.md` `## Memory headings`).
 - **Definition of done:** the unit's `status:` and `verified:` map agree with this standard, and
   every date recorded corresponds to a gate that actually passed.
 

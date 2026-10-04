@@ -3,7 +3,9 @@
 The procedure for having the AI draft **one section** of a document from its unit brief: settle
 the five questions, gather every fact first, then write 300–500 words into the document's drafts
 folder as an `ai-draft`, with a ledger entry holding the AI original word for word. It is the
-front door to writing a document; the author's revision (02 or 03) and promotion (04) follow it.
+front door to writing a section; the author's revision (`02-adapt-a-draft` or
+`03-improve-your-draft`) and promotion (`04-promote-a-section`) follow it. A new document starts
+one step earlier, at its family's create procedure.
 
 ## Directory Tree
 

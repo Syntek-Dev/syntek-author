@@ -18,6 +18,12 @@ TRADING_NAME: Harbour Lane Studio
 JURISDICTION: England and Wales
 CURRENCY: "£"
 BUSINESS_VOICE_PERSON: plural
+BUSINESS_FAMILIES:
+  - business
+  - legal
+  - email
+  - accounting
+  - social-media
 INCLUDE_DRIVE_SYNC: false
 INCLUDE_REFERENCES: false
 SEED_EXAMPLES: false

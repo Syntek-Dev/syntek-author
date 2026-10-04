@@ -8,11 +8,16 @@ the house shape, the register, and the commitments that never enter the diff.
 - **Unit:** a document. **Section:** one clause group, one part of a proposal or letter, or one
   rule area of a policy.
 - **Procedure:** `library/workflows/03-improve-your-draft/`.
-- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`; its brief is
-  `planning/src/units/<unit-slug>.md`.
-- **Registers:** formal for an instrument or a policy; the brand voice
-  (`standards/brand/brand-voice.md`) for running copy such as proposals, letters, emails and
-  marketing; terse and action-first for microcopy.
+- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`, in one of the
+  families this project selected (`business`, `legal`, `email`, `accounting`, `social-media`,
+  `msp-scp`); its brief is `planning/src/units/<unit-slug>.md`.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the
+  family's document types, required sections, conventions and checks.
+- **Project paths:** the 'Brand folder' and 'Disclaimers' rows of `00-project.md` `## Paths` say
+  where those live; this file names the template defaults.
+- **Registers:** formal for an instrument or a policy; the brand voice (by default
+  `standards/brand/brand-voice.md`) for running copy such as proposals, letters, emails and social
+  media posts; terse and action-first for microcopy.
 - **Guides:** `library/docs/reference/section-anatomy.md` and
   `library/docs/reference/document-anatomy.md`. **Method:** `standards/method/BUSINESS.md`.
 
@@ -26,8 +31,8 @@ the house shape, the register, and the commitments that never enter the diff.
   section, and nothing missing that the brief promised. Every point and every obligation survives
   any reordering.
 - **Step 5 — also run a register pass.** Check the register against the document's kind, and the
-  business's 'I' or 'we' throughout (`standards/style/voice-notes.md`). Propose only where the
-  text leaves its register. No em dash in client copy; no filler intensifier.
+  voice person in `00-project.md` `## Brief` ('I' or 'we') throughout. Propose only where the text
+  leaves its register. No em dash in client copy; no filler intensifier.
 - **Step 7 — also keep out of the lane:** a price, a scope boundary, a defined term, a service
   level, a deadline, 'shall', 'may' or 'must', and a disclaimer's wording. Each concern about
   these is a question; `obligation-check` and `clause-consistency` own them at review.
@@ -40,8 +45,8 @@ the house shape, the register, and the commitments that never enter the diff.
   where defined; a synonym for a defined term is not a style improvement.
 - **Specificity over superlatives** (Section 1): a proposal may replace a superlative with a
   checkable detail only when the author supplies the detail.
-- **Disclaimers are verbatim** from `standards/brand/disclaimers.md`; they are never edited for
-  style.
+- **Disclaimers are verbatim** from the disclaimers file (by default
+  `standards/brand/disclaimers.md`); they are never edited for style.
 
 ## Examples
 

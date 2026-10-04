@@ -6,12 +6,12 @@ description: >-
   Pentecostal, Anabaptist, as relevant) would push back; whether each reading is stated so its own
   holders would recognise it; whether the chapter names the dispute in the main text, not a
   footnote, with the reading it adopts and what would change if another were right. Maps into
-  research/src/contested-readings/ through research workflow 03; gate V4.3 at structural review.
-  Use when the author says 'how would a Catholic read this?', 'is this fair to the Reformed
-  view?', 'who would object to this reading?' or 'have I named the other readings?'. Reports; the
-  reading adopted is the author's. Not the argument's logic (`argument-audit`); not whether
-  objections are steelmanned (`steelman`); not text against inference (`category-check`); not
-  finding sources (`research`).
+  research/src/contested-readings/ through research/workflows/03-map-a-contested-reading/; gate V4.3
+  at structural review. Use when the author says 'how would a Catholic read this?', 'is this fair to
+  the Reformed view?', 'who would object to this reading?' or 'have I named the other readings?'.
+  Reports; the reading adopted is the author's. Not the argument's logic (`argument-audit`); not
+  whether objections are steelmanned (`steelman`); not text against inference (`category-check`);
+  not finding sources (`research`).
 ---
 
 # Skill: Tradition check (<%PROJECT_NAME%>)
@@ -48,7 +48,8 @@ These are the procedure of record — do not restate them at length here.
    passage being mapped (`research/workflows/03-map-a-contested-reading/`), an existing map in
    `research/src/contested-readings/`, or a chapter (gate V4.3, or step 6 of the steelman audit).
    Read `standards/method/THEOLOGY.md` rule 4, `standards/risk/THEOLOGY.md` rules 1 and 2, the
-   relevant maps, and `.claude/MEMORY.md` for decisions about readings already adopted.
+   relevant maps, and the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`) for decisions about readings already adopted.
    *Complete when:* the scope and use are stated and every map in play has been read.
 
 2. **Find the passages in play.** For a chapter, list every passage it leans on that Christians

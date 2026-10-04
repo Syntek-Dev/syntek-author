@@ -35,18 +35,20 @@ These are the procedure of record — do not restate them at length here.
 - `standards/risk/BUSINESS.md` — rule 5: regulated and professional claims are earned.
 - `.claude/rules/syntek-author/03-authorship.md` — Section 7: obligations are never invented.
 - `library/docs/reference/document-anatomy.md` — required parts by family, scope with In scope and
-  Out of scope, families of documents.
+  Out of scope, families of documents; the document's family skill, `<family>-documents`, adds
+  its family's own checks.
 
 ## How to check the obligations
 
-1. **Fix the scope and the sources of truth.** Agree with <%AUTHOR_FIRST_NAME%> which document,
-   and read its unit brief in `planning/src/units/`, above all the commitments table in
+1. **Fix the scope and the sources of truth.** Agree with <%AUTHOR_FIRST_NAME%> which document, and
+   read its unit brief in `planning/src/units/`, above all the commitments table in
    `## Obligations and defined terms`. Read the instruments this document relies on (from
-   `planning/src/precedence.md` and the brief), the client's facts file
-   (`library/src/contracts/client-docs/<client-slug>/CONTEXT.md`), any quotation or schedule the
-   figures come from, and `.claude/MEMORY.md` `## Decisions` for instructions the author has
-   given. *Complete when:* the document and every source a commitment could trace to are named and
-   read.
+   `planning/src/precedence.md` and the brief), the client's facts at the client facts path in
+   `00-project.md` `## Paths` (by default
+   `library/src/business/client-docs/<client-slug>/CONTEXT.md`), any quotation or schedule the
+   figures come from, and the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`) for instructions the author has given. *Complete when:* the document and
+   every source a commitment could trace to are named and read.
 
 2. **Extract every obligation.** List each sentence that binds anyone: the modal verbs ('shall',
    'may', 'must', 'will', 'should'), the commitment words ('agree', 'undertake', 'ensure',
