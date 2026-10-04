@@ -20,10 +20,11 @@ Locale: en_GB · <%TIMEZONE%> · dates DD/MM/YYYY.
 
 The voice notes are what every draft is written from, so they must describe how
 <%AUTHOR_FIRST_NAME%> actually writes, not how a model imagines they might. This skill reads the
-evidence the authoring loop leaves behind (what the author cut and kept in each AI draft, and
-every suggestion they refused) and turns repeated patterns into short, testable notes with the
-author's own sentences as examples. It proposes; the author decides. A voice guide built from
-borrowed examples is a hypothesis, and one written without the author's approval is not theirs.
+evidence the authoring loop leaves behind (what the author changed by hand at each stage of a
+section, and every suggestion they refused or later undid) and turns repeated patterns into short,
+testable notes with the author's own sentences as examples. It proposes; the author decides. A
+voice guide built from borrowed examples is a hypothesis, and one written without the author's
+approval is not theirs.
 
 ## Governing procedures (route here — do not restate at length)
 
@@ -48,8 +49,10 @@ borrowed examples is a hypothesis, and one written without the author's approval
 
 1. **Gather the unlearned entries.** List the entries in `standards/style/ledger/` with
    `learned: false`, grouped by unit, and mark which carry a `promoted` date. A promoted entry is
-   mined whole; one whose section is not yet promoted has no author final, so only its
-   `## Improvement decisions` may be read, and it stays unlearned (step 8). If there are none and
+   mined whole, unless it is reopened (changed since its promotion and not promoted again,
+   `standards/style/ledger/CONTEXT.md`): its `## Author final` is then the previous final, so,
+   like an entry whose section is not yet promoted, only its `## Improvement decisions` may be
+   mined, and it stays unlearned (step 8). If there are none and
    the voice notes hold no marks while `standards/style/samples/` holds writing, go to step 5. If
    there is only one, say that one section is too little evidence and ask whether to wait.
    *Complete when:* the entries to read are listed, or the run has gone to step 5 or stopped.
@@ -61,16 +64,29 @@ borrowed examples is a hypothesis, and one written without the author's approval
 
 3. **Read the evidence, rejections first.** Read every `## Improvement decisions` table, the
    author-drafted sections' included: a rejected proposal or alternative is the author seeing a
-   change and saying no, the clearest signal there is. An `author-note` row is the author's own
-   change, asked for in a note: mine it as voice evidence, like an edit in the author final, but
-   never count it as an AI suggestion accepted. Then, for each AI-drafted entry, read
-   `## AI original` beside `## Author final`; the entry's `change_ratio` (and `make provenance`,
-   per unit) says where the text moved most, not what changed. Note what the author cut, added,
-   replaced and reordered: openings, sentence length, diction, hedges, register, punctuation
-   habits, and the things the AI keeps writing and the author keeps removing. Set aside changes
-   that corrected a fact: they are about the work.
-   *Complete when:* each entry's changes, author notes and rejections are noted, with the
-   author's own words.
+   change and saying no, the clearest signal there is. Read each against the text it was proposed
+   for: the state before the revision whose marker names its row (the state then current, when no
+   marker names it). An `author-note` row is the author's own change, asked for in a note: mine
+   what the note asks for as voice evidence, but never count it as an AI suggestion accepted. Then
+   walk each promoted entry's record, as `standards/style/ledger/CONTEXT.md` describes it. The
+   author's evidence is each `author` revision against the state before it, the gap from the last
+   revision (or the original, when there is none) to `## Author final`, and, for an author-drafted
+   section, the whole `## Author original` when the author wrote it (never wording that came from a
+   template or from someone else's document: the mode file says how to tell); the words an `ai` or
+   `author-note` revision brought in are the AI's, never the author's, even once accepted. An AI change the author later undoes is
+   an implicit rejection: rank it just below the explicit ones. An entry mined in an earlier run
+   whose final has been replaced since (its git history shows `learned: true` before its last `promoted …`
+   revision) has already given everything up to that revision: read only what came after it (the
+   later revisions and rows, and the gap to the new final). An entry without `format: 2` has no
+   record: read `## AI original` beside `## Author final` (its `change_ratio` says where the text
+   moved most, not who moved it), and mark what it shows as weaker evidence, because accepted AI
+   text is mixed into it. Note what the author cut, added, replaced and reordered: openings,
+   sentence length, diction, hedges, register, punctuation habits, and the things the AI keeps
+   writing and the author keeps removing. Set aside changes that corrected a fact: they are about
+   the work.
+   *Complete when:* each entry's author changes, author notes, rejections and implicit rejections
+   are noted, with the author's own words, and every finding from an entry without `format: 2`
+   is marked as weaker evidence.
 
 4. **Find the patterns worth a note.** Keep a pattern only if at least two sections show it.
    Separate voice (how the author sounds) from mechanics (a style-sheet matter) and from content (a
@@ -105,9 +121,9 @@ borrowed examples is a hypothesis, and one written without the author's approval
    unapproved changed.
 
 8. **Mark the promoted entries learned.** Set `learned: true` on every entry read in this run
-   whose section is promoted, including those that yielded no note: they have been mined. An entry
-   not yet promoted stays `learned: false`, even when its improvement decisions were read, because
-   its author final is still to come. Change nothing else in any entry.
+   whose section is promoted and not reopened, including those that yielded no note: they have
+   been mined. An entry not yet promoted, or reopened, stays `learned: false`, even when its
+   improvement decisions were read, because its author final is still to come. Change nothing else in any entry.
    *Complete when:* every promoted entry read carries `learned: true`, no unpromoted entry does,
    and every entry's texts are untouched.
 
@@ -131,12 +147,14 @@ borrowed examples is a hypothesis, and one written without the author's approval
   learned.
 - Deleting or rewriting an earlier note instead of superseding it.
 - Learning from a sample the author did not write, or from AI text the author approved.
+- Reading an entry's AI original against its final as the author's work when the entry records
+  revisions, or weighing a legacy entry's difference as heavily as a recorded `author` revision.
 
 ## Cross-references
 
 - `draft-section` — writes from the notes this skill grows.
-- `adapt-section` and `improve-section` — record the decisions this skill mines.
-- `promote-section` — fills the `## Author final` this skill compares.
+- `adapt-section` and `improve-section` — record the decisions and revisions this skill mines.
+- `promote-section` — fills the `## Author final` each entry's record ends at.
 - `grill-with-docs` — the memory gate for a voice decision worth recording.
 - `tooling/provenance.py` — computes each entry's `change_ratio`; `make provenance` averages it
   per unit.

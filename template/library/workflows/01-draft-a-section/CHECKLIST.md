@@ -31,7 +31,7 @@ model: opus
 - [ ] Every document the section must agree with read, including the document's already-promoted sections. · _opus_
 - [ ] **Every figure, date, name and reference sourced before drafting:** from the author, MEMORY, the client's facts, or `fact-check` into `research/src/evidence/`. · _opus_
 - [ ] No existing draft or ledger entry will be clobbered; if one exists, stopped and confirmed with the author. · _sonnet_
-- [ ] Draft file and ledger entry created with complete frontmatter. · _sonnet_
+- [ ] Draft file and ledger entry created with complete frontmatter, including `format: 2`; on a redraft, the author's work in the old draft recorded first. · _sonnet_
 
 **Drafting**
 

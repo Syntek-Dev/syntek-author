@@ -17,14 +17,16 @@ model: opus
 ## Pre-Conditions
 
 - [ ] Read `.claude/CLAUDE.md` and `.claude/MEMORY.md`, then this folder's `CONTEXT.md` and `CLAUDE.md`. · _sonnet_
-- [ ] Every ledger entry with `learned: false` listed, the promoted ones marked, or three or more samples found when seeding. · _sonnet_
+- [ ] Every ledger entry with `learned: false` listed, the promoted ones marked (a reopened one counts as unpromoted), or three or more samples found when seeding. · _sonnet_
 
 ## Execution Checklist
 
 **Reading the evidence**
 
-- [ ] **Rejected proposals read first, with the author's notes.** · _opus_
-- [ ] AI original compared with author final for every promoted, AI-drafted entry; factual corrections set aside. · _opus_
+- [ ] **Rejected proposals read first, with the author's notes, each against the state it was proposed for.** · _opus_
+- [ ] Each promoted entry's record walked: its `author` revisions, the gap to its author final and any author original the author wrote taken as the author's evidence, and no word an `ai` or `author-note` revision brought in; factual corrections set aside. · _opus_
+- [ ] Implicit rejections (an AI change the author later undid) ranked just below the explicit ones; an entry mined in an earlier run whose final has been replaced since read only after its last `promoted …` revision. · _opus_
+- [ ] An entry without `format: 2` read as its AI original beside its author final, and marked weaker evidence. · _opus_
 
 **Finding the lessons**
 
@@ -38,12 +40,12 @@ model: opus
 - [ ] Numbered proposal put to the author; an answer received on every item. · _opus_
 - [ ] Only approved items written, dated, in the author's words where given, each with an example. · _sonnet_
 - [ ] Contradicted earlier lessons marked superseded with the date, never deleted. · _sonnet_
-- [ ] `learned: true` set on every promoted entry read in this run, and on no unpromoted one. · _sonnet_
+- [ ] `learned: true` set on every promoted entry read in this run, and on no unpromoted or reopened one. · _sonnet_
 - [ ] A voice call that passes the memory gate recorded in `.claude/MEMORY.md` `## Decisions`. · _opus_
 - [ ] Handed back: entries read, patterns approved and where written, patterns rejected, proposals pending. · _opus_
 
 ## Done When
 
 - [ ] **Every approved lesson is written in its home with a real example, and nothing unapproved was written.** · _opus_
-- [ ] Every promoted ledger entry read is marked learned; every unpromoted one is still unlearned. · _sonnet_
+- [ ] Every promoted ledger entry read is marked learned; every unpromoted or reopened one is still unlearned. · _sonnet_
 - [ ] No standard outside `standards/style/` was changed. · _opus_

@@ -67,9 +67,11 @@ memory. _Substantive._
 
 Check whether `drafts/<NN>-<section-slug>.md` already exists, and whether the chapter file already
 holds text under this section's marker. If either does, stop and ask the author: never overwrite
-silently. If the chapter folder does not exist yet, create it now, with its `CONTEXT.md` and
-`CLAUDE.md` (see `manuscript/src/CLAUDE.md`) and `drafts/README.md` in the four-line pattern every
-chapter uses. _Mechanical._
+silently. A redraft the author confirms keeps its ledger entry; before the old draft is replaced,
+record the author's work in it as `standards/style/ledger/CLAUDE.md` sets out. If the chapter
+folder does not exist yet, create it now, with its `CONTEXT.md` and `CLAUDE.md` (see
+`manuscript/src/CLAUDE.md`) and `drafts/README.md` in the four-line pattern every chapter uses.
+_Mechanical._
 
 ## 6. Draft the section
 
@@ -98,17 +100,20 @@ option is on; never invent one. A deviation the author has authorised goes in an
 
 Run `spelling` over the draft against `standards/style/style-sheet.md` and
 `standards/style/terminology.md`. Apply its fixes directly: this is the AI's own text, so there is
-nothing of the author's to protect yet. _Mechanical._
+nothing of the author's to protect yet. Nothing is recorded in the ledger here: step 9 records the
+result as the AI original. _Mechanical._
 
 ## 9. Write the ledger entry
 
 > **Skill:** `draft-section` · **Guide:** `manuscript/docs/reference/drafting-with-ai.md`
 
 Create `standards/style/ledger/<unit-slug>--<section-slug>.md` with frontmatter `unit`, `section`,
-`origin: ai`, `drafted` (today, DD/MM/YYYY), empty `promoted` and `change_ratio`, and
-`learned: false`. Copy the draft's body, exactly as it will be handed back, under `## AI original`;
-leave `## Author final` empty and start `## Improvement decisions` as an empty table. Never edit the
-AI original afterwards. _Mechanical._
+`origin: ai`, `drafted` (today, DD/MM/YYYY), empty `promoted` and `change_ratio`, `learned: false`
+and `format: 2`. Copy the draft's body, exactly as it will be handed back, under `## AI original`;
+leave `## Author original`, `## Revisions` and `## Author final` empty, and start
+`## Improvement decisions` as an empty table. On a redraft, restart the existing entry's chain
+instead, as `standards/style/ledger/CLAUDE.md` sets out. Never edit the AI original afterwards.
+_Mechanical._
 
 ## 10. Update the brief and hand back
 

@@ -59,7 +59,7 @@ something the author has agreed.
   offered to the author, never written into the field unasked.
 - **Step 10 — also:** corrections the author accepts are applied in the `.tex` directly and listed
   in the hand-back (`library/workflows/05-review-a-document/` step 5); each is also made in the
-  section's draft and logged in its ledger entry, and `make section-check` is re-run (that
+  section's draft and recorded in its ledger entry, and `make section-check` is re-run (that
   workflow's 'Applying agreed fixes'). A change of substance reopens its section through the
   library's authoring loop. Clause-level findings (a defined term,
   a cross-reference, a modal verb) go to `clause-consistency` and `obligation-check`, which run

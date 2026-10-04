@@ -4,7 +4,8 @@
 #
 #                    The skills route to `make`: `build` runs `make pdf`, `promote-section`
 #                    reads `make flags`, `learn-voice` and the disclosure table read `make
-#                    provenance`, the conlang skills run `make lexicon`. The Makefile is a spine
+#                    provenance`, `make compare` prints each section's record, the conlang
+#                    skills run `make lexicon`. The Makefile is a spine
 #                    file — conditional on the variant — and its tooling is Python run from
 #                    tooling/. Nothing in the template's own repository ever executes either: a
 #                    typo in a recipe, a tooling script that no longer parses the example
@@ -12,7 +13,7 @@
 #                    silently, and fails on the author's first command. So every render is
 #                    copied to a scratch directory and its targets are run for real.
 #
-#                    Thirty-two checks, per render:
+#                    Thirty-seven checks, per render:
 #                      1. `make help` succeeds and prints something.
 #                      2. `make flags` succeeds.
 #                      3. `make provenance` succeeds.
@@ -39,9 +40,9 @@
 #                         a fidelity check that passes a changed word proves nothing.
 #                     17. `make print` succeeds and writes build/typeset/book.pdf (where XeLaTeX
 #                         exists, and not with --skip-pdf).
-#                     18. Every tooling/*.py that offers a `--self-test` passes it: texcheck.py
-#                         and provenance.py everywhere, lexicon.py and script.py with the conlang
-#                         kit. A self-test that needs Pandoc skips that part by itself.
+#                     18. Every tooling/*.py that offers a `--self-test` passes it: texcheck.py,
+#                         provenance.py and compare.py everywhere, lexicon.py and script.py with
+#                         the conlang kit. A self-test that needs Pandoc skips that part by itself.
 #                     19. In a business render with the example proposal, the example section
 #                         converted by Pandoc into a copy of tooling/latex/skeleton.tex between
 #                         its marker pair passes `make section-check` (DESIGN.md D36; where
@@ -89,6 +90,24 @@
 #                         that folder's flag and none from standards/brand/ — otherwise a project
 #                         that keeps its brand elsewhere sees the seeds' flags open for ever, and
 #                         STRICT=1 always fails.
+#                     33. `make compare FORMAT=tex UNIT=smoke-compare` over a planted ledger entry
+#                         carrying `format: 2` and a multi-round chain (an ai, an author and an
+#                         author-note revision, then the author's final) succeeds and writes
+#                         build/compare/smoke-compare/smoke-compare.tex, whose body carries each
+#                         actor's macro: \cmpai…, \cmpnote… and \cmpauthor… (DESIGN.md D45; where
+#                         Pandoc exists). Every variant ships the comparison, and an adoption
+#                         render has no example entry, so the entry is planted in every render.
+#                     34. A ledger entry git ignores, planted beside it for the same unit, never
+#                         reaches build/compare/ (D42), while the tracked entry's words do —
+#                         otherwise the proof is blind. A ledger is where an author's history
+#                         lives; an ignored entry is one they chose to keep out of every output.
+#                     35. `make compare SECTION=x` without UNIT fails, says 'SECTION= needs its
+#                         unit' and writes nothing: a section slug is unique only inside its unit.
+#                     36. `make compare` with no ledger entries (each one moved aside in the copy)
+#                         prints 'No sections to compare yet.' and exits 0: a new project, or one
+#                         adopted, has nothing to compare, and that is not an error.
+#                     37. `make compare UNIT=smoke-compare` writes build/compare/smoke-compare.pdf
+#                         (where Pandoc and XeLaTeX exist, and not with --skip-pdf).
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -99,7 +118,9 @@
 #
 #                    What it CANNOT check: that a proof LOOKS right — only that it builds (and,
 #                    for check 30, where a word lands in its text). A person reads the PDF; the
-#                    `build` skill's last step says so.
+#                    `build` skill's last step says so. Nor that the comparison gives each word
+#                    to the right actor: compare.py's own self-test (check 18) proves the
+#                    attribution, and check 33 only that each actor's macro reaches the LaTeX.
 #
 # SELF-TEST. --self-test writes a fixture render at runtime with a Makefile whose targets can be
 #            told to fail one at a time, proves it clean, then fails each target in turn and
@@ -227,6 +248,7 @@ smoke() { # $1 = a COPY of a render
   smoke_ignored "$d"
   smoke_lang_ignored "$d"
   smoke_brand "$d"
+  smoke_compare "$d"
   if [[ -d "$d/library" ]]; then smoke_issue "$d"; smoke_guard "$d"; smoke_classification "$d"
   else
     RES[issue]="skip: no issued documents in a book render"
@@ -329,6 +351,189 @@ smoke_brand() { # $1 = a COPY of a render
   grep -qE "^  $BRAND_ELSEWHERE/brand-guide\.md:[0-9]+:" "$d/.smoke-brand.log" && BRD[counted]=1
   if $had; then mv "$d/.smoke-brand-project.mk" "$mkf"; else rm -f -- "$mkf"; fi
   rm -rf -- "${d:?}/$BRAND_ELSEWHERE"
+}
+
+# D45 and D42 (checks 33 to 37): make compare prints each section's record from the ledger. Every
+# render gets the same planted unit: one tracked entry whose chain holds a revision of each kind
+# and the author's final, and one entry git ignores (through .git/info/exclude, so no file of the
+# render changes) carrying a word that must never reach build/compare/. The tracked entry carries
+# a word that must, so a target that prints nothing cannot pass for one that filters, and a
+# numbered list and a quotation, so check 37 sets every paragraph shape they open. The empty
+# case runs first, with every entry the render ships moved aside and then put back.
+CMP_UNIT="smoke-compare"
+CMP_SEEN="Larkwater"     # only in the tracked entry: must reach the LaTeX
+CMP_HIDDEN="Quillhaven"  # only in the ignored entry: must never reach build/compare/ or the log
+CMP_TRACKED="---
+unit: $CMP_UNIT
+section: crossing
+origin: ai
+drafted: 01/10/2026
+promoted: 05/10/2026
+change_ratio: 0.23
+learned: false
+format: 2
+---
+
+## AI original
+
+The ferry left the north bank at dusk.
+The pilot watched the water and said nothing.
+
+1. Bring the rope.
+2. Watch the far bank.
+
+> The river keeps its own counsel.
+
+## Author original
+
+<!-- Empty: the AI drafted this section. -->
+
+## Revisions
+
+<!-- revision 1 · ai · 02/10/2026 · improve-section (edit) · rows 1–2 -->
+
+The ferry left the north bank at dusk, low in the water.
+The pilot watched the current and said nothing.
+
+1. Bring the rope.
+2. Watch the far bank.
+
+> The river keeps its own counsel.
+
+<!-- revision 2 · author · 03/10/2026 · adapt-section -->
+
+The ferry left the north bank at dusk, low in the water.
+The pilot watched the current from $CMP_SEEN and said nothing.
+
+1. Bring the rope.
+2. Watch the far bank.
+
+> The river keeps its own counsel.
+
+<!-- revision 3 · author-note · 04/10/2026 · adapt-section · rows 3 -->
+
+The ferry left the north bank at dusk, low in the water.
+The pilot watched the slow current from $CMP_SEEN and said nothing.
+
+1. Bring the rope.
+2. Watch the far bank.
+
+> The river keeps its own counsel.
+
+## Author final
+
+The ferry left the north bank at dusk, low and heavy in the water.
+The pilot watched the slow current from $CMP_SEEN and said nothing at all.
+
+1. Bring the rope.
+2. Watch the far bank.
+
+> The river keeps its own counsel.
+
+## Improvement decisions
+
+| # | Proposal | Reason | Decision | Author's note |
+|---|---|---|---|---|
+| 1 | Add 'low in the water' | Shows the load | accepted | |
+| 2 | 'the water' to 'the current' | Avoids the repeat | accepted | |
+| 3 | 'the current' to 'the slow current' | The author's note | author-note | |
+"
+CMP_IGNORED="---
+unit: $CMP_UNIT
+section: hidden
+origin: ai
+drafted: 01/10/2026
+promoted:
+change_ratio:
+learned: false
+format: 2
+---
+
+## AI original
+
+$CMP_HIDDEN kept its lamps lit all night.
+
+## Author original
+
+## Revisions
+
+## Author final
+
+## Improvement decisions
+
+| # | Proposal | Reason | Decision | Author's note |
+|---|---|---|---|---|
+"
+declare -A CMP=()
+smoke_compare() { # $1 = a COPY of a render
+  local d="$1" led="standards/style/ledger" f s log tex body why kind texok=false
+  local aside="$1/.smoke-ledger-aside" excl="$1/.git/info/exclude"
+  CMP=()
+  [[ -d "$d/.git" ]] || git -C "$d" init -q
+  mkdir -p "$d/$led" "$aside" "$d/.git/info"
+  # Check 36: nothing to compare is not an error.
+  for f in "$d/$led"/*.md; do
+    [[ -f "$f" ]] || continue
+    case "${f##*/}" in CONTEXT.md|CLAUDE.md|README.md|provenance.md) continue ;; esac
+    mv -- "$f" "$aside/"
+  done
+  log="$d/.smoke-compare-empty.log"; s=0
+  (cd "$d" && timeout 300 make --no-print-directory compare "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+  why=""
+  [[ "$s" -eq 0 ]] || why+=" exit $s;"
+  grep -qF 'No sections to compare yet.' "$log" || why+=" no 'No sections to compare yet.';"
+  why="${why# }"; CMP[empty]="${why%;}"; CMP[empty]="${CMP[empty]:-0}"
+  for f in "$aside"/*.md; do [[ -f "$f" ]] && mv -- "$f" "$d/$led/"; done
+  rmdir -- "$aside" 2>/dev/null || true
+  # Check 35: a section's slug needs its unit, and the refusal comes before any output.
+  rm -rf -- "${d:?}/build/compare"
+  log="$d/.smoke-compare-section.log"; s=0
+  (cd "$d" && timeout 300 make --no-print-directory compare SECTION=x "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+  why=""
+  [[ "$s" -ne 0 ]] || why+=" exit 0;"
+  grep -qF 'SECTION= needs its unit' "$log" || why+=" no 'SECTION= needs its unit';"
+  [[ -z "$(find "$d/build/compare" -type f 2>/dev/null | head -1)" ]] || why+=" it wrote to build/compare/;"
+  why="${why# }"; CMP[section]="${why%;}"; CMP[section]="${CMP[section]:-0}"
+  rm -rf -- "${d:?}/build/compare"
+  # Checks 33, 34 and 37: the planted chain, and the entry git ignores beside it.
+  if ! $HAVE_PANDOC; then
+    CMP[tex]="skip: no pandoc"; CMP[ignored]="skip: no pandoc"; CMP[pdf]="skip: no pandoc"; return 0
+  fi
+  printf '%s' "$CMP_TRACKED" > "$d/$led/$CMP_UNIT--crossing.md"
+  printf '%s' "$CMP_IGNORED" > "$d/$led/$CMP_UNIT--hidden.md"
+  [[ ! -f "$excl" ]] || cp -- "$excl" "$d/.smoke-compare-exclude"
+  printf '%s\n' "$led/$CMP_UNIT--hidden.md" >> "$excl"
+  log="$d/.smoke-compare-tex.log"; s=0
+  (cd "$d" && timeout 300 make --no-print-directory compare FORMAT=tex "UNIT=$CMP_UNIT" "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+  tex="$d/build/compare/$CMP_UNIT/$CMP_UNIT.tex"
+  if [[ "$s" -ne 0 ]]; then
+    CMP[tex]="exit $s"; CMP[ignored]="skip: make compare FORMAT=tex failed (check 33 reports it)"
+  elif [[ ! -f "$tex" ]]; then
+    CMP[tex]="no build/compare/$CMP_UNIT/$CMP_UNIT.tex"; CMP[ignored]="skip: no LaTeX written (check 33 reports it)"
+  else
+    texok=true
+    # The body only: the preamble defines every macro, so it carries all of them.
+    body="$(awk 'seen; index($0, "\\begin{document}") == 1 { seen = 1 }' "$tex")"
+    why=""
+    for kind in ai note author; do
+      grep -qE "\\\\cmp${kind}(ins|del)\\{" <<<"$body" || why+=" \\cmp${kind}…"
+    done
+    CMP[tex]="${why:+no${why} in its body}"; CMP[tex]="${CMP[tex]:-0}"
+    if grep -rqF "$CMP_HIDDEN" "$d/build/compare" "$log" 2>/dev/null; then CMP[ignored]=leak
+    elif ! grep -qF "$CMP_SEEN" "$tex"; then CMP[ignored]=blind
+    else CMP[ignored]=0; fi
+  fi
+  if $SKIP_PDF || ! $HAVE_XELATEX; then CMP[pdf]="skip: no xelatex (or --skip-pdf)"
+  elif ! $texok; then CMP[pdf]="skip: make compare FORMAT=tex wrote no LaTeX (check 33 reports it)"
+  else
+    log="$d/.smoke-compare-pdf.log"; s=0
+    (cd "$d" && timeout 900 make --no-print-directory compare "UNIT=$CMP_UNIT" "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+    if [[ "$s" -ne 0 ]]; then CMP[pdf]="exit $s"
+    elif [[ ! -f "$d/build/compare/$CMP_UNIT.pdf" ]]; then CMP[pdf]="no build/compare/$CMP_UNIT.pdf"
+    else CMP[pdf]=0; fi
+  fi
+  rm -f -- "${d:?}/$led/$CMP_UNIT--crossing.md" "${d:?}/$led/$CMP_UNIT--hidden.md"
+  if [[ -f "$d/.smoke-compare-exclude" ]]; then mv -- "$d/.smoke-compare-exclude" "$excl"; else rm -f -- "$excl"; fi
 }
 
 # D13 and D43 (checks 25 to 28): an open item stops an issue, and ISSUE and FORCE are switches.
@@ -626,6 +831,33 @@ run_checks() {
         [[ -z "$r" ]] || finding "check 32 — [$NAME] make flags did not honour BRAND_DIRS = $BRAND_ELSEWHERE in tooling/project.mk (D43):${r%;} — see .smoke-brand.log"
       fi ;;
   esac
+  case "${CMP[tex]:-skip: not run}" in
+    skip:*) r="${CMP[tex]:-skip: not run}"; SKIPS+=("compare FORMAT=tex (${r#skip: })") ;;
+    0) ;;
+    *) finding "check 33 — [$NAME] make compare FORMAT=tex UNIT=$CMP_UNIT over a planted multi-round chain did not write its LaTeX with every actor's macro (${CMP[tex]}) — see .smoke-compare-tex.log" ;;
+  esac
+  case "${CMP[ignored]:-skip: not run}" in
+    skip:*) r="${CMP[ignored]:-skip: not run}"; SKIPS+=("compare ignore check (${r#skip: })") ;;
+    0) ;;
+    leak)  finding "check 34 — [$NAME] make compare printed a git-ignored ledger entry's words (DESIGN.md D42) — see build/compare/$CMP_UNIT/ and .smoke-compare-tex.log" ;;
+    *)     finding "check 34 — [$NAME] make compare did not print the tracked entry's words either, so the git-ignore proof could not run — see build/compare/$CMP_UNIT/$CMP_UNIT.tex" ;;
+  esac
+  case "${CMP[section]:-skip: not run}" in
+    skip:*) r="${CMP[section]:-skip: not run}"; SKIPS+=("compare SECTION without UNIT (${r#skip: })") ;;
+    0) ;;
+    *) finding "check 35 — [$NAME] make compare SECTION=x without UNIT was not refused before any output (${CMP[section]}) — see .smoke-compare-section.log" ;;
+  esac
+  case "${CMP[empty]:-skip: not run}" in
+    skip:*) r="${CMP[empty]:-skip: not run}"; SKIPS+=("compare with no entries (${r#skip: })") ;;
+    0) ;;
+    *) finding "check 36 — [$NAME] make compare with no ledger entries did not say 'No sections to compare yet.' and exit 0 (${CMP[empty]}) — see .smoke-compare-empty.log" ;;
+  esac
+  case "${CMP[pdf]:-skip: not run}" in
+    skip:*) r="${CMP[pdf]:-skip: not run}"; SKIPS+=("compare PDF (${r#skip: })") ;;
+    0) ;;
+    *) err="$(grep -v '^[[:space:]]*$' "$(dirname "$BUILD_DIR")/.smoke-compare-pdf.log" 2>/dev/null | tail -1 || true)"
+       finding "check 37 — [$NAME] make compare UNIT=$CMP_UNIT did not write build/compare/$CMP_UNIT.pdf (${CMP[pdf]}): ${err:0:100}" ;;
+  esac
   for t in "${SELFTESTS[@]}"; do
     [[ "${t#*:}" == 0 ]] && continue
     err="$(grep -v '^[[:space:]]*$' "$(dirname "$BUILD_DIR")/.smoke-selftest-${t%%:*}.log" 2>/dev/null | tail -1 || true)"
@@ -729,6 +961,26 @@ print: | build/.gitignore
 section-check:
 	$(fail)
 	@[ -n "$(LAX)" ] || ! grep -q '^Mutated ' $(FILE)
+compare: | build/.gitignore
+	@test -z "$(SECTION)" || test -n "$(UNIT)" || test -n "$(LAX_SECTION)" || { echo "error: SECTION= needs its unit: make compare UNIT=<unit> SECTION=<slug>"; exit 2; }
+	@units='$(UNIT)'; \
+	[ -n "$$units" ] || units=$$(for f in standards/style/ledger/*--*.md; do [ -f "$$f" ] && basename "$$f" | sed 's/--.*//'; done | sort -u); \
+	if [ -z "$$units" ]; then [ -z "$(LOUD_EMPTY)" ] || { echo "error: no units"; exit 1; }; echo "No sections to compare yet."; exit 0; fi; \
+	for u in $$units; do \
+	  if [ -n "$(FAIL_CMP_TEX)" ] && [ '$(FORMAT)' = tex ]; then echo "failing compare on purpose"; exit 1; fi; \
+	  mkdir -p build/compare/$$u; t=build/compare/$$u/$$u.tex; \
+	  if [ -n "$(CMP_NOTEX)" ] && [ '$(FORMAT)' = tex ]; then continue; fi; \
+	  { printf '%s\n' '\documentclass{article}' '\begin{document}'; \
+	    for f in standards/style/ledger/$$u--*.md; do [ -f "$$f" ] || continue; \
+	      if [ -z "$(LEAK_COMPARE)" ] && git check-ignore -q "$$f" 2>/dev/null; then continue; fi; \
+	      cat "$$f"; \
+	      if grep -q ' · ai · ' "$$f"; then printf '%s\n' '\cmpaiins{x}'; fi; \
+	      if grep -q ' · author-note · ' "$$f" && [ -z "$(CMP_BLIND_NOTE)" ]; then printf '%s\n' '\cmpnoteins{x}'; fi; \
+	      if grep -q ' · author · ' "$$f"; then printf '%s\n' '\cmpauthordel{x}'; fi; \
+	    done; printf '%s\n' '\end{document}'; } > $$t; \
+	  if [ '$(FORMAT)' = tex ]; then echo "wrote $$t"; continue; fi; \
+	  [ -n "$(CMP_NOPDF)" ] || echo x > build/compare/$$u.pdf; \
+	done
 EOF
 }
 
@@ -765,6 +1017,20 @@ self_test() {
   probe "check 31 fires when make lexicon finds a language in an ignored folder" "check 31 — [fixture] make lexicon found a language in a folder git ignores"
   MAKE_EXTRA=("LEAK_SCRIPT=1"); fresh
   probe "check 31 fires when make script-sample finds a script in an ignored folder" "check 31 — [fixture] make script-sample found a language in a folder git ignores"
+  MAKE_EXTRA=("FAIL_CMP_TEX=1"); fresh
+  probe "check 33 fires when make compare FORMAT=tex fails" "check 33 — [fixture] make compare FORMAT=tex UNIT=smoke-compare over a planted multi-round chain did not write its LaTeX with every actor's macro (exit"
+  MAKE_EXTRA=("CMP_NOTEX=1"); fresh
+  probe "check 33 fires when make compare FORMAT=tex writes no LaTeX" "check 33 — [fixture] make compare FORMAT=tex UNIT=smoke-compare over a planted multi-round chain did not write its LaTeX with every actor's macro (no build/compare/"
+  MAKE_EXTRA=("CMP_BLIND_NOTE=1"); fresh
+  probe "check 33 fires when the LaTeX lacks one actor's macro" "every actor's macro (no \\cmpnote… in its body)"
+  MAKE_EXTRA=("LEAK_COMPARE=1"); fresh
+  probe "check 34 fires when make compare prints a git-ignored ledger entry" "check 34 — [fixture] make compare printed a git-ignored ledger entry's words"
+  MAKE_EXTRA=("LAX_SECTION=1"); fresh
+  probe "check 35 fires when make compare takes SECTION without UNIT" "check 35 — [fixture] make compare SECTION=x without UNIT was not refused"
+  MAKE_EXTRA=("LOUD_EMPTY=1"); fresh
+  probe "check 36 fires when make compare fails on a ledger with no entries" "check 36 — [fixture] make compare with no ledger entries"
+  MAKE_EXTRA=("CMP_NOPDF=1"); fresh
+  probe "check 37 fires when make compare writes no PDF" "check 37 — [fixture] make compare UNIT=smoke-compare did not write build/compare/smoke-compare.pdf"
   # A business render: the example section is 'converted' by a stub, so no Pandoc is needed.
   TOLATEX=(sed '1,/^---$/d'); fresh_business() {
     MAKE_EXTRA=("$@"); rm -rf "$tmp/run"; write_fixture "$tmp/run"; rm -rf "$tmp/run/manuscript" "$tmp/run/typeset"

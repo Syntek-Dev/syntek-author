@@ -39,5 +39,7 @@ and apply only what the author accepts.
 ## Output & naming
 
 - **Produces:** the improved draft, in place, at `improved`.
-- **Also writes:** ledger rows in `## Improvement decisions`; the section's status in the brief.
+- **Also writes:** ledger rows in `## Improvement decisions`, with the entry's Author original on
+  the first pass and its revisions (the author's edits found, the accepted changes); the section's
+  status in the brief.
 - **Does not touch:** the deliverable `.tex`, or any other section.

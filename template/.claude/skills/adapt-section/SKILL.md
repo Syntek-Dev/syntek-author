@@ -23,7 +23,8 @@ untouched sentence stays exactly as it was, the author's own hand-edits are deci
 where a note names a problem without naming a fix, the author chooses between alternatives rather
 than receiving one. Each choice goes into the ledger: an applied note as the author's own
 (`author-note`), an alternative as `accepted` or `rejected`, because what the author turns down
-is the clearest record of their voice.
+is the clearest record of their voice; and each change to the text is a revision there, marked
+with whose change it was.
 
 ## Governing procedures (route here — do not restate at length)
 
@@ -36,7 +37,8 @@ is the clearest record of their voice.
   (Section 4), suggest rather than rewrite and preserve deliberate oddities (Section 6).
 - `standards/style/voice-notes.md` and `standards/style/style-sheet.md` — the voice and mechanics
   every revised line keeps.
-- `standards/style/ledger/CONTEXT.md` — the decision table every choice is logged in.
+- `standards/style/ledger/CONTEXT.md` and `standards/style/ledger/CLAUDE.md` — the decision
+  table every choice is logged in, the revisions, and the procedure for recording both.
 - The content layer's `docs/reference/drafting-with-ai.md`, `docs/reference/section-anatomy.md`
   and `docs/reference/the-status-ladders.md` (`author-revised` and `adapted`).
 
@@ -52,11 +54,16 @@ is the clearest record of their voice.
    this project has).
    *Complete when:* the draft, its record and the kind of job are named.
 
-2. **Record the author's own edits first.** If the author has edited the draft since the last AI
-   pass, compare it with the last recorded text (the ledger's AI original, the last AI pass, or
-   the last commit) and list exactly what changed. Those changes are decisions: keep them
-   verbatim, set `status: author-revised`, and treat that text as the new baseline.
-   *Complete when:* every hand-edit is listed and the status says whose hand was last on it.
+2. **Record the author's own edits first.** Compare the draft with the ledger's last recorded
+   state (`standards/style/ledger/CONTEXT.md`: usually the last revision, or the original when
+   there is none; in an older entry without `format: 2`, the AI original or the last commit) and
+   list exactly what changed, if anything. Those changes are decisions: keep them verbatim, set
+   `status: author-revised`, and treat that text as the new baseline. In a `format: 2` entry,
+   record them before changing anything, as an `author` revision
+   (`standards/style/ledger/CLAUDE.md`, which also covers an author-drafted section's Author
+   original and a promoted section's final).
+   *Complete when:* every hand-edit is listed, the status says whose hand was last on it, and a
+   `format: 2` entry's last recorded state matches the draft.
 
 3. **Number the notes, exactly.** Notes may come in chat, as comments in the draft, or as the
    edits listed in step 2. Restate each as a numbered item. Where a note's reach is unclear ('make
@@ -87,10 +94,14 @@ is the clearest record of their voice.
    paste it: keep its spine (the argument, the events or the terms), change the register to the
    reader named in `00-project.md` `## Brief`, and cut what this section's one job does not
    need. Name the source (path and date) in an `<!-- INTERNAL NOTE: … -->` under the frontmatter.
-   Read the result against the source: nothing in it may claim more than the source did. The mode
-   file says what kinds of source this project adapts, and how each is recorded.
-   *Complete when:* the section does its job, the source is untouched and named, and the
-   fidelity read found no claim the source does not make.
+   Read the result against the source: nothing in it may claim more than the source did. Text
+   the AI wrote from a source is an AI original (`origin: ai`): a new draft opens its entry as
+   `draft-section` step 9 does, and one written over an existing draft is a redraft. The mode
+   file says what kinds of source this project adapts, and how each is recorded; a source whose
+   own wording is kept is the text the loop started from, never the AI's.
+   *Complete when:* the section does its job, the source is untouched and named, the fidelity
+   read found no claim the source does not make, and the result is on record as the section's
+   original.
 
 8. **Check what you touched.** Run `spelling` over the changed lines. Any new checkable claim goes
    through `fact-check` or carries `VERIFY`. Confirm every flag that was in the draft is still
@@ -102,11 +113,15 @@ is the clearest record of their voice.
    number, proposal, reason, decision, and the author's own words where they gave any. A note
    the author gave (or a hand-edit from step 2) that you applied is logged `author-note`: the
    change was the author's call, so `make provenance` never counts it as an AI suggestion. Each
-   alternative you offered is logged `accepted` or `rejected`; one still awaiting a choice is
-   logged `pending` and updated once chosen. Set `status: adapted` and `last_updated`, and mirror
-   the status in the brief's `sections:` list. Never touch `## AI original`.
-   *Complete when:* every note and alternative has its row with the right decision, and the draft
-   and the brief agree.
+   alternative you offered is logged `accepted` or `rejected`; one still awaiting a choice keeps
+   an empty decision cell until the author chooses. In a `format: 2` entry, then append the
+   revisions: the text after the notes (step 5) as `author-note`, then the text after the chosen
+   alternatives (step 6) as `ai`, each with its rows; a run with only one kind of change writes
+   one, and step 8's fixes go in the last. A choice made later is applied, its cell filled and its
+   `ai` revision appended then. Set `status: adapted` and `last_updated`, and mirror the status in
+   the brief's `sections:` list. Never touch `## AI original`.
+   *Complete when:* every note and alternative has its row with the right decision, a
+   `format: 2` entry's last revision matches the draft, and the draft and the brief agree.
 
 10. **Hand back.** Report what changed, note by note; the alternatives still waiting for a choice;
     anything raised as outside the section's scope; every open flag. Offer the next move: more
@@ -125,7 +140,9 @@ is the clearest record of their voice.
 - Logging only the accepted changes. A rejected alternative is the most useful row in the table.
 - Logging an applied author note as `accepted`, which counts the author's change as an AI
   suggestion in the disclosure.
-- Editing `## AI original` so the ledger matches the revision.
+- Editing `## AI original` or a recorded revision so the ledger matches the draft.
+- Folding the author's hand-edits into an `ai` or `author-note` revision, which credits the AI
+  with the author's words.
 
 ## Cross-references
 

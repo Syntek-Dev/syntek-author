@@ -49,8 +49,8 @@ are authoritative.
 
 - **Produces:** the revised `manuscript/src/NN-kebab-title/drafts/<NN>-<section-slug>.md`, at
   `status: adapted`.
-- **Also writes:** rows in the ledger entry's `## Improvement decisions` table; the section's status
-  in the brief; evidence entries for any newly checked claim.
+- **Also writes:** rows in the ledger entry's `## Improvement decisions` table and its revisions;
+  the section's status in the brief; evidence entries for any newly checked claim.
 - **Generated:** nothing.
-- **Does not touch:** the chapter file, the ledger's `## AI original`, any standard, or the source
-  material being adapted.
+- **Does not touch:** the chapter file, the ledger's `## AI original` (unless step 6 writes a new
+  one from source material), any standard, or the source material being adapted.

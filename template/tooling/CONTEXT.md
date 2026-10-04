@@ -28,7 +28,9 @@ tooling/
 ├── font.py             ← compile a script's glyph SVGs into build/fonts/<slug>.otf (uv run)
 ├── conlang_common.py   ← what the conlang scripts share: Private Use Area code points above all
 ├── data/               ← core-concepts.toml: the core concepts and pronouns make coverage reads
-<: endif :>└── provenance.py       ← change ratios and the AI-disclosure table from the ledger
+<: endif :>├── compare.py          ← make compare: each section's original, AI edit and final, from the ledger
+├── compare.yaml        ← Pandoc defaults for the comparison, read after defaults.yaml
+└── provenance.py       ← change ratios and the AI-disclosure table from the ledger
 ```
 
 ## What's here
@@ -77,18 +79,25 @@ tooling/
 - `data/core-concepts.toml` — the core concepts and the pronoun grid `make coverage` checks a
   language against.
 <: endif :>- `provenance.py` — reads `standards/style/ledger/`; `make provenance` prints the table a
-  publisher asks for. Every script here is standard-library Python 3.11 or later, with no
+  publisher asks for.
+- `compare.py` — `make compare`: reads a unit's entries through `provenance.py`, follows each
+  section from its original through every revision to its final, marks each word by who changed
+  it, and writes the comparison as a Pandoc document, in the order of the brief's `sections:`
+  list. `compare.yaml` lays it out (read after `defaults.yaml`, never with `-V`), and
+  `tooling/latex/compare.tex` gives it its colours and line styles.
+- Every script here is standard-library Python 3.11 or later, with no
   dependencies<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, except `font.py`<: endif :>.
 - **Nothing here reads a file git ignores.** `make flags`, `make lint`, every other file list
-  the `Makefile` builds, and `provenance.py`, pass what they find through `git check-ignore`
-  and keep only what git does not ignore (or a negation re-includes), because ignored folders
-  hold credentials and local-only material and the checks print the lines they match. Flags
-  and lint say how many files that left unread. Outside a git work tree every file is read.
+  the `Makefile` builds, `provenance.py` and `compare.py` pass what they find through
+  `git check-ignore` and keep only what git does not ignore (or a negation re-includes),
+  because ignored folders hold credentials and local-only material and the checks print the
+  lines they match. Flags and lint say how many files that left unread. Outside a git work
+  tree every file is read.
 
 ## Cross-references
 
 - `Makefile` — every target; run `make help`.
-- `standards/style/ledger/` — the evidence `provenance.py` reads.<: if INCLUDE_REFERENCES :>
+- `standards/style/ledger/` — the evidence `provenance.py` and `compare.py` read.<: if INCLUDE_REFERENCES :>
 - `standards/referencing/harvard-referencing.md` — the rules the reference pipeline enforces.<: endif :><: if DOC_TYPE == 'business' :>
 - `standards/brand/brand-guide.md` — the identity the house preamble renders.<: endif :><: if DOC_TYPE != 'business' :>
 - `typeset/docs/reference/the-typesetting-pipeline.md` — how the house filter, the book class and

@@ -37,19 +37,25 @@ template into one client's document, and for bringing an existing document into 
   in `00-project.md` `## Brief` ('I' or 'we'), and no em dash enters client copy.
 - **Step 6 — also the holding line is the most conservative wording.** Until the author chooses,
   the draft carries the alternative with the narrowest commitment, and the hand-back says so.
+  That wording is the AI's: it goes into the run's `ai` revision with its open row (step 9), so a
+  later comparison never takes it for the author's, and the section is not promoted until the
+  row is decided (`promote-section`).
 - **Step 7 — also adapt a template for one client.** Write one draft per section of the new
   document from the matching part of the template. Fill each placeholder only from the author or
   the client's facts; leave any other as `[AWAITING USER INPUT]`. Keep the template's clause order
   and labels. List every change the author instructs to a term for `obligation-check` against the
   template's standard position. Record the template's name and review date in each draft's
-  internal note. Set `origin: author` and leave `## AI original` empty: the wording is the
-  template's, already approved, and every change made to it is logged in step 9.
+  internal note. Set `origin: author` and `format: 2`, leave `## AI original` empty, and record
+  each draft as first written from the template under `## Author original`: the wording is the
+  template's, already approved, and every change made to it after that is a revision, logged in
+  step 9.
 - **Step 7 — also bring an existing document into the house form.** Follow
   `library/workflows/08-ingest-an-existing-document/`: the original is filed unchanged; the reading
   copy carries an internal note listing every conversion loss, by location, never repaired from
   memory; each planned section's draft is copied word for word from the reading copy
   (`status: author-draft`, `origin: author`, an internal note naming the source and who wrote
-  it); only then do the author's instructions bring it into the house parts, order and terms.
+  it), the same text under its entry's `## Author original`; only then do the author's
+  instructions bring it into the house parts, order and terms, each change a revision.
 - **Step 8 — also check what must not change.** Compare the revised draft with the version before
   this pass: every figure, date, price, scope boundary, defined term and obligation is unchanged
   unless a numbered note changed it. Any other difference is reverted, or raised with the author.

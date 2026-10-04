@@ -28,7 +28,7 @@ Nothing here is rendered, and nothing here writes under `template/`.
 ├── shipped-variants.sh       ← a render carries exactly its variant: skills, modes, gated paths, business families
 ├── byte-identity.sh          ← shared files identical in every render that ships them
 ├── doc-references.sh         ← every cited path and skill exists in that render
-├── tooling-smoke.sh          ← the generated Makefile's targets and the tooling self-tests run in every render; no ignored file read; ISSUE guarded (issued PDFs, open items, switch values); the classification header; make flags honours BRAND_DIRS
+├── tooling-smoke.sh          ← the generated Makefile's targets and the tooling self-tests run in every render; no ignored file read; ISSUE guarded (issued PDFs, open items, switch values); the classification header; make flags honours BRAND_DIRS; make compare on a planted multi-round chain (every actor's macro, no ignored entry, SECTION needs UNIT, nothing to compare is no error, the PDF where XeLaTeX exists)
 ├── update-test.sh            ← a real copier update keeps author work, delivers template work, refuses a DOC_TYPE change; the v0.1.0 → v0.2.0 migrations (business families; every book's brief, a re-answered value kept)
 ├── adopt-test.sh             ← adopting an existing book, moving or additive, leaves its author's files untouched; the additive report on a business library names what an untick, an ignore rule or a kept workflow would cost, each same-named file with its redirect, and each kept file as committed, untracked or ignored
 └── coexist-test.sh           ← a second template shares a project without collision

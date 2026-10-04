@@ -78,10 +78,12 @@ fact rather than a recollection.
    (`standards/style/ledger/<unit-slug>--<section-slug>.md`) exists, and that the unit holds no
    text for this section. If any does, stop and ask. A **redraft** (the author asked for the
    section to be drafted again, often from `adapt-section` step 4) replaces the draft file only
-   on the author's word, and keeps its ledger entry (step 9). Create the unit's drafts folder if
-   it is missing, with whatever else the mode file says a new unit needs.
-   *Complete when:* both paths are free, or the author has confirmed a redraft over them, and the
-   drafts folder exists.
+   on the author's word, and keeps its ledger entry (step 9); before the file is replaced, record
+   the author's work in it as `standards/style/ledger/CLAUDE.md` sets out for any change. Create
+   the unit's drafts folder if it is missing, with whatever else the mode file says a new unit
+   needs.
+   *Complete when:* both paths are free, or the author has confirmed a redraft over them and the
+   old draft's text is on record, and the drafts folder exists.
 
 6. **Draft the one section.** Write the frontmatter: `unit`, `section`, `order`,
    `status: ai-draft`, `origin: ai`, `words_target` (from the brief, or 400), `ledger` (the entry's
@@ -100,21 +102,25 @@ fact rather than a recollection.
 
 8. **Proofread your own text.** Run `spelling` over the draft (and `grammar`, where the mode file
    says) against the style sheet and the terminology, and apply the fixes directly: it is still
-   the AI's text, and the author should be shown its best version.
+   the AI's text, and the author should be shown its best version. Nothing goes into the ledger
+   here: step 9 records the result.
    *Complete when:* the pass reports nothing left to fix.
 
 9. **Open the ledger entry.** Create it in the format `standards/style/ledger/CONTEXT.md` gives:
    frontmatter `unit`, `section`, `origin: ai`, `drafted` (today, DD/MM/YYYY), empty `promoted`
-   and `change_ratio`, and `learned: false`; under `## AI original`, the draft's body (everything
-   below its frontmatter) exactly as it is handed back; `## Author final` empty; and
-   `## Improvement decisions` holding only the table's two header rows. If the section's entry
-   already exists (a redraft), move its `## AI original` text verbatim into a dated HTML comment
-   (`<!-- superseded AI original, DD/MM/YYYY: … -->`) at the end of that section, writing each
-   `-->` inside it as `--&gt;` so the comment cannot close early, and write the new draft as the
-   live AI original; keep every decision row, and never open a second entry. Otherwise never
+   and `change_ratio`, `learned: false` and `format: 2`; under `## AI original`, the draft's body
+   (everything below its frontmatter) exactly as it is handed back; `## Author original`,
+   `## Revisions` and `## Author final` empty; and `## Improvement decisions` holding only the
+   table's two header rows. If the section's entry already exists (a redraft), restart its chain
+   as `standards/style/ledger/CLAUDE.md` sets out: the old original and every revision, step 5's
+   included, move verbatim into a dated `<!-- superseded original, DD/MM/YYYY: … -->` comment
+   at the end of `## AI original` (each `-->` inside it written `--&gt;`), and the new draft
+   becomes the live AI original, with `origin: ai`, `format: 2` and today's `drafted`; a section
+   that was promoted is a draft again, its final gone with the chain (the ledger's redraft steps
+   say what is cleared); keep every decision row, and never open a second entry. Otherwise never
    edit the AI original afterwards, not even to correct it.
-   *Complete when:* the entry exists, exactly one per section, and its live AI original matches
-   the draft's body character for character.
+   *Complete when:* the entry exists, exactly one per section, with `format: 2` and an empty
+   `## Revisions`, and its live AI original matches the draft's body character for character.
 
 10. **Update the brief and hand back.** Set the section's status in the brief's `sections:` list
     to `ai-draft`. If the unit's `status:` was `outlined` (V1 held), this first section moves it:
@@ -146,5 +152,6 @@ fact rather than a recollection.
 - `spelling` and `grammar` — the proofreading pass in step 8.
 - `grill-with-docs` — settling a section's job when the brief is too thin.
 - `learn-voice` — mines the ledger entry this skill opens, once the section is promoted.
-- `tooling/provenance.py` — reads the ledger entry; `make provenance` prints the disclosure table.
+- `tooling/provenance.py` — reads the ledger entry; `make provenance` prints the disclosure table,
+  and `make compare` each section's path from its original to its final text.
 - `planning/src/units/` — the briefs; `research/src/evidence/` — the verdicts behind each claim.

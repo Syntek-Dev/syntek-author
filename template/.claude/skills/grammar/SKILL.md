@@ -36,7 +36,8 @@ These own the rules; this skill applies them and cites them.
   per line in `src/` only, and proofreading that is supportive and a report.
 - `.claude/rules/syntek-author/03-authorship.md` Section 6 — suggest, do not rewrite; preserve
   deliberate oddities.
-- `standards/style/ledger/CONTEXT.md` — where accepted and declined corrections are logged.
+- `standards/style/ledger/CONTEXT.md` — where accepted and declined corrections are logged;
+  `standards/style/ledger/CLAUDE.md` — how a corrected draft is recorded as a revision.
 
 > **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of
 > `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain
@@ -85,14 +86,25 @@ These own the rules; this skill applies them and cites them.
    *Complete when:* the author has the report, and every item has a location, an offered
    correction and its reason.
 
-7. **Apply only what is accepted.** The author accepts or declines by item or by group. Each
-   accepted correction goes by the route the content layer's review workflow sets for it (the mode
-   file says which corrections may be applied directly and which go back through the section's own
-   procedures), and every decision, declined ones included, is logged as a row in the section's
-   ledger entry. Never apply a correction in passing, and never change meaning while correcting
-   form.
-   *Complete when:* every accepted correction is applied or routed, every decision is logged, and
-   nothing else changed.
+7. **Apply only what is accepted, and record it.** The author accepts or declines by item or by
+   group. Each accepted correction goes by the route the content layer's review workflow sets for
+   it (the mode file says which corrections may be applied directly and which go back through the
+   section's own procedures), and every decision, declined ones included, is logged as a row in
+   the section's ledger entry. Never apply a correction in passing, and never change meaning while
+   correcting form.
+   In a section draft whose ledger entry carries `format: 2`, record the change as
+   `standards/style/ledger/CLAUDE.md` sets out, unless this skill is running as a step of another
+   skill's pass over the AI's own text (`draft-section` step 8 and the draft workflow's
+   proofreading step, `adapt-section` step 8): that skill records the result. Before applying anything, bring the entry level
+   with the draft: an author-drafted entry's empty `## Author original` takes the draft as found,
+   a reopened section's previous Author final goes into the chain, and any hand-edits since the
+   entry's last recorded state become an `author` revision. Once the corrections are in, append
+   the corrected draft as one `ai` revision naming this skill and the rows just logged; in a
+   proofread, `spelling` records it for both passes. When the words did not change, nothing is
+   appended; an entry without `format: 2` gets its rows only. A correction to a section already
+   promoted is recorded as the review workflow's 'Applying agreed fixes' sets out.
+   *Complete when:* every accepted correction is applied or routed, every decision is logged, a
+   `format: 2` draft that changed has its revisions, and nothing else changed.
 
 ## Anti-patterns
 

@@ -16,6 +16,7 @@ cross-references resolve. The brand itself is not here: it lives in the author's
 tooling/latex/
 ├── CONTEXT.md            ← this file
 ├── CLAUDE.md             ← operating rules
+├── compare.tex           ← the comparison's look: who changed a word, in colour and line style
 ├── symbol-fallback.tex   ← symbols the text font lacks, drawn by an installed font that has them
 <: if DOC_TYPE != 'business' :>└── housebook.cls         ← the house book class: page design as options, the house macros
 <: endif :><: if DOC_TYPE == 'business' :>├── house-preamble.tex    ← packages, house macros, neutral palette; loads house-brand.tex if present
@@ -24,6 +25,14 @@ tooling/latex/
 
 ## What's here
 
+- `compare.tex` — the look of `make compare`, which the `Makefile` pastes into the comparison's
+  preamble and nowhere else. Each actor has an Okabe–Ito colour and a line style of its own, so
+  the page reads in greyscale: the AI blue (dashed underline, crossed out), the author's note
+  green (dotted underline, double strike), the author vermillion (solid underline, single
+  strike), and a change no record attributes grey (wavy underline, wavy strike). It also sets the
+  key, the redline's paragraph shapes and the landscape page in three columns (paracol, on a
+  turned page, its headings repeated on each page). Every macro is named `\cmp…` and appears only
+  in the comparison.
 - `symbol-fallback.tex` — keeps symbols on the page. A check mark, ballot box, warning sign,
   arrow or box-drawing line that the text font cannot draw is drawn by the first installed
   fallback font that has it, where XeLaTeX would otherwise print nothing and say so only in the
@@ -69,4 +78,5 @@ tooling/latex/
   converter.
 - `tooling/project.mk` — the logo folders TeX searches first (`LOGO_DIRS`), the Word converter
   (`DOCX_CONVERTER`) and the issuing statuses (`ISSUE_STATUSES`).
-<: endif :>- `tooling/pandoc/house.lua` — the filter that writes the house macros from the Markdown.
+<: endif :>- `Makefile` — `make compare`, which uses `compare.tex` with `tooling/compare.yaml`.
+- `tooling/pandoc/house.lua` — the filter that writes the house macros from the Markdown.

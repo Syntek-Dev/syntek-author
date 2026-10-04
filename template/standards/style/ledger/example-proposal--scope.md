@@ -5,7 +5,8 @@ origin: ai              # ai | author
 drafted: <%DATE%>
 promoted:               # DD/MM/YYYY, set by promote-section
 change_ratio:           # 0.00 to 1.00, computed at promotion; empty for author-drafted
-learned: false          # set true by learn-voice once promoted and mined
+learned: false          # true once promoted and mined; false again when its final is replaced
+format: 2               # the revision record below; absent from an entry that predates it
 ---
 
 <!-- WORKED EXAMPLE: the ledger entry for the example proposal's AI draft,
@@ -49,6 +50,14 @@ Where a chapter must reflect a change in the law, the rewrite states the law as 
 
 A change to this scope is agreed in writing before work on it begins, with its effect on the timeline and the investment stated.
 <: if BUSINESS_VOICE_PERSON == 'plural' :>We<: else :>I<: endif :> do not start out-of-scope work on a spoken request, however small it seems.
+
+## Author original
+
+<!-- Empty: the AI drafted this section. -->
+
+## Revisions
+
+<!-- Empty: no skill has changed this draft's words yet; the first that does adds revision 1 here. -->
 
 ## Author final
 

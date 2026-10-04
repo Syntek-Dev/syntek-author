@@ -44,7 +44,7 @@ model: opus
 - [ ] No invented quotation, citation key, reference, figure or date. · _opus_
 - [ ] `spelling` pass applied to the AI's own text. · _sonnet_
 - [ ] Draft frontmatter complete: unit, section, order, status, origin, words target, ledger, last updated. · _sonnet_
-- [ ] Ledger entry created, the AI original copied verbatim, `learned: false`. · _sonnet_
+- [ ] Ledger entry created (or, on a redraft, its chain restarted), the AI original copied verbatim, `learned: false`, `format: 2`. · _sonnet_
 - [ ] Section status set to `ai-draft` in the brief. · _sonnet_
 - [ ] For a chapter's first section: status moved from `outlined` to `draft` (no gate of its own; V1 still holds). · _sonnet_
 

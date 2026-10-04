@@ -18,7 +18,8 @@ model: opus
 
 - [ ] Read `.claude/CLAUDE.md` and `.claude/MEMORY.md`, then this folder's `CONTEXT.md` and `CLAUDE.md`. · _sonnet_
 - [ ] Section and strength confirmed with the author: `light`, `edit` or `rework`. · _opus_
-- [ ] The draft is on record as a file at `author-draft` with a ledger entry; nothing overwritten. · _sonnet_
+- [ ] The draft is on record as a file at `author-draft` with a ledger entry (`format: 2`, the draft as its Author original); nothing overwritten. · _sonnet_
+- [ ] Hand-edits since the ledger's last recorded state recorded as an `author` revision before any proposal. · _sonnet_
 
 ## Execution Checklist
 
@@ -40,6 +41,7 @@ model: opus
 - [ ] The author's decision received on every proposal and correction. · _opus_
 - [ ] Exactly the accepted changes applied, nothing else; one sentence per line kept. · _sonnet_
 - [ ] One ledger row per proposal, accepted or rejected, with the author's note. · _sonnet_
+- [ ] If anything was accepted, an `ai` revision appended with the strength and the pass's rows; it matches the draft. · _sonnet_
 - [ ] Status set to `improved` (if anything was accepted); `last_updated` set; brief mirrored. · _sonnet_
 - [ ] Handed back: counts accepted and rejected, open questions, flags left, next move. · _opus_
 

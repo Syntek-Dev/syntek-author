@@ -35,7 +35,9 @@ flow (`manuscript/workflows/05-review-a-chapter/`); or the section is ready
 - **Questions, kept apart from the diff,** for anything outside the lane: a figure, a date, a
   citation, a commitment, the argument itself.
 - **The accepted changes** applied to the draft, at `status: improved`.
-- **Ledger rows** for every proposal, accepted or rejected, in `## Improvement decisions`.
+- **Ledger rows** for every proposal, accepted or rejected, in `## Improvement decisions`; the
+  author's text as it was before the first pass, as the entry's `## Author original`; and an `ai`
+  revision holding the text after the accepted changes.
 
 ## What this pass must not do
 

@@ -30,11 +30,14 @@ If the word is ambiguous, ask once. _Substantive._
 > **Skill:** `promote-section` · **Guide:** `library/docs/reference/the-status-ladders.md`
 
 The draft holds no `AUTHOR TO CONFIRM`, no `VERIFY` and no `[AWAITING USER INPUT]`
-(`make flags` lists the two flags); its frontmatter is complete; and any section gate in
+(`make flags` lists the two flags); no decision row in its ledger entry is still open (a holding
+line waits for the author's choice); its frontmatter is complete; and any section gate in
 `standards/verification/verification.md` and its `BUSINESS.md` has passed. A draft bound for a
 `.tex` holds no citation key (`[@`): keys resolve only in a Markdown document, so the author writes
 the reference out in full first (`library/docs/reference/latex-deliverables.md`). Anything
-outstanding goes back to the author; promotion waits. _Mechanical._
+outstanding goes back to the author; promotion waits. An answer the author gives there and then
+is applied, logged `author-note` in the ledger and, if it changes the words, recorded as an
+`author-note` revision after any hand-edits (`standards/style/ledger/CLAUDE.md`). _Mechanical._
 
 ## 3. Find the document, and confirm you will not clobber it
 
@@ -91,11 +94,13 @@ the conversion, never by editing the draft's text. _Substantive._
 
 > **Skill:** `promote-section` · **Guide:** `library/docs/reference/drafting-with-ai.md`
 
-In the ledger entry, write the approved Markdown text into `## Author final`, set the `promoted`
-date, and set `change_ratio`, computed by `tooling/provenance.py` from the AI original and the
-author final (an author-drafted section has no AI original, and the skill records that). On a
-re-promotion, set the entry's `learned: false`, so `learn-voice` mines the new edits. Add or
-update the section's row in `standards/style/ledger/provenance.md`. _Mechanical._
+In the ledger entry, on a re-promotion, make sure the previous Author final is in the revision
+chain first (`standards/style/ledger/CLAUDE.md`). Write the approved Markdown text into
+`## Author final`, set the `promoted` date, and set `change_ratio`, computed by
+`tooling/provenance.py` from the AI original and the author final (an author-drafted section has
+no AI original, and the skill records that). On a re-promotion, set the entry's `learned: false`,
+so `learn-voice` mines the new edits. Add or update the section's row in
+`standards/style/ledger/provenance.md`. _Mechanical._
 
 ## 9. Update the draft, the brief and memory
 

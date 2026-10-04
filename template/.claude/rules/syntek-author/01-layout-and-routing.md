@@ -162,7 +162,7 @@ before the template arrived may carry one; obey it there. Section drafts and uni
 | **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**`, `.claude/hooks/*.sh`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
 | **Seed-if-missing** | creates the file only if it is absent, then never touches it | listed below |
 | **Seed-once example** | ships at generation only; once deleted, stays deleted | the worked example, when one was generated |
-| **Author-owned** | never touches | everything you write: `src/` content, the guides in `docs/project/`, the procedures in `workflows/local/`, `handoffs/`, `learning/`, `assets/` |
+| **Author-owned** | never touches | everything you write: `src/` content, the guides in `docs/project/`, the procedures in `workflows/local/`, and what you put in `handoffs/`, `learning/` and `assets/` (their `CONTEXT.md` and `CLAUDE.md` are template-owned) |
 
 **Seeds** (yours from the moment they exist; deleting one brings back the empty seed on the next
 update; turning its option off deletes it): `.claude/rules/syntek-author/00-project.md` (this

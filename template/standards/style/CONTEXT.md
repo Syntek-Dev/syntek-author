@@ -17,7 +17,8 @@ standards/style/
 ├── voice-notes.md     ← how the work sounds; `## Learned` grows by learn-voice (seed)
 ├── terminology.md     ← term · meaning · use · avoid (seed)
 ├── samples/           ← the author's own writing, the evidence for the voice notes
-└── ledger/            ← one entry per section: AI original, author final, decisions (+ provenance.md)
+└── ledger/            ← one entry per section: its original, every revision and who made it, the
+                         author final, decisions (+ provenance.md); make compare prints it
 ```
 
 ## What's here
@@ -32,7 +33,8 @@ standards/style/
   `learn-voice` finds in the ledger is written here only once approved.
 - `samples/` — the author's own writing, never AI text, never edited.
 - `ledger/` — `<unit>--<section-slug>.md` per section and the `provenance.md` register;
-  the source of truth for AI disclosure (`make provenance`).
+  the source of truth for AI disclosure (`make provenance`), and the revision record
+  `make compare` prints as each section's path from its original to its final text.
 
 ## Cross-references
 

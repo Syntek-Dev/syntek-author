@@ -40,6 +40,8 @@ them across a whole sweep.
 - `research/src/evidence/CONTEXT.md` — the evidence entry format.
 - `.claude/rules/syntek-author/03-authorship.md` Sections 4 and 5 — never fabricate; the `VERIFY`
   flag and how it clears.
+- `standards/style/ledger/CONTEXT.md` and its `CLAUDE.md` — how an agreed correction to a section
+  is logged and recorded as a revision.
 
 > **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of
 > `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain
@@ -134,10 +136,18 @@ them across a whole sweep.
     with `unsupported` and `cannot-be-dated` first, then `contested` and `thin`, then
     `verified-with-caveat`. Recommend each cut or narrowing; the author decides, and agreed changes
     to the wording are made as the content layer's review workflow sets out (the mode file says
-    how). V5 passes only when the gate's conditions hold; the review workflow, not this skill,
-    moves the unit's status.
+    how). Where that workflow applies an agreed correction directly, it is logged as a row in the
+    section's ledger entry. In a promoted section the entry is brought up to date as the
+    workflow's 'Applying agreed fixes' sets out; in a section draft whose entry carries
+    `format: 2`, as `standards/style/ledger/CLAUDE.md` sets out: first the entry is brought level
+    with the draft as found (its empty Author original, a reopened section's previous final, any
+    hand-edits as an `author` revision), then the corrected draft goes in as one `ai` revision
+    naming this skill and its rows. A flag in a draft is a comment, so
+    placing or removing one is not a revision. V5 passes only when the gate's conditions hold; the
+    review workflow, not this skill, moves the unit's status.
     *Complete when:* the author has the report, every recommendation names the procedure that would
-    carry it out, and the flags that remain are listed.
+    carry it out, every correction applied directly is logged and recorded, and the flags that
+    remain are listed.
 
 ## Anti-patterns
 

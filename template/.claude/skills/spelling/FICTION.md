@@ -16,8 +16,9 @@ bible as its dictionary and reports the near-misses that a reader would notice f
 - **Extra reads:** each point-of-view character's voice markers in `world/src/characters/`, which
   record dialect and a character's own spellings; `world/docs/reference/naming.md`.
 - **Where corrections go:** an accepted spelling correction may be applied in the chapter file
-  directly, logged as a row in that section's ledger entry
-  (`manuscript/workflows/05-review-a-chapter/`, 'Applying agreed fixes'); in a draft, in the draft.
+  directly and recorded in that section's ledger entry
+  (`manuscript/workflows/05-review-a-chapter/`, 'Applying agreed fixes'); in a draft, in the draft
+  (step 7).
 
 ## Additions to the steps
 

@@ -534,6 +534,7 @@ business           f  standards/brand/brand-guide.md
 business           f  standards/brand/disclaimers.md
 always             d  tooling/latex
 always             f  tooling/latex/symbol-fallback.tex
+always             f  tooling/latex/compare.tex
 always             f  tooling/project.mk
 business           f  tooling/latex/house-preamble.tex
 business           f  tooling/latex/skeleton.tex
@@ -544,6 +545,8 @@ always             d  tooling/pandoc
 always             f  tooling/pandoc/house.lua
 always             f  tooling/defaults.yaml
 always             f  tooling/provenance.py
+always             f  tooling/compare.py
+always             f  tooling/compare.yaml
 books              d  typeset
 books              d  typeset/docs/reference
 books              d  typeset/docs/project

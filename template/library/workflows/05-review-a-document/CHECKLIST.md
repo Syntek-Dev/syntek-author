@@ -45,6 +45,7 @@ model: opus
 - [ ] `tone` run; **no figure, date, scope boundary or commitment changed by it.** · _opus_
 - [ ] `grammar` and `spelling` run as a supportive report; accepted corrections applied. · _opus_
 - [ ] Every correction applied in the `.tex` directly also made in its section's draft and logged in its ledger entry; `make section-check` clean for that section. · _sonnet_
+- [ ] Each section so corrected has its ledger entry brought up to date: in a `format: 2` entry the previous author final (unless the last state already equals it), any hand-edits since and the correction appended as revisions; in every entry the new author final, `learned: false`, a recomputed ratio, its `provenance.md` row, and `provenance.py check` clean. · _sonnet_
 
 **The register, then the issue proof**
 

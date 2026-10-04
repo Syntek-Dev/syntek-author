@@ -36,7 +36,8 @@ on the author's word.
   again through `library/workflows/04-promote-a-section/`, so its ledger stays true; a material
   change also clears its gates (`STEPS.md`, 'Applying agreed fixes'). Agreed corrections (a slip, a
   figure fixed by the fact check) may be applied in the `.tex` directly, made in the section's draft
-  too, logged in its ledger entry and listed in the hand-back.
+  too, logged in its ledger entry with the entry brought up to date (its revisions, its author
+  final and its ratio; `STEPS.md`, 'Applying agreed fixes') and listed in the hand-back.
 - **A tone pass never changes a figure, a date, a scope boundary or a commitment.**
 - **`final` is the author's word, in words, after every gate.** Never set it on a likely yes.
 - **Register before the issue proof.** V6.2 needs the row, so the document is registered at the
@@ -50,6 +51,7 @@ on the author's word.
 - **Produces:** `planning/src/reviews/REVIEW-<scope>-DD-MM-YYYY.md`; the corrected `.tex` at
   `final`; the issue PDF beside it, same basename.
 - **Also writes:** evidence entries; the brief's `verified:` map and status; the `.tex` status
-  block; register, review-schedule and approval rows through the planning procedures;
-  `.claude/MEMORY.md` `## Status` (the author's dated word at `final`).
+  block; register, review-schedule and approval rows through the planning procedures; for agreed
+  corrections, the section's draft, ledger rows, revisions, a new author final and its ratio, and
+  its `provenance.md` row; `.claude/MEMORY.md` `## Status` (the author's dated word at `final`).
 - **Does not touch:** any standard, or another document in the family (a conflict is reported).

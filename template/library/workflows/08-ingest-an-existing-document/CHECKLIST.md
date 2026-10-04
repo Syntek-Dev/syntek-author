@@ -42,7 +42,7 @@ model: opus
 
 - [ ] Unit brief planned via `planning/workflows/01-plan-a-unit/`: original in `## Draws on`, parts mapped to the house order, the five questions answered. · _opus_
 - [ ] One draft per planned section, text copied word for word, at `author-draft` with `origin: author` and an internal note naming source and writer. · _sonnet_
-- [ ] Ledger entry created for each draft with an empty `## AI original`. · _sonnet_
+- [ ] Ledger entry created for each draft with `format: 2`, an empty `## AI original` and the copied text as its `## Author original`. · _sonnet_
 - [ ] **Every figure, date, entity detail, statute and framework reference verified or flagged `VERIFY`.** · _opus_
 - [ ] Drafts brought into the house form through `library/workflows/02-adapt-a-draft/`; every change to a term listed for `obligation-check`. · _opus_
 

@@ -25,8 +25,11 @@ names the skill and the guide it uses. Tick `CHECKLIST.md` as you go.
 Find the section in the chapter's drafts folder. If the author pasted it in chat or wrote it without
 frontmatter, save it as `<NN>-<section-slug>.md` with the frontmatter in
 `manuscript/docs/reference/section-anatomy.md` (`status: author-draft`, `origin: author`), after
-checking nothing will be overwritten. If it has no ledger entry, create one with `origin: author`
-and an empty `## AI original`. _Mechanical._
+checking nothing will be overwritten. If it has no ledger entry, create one with `origin: author`,
+`format: 2`, an empty `## AI original` and the draft's body, as saved, under `## Author original`.
+In an existing `format: 2` entry, first record what `standards/style/ledger/CLAUDE.md` requires
+before a change: a missing Author original, then any hand-edits since the last recorded state as
+an `author` revision. _Mechanical._
 
 ## 2. Agree the strength
 
@@ -92,8 +95,9 @@ styling. If an accepted change collides with another, ask. _Mechanical._
 
 Add every proposal to the ledger entry's `## Improvement decisions` table, accepted or rejected,
 with the author's own words where they gave a reason. A rejection is the clearest evidence of the
-author's voice there is. Set the draft's `status: improved` and `last_updated`, and mirror the
-status in the brief. _Mechanical._
+author's voice there is. If anything was accepted, append the draft as it now stands as an `ai`
+revision, `improve-section (<strength>)`, with this pass's rows. Set the draft's `status: improved`
+and `last_updated`, and mirror the status in the brief. _Mechanical._
 
 ## 10. Hand back
 

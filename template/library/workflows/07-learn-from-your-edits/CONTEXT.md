@@ -1,11 +1,11 @@
 # CONTEXT.md — library/workflows/07-learn-from-your-edits/
 
 The procedure for turning what the author changed into lasting guidance. It mines the ledger for
-sections not yet learned from: what the author changed in AI drafts, and which proposed
-improvements they rejected. It proposes additions to the voice notes (and, for a mechanical rule
-or a term, to the style sheet or the terminology), each with real before-and-after examples from
-the author's own edits, and writes only what the author approves. It can also seed the voice notes
-from the author's samples when the project is new.
+sections not yet learned from: what the author changed by hand at each stage of a section's
+record, and which proposed improvements they rejected or later undid. It proposes additions to
+the voice notes (and, for a mechanical rule or a term, to the style sheet or the terminology), each
+with real before-and-after examples from the author's own edits, and writes only what the author
+approves. It can also seed the voice notes from the author's samples when the project is new.
 
 ## Directory Tree
 

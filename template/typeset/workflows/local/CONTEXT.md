@@ -4,8 +4,8 @@ The author's own procedures for the typesetting layer: work that recurs in this 
 template procedure covers (a printer's own preflight, a special edition), and overrides of
 template procedures. The template ships only this pair; everything else here is the author's, and
 `copier update` never touches it. Local procedures have their own numbering. A local folder with
-**the same name** as a numbered template folder (for example a local 02-typeset-a-chapter)
-overrides it, and `run-workflow` always looks here first.
+**the same slug** as a template folder, whatever its number (for example a local
+02-typeset-a-chapter or 09-typeset-a-chapter), overrides it, and `run-workflow` always looks here first.
 
 ## Directory Tree
 

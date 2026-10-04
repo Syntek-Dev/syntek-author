@@ -17,6 +17,8 @@
 # References: tooling/references.db (SQLite master) → tooling/export_refs.py →
 #             build/references.json (CSL-JSON) → Pandoc --citeproc + tooling/harvard.csl
 <: endif -:>
+# Compare:    standards/style/ledger/ (each section's record) → tooling/compare.py → Pandoc →
+#             XeLaTeX → build/compare/<unit>.pdf, for the author and for disclosure, never issued
 #
 # Common use:
 <: if DOC_TYPE != 'business' -:>
@@ -33,6 +35,7 @@
 <: endif -:>
 #   make flags                                      # every open AUTHOR TO CONFIRM and VERIFY
 #   make provenance                                 # the AI-disclosure table, per unit
+#   make compare UNIT=<unit>                        # each section's original, AI edit and final
 #
 <: if DOC_TYPE != 'business' -:>
 # What differs from one project to the next (logo folders, typefaces, extra open-item marks) is
@@ -105,6 +108,9 @@ PANDOC_HOUSE := --lua-filter=$(HOUSE_LUA)<: if DOC_TYPE != 'business' :> -M hous
 SCOPE_GIVEN := $(filter command line environment,$(origin SCOPE))
 SCOPE ?= $(CONTENT)/src
 SCOPE_PATH := $(patsubst %/,%,$(SCOPE))
+# UNIT names one unit: the brief's filename without .md (03-the-ford), or a path that ends in it
+# (manuscript/src/03-the-ford, planning/src/units/03-the-ford.md), read as its last part.
+UNIT_NAME   = $(basename $(notdir $(patsubst %/,%,$(UNIT))))
 <: if DOC_TYPE != 'business' :>
 # SRC: the Markdown a build reads, sorted (numeric prefixes are the running order).
 # Excluded: governance files (CONTEXT.md, CLAUDE.md), folder notes (README.md), anything
@@ -145,7 +151,7 @@ FLAG_RE := (^|[^`])(<!--[[:space:]]*|\\dnote\{)(AUTHOR TO CONFIRM|VERIFY):
 FLAG_EXTRA_SCAN = scan '(^|[^`])($(strip $(FLAG_EXTRA_RE)))'
 
 .DEFAULT_GOAL := help
-.PHONY: help clean flags lint provenance docx pdf<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
+.PHONY: help clean flags lint provenance compare docx pdf<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
 
 help: ## show every target with its description
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -229,7 +235,6 @@ BASES    := $(UNITS)/.base
 TEX_OPTS := --defaults=$(DEFAULTS) $(PANDOC_HOUSE) -M house-class=true \
             -M suppress-bibliography=true --top-level-division=chapter --wrap=preserve \
             --no-highlight -t latex
-UNIT_NAME = $(basename $(notdir $(patsubst %/,%,$(UNIT))))
 BOOK_MD   = $(shell $(call FIND_MD,$(CONTENT)/src))
 
 tex: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## write the Pandoc base of each chapter in SCOPE to typeset/src/units/.base/
@@ -513,7 +518,56 @@ lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE ==
 
 # ── Provenance ──────────────────────────────────────────────────────────────────────────
 provenance: ## print the per-unit AI-disclosure table from standards/style/ledger/ (UNIT= narrows it)
-	@$(PY) tooling/provenance.py table $(if $(UNIT),--unit $(UNIT))
+	@$(PY) tooling/provenance.py table $(if $(UNIT),--unit $(UNIT_NAME))
+
+# make compare prints the ledger's record of how each section moved: every unit with entries,
+# one PDF each; UNIT= one unit; SECTION=<slug> one section of it, which needs UNIT.
+# tooling/compare.py writes a Pandoc document for each; Pandoc sets it through the house filter,
+# tooling/compare.yaml read after the project's defaults and tooling/latex/compare.tex in its
+# preamble; XeLaTeX runs twice and every character a font could not draw is reported. FORMAT=tex
+# stops at the LaTeX; FORMAT counts only from the make command line, so one the shell happens to
+# export changes nothing. A unit that fails is named and the rest are still written; make then
+# fails. Working files stay in build/compare/<unit>/. Ungated, like a proof: the
+# output prints draft states from the ledger, never a drafts/ file, and is never issued,
+# committed or synced.
+COMPARE        := $(BUILD)/compare
+COMPARE_TO     := $(if $(filter command line,$(origin FORMAT)),$(FORMAT),pdf)
+COMPARE_PANDOC  = --defaults=$(DEFAULTS) --defaults=tooling/compare.yaml $(PANDOC_HOUSE) $(PANDOC_PDF) \
+                  --include-in-header=tooling/latex/compare.tex -f json -s -t latex
+
+compare: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## each section's original, AI edit and final, from the ledger, to build/compare/<unit>.pdf (UNIT=, SECTION=, FORMAT=tex)
+	@test -z "$(SECTION)" || test -n "$(UNIT)" || { echo "error: SECTION= needs its unit: make compare UNIT=<unit> SECTION=<slug>"; exit 2; }
+	@case "$(COMPARE_TO)" in pdf|tex) ;; *) echo "error: FORMAT takes pdf, or tex for the LaTeX alone"; exit 2 ;; esac
+	@units="$(if $(UNIT),$(UNIT_NAME))"; \
+	[ -n "$$units" ] || units=$$($(PY) tooling/compare.py units) || exit $$?; \
+	if [ -z "$$units" ]; then echo "No sections to compare yet."; exit 0; fi; \
+	command -v pandoc >/dev/null || { echo "error: pandoc not found; make compare needs Pandoc"; exit 1; }; \
+	[ "$(COMPARE_TO)" = tex ] || command -v xelatex >/dev/null || { \
+	  echo "error: xelatex not found; make compare needs TeX Live with XeLaTeX (FORMAT=tex writes the LaTeX alone)"; exit 1; }; \
+	status=0; \
+	for u in $$units; do \
+	  name=$$u$(if $(SECTION),--$(SECTION)); dir=$(COMPARE)/$$u; \
+	  $(PY) tooling/compare.py ast --unit "$$u" $(if $(SECTION),--section '$(SECTION)') \
+	    $(addprefix --pandoc-arg=,$(PANDOC_HOUSE)) -o "$$dir/$$name.json"; r=$$?; \
+	  if [ $$r -gt 1 ]; then echo "error: $$u: no comparison written"; status=$$r; continue; fi; \
+	  [ $$r -eq 0 ] || status=1; \
+	  pandoc $(COMPARE_PANDOC) "$$dir/$$name.json" -o "$$dir/$$name.tex" \
+	  || { echo "error: $$u: pandoc could not write the LaTeX"; status=2; continue; }; \
+	  if [ "$(COMPARE_TO)" = tex ]; then echo "wrote $$dir/$$name.tex"; continue; fi; \
+	  for pass in 1 2; do \
+	    $(TEX_ENV) xelatex -interaction=nonstopmode -halt-on-error -output-directory="$$dir" "$$dir/$$name.tex" >/dev/null \
+	    || { echo "error: $$u: xelatex failed on pass $$pass; see $$dir/$$name.log"; \
+	         grep -m1 -A2 '^!' "$$dir/$$name.log" | sed 's/^/  /'; status=2; continue 2; }; \
+	  done; \
+	  n=$$(grep -c '^Missing character' "$$dir/$$name.log" || true); \
+	  if [ "$$n" -gt 0 ]; then \
+	    echo "warning: $$n missing character(s): the font has no glyph, so each prints as nothing (first lines of $$dir/$$name.log):"; \
+	    grep '^Missing character' "$$dir/$$name.log" | LC_ALL=C sort -u | head -n 5 | sed 's/^/  /'; \
+	    echo "  a typeface that has them, set as MAINFONT in tooling/project.mk, prints them"; \
+	  fi; \
+	  cp "$$dir/$$name.pdf" "$(COMPARE)/$$name.pdf" && echo "wrote $(COMPARE)/$$name.pdf"; \
+	done; \
+	exit $$status
 
 <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG -:>
 # ── Constructed languages ───────────────────────────────────────────────────────────────

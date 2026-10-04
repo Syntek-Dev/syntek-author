@@ -24,7 +24,7 @@ model: opus
 
 **Before touching the chapter**
 
-- [ ] Zero `AUTHOR TO CONFIRM` and zero `VERIFY` flags in the draft; any settled by the author applied. · _opus_
+- [ ] Zero `AUTHOR TO CONFIRM` and zero `VERIFY` flags in the draft; any settled by the author applied, logged `author-note`, and recorded as an `author-note` revision if it changed the words. · _opus_
 - [ ] Any section gate in `standards/verification/verification.md` run and passed. · _opus_
 - [ ] Chapter file exists, or created from the brief: H1 and one marker per section, in order. · _sonnet_
 - [ ] Markers match the brief; any disagreement reported, not guessed. · _opus_
@@ -37,7 +37,7 @@ model: opus
 
 **Records**
 
-- [ ] Ledger: author final copied, `promoted` dated, `change_ratio` set by `tooling/provenance.py`; on a re-promotion, `learned: false`. · _sonnet_
+- [ ] Ledger: author final copied, `promoted` dated, `change_ratio` set by `tooling/provenance.py`; on a re-promotion, the previous final kept in the revision chain and `learned: false`. · _sonnet_
 - [ ] Row added or updated in `standards/style/ledger/provenance.md`. · _sonnet_
 - [ ] Draft at `status: promoted`; brief's section entry `promoted`; chapter `status:` unchanged. · _sonnet_
 - [ ] Chapter's Status line in `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) superseded with the new count. · _sonnet_

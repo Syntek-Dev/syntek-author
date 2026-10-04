@@ -46,7 +46,9 @@ defined once and the brand changes in one place.
 <: if DOC_TYPE != 'business' :>- **Page design lives in options, not in the class.** One book's typeface or trim in
   `housebook.cls` would reach every book an update touches.
 - **A new macro is a change to the fidelity check too.** `tooling/texcheck.py` must know whether
-  a macro's arguments are words or layout; add both together, or the check misreads it.
+  a macro's arguments are words or layout; add both together, or the check misreads it. The
+  `\cmp…` macros of `compare.tex` are the exception: they never enter a chapter, so the check
+  never meets them. Keep the prefix, so none can clash with a house macro.
 - **Fall back, never fail silently.** A missing typeface, lettrine or script font falls back with a
   warning in the log; keep it that way.
 - **`symbol-fallback.tex` reaches every Pandoc PDF.** Add a character or a fallback font there,
@@ -58,7 +60,9 @@ defined once and the brand changes in one place.
 - **Never hand-number a clause.** Use `\label{cl:<slug>}` and `clause~\ref{cl:<slug>}`;
   references renumber themselves when a clause moves.
 - **A new house macro is a change to the fidelity check too.** `tooling/texcheck.py` must know
-  whether its arguments are words or layout, or `make section-check` misreads it.
+  whether its arguments are words or layout, or `make section-check` misreads it. The `\cmp…`
+  macros of `compare.tex` never enter a document, so the check never meets them; they never reuse
+  `\ins`, `\del` or `\cmt`.
 - **Delete every drafting note before issue.** A `\dnote` that survives into a sent document
   publishes an internal thought; the issue-readiness gate checks for them.
 - **An issued copy is a record.** `ISSUE=1` refuses below an issuing status or while any open
@@ -71,10 +75,11 @@ defined once and the brand changes in one place.
 <: endif :>
 ## Output & naming
 
-<: if DOC_TYPE != 'business' :>- **Template-owned:** `housebook.cls`, `symbol-fallback.tex` and this pair.
-- **Generated (never hand-edit):** the print PDF and its working files in `build/typeset/`.
-<: endif :><: if DOC_TYPE == 'business' :>- **Hand-written:** `house-preamble.tex`, `skeleton.tex`, `symbol-fallback.tex`, this pair; the
-  author's `house-brand.tex`.
+<: if DOC_TYPE != 'business' :>- **Template-owned:** `housebook.cls`, `symbol-fallback.tex`, `compare.tex` and this pair.
+- **Generated (never hand-edit):** the print PDF and its working files in `build/typeset/`; the
+  comparison and its working files in `build/compare/`.
+<: endif :><: if DOC_TYPE == 'business' :>- **Hand-written:** `house-preamble.tex`, `skeleton.tex`, `symbol-fallback.tex`, `compare.tex`,
+  this pair; the author's `house-brand.tex`.
 - **Generated (never hand-edit):** the PDF in `build/`, and the issued copy beside its source when
-  `ISSUE=1` is used.
+  `ISSUE=1` is used; the comparison in `build/compare/`, which is never issued.
 <: endif :>

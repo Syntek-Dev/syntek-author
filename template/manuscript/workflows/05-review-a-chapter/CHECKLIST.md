@@ -51,6 +51,7 @@ model: opus
 - [ ] Line-edit sub-gates the mode file numbers under V6 run. · _opus_
 - [ ] One combined report delivered, blocking first, each fix with its owning procedure. · _opus_
 - [ ] Agreed fixes applied through the sections; accepted spelling or punctuation corrections logged in the section's ledger. · _opus_
+- [ ] Each section corrected in the chapter file has its ledger entry brought up to date: in a `format: 2` entry the previous author final (unless the last state already equals it), any hand-edits since and the correction appended as revisions; in every entry the new author final, `learned: false`, a recomputed ratio, its `provenance.md` row, and `provenance.py check` clean. · _sonnet_
 - [ ] A material change cleared its gate and every later one and set the status back (`standards/verification/verification.md` Section 3); any other reopened section had the stages already passed run again over it. · _opus_
 
 **Final**

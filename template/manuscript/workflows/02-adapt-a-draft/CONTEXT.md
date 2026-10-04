@@ -36,7 +36,8 @@ is a change to the chapter's brief (`planning/workflows/01-plan-a-unit/`).
 - **Alternatives** for each open note, offered in chat with a one-line note on what each does
   differently; the original line stays in the file until the author chooses.
 - **Ledger rows** in the section's `## Improvement decisions` table: every note applied and every
-  alternative offered, with the author's choice.
+  alternative offered, with the author's choice; and **revisions**, the text after each kind of
+  change, marked with whose change it was.
 - **The section's status** updated in the chapter brief's `sections:` list.
 
 ## The failure this procedure exists to prevent

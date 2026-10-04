@@ -56,12 +56,16 @@ workflow and the author's word.
 
 2. **Check the gate and the flags.** Run `make flags SCOPE=<the draft's path>` and read the draft
    for anything else the mode file names. Any flag stops the promotion: the author may settle an
-   `AUTHOR TO CONFIRM` there and then (apply the answer, remove the flag, log it in the ledger); a
-   `VERIFY` goes through `fact-check`, or the claim comes out, and the author confirms again.
-   Confirm the draft's frontmatter is complete and its ledger entry exists with every key, then
-   check any section gate `standards/verification/verification.md` and its mode file set. Never
-   delete a flag to pass a gate.
-   *Complete when:* the flags list for the draft is empty, and every check above passes.
+   `AUTHOR TO CONFIRM` there and then (apply the answer, remove the flag, log it in the ledger as
+   `author-note`); a `VERIFY` goes through `fact-check`, or the claim comes out on the author's
+   word, and the author confirms again. In a `format: 2` entry, an answer or a removal that
+   changes the words follows `standards/style/ledger/CLAUDE.md`: any hand-edits recorded first,
+   then the changed text appended as an `author-note` revision with its row. Confirm the draft's
+   frontmatter is complete and its ledger entry exists with every key, then check any section
+   gate `standards/verification/verification.md` and its mode file set. Never delete a flag to
+   pass a gate.
+   *Complete when:* the flags list for the draft is empty, every flag answer that changed the
+   words is on record, and every check above passes.
 
 3. **Find the unit file and the section's marker.** Locate the unit's file as the mode file
    describes, creating it from the brief if it does not yet exist: one marker per entry in the
@@ -84,15 +88,18 @@ workflow and the author's word.
    *Complete when:* the section sits at its marker, and a diff of the unit file shows no other
    change.
 
-6. **Record provenance.** In the ledger entry, put the promoted text under `## Author final` (the
-   mode file says which form), set `promoted` to today (DD/MM/YYYY), then run
+6. **Record provenance.** On a re-promotion of a `format: 2` entry, first make sure the previous
+   Author final is in the chain (an `author` revision, `promoted DD/MM/YYYY`; the skill that first
+   revised the reopened draft has usually added it, `standards/style/ledger/CLAUDE.md`). Then put
+   the promoted text under `## Author final` (the mode file says which form), set `promoted` to
+   today (DD/MM/YYYY), then run
    `python3 tooling/provenance.py ratio <unit-slug>--<section-slug> --write`; for an author-drafted
    section it prints `n/a` and the ratio stays empty. Add or update the section's row in
    `standards/style/ledger/provenance.md` (Unit, Section, Origin, Change ratio, Promoted; an
    author-drafted section shows `—`), then run `python3 tooling/provenance.py check`. On a
    re-promotion, set the entry's `learned: false`, so `learn-voice` mines the new edits.
    *Complete when:* `check` reports no problems, the ratio came from the tool, never an estimate,
-   and a re-promoted entry is unlearned.
+   and a re-promoted entry is unlearned, with its previous final kept in the chain.
 
 7. **Update the statuses and memory.** Set the draft's `status: promoted` and `last_updated`; the
    draft stays in its drafts folder as the record of the section. Set the section's entry in the
@@ -135,5 +142,6 @@ workflow and the author's word.
 - `structure-review` — opens the unit's review once every section is promoted.
 - `learn-voice` — mines the ledger entry this skill completes.
 - `tooling/provenance.py` — computes the ratio (`ratio … --write`) and checks the register
-  (`check`); `make provenance` prints the disclosure table.
+  (`check`); `make provenance` prints the disclosure table, and `make compare` each section's
+  path from its original to the final text this skill records.
 - `standards/style/ledger/provenance.md` — the register this skill keeps.

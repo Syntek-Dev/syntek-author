@@ -47,9 +47,14 @@ either flag is not promoted, and a chapter with either is not `final`.
 ## The record
 
 Every section has a ledger entry at `standards/style/ledger/<unit-slug>--<section-slug>.md`: the
-AI's original verbatim (empty when the author drafted), the author's final text at promotion, and
-every suggestion with its verdict. `tooling/provenance.py` compares the two texts and records how
-much the author changed; `make provenance` prints a per-chapter table for a publisher. The ratio
+original verbatim (the AI's draft, or the author's own when the author drafted); every revision on
+the way, marked with whose change it was (an AI suggestion the author accepted, an author's note
+the AI applied, or the author's own edits, which each skill records before it changes a word);
+the author's final text at promotion; and every suggestion with its verdict. `tooling/provenance.py`
+measures how far the final moved from the AI original (not who moved it: the revisions say that),
+and `make provenance` prints a per-chapter table for a publisher. The author's original and each
+revision are what `learn-voice` mines for the author's own changes, and what `make compare`
+prints: each section's redline, and its original, AI edit and final side by side. The ratio
 measures editing, not merit: report it as it stands.
 
 ## How we apply it here
@@ -57,8 +62,8 @@ measures editing, not merit: report it as it stands.
 - **Voice comes from the author's own writing.** Until `standards/style/samples/` holds real
   samples and `standards/style/voice-notes.md` has marks drawn from them, every AI draft guesses
   at the voice. A voice guide with borrowed examples is a hypothesis, not a standard.
-- **Never edit an AI original after the fact.** The ledger is evidence; a tidied original makes
-  the disclosure false and teaches `learn-voice` nothing.
+- **Never edit an original or a revision after the fact.** The ledger is evidence; a tidied record
+  makes the disclosure false and teaches `learn-voice` nothing.
 - **Rejections are the best teacher.** A rejected suggestion is logged as carefully as an accepted
   one.
 
