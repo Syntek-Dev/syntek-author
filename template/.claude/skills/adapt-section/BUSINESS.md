@@ -10,10 +10,15 @@ template into one client's document, and for bringing an existing document into 
 - **Procedures:** `library/workflows/02-adapt-a-draft/` (notes, hand-edits and template
   adaptations) and `library/workflows/08-ingest-an-existing-document/` (its conversion and
   house-form steps).
-- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`; its brief is
-  `planning/src/units/<unit-slug>.md`.
-- **Templates:** `library/src/<family>/templates/`. **Client facts:**
-  `library/src/contracts/client-docs/<client-slug>/CONTEXT.md`, under `## Facts`.
+- **Draft:** `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`, in one of the
+  families this project selected (`business`, `legal`, `email`, `accounting`, `social-media`,
+  `msp-scp`); its brief is `planning/src/units/<unit-slug>.md`.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the
+  family's document types, required sections, conventions and checks.
+- **Project paths:** the 'Client facts' and 'Brand folder' rows of `00-project.md` `## Paths` say
+  where those live; this file names the template defaults.
+- **Templates:** `library/src/<family>/templates/`. **Client facts:** one home per client, by
+  default `library/src/business/client-docs/<client-slug>/CONTEXT.md`, under `## Facts`.
 - **Kinds of source this project adapts (step 7):** a template turned into one client's document,
   and an existing document (the author's, a client's or a third party's) brought into the house
   form.
@@ -28,8 +33,8 @@ template into one client's document, and for bringing an existing document into 
   commitment, a price, a date, a service level or a scope boundary is returned as a question; it
   is never answered by drafting.
 - **Step 5 — also keep the register.** An instrument or a policy stays formal; running copy keeps
-  the brand voice (`standards/brand/brand-voice.md`); every line keeps the business's 'I' or 'we'
-  as `standards/style/voice-notes.md` records it, and no em dash enters client copy.
+  the brand voice (by default `standards/brand/brand-voice.md`); every line keeps the voice person
+  in `00-project.md` `## Brief` ('I' or 'we'), and no em dash enters client copy.
 - **Step 6 — also the holding line is the most conservative wording.** Until the author chooses,
   the draft carries the alternative with the narrowest commitment, and the hand-back says so.
 - **Step 7 — also adapt a template for one client.** Write one draft per section of the new

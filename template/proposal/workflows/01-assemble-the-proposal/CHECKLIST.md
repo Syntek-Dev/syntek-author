@@ -35,7 +35,7 @@ model: opus
 **Sources and sample**
 
 - [ ] Every market, 'why now', platform or reach claim verified through `02-verify-a-claim`; anything `cannot-be-dated` or `unsupported` cut. · _opus_
-- [ ] Sample recommended with reasons; the author chose, and the choice is recorded in `.claude/MEMORY.md` `## Decisions`. · _opus_
+- [ ] Sample recommended with reasons; the author chose, and the choice is recorded in `.claude/MEMORY.md` `## Decisions` (mapped in `00-project.md` `## Memory headings`). · _opus_
 - [ ] One row in `sample-index.md` per chosen unit, and only for units whose sections are all promoted. · _sonnet_
 - [ ] No manuscript prose copied into the package. · _sonnet_
 

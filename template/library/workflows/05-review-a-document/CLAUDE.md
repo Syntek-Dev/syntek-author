@@ -31,11 +31,12 @@ on the author's word.
 - **Structure, then facts, then the line.** Never run a later stage before an earlier one passes.
 - **Reviews are advice.** The structural review is written to `planning/src/reviews/`; the document
   changes only by the author's decision, through the loop or as an agreed correction.
-- **A substantive change reopens its section.** Re-draft it through workflow 02 or 03 and promote it
-  again through 04, so its ledger stays true; a material change also clears its gates
-  (`STEPS.md`, 'Applying agreed fixes'). Agreed corrections (a slip, a figure fixed by the fact
-  check) may be applied in the `.tex` directly, made in the section's draft too, logged in its
-  ledger entry and listed in the hand-back.
+- **A substantive change reopens its section.** Re-draft it through
+  `library/workflows/02-adapt-a-draft/` or `library/workflows/03-improve-your-draft/` and promote it
+  again through `library/workflows/04-promote-a-section/`, so its ledger stays true; a material
+  change also clears its gates (`STEPS.md`, 'Applying agreed fixes'). Agreed corrections (a slip, a
+  figure fixed by the fact check) may be applied in the `.tex` directly, made in the section's draft
+  too, logged in its ledger entry and listed in the hand-back.
 - **A tone pass never changes a figure, a date, a scope boundary or a commitment.**
 - **`final` is the author's word, in words, after every gate.** Never set it on a likely yes.
 - **Register before the issue proof.** V6.2 needs the row, so the document is registered at the

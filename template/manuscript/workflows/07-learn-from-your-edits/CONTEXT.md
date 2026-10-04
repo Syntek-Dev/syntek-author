@@ -41,8 +41,8 @@ the problem is one section's wording (`manuscript/workflows/02-adapt-a-draft/`).
   stays unlearned.
 - **Conflicts** between a proposed note and the style sheet or an existing note, raised for the
   author to settle.
-- **A dated entry** in `.claude/MEMORY.md` Decisions when an approved note overturns an earlier
-  voice decision.
+- **A dated entry** in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+  `## Memory headings`) when an approved note overturns an earlier voice decision.
 
 ## The one thing that matters: evidence, not impressions
 

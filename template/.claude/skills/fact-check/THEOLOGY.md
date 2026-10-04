@@ -14,8 +14,7 @@ survey of believers found.
   `standards/verification/THEOLOGY.md` Section 2 (Scripture is part of V5); the chapter's argument
   map in `planning/src/arguments/`; the maps in `research/src/contested-readings/` the chapter
   leans on; `research/docs/reference/contested-readings.md`.
-- **The default translation** is named in `.claude/CLAUDE.md` Section 1, and its citation key in
-  the Project settings of `standards/style/style-sheet.md`.
+- **The default translation** is named in `00-project.md` `## Brief`, by its citation key.
 - **Keying sources:** where the project keeps the citation database, every source (each
   translation and edition included) is keyed with the add-reference skill in the same pass as its
   evidence entry.
@@ -64,9 +63,9 @@ survey of believers found.
 - **A fact does not settle a theological question.** Report what the sources establish and where
   they stop; the conclusion is the author's.
 - **What was heard in pastoral confidence is not a source** (`standards/risk/THEOLOGY.md` rule 3).
-- **Claims about the author's ministry, posts and qualifications** are checked against
-  `.claude/MEMORY.md` `## Facts` and put to the author where it is silent; an overstated credential
-  is the error a hostile reviewer finds first.
+- **Claims about the author's ministry, posts and qualifications** are checked against the `Facts`
+  heading of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) and put to the
+  author where it is silent; an overstated credential is the error a hostile reviewer finds first.
 
 ## Examples
 

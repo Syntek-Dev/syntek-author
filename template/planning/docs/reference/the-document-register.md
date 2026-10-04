@@ -9,11 +9,12 @@ model: opus
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-**What it is.** Four records in `planning/src/` track every document's life after it is
-written: the register (`document-register.md`), the review schedule (`review-schedule.md`), the
-approval records (`planning/src/approvals/`) and the stated precedence between instruments
-(`precedence.md`). Together they answer, for any document, what it is, which version is
-current, who approved it, when it is next reviewed and what it gives way to.
+**What it is.** Four records track every document's life after it is written: the register
+(`document-register.md`), the review schedule (`review-schedule.md`) and the stated precedence
+between instruments (`precedence.md`), all in `planning/src/`, and the approval records, in the
+Approvals path (`00-project.md` `## Paths`; by default `planning/src/approvals/`). Together they
+answer, for any document, what it is, which version is current, who approved it, when it is
+next reviewed and what it gives way to.
 
 ## Two lifecycles, never merged
 
@@ -31,7 +32,8 @@ The **writing status** lives in the unit brief and climbs the unit ladder to `fi
   requires its row. Its `DOC-NNN` goes into the brief's `number` and the document's Document
   Control reference then, so the issued file carries it.
 - Rows are never deleted; a retired document is set to `Archived`, `Superseded` or `Terminated`.
-- Rows are grouped by family, in the order the register's headings give.
+- Rows are grouped by document family: one heading per family the project ships (its folder
+  under `library/src/`), in the order the register gives, with `Category` naming the family.
 - Registered: instruments, policies, proposals, plans, reports, procedures, notices, templates
   and correspondence. Not registered: individual invoices, receipts, bank statements and raw
   data exports, which are financial records.
@@ -50,10 +52,11 @@ row, then the register row, then the review-schedule row.
 - Review cycles: `Quarterly`, `Bi-Annual` (every six months), `Annual`, `As-Required`. A row
   whose Next Review Date has passed without completion is `Overdue`, and is reported to the
   author before anything else is done.
-- An approval record, `planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md`, is made
-  when an instrument is signed by all parties, a policy is approved as `Active`, or a notice is
-  issued; never for templates, drafts, proposals, invoices or reports. It names each approver,
-  the date, the version, the scope and the method, and leaves no field guessed.
+- An approval record, `approval-<doc-type>-DD-MM-YYYY.md` in the Approvals path
+  (`00-project.md` `## Paths`; by default `planning/src/approvals/`), is made when an
+  instrument is signed by all parties, a policy is approved as `Active`, or a notice is issued;
+  never for templates, drafts, proposals, invoices or reports. It names each approver, the
+  date, the version, the scope and the method, and leaves no field guessed.
 
 ## How we apply it here
 

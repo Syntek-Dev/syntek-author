@@ -23,7 +23,7 @@ the same picture of the work.
 | `arcs/` | `chart-character-arc` | `planning/workflows/04-chart-a-character-arc/` |
 <: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING :>| `quests/` | `design-quest` | `planning/workflows/05-design-a-quest/` |
 <: endif :><: if DOC_TYPE == 'business' :>| `review-schedule.md` | by hand, after each review | `planning/workflows/06-run-a-review-cycle/` |
-| `approvals/` | by hand, every field confirmed | `planning/workflows/07-record-an-approval/` |
+| `approvals/` (or the Approvals path in `00-project.md` `## Paths`) | by hand, every field confirmed | `planning/workflows/07-record-an-approval/` |
 | `document-register.md`, `precedence.md` | by hand, or `promote-section` | `planning/workflows/08-update-the-register/` |
 <: endif :>| `maps/` | `wayfinder` | the skill's CHART and RESOLVE steps |
 | `reviews/` | `structure-review` | `planning/workflows/09-review-the-whole-work/` |

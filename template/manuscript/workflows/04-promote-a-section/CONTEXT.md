@@ -38,7 +38,7 @@ good' said in passing is not the word: ask.
 - **The ledger entry** with `## Author final`, `promoted` and `change_ratio` filled.
 - **A row** in `standards/style/ledger/provenance.md`.
 - **The brief's** `sections:` entry set to `promoted`, and the chapter's line under Status in
-  `.claude/MEMORY.md` brought up to date.
+  `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) brought up to date.
 
 ## The two things this procedure exists to force
 

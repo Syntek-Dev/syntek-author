@@ -3,8 +3,9 @@
 # CLAUDE.md — research/src/testimony/
 
 Read order: **`standards/risk/sensitive-content.md`** → `.claude/CLAUDE.md` → `.claude/MEMORY.md`
-(Sensitivities) → `research/CONTEXT.md` → `research/CLAUDE.md` → `research/src/CONTEXT.md` →
-`research/src/CLAUDE.md` → this folder's `CONTEXT.md` (imported above) → this file.
+(Sensitivities, mapped in `00-project.md` `## Memory headings`) → `research/CONTEXT.md` →
+`research/CLAUDE.md` → `research/src/CONTEXT.md` → `research/src/CLAUDE.md` → this folder's
+`CONTEXT.md` (imported above) → this file.
 
 ## Purpose (one line)
 

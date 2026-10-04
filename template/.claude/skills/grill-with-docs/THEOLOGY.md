@@ -26,9 +26,9 @@ maps and the evidence base.
 | settles how a contested passage is read | the contested-reading map for that passage; the brief cites it |
 | settles what the evidence supports | an evidence entry in `research/src/evidence/`, through `fact-check` |
 | pins a contested term | `standards/style/terminology.md`: the adopted reading in **Meaning**, the others in **Use** |
-| designates the objection the book leaves standing, or changes it | `.claude/MEMORY.md` `Decisions`, moved out of `Open questions`, dated |
-| settles the bias disclosure: what it says and where it is restated | `.claude/MEMORY.md` `Decisions`, and the brief of each unit that restates it |
-| chooses chapters for a proposal sample, where a proposal is in hand | `.claude/MEMORY.md` `Decisions`; it also sets the drafting order |
+| designates the objection the book leaves standing, or changes it | `.claude/MEMORY.md`, the `Decisions` heading (mapped in `00-project.md` `## Memory headings`), moved out of the `Open questions` heading, dated |
+| settles the bias disclosure: what it says and where it is restated | `.claude/MEMORY.md`, the `Decisions` heading, and the brief of each unit that restates it |
+| chooses chapters for a proposal sample, where a proposal is in hand | `.claude/MEMORY.md`, the `Decisions` heading; it also sets the drafting order |
 
 - **Step 4 — also treat the standing commitments as gate-passing by nature.** The objection left
   standing and the bias disclosure cut across every unit: once settled they are hard to reverse
@@ -62,6 +62,6 @@ maps and the evidence base.
 - C2: the argument map, claims C1 to C4.
 ```
 
-In `.claude/MEMORY.md` `Decisions`: `- **03/10/2026** — **The objection left standing: rest as
-privilege.** Chapter 6 names it and does not answer it. Rejected: answering it in Chapter 7,
-which would undercut the concession in Chapter 3.`
+Under the `Decisions` heading of `.claude/MEMORY.md`: `- **03/10/2026** — **The objection left
+standing: rest as privilege.** Chapter 6 names it and does not answer it. Rejected: answering it
+in Chapter 7, which would undercut the concession in Chapter 3.`

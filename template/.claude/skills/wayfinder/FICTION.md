@@ -4,8 +4,8 @@ What a novel charts with a map, where its settled nodes go, and how a language m
 
 ## Paths and unit
 
-- **Map files:** `planning/src/maps/MAP-<TOPIC>.md`, for example `MAP-PART-TWO.md` or
-  `MAP-THE-COAST-TONGUES.md`.
+- **Map files:** in the decision maps folder `00-project.md` `## Paths` names (by default
+  `planning/src/maps/MAP-<TOPIC>.md`), for example `MAP-PART-TWO.md` or `MAP-THE-COAST-TONGUES.md`.
 - **Reads (step 5):** `planning/src/outline.md`, the briefs in `planning/src/units/`,
   `planning/src/causality.md`, `planning/src/timeline.md`, `planning/src/continuity.md`,
   `planning/src/arcs/`, the story bible in `world/src/` (with the kits, the peoples, cultures,
@@ -46,7 +46,7 @@ What a novel charts with a map, where its settled nodes go, and how a language m
 | a character's want, need, wound or voice | the character's file in `world/src/characters/`; the arc in `planning/src/arcs/` |
 | a place, people, culture, era or creature | its file in the story bible |
 | a name | `world/src/names-register.md`, through create-name |
-| a language's real-world model and period | the language's `language.toml` `[[inspiration]]`, and `.claude/MEMORY.md` `Decisions` |
+| a language's real-world model and period | the language's `language.toml` `[[inspiration]]`, and the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) |
 | a script's inspiration | `[meta.inspiration]` in the language's `script/glyphs.toml` |
 | a word's flavour, stratum or point of entry | the word's lexicon entry: `echo`, `stratum`, `entered_after` |
 | a researched fact about a real language or script family | a note in `research/src/setting/`, through `research` |

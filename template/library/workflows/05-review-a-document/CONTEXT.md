@@ -33,7 +33,8 @@ author only wants to see a proof (`library/workflows/06-build-a-proof/`).
 - **A structural review** at `planning/src/reviews/REVIEW-<scope>-DD-MM-YYYY.md`, marked advice
   only; decisions enter `.claude/MEMORY.md` only when the author dates them.
 - **Evidence entries** in `research/src/evidence/` for every claim checked.
-- **Corrections** in the `.tex`, and any section reopened through workflows 02–04.
+- **Corrections** in the `.tex`, and any section reopened through `02-adapt-a-draft` or
+  `03-improve-your-draft` and promoted again through `04-promote-a-section`.
 - **Status and gate dates** in the unit brief and the `.tex` status block, stage by stage.
 - **At the end of the line edit, before the issue proof:** a register row at Status `Draft` and,
   where the document has a review cycle, a review-schedule row; the `DOC-NNN` in the Document

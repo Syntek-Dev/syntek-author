@@ -25,9 +25,9 @@ it uses. **Run in order** — the ordering is load-bearing — and tick `CHECKLI
 
 > **Skill:** `sensitivity-pass` · **Guide:** `research/docs/reference/handling-testimony.md`
 
-Read the standard, `.claude/MEMORY.md` (Sensitivities), the guide, and
-`research/src/testimony/CONTEXT.md` and `CLAUDE.md`. Do not open a note until this is done.
-_Substantive._
+Read the standard, `.claude/MEMORY.md` (Sensitivities, mapped in `00-project.md`
+`## Memory headings`), the guide, and `research/src/testimony/CONTEXT.md` and `CLAUDE.md`. Do not
+open a note until this is done. _Substantive._
 
 ## 2. Check the author's readiness
 

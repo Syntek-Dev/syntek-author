@@ -12,7 +12,7 @@ a muddle?
 - **Extra reads:** `manuscript/docs/reference/scene-craft.md` (orientation); the chapter's brief,
   including its `## Continuity facts`; `planning/src/causality.md`, for what the story deliberately
   withholds; `world/src/names-register.md`.
-- **The audience** in `.claude/CLAUDE.md` Section 1 is one of middle grade, young adult or adult.
+- **The audience** in `00-project.md` `## Brief` is one of middle grade, young adult or adult.
 
 ## Additions to the steps
 

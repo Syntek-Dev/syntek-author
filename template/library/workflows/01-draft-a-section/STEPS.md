@@ -25,9 +25,10 @@ Confirm with the author which document and which section: its slug and `order` f
 `sections:` list in `planning/src/units/<unit-slug>.md`. Read the brief's `## Scope`,
 `## What this unit does`, `## Sections`, `## Obligations and defined terms`, `## Draws on` and
 `## Draft notes`. If the brief's `status:` is still `idea` (V1 not dated), stop: the brief is not
-agreed, and `planning/workflows/01-plan-a-unit/` settles it. Then read the family folder's pair
-and, for a client document, the client's facts in
-`library/src/contracts/client-docs/<client-slug>/CONTEXT.md`. _Substantive._
+agreed, and `planning/workflows/01-plan-a-unit/` settles it. Then read the family folder's pair,
+the family's standard (`library/docs/reference/<family>-standards.md`) and, for a client document,
+the client's facts: `## Facts` in `library/src/business/client-docs/<client-slug>/CONTEXT.md`, or
+where `00-project.md ## Paths` says. _Substantive._
 
 ## 2. Settle the five questions
 
@@ -46,9 +47,10 @@ in the brief so they are asked once per document, not once per section. _Substan
 
 Read `standards/method/method.md` with its `BUSINESS.md`, the style trio in `standards/style/`
 (`style-sheet.md`, `voice-notes.md`, `terminology.md`) and two or three of the author's own pieces
-in `standards/style/samples/`. For running copy, read `standards/brand/brand-voice.md`; for an
-instrument, read `planning/src/precedence.md` and every document in its family that this section
-must agree with. Read any sections of the same document already promoted. _Substantive._
+in `standards/style/samples/`. For running copy, read the brand voice in the brand folder
+`00-project.md ## Paths` names; for an instrument, read `planning/src/precedence.md` and every
+document in its family that this section must agree with. Read any sections of the same document
+already promoted. _Substantive._
 
 ## 4. Gather every fact — before drafting
 
@@ -86,7 +88,7 @@ Write the section the brief planned, and only that: the point first; then the de
 it checkable; then the limit, stated honestly; then the way forward. Open with a heading if the
 section starts a new part of the document. One sentence per line. Use defined terms exactly as
 `terminology.md` and the brief define them; in an instrument, 'shall', 'may' and 'must' each
-intended; write as 'I' or 'we', whichever `standards/style/voice-notes.md` records for the
+intended; write as 'I' or 'we', whichever `00-project.md ## Brief` sets for the
 business. Aim at the word target, but never cut an obligation to meet it. _Substantive._
 
 ## 8. Flag every gap

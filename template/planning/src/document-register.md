@@ -25,35 +25,37 @@ A document is registered at the end of its line edit, before the issue proof, an
    Never delete a row: a retired document is set to `Archived`, `Superseded` or `Terminated`, and its `Notes` name what replaced it.
 3. **Columns stay in this order**, with the values the guide gives.
    `File Path` is relative to `library/src/`; `Version` is `vMAJOR.MINOR`, or `—` for a living document; dates are DD/MM/YYYY, or `—`.
-4. **Rows sit under their family's heading**, in ID order.
+4. **Rows sit under their family's heading**, in ID order: one heading per document family this project ships (its folder under `library/src/`).
+   `Category` names that family, as its heading reads; `Type` names the kind of document.
 5. **Update `Last Updated` above on every edit.**
 
-## Proposals
+## Business
 
 | ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-
-## Contracts
-
-| ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-
-## Policies
+<: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>
+## Legal
 
 | ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-
-## Correspondence
-
-| ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-
-## Finance
+<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>
+## Email
 
 | ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-
-## Marketing
+<: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>
+## Accounting
 
 | ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+<: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>
+## Social Media
+
+| ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+<: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>
+## MSP-SCP
+
+| ID | Document Name | Category | Type | File Path | Version | Status | Owner | Created Date | Last Reviewed | Next Review Date | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+<: endif -:>

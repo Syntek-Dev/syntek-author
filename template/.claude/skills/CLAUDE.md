@@ -14,11 +14,14 @@ keep improving them.
 
 - **Routing:** to find the right skill, read `.claude/rules/syntek-author/02-skills.md`, or let
   `run-workflow` resolve the job to a workflow, which names its skills. To change how a template
-  skill behaves in this project, write a rule in `.claude/CLAUDE.md` Section 3.
+  skill behaves in this project, write an override under `## Overrides` in
+  `.claude/rules/syntek-author/00-project.md`.
 - **Model:** **Opus** for any change in this folder; a skill's own steps name their tier
   (`.claude/rules/syntek-author/05-model-allocation.md`).
-- **Concrete steps:** read the whole `SKILL.md`, then its mode file → follow the steps in order,
-  each to its completion test → cite, rather than restate, the procedures it routes to.
+- **Concrete steps:** read the whole `SKILL.md`, then its mode file if the `SKILL.md` carries the
+  Mode paragraph → take project values (the reader, paths, memory headings) from `00-project.md`
+  → follow the steps in order, each to its completion test → cite, rather than restate, the
+  procedures it routes to.
 - **Definition of done:** the skill's own completion tests pass, and nothing under
   `.claude/skills/` changed unless the author asked for that change.
 

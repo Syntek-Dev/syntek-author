@@ -1604,6 +1604,8 @@ def self_test() -> int:
     """Build a small language in a temporary folder and prove each check still separates."""
     import contextlib
     import io
+    import shutil
+    import subprocess
     import tempfile
     print("lexicon.py --self-test")
     failures = []
@@ -1686,6 +1688,20 @@ rule = "%s"
             code = main(["surface", "--languages", str(langs), "t", decomposed + "ta"])
         expect("surface takes decomposed IPA from the command line",
                code == 0 and "\u00e3" in out.getvalue(), out.getvalue().strip())
+        # No tool reads what git ignores: a folder whose own .gitignore holds `*` is not
+        # ignored itself, but every file in it is, so it is never found as a language.
+        git = shutil.which("git")
+        if git:
+            hidden = langs / "hidden"
+            hidden.mkdir()
+            (hidden / "phonology.toml").write_text(phonology % "penultimate", encoding="utf-8")
+            (hidden / ".gitignore").write_text("*\n", encoding="utf-8")
+            subprocess.run([git, "init", "-q", str(langs)], capture_output=True, check=False)
+            listed = [d.name for d in language_dirs(langs)]
+            expect("a language folder whose files git ignores is never found",
+                   listed == ["lex", "t"], ", ".join(listed))
+        else:
+            print("  skip a language folder whose files git ignores: git is not installed")
     print(f"lexicon.py --self-test: {'FAILED' if failures else 'passed'}")
     return 1 if failures else 0
 

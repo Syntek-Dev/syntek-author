@@ -51,8 +51,9 @@ them across a whole sweep.
 1. **Fix the scope and read the rules.** Name what is being checked: one claim, one section draft,
    or a whole unit (the content layer, see `.claude/rules/syntek-author/01-layout-and-routing.md`).
    Read `standards/method/method.md`, `research/docs/reference/vetting-evidence.md`, gate V5 in
-   `standards/verification/verification.md` with its mode file, and `.claude/MEMORY.md` `## Facts`
-   (for claims about the author). For a single claim, the queue in step 2 has one item.
+   `standards/verification/verification.md` with its mode file, and the `Facts` heading of
+   `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`), for claims about the
+   author. For a single claim, the queue in step 2 has one item.
    *Complete when:* the scope is named in one line and the governing files have been read.
 
 2. **Build the claim queue.** Read the scope sentence by sentence, footnotes and notes included,
@@ -85,9 +86,9 @@ them across a whole sweep.
    one subject into one dispatch. Follow every chain back to its origin; a report of a study is
    never cited when the study can be read. A search snippet, a model's answer or a summary nobody
    opened is a lead, not a source, and agreement among secondary sources is one source counted
-   many times. A claim about the author goes to `.claude/MEMORY.md` `## Facts`, then to the author.
-   Wait for each research result before step 6; never assign a verdict while a dispatch is
-   outstanding.
+   many times. A claim about the author goes to the `Facts` heading of `.claude/MEMORY.md`, then to
+   the author. Wait for each research result before step 6; never assign a verdict while a
+   dispatch is outstanding.
    *Complete when:* every dispatch has returned, and each claim has a primary source that was
    read, with its locator, or a recorded statement that none was found and where the chain ended.
 
@@ -113,8 +114,8 @@ them across a whole sweep.
    that serves several units has one entry listing them all under `serves`. Never overwrite an
    entry: supersede it with a dated addition under `## History`. Where the project keeps the
    citation database, key the source with the add-reference skill in the same pass, then run
-   `make dump` and `make refs`. A claim about the author that matches `## Facts` needs no entry
-   unless an outside source is cited.
+   `make dump` and `make refs`. A claim about the author that matches the `Facts` heading needs no
+   entry unless an outside source is cited.
    *Complete when:* every verdict has its entry, no earlier entry was overwritten, and every key
    minted is recorded in its entry.
 
@@ -163,5 +164,6 @@ them across a whole sweep.
   claim.
 - `.claude/skills/structure-review/SKILL.md` — the review stage before this one.
 - `.claude/skills/comprehension/SKILL.md` — the line-edit stage that follows the fact gates.
-- `.claude/MEMORY.md` — `## Facts`, the record claims about the author are checked against.
+- `.claude/MEMORY.md` — the `Facts` heading (mapped in `00-project.md` `## Memory headings`), the
+  record claims about the author are checked against.
 - `.claude/rules/syntek-author/06-global-rules.md` — locale, and Section 10 on confidential material.

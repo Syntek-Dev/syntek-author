@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. Project-specific rules belong in `.claude/CLAUDE.md` Section 3.
+> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 The authoring constitution. Every skill that drafts, revises, checks or promotes prose works
 inside it, and where a skill and this file disagree, this file wins and the disagreement is
@@ -59,12 +59,18 @@ promoted`. They are separate from the unit's ladder, `idea · outlined · draft 
 · fact-check · line-edit · final` (`stub` is accepted as `outlined`), which moves only through the
 gates of `standards/verification/verification.md` and, past `draft`, the review workflow
 (Section 9).
-
+<: if DOC_TYPE == 'business' :>
+**Scope.** The loop, Section 3's section size and Section 8's ledger apply to a document planned
+as a unit (`planning/workflows/01-plan-a-unit/`). A document that a family workflow fills whole
+from a family template, on the form or report route it names for that, is not drafted by section
+and keeps no ledger; its flags and gate V6 still apply.
+<: endif :>
 ---
 
 ## 3. Section size
 
-**Requirement.** Work one section at a time: typically 300 to 500 words, and one move —
+**Requirement.** Work one section at a time<: if DOC_TYPE == 'business' :> (within Section 2's
+scope)<: endif :>: typically 300 to 500 words, and one move —
 <: if DOC_TYPE == 'theology' :>one step of the argument.
 <: elif DOC_TYPE == 'fiction' :>one scene beat.
 <: else :>one clause group, or one part of a letter or proposal.
@@ -108,7 +114,8 @@ it reads as finished, survives every later pass, and is found by a reviewer, a r
 | `AUTHOR TO CONFIRM` | a decision only the author can make | `<!-- AUTHOR TO CONFIRM: … -->` | `\dnote{AUTHOR TO CONFIRM: …}` | the author's answer, applied |
 | `VERIFY` | a checkable claim not yet verified | `<!-- VERIFY: … -->` | `\dnote{VERIFY: …}` | `fact-check`, with a real source recorded in `research/src/evidence/` |
 
-- `make flags` lists every flag in the project. The `final` gate requires **zero of both**.
+- `make flags` lists every flag in the project, with any open-item pattern `tooling/project.mk`
+  adds (`FLAG_EXTRA_RE`). The `final` gate requires **zero of both**, and zero of those.
 - One flag per question, worded so that it can be answered cold by someone who was not there.
 - **Never delete a flag to pass a gate.** Removing it without its answer is a fabrication.
 - An unanswerable flag stays, and the unit stays below `final`.
@@ -153,8 +160,8 @@ exegesis, or moves from one passage to systematic theology without saying so. `c
 finds them; `draft-section` labels each move with its category in a trailing comment block.
 
 - **Scripture is never quoted from memory.** Name the reference and the translation (the default
-  key is `<%BIBLE_TRANSLATION%>`), check the wording against that translation, and carry `VERIFY`
-  until it is checked.
+  key is in `00-project.md` `## Brief`), check the wording against that translation, and carry
+  `VERIFY` until it is checked.
 - **Original-language claims need a lexicon or grammar as their source**, cited, or a `VERIFY`.
 - **A contested reading is named in the body**, not only in a footnote, and each reading is stated
   so that its holders would recognise it.
@@ -188,11 +195,13 @@ figure on your own initiative.
 - `shall`, `may` and `must` are chosen deliberately, and no `will` is left unbounded
   (`obligation-check`).
 - A template field with no answer yet reads `[AWAITING USER INPUT]`; it is never filled with a
-  guess.
-- Statutes and regulations are cited only once verified, with jurisdiction (<%JURISDICTION%>) and
-  date; never cite a section number from memory.
-- Disclaimers come verbatim from `standards/brand/disclaimers.md`; never paraphrase one.
-- Amounts are in <%CURRENCY%>, and the voice is first person <: if BUSINESS_VOICE_PERSON == 'plural' :>plural ('we')<: else :>singular ('I')<: endif :>.
+  guess, and `make flags` counts it as an open item.
+- Statutes and regulations are cited only once verified, with jurisdiction (`00-project.md`
+  `## Brief`) and date; never cite a section number from memory.
+- Disclaimers come verbatim from the disclaimers file (`00-project.md` `## Paths`, 'Disclaimers';
+  by default `standards/brand/disclaimers.md`); never paraphrase one.
+- Amounts are in the currency, and the voice is in the person, that `00-project.md` `## Brief`
+  sets.
 
 **Why this rule exists.** A client reads every sentence as a promise. A tidied obligation is a
 changed contract, and the author is bound by it whether or not they noticed the change.
@@ -201,7 +210,7 @@ changed contract, and the author is bound by it whether or not they noticed the 
 
 ## 8. Provenance and AI disclosure
 
-**Requirement.** Every section has a ledger entry from its first draft, at
+**Requirement.** Every section<: if DOC_TYPE == 'business' :> within Section 2's scope<: endif :> has a ledger entry from its first draft, at
 `standards/style/ledger/<unit>--<section-slug>.md`, where `<unit>` is the unit's name, number
 included (`.claude/rules/syntek-author/08-naming-and-memory.md` Section 1), holding:
 
@@ -233,7 +242,7 @@ it becomes a guess, and a guess about authorship is the claim most damaging to g
 - **Promotion happens only on the author's explicit word.** `promote-section` then checks the
   section's gates and that it carries no flags, inserts it at its marker in plan order, sets
   `status: promoted`, records the ledger's `## Author final`, and updates the unit brief and the
-  Status section of `.claude/MEMORY.md`.
+  Status heading of `.claude/MEMORY.md` (as `00-project.md` `## Memory headings` maps it).
 - **A unit becomes `final` only through the review workflow and the author's word**, never through
   promotion. The gates for each step of the ladder are numbered in
   `standards/verification/verification.md`; the unit brief's `verified:` map records which passed.

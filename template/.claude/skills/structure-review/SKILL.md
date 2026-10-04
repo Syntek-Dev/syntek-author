@@ -61,12 +61,14 @@ are the procedure of record; this skill is their review step in skill form.
    *Complete when:* the scope, the question and the lens list are fixed, with every assumption
    written down.
 
-2. **Read the plan and the record.** `.claude/CLAUDE.md` Section 1 (the brief and the stated
-   reader); `.claude/MEMORY.md` `## Decisions` and `## Open questions`, so that no dated decision is
-   re-argued unawares; `planning/src/outline.md`; every unit brief in scope in `planning/src/units/`
-   (scope, what the unit does, each section's purpose, the settled positions); the plans the mode
-   file names; the most recent review of the same scope in `planning/src/reviews/`, and what the
-   author decided about it.
+2. **Read the plan and the record.** The project brief (the 'Project brief' row of `00-project.md`
+   `## Paths` locates it) and the stated reader (`00-project.md` `## Brief`); the `Decisions` and
+   `Open questions` headings of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`), so that no dated decision is re-argued unawares;
+   `planning/src/outline.md`; every unit brief in scope in `planning/src/units/` (scope, what the
+   unit does, each section's purpose, the settled positions); the plans the mode file names; the
+   most recent review of the same scope in `planning/src/reviews/`, and what the author decided
+   about it.
    *Complete when:* every artefact in scope has been read, the decisions this review must respect
    are listed, and the earlier review (if any) is noted.
 
@@ -123,8 +125,8 @@ are the procedure of record; this skill is their review step in skill form.
   standard. The review advises; the owning procedure acts.
 - **Averaging the lenses,** or running them as one blended pass ('the panel feels…'). Each lens
   reads alone; dissent is kept.
-- **Re-arguing a dated decision unawares.** If a finding contradicts a decision in `.claude/MEMORY.md`,
-  say so in the finding and give the reason it is worth reopening, or leave it out.
+- **Re-arguing a dated decision unawares.** If a finding contradicts a decision under the
+  `Decisions` heading, say so in the finding and give the reason it is worth reopening, or leave it out.
 - **Reviewing the plan instead of the page.** The work is judged as written; a gap between plan and
   prose is a finding, not something to read past.
 - **Line editing in a structural review.** Commas, word choice and rhythm are for `comprehension`,

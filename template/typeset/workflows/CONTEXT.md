@@ -39,6 +39,7 @@ The author's procedures are numbered separately in `typeset/workflows/local/`.
 ## Cross-references
 
 - `typeset/workflows/local/` — the author's procedures, and same-named overrides of these.
-- `typeset/docs/reference/the-typesetting-pipeline.md` — how procedures 02 to 04 fit together.
+- `typeset/docs/reference/the-typesetting-pipeline.md` — how `02-typeset-a-chapter`,
+  `03-retypeset-after-edits` and `04-typeset-the-book` fit together.
 - `.claude/rules/syntek-author/05-model-allocation.md` — what the checklist model tags mean.
 - `manuscript/workflows/` — the procedures that write and promote the words printed here.

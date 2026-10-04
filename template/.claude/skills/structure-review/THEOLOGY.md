@@ -21,12 +21,13 @@ after it.
 ## Additions to the steps
 
 - **Step 2 — also read:** each chapter's argument map; the contested-reading maps it relies on; in
-  `.claude/MEMORY.md`, any objection the author has designated as standing and any declared bias
+  `.claude/MEMORY.md` (its `Decisions` heading, mapped in `00-project.md` `## Memory headings`),
+  any objection the author has designated as standing and any declared bias
   (`standards/method/THEOLOGY.md` rules 7 and 8), which the review must not 'fix'.
 - **Step 4 — the panel, in this order:**
-  1. *Thesis critic* — does the chapter advance the thesis in `.claude/CLAUDE.md` Section 1; where
-     does a conclusion outrun its evidence; what is the hinge the argument turns on, and is it
-     argued or assumed?
+  1. *Thesis critic* — does the chapter advance the thesis in the project brief (`00-project.md`
+     `## Paths`, 'Project brief'); where does a conclusion outrun its evidence; what is the hinge
+     the argument turns on, and is it argued or assumed?
   2. *Acquisitions editor* — is there a book here a publisher could sell; is the chapter's promise
      clear on its first page; would this chapter be missed if cut? Market claims and comparable
      titles are claims to verify.

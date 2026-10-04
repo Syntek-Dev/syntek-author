@@ -22,14 +22,14 @@ call).
 
 | You want to… | Procedure | Usually followed by |
 |---|---|---|
-| Draft the next section | `manuscript/workflows/01-draft-a-section/` | 02, or the author's own edits |
-| Revise a draft from notes | `manuscript/workflows/02-adapt-a-draft/` | 02 again, or 04 |
-| Improve a section you wrote | `manuscript/workflows/03-improve-your-draft/` | 03 again, or 04 |
-| Promote an approved section | `manuscript/workflows/04-promote-a-section/` | 01 for the next section, or 05 when none remain |
+| Draft the next section | `manuscript/workflows/01-draft-a-section/` | `02-adapt-a-draft`, or the author's own edits |
+| Revise a draft from notes | `manuscript/workflows/02-adapt-a-draft/` | `02-adapt-a-draft` again, or `04-promote-a-section` |
+| Improve a section you wrote | `manuscript/workflows/03-improve-your-draft/` | `03-improve-your-draft` again, or `04-promote-a-section` |
+| Promote an approved section | `manuscript/workflows/04-promote-a-section/` | `01-draft-a-section` for the next section, or `05-review-a-chapter` when none remain |
 | Review a whole chapter | `manuscript/workflows/05-review-a-chapter/` | the procedures its report names |
 | Build and read a proof | `manuscript/workflows/06-build-a-proof/` | whichever procedure owns each fix |
-| Teach the AI your voice | `manuscript/workflows/07-learn-from-your-edits/` | 01 for the next section |
-<: if DOC_TYPE == 'theology' :>| Audit a chapter's objections | `manuscript/workflows/10-steelman-the-objections/` | 02 or 03 for the sections it flags |
+| Teach the AI your voice | `manuscript/workflows/07-learn-from-your-edits/` | `01-draft-a-section` for the next section |
+<: if DOC_TYPE == 'theology' :>| Audit a chapter's objections | `manuscript/workflows/10-steelman-the-objections/` | `02-adapt-a-draft` or `03-improve-your-draft` for the sections it flags |
 <: endif :>
 - **Routing:** read the procedure's `CONTEXT.md` → `CLAUDE.md` → `STEPS.md`, then work the steps in
   order with `CHECKLIST.md` open. Each step names its skill; the skill's mode file adds this
@@ -42,7 +42,8 @@ call).
 - **Concrete steps (changing one):** confirm with the author first, because a procedure change
   alters how every later chapter is made. A template procedure is changed by overriding it in
   `manuscript/workflows/local/` under the same folder name, never in place. Change all four files
-  together, and date the decision in `.claude/MEMORY.md` Decisions.
+  together, and date the decision in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+  `## Memory headings`).
 - **Definition of done (running):** every checklist item ticked or explicitly waived with a reason;
   the artefact is where the procedure says; nothing promoted without the author's word.
 

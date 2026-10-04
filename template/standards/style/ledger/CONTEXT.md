@@ -7,7 +7,9 @@ exists for two readers. A publisher who asks how AI was used gets a factual answ
 `make provenance` instead of a recollection; and `learn-voice` learns the author's voice from
 what the author changed and, above all, from what they rejected. The template ships only this
 pair and the empty `provenance.md` register and, in a project generated with the worked example,
-that example's ledger entries (seed-once; delete them with the example).
+that example's ledger entries (seed-once; delete them with the example). This path is fixed
+(`00-project.md` `## Paths`, 'Ledger'): `make provenance` and every draft's `ledger:` pointer
+read it.
 
 ## Directory Tree
 

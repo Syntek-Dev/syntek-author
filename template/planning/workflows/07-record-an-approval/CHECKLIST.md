@@ -10,9 +10,10 @@ model: opus
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **See** `planning/docs/reference/the-document-register.md` and
-> `planning/src/approvals/CONTEXT.md`. Gates are cited from
-> `standards/verification/verification.md` by number (V1, V2 …) and never restated here.
+> **See** `planning/docs/reference/the-document-register.md` and the record's shape in the
+> Approvals folder's `CONTEXT.md` (by default `planning/src/approvals/CONTEXT.md`). Gates are
+> cited from `standards/verification/verification.md` by number (V1, V2 …) and never restated
+> here.
 
 ## Pre-Conditions
 
@@ -31,7 +32,7 @@ model: opus
 
 **Record**
 
-- [ ] Record written at `planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md`, dated by the event. · _sonnet_
+- [ ] Record written in the Approvals path (`00-project.md` `## Paths`; by default `planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md`), dated by the event. · _sonnet_
 - [ ] **No field guessed and no placeholder left.** · _sonnet_
 - [ ] No secret recorded: no password, access code or signature image. · _sonnet_
 

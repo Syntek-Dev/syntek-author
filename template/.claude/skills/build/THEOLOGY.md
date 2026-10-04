@@ -39,7 +39,7 @@ what a theology proof is read for.
   capitals for LORD where the style sheet asks for them; no section marker, internal note or
   claim-categories block visible.
 - **Step 6 — also find the default translation in the reference list**, where the project keeps
-  a citation database: its key is in the Project settings of `standards/style/style-sheet.md`.
+  a citation database: its key is in `00-project.md` `## Brief`.
   The build gives no warning when it is missing, so look for it; if it is absent, add the key
   with the add-reference skill and rebuild.
 

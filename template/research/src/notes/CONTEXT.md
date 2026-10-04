@@ -4,7 +4,8 @@ Question-led notes: one note per question the work needs settled, written by the
 from primary sources and cited claim by claim. Empty at generation. A note answers a question that
 no single source answers ('what did a parish clerk's week look like in the 1840s?', 'what must a
 retention notice contain?'); a reading note on one work lives in `research/src/sources/`, and a
-single checkable claim in `research/src/evidence/`.
+single checkable claim in `research/src/evidence/`. This is the default home: a project whose
+`00-project.md` `## Paths` names another ('Research notes') keeps its notes there.
 
 ## Directory Tree
 

@@ -51,7 +51,8 @@ that owns the fact · when it was established · how it was established · its s
 Locate, then read, at the origin: the study, the official statistics, the statute and its
 commencement, the official register, the archive record. **Follow the chain back;** never accept a
 figure from an outlet reporting on a study when the study is available. For a claim about the
-author, the source is `.claude/MEMORY.md` (Facts) and then the author. _Substantive._
+author, the source is `.claude/MEMORY.md` (Facts, mapped in `00-project.md` `## Memory headings`)
+and then the author. _Substantive._
 
 ## 5. Record two dates
 

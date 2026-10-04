@@ -22,7 +22,9 @@ variant ships live in `template/.github/workflows/` and never run here.
 - `audit-template.yml` — three jobs, each running every script's `--self-test` before its real
   run and reporting failures as `::error::` lines that accumulate:
   - **[1/3] Template source** — tokens, the mode-file block, pairs and shapes, the line cap,
-    personal data, development isolation, seeds, skills.
+    personal data, development isolation, seeds, skills; then shellcheck at warning level over
+    `migrations/`, `adopt/`, `.github/scripts/` and the template's hooks (shellcheck-py, pinned),
+    which runs even when an audit step failed.
   - **[2/3] Renders** — installs uv and Pandoc, renders every variant and profile once, and runs
     the per-render audits over all of them. XeLaTeX is not installed (too slow to be worth it
     here), so `make pdf` is proved locally and named as skipped in CI.

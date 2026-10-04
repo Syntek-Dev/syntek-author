@@ -22,9 +22,10 @@ load-bearing — and tick `CHECKLIST.md` as you go.
 
 > **Skill:** `grill-with-docs` · **Guide:** the package anatomy in `proposal/docs/reference/`
 
-Read `.claude/MEMORY.md` (Decisions, Open questions). The sample, the positioning and the hook are
-the author's decisions. Where one is open, put the question to the author; record only what the
-author confirms. Do not decide it to unblock yourself. _Substantive._
+Read `.claude/MEMORY.md` (Decisions, Open questions, mapped in `00-project.md`
+`## Memory headings`). The sample, the positioning and the hook are the author's decisions. Where
+one is open, put the question to the author; record only what the author confirms. Do not decide
+it to unblock yourself. _Substantive._
 
 ## 2. Check what actually exists
 
@@ -70,8 +71,9 @@ lifted from the briefs. Check it against the book as it stands. _Substantive._
 > **Skill:** `fact-check` · **Guide:** the package anatomy in `proposal/docs/reference/`
 
 The standing to write this book, not a follower count. Present tense for what the author does now,
-past for what they did; every claim checked against `.claude/MEMORY.md` (Facts) or put to the
-author. **Confirm before naming any employer, client or person.** _Substantive._
+past for what they did; every claim checked against `.claude/MEMORY.md` (Facts, mapped in
+`00-project.md` `## Memory headings`) or put to the author. **Confirm before naming any employer,
+client or person.** _Substantive._
 
 ## 8. Source every claim
 
@@ -87,8 +89,8 @@ Every market, 'why now', platform or reach claim goes through
 
 Recommend the sample with reasons; the author chooses. Add a row to
 `proposal/src/sample/sample-index.md` for each unit the author chose (only units whose sections
-are all promoted), and record the choice in `.claude/MEMORY.md` `## Decisions`. Never copy prose
-into the package. _Substantive._
+are all promoted), and record the choice in `.claude/MEMORY.md` `## Decisions` (mapped in
+`00-project.md` `## Memory headings`). Never copy prose into the package. _Substantive._
 
 ## 10. Proofread
 

@@ -18,7 +18,7 @@ model: opus
 - [ ] Read this folder's `CONTEXT.md` and `CLAUDE.md`, and the pipeline guide. · _sonnet_
 - [ ] At the repository root, the folder holding the `Makefile`. · _sonnet_
 - [ ] The chapter named with the author; its sections promoted. · _opus_
-- [ ] No styled file exists for it yet (otherwise procedure 03). · _sonnet_
+- [ ] No styled file exists for it yet (otherwise `03-retypeset-after-edits`). · _sonnet_
 - [ ] Open page-design choices noted from `typeset/src/page-design.md`. · _sonnet_
 
 ## Execution Checklist

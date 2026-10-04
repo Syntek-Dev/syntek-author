@@ -17,7 +17,7 @@ model: opus
 
 - [ ] Read this folder's `CONTEXT.md` and `CLAUDE.md`, and the pipeline guide. · _sonnet_
 - [ ] The chapter named; its revision promoted in the Markdown. · _opus_
-- [ ] A styled file exists for it (otherwise procedure 02). · _sonnet_
+- [ ] A styled file exists for it (otherwise `02-typeset-a-chapter`). · _sonnet_
 
 ## Execution Checklist
 

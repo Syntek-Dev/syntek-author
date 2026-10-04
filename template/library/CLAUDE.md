@@ -13,23 +13,29 @@ reaches a client, a member of staff or the public is one the author has seen and
 ## How to work here
 
 - **Routing:** identify the sublayer first.
+  - A new document → its family's create procedure in `workflows/` (for the business family,
+    `library/workflows/10-create-a-business-document/`), which drives the loop.
   - Writing, revising or finishing a document → `src/`, through the matching procedure in
     `workflows/`. The `run-workflow` skill resolves the request, `workflows/local/<slug>/` first.
   - Learning how something is done → `docs/reference/` (a same-named guide in `docs/project/`
     wins).
-  - A new document with no unit brief → `planning/workflows/01-plan-a-unit/` before anything here.
+  - Any document with no unit brief → `planning/workflows/01-plan-a-unit/` before it is drafted.
   - A live document due its scheduled review → `planning/workflows/06-run-a-review-cycle/`.
 - **Model:** **Opus** for substantive work; the mechanical tier for renames, ticks and builds
   (`.claude/rules/syntek-author/05-model-allocation.md`). Anything that could change a figure, a
   date, a scope boundary or a commitment is substantive, whatever it looks like.
 - **Concrete steps:**
-  1. Read the document's unit brief in `planning/src/units/` and the family folder's pair.
-  2. Read the client folder's `CONTEXT.md` when the document is for a client: it holds the facts.
+  1. Read the document's unit brief in `planning/src/units/`, the family folder's pair and the
+     family's standard (`library/docs/reference/<family>-standards.md`).
+  2. For a client document, read the client's facts: `## Facts` in
+     `library/src/business/client-docs/<client-slug>/CONTEXT.md`, or where `00-project.md ## Paths`
+     says.
   3. Run the procedure in `workflows/` with its `CHECKLIST.md` open.
   4. Hand back with every flag listed; promote and finalise only on the author's word.
 - **Definition of done:** the document sits at its versioned path in the right family, built from
-  the house skeleton, with every section promoted and recorded in the ledger, every flag at zero,
-  the review passed, `final` set on the author's word, and its register row written.
+  the house skeleton with the parts its family standard requires, with every section promoted and
+  recorded in the ledger, every flag at zero, the review passed, `final` set on the author's word,
+  and its register row written.
 
 ## Guardrails
 
@@ -52,5 +58,6 @@ reaches a client, a member of staff or the public is one the author has seen and
 - **Hand-written:** nothing at this root; work happens in the sublayers.
 - **Documents:** kebab-case, versioned where the family requires it,
   `<doc-type>-<client-slug>-v<major>-<minor>-<DD-MM-YYYY>.tex` for client documents
-  (`library/docs/reference/versioning-and-the-register.md`).
+  (`library/docs/reference/versioning-and-the-register.md`); each family's own patterns are in its
+  standard.
 - **Generated (never hand-edit):** rendered PDFs and Word copies, and everything under `build/`.

@@ -2,7 +2,8 @@
 """conlang_common.py: what lexicon.py, script.py and font.py share.
 
 Not run directly. It holds the one copy of each rule the three scripts must agree on:
-where the languages live and how a language is named on the command line; how a TOML file
+where the languages live and how a language is named on the command line (a language folder
+git ignores is never found, though one named outright is read); how a TOML file
 is read (every string NFC-normalised, so a decomposed IPA symbol or headword typed on an IPA
 keyboard or a Mac matches the precomposed one in the inventory); how build/ is created
 (always with its .gitignore); the em grid a script's glyphs are drawn on; the shape every
@@ -21,6 +22,8 @@ Standard library only; Python 3.11+ (tomllib).
 from __future__ import annotations
 
 import re
+import shutil
+import subprocess
 import sys
 import unicodedata
 import xml.etree.ElementTree as ET
@@ -100,21 +103,60 @@ def read_text(path: Path) -> str:
     return nfc(Path(path).read_text(encoding="utf-8"))
 
 
+LANGUAGE_FILES = ("language.toml", "phonology.toml", "lexicon.toml")
+
+
 def is_language(folder: Path) -> bool:
-    return any((folder / name).is_file()
-               for name in ("language.toml", "phonology.toml", "lexicon.toml"))
+    return any((folder / name).is_file() for name in LANGUAGE_FILES)
+
+
+def not_ignored(paths: list, where: Path) -> list:
+    """The paths git does not ignore (or a negation re-includes), in their order; all of them
+    outside a git work tree, or where git is not installed.
+
+    No tool reads what git ignores: an ignored folder holds local-only material. The paths go
+    to git and come back separated by NUL, so a name holding a quote is never mangled.
+    where: an existing folder inside the work tree to ask from."""
+    git = shutil.which("git")
+    if not paths or not git:
+        return list(paths)
+    inside = subprocess.run([git, "rev-parse", "--is-inside-work-tree"], cwd=where,
+                            capture_output=True, text=True)
+    if inside.stdout.strip() != "true":
+        return list(paths)
+    names = {str(Path(p).resolve()): p for p in paths}
+    proc = subprocess.run([git, "check-ignore", "-z", "--stdin", "--verbose", "--non-matching"],
+                          cwd=where, input="".join(n + "\0" for n in names),
+                          capture_output=True, text=True, encoding="utf-8",
+                          errors="surrogateescape")
+    if proc.returncode not in (0, 1):
+        raise Fatal(f"git check-ignore failed in {shown(where)}: {proc.stderr.strip()}")
+    fields = proc.stdout.split("\0")
+    keep = set()
+    for k in range(0, len(fields) - 3, 4):  # source, line, pattern, path
+        source, pattern, path = fields[k], fields[k + 2], fields[k + 3]
+        if not source or pattern.startswith("!"):
+            keep.add(path)
+    return [p for n, p in names.items() if n in keep]
 
 
 def language_dirs(languages: Path, need: str | None = None) -> list:
-    """Every language folder under the languages folder, sorted by slug.
+    """Every language folder under the languages folder that git does not ignore, sorted by
+    slug.
 
+    A folder is asked about through the files that make it a language (and need), never by
+    its own name: a folder whose own .gitignore holds `*` is not ignored itself, but every
+    file in it is. One ignored file of these keeps the whole folder out.
     need: a file every returned folder must have (e.g. 'script/glyphs.toml')."""
     if not languages.is_dir():
         return []
     found = [d for d in sorted(languages.iterdir()) if d.is_dir() and is_language(d)]
     if need:
         found = [d for d in found if (d / need).is_file()]
-    return found
+    marks = {d: [d / name for name in LANGUAGE_FILES if (d / name).is_file()]
+             + ([d / need] if need else []) for d in found}
+    seen = set(not_ignored([p for files in marks.values() for p in files], languages))
+    return [d for d in found if all(p in seen for p in marks[d])]
 
 
 def resolve_language(arg: str, languages: Path, need: str | None = None) -> Path:

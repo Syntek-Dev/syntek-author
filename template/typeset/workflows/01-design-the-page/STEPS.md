@@ -22,9 +22,9 @@ page count follow from it. Tick `CHECKLIST.md` as you go.
 > **Skill:** `typeset` · **Guide:** `typeset/docs/reference/the-house-class.md`
 
 Read `typeset/src/page-design.md` (what is settled, what is open) and `.claude/MEMORY.md`
-Decisions. Ask the author whether a printer or publisher has a specification: trim, minimum
-margins, bleed, font embedding. A specification fixes the choices it covers; record it as their
-reason. _Substantive._
+Decisions (mapped in `00-project.md` `## Memory headings`). Ask the author whether a printer or
+publisher has a specification: trim, minimum margins, bleed, font embedding. A specification
+fixes the choices it covers; record it as their reason. _Substantive._
 
 ## 2. Ask each open choice, one at a time
 
@@ -33,7 +33,7 @@ reason. _Substantive._
 In order: trim size → margins → body typeface and size → heading typeface → chapter opener and
 its label → scene-break mark → footnote style → drop capitals → any choice the mode file adds.
 For each: the options, a recommendation with its reason (genre conventions, the reader named in
-`.claude/CLAUDE.md` Section 1, the printer's limits), then wait for the author's answer. Before
+`00-project.md` `## Brief`, the printer's limits), then wait for the author's answer. Before
 recommending a typeface, check it is installed (`fc-list`), and say the author must confirm its
 licence covers print. _Substantive (the author's call)._
 
@@ -70,6 +70,7 @@ capital. Ask what the author would change; go back to step 2 for anything they d
 
 > **Skill:** `typeset` · **Guide:** `typeset/docs/reference/the-house-class.md`
 
-Add a dated line to `.claude/MEMORY.md` Decisions for any choice that is expensive to reverse:
-the trim (it sets the page count and the cover), and any typeface a cover designer will match.
+Add a dated line to `.claude/MEMORY.md` Decisions (mapped in `00-project.md` `## Memory headings`)
+for any choice that is expensive to reverse: the trim (it sets the page count and the cover), and
+any typeface a cover designer will match.
 Report back: what was settled, what is still open, and the sample's path. _Substantive._

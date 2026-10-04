@@ -14,8 +14,8 @@ with it.
 ## How to work here
 
 - **Routing:** no skill; this is a confirmation-and-record procedure. Guide
-  `planning/docs/reference/the-document-register.md`; record shape in
-  `planning/src/approvals/CONTEXT.md`.
+  `planning/docs/reference/the-document-register.md`; record shape in the Approvals folder's
+  `CONTEXT.md` (by default `planning/src/approvals/CONTEXT.md`).
 - **Model:** **Opus** for confirming that the event qualifies and what its scope was; the
   mechanical tier for writing the confirmed fields and the register edit
   (`.claude/rules/syntek-author/05-model-allocation.md`).
@@ -34,6 +34,7 @@ with it.
 
 ## Output & naming
 
-- **Writes:** `approval-<doc-type>-DD-MM-YYYY.md` in `planning/src/approvals/`; the register row;
-  where applicable, the review-schedule row.
+- **Writes:** `approval-<doc-type>-DD-MM-YYYY.md` in the Approvals path (`00-project.md`
+  `## Paths`; by default `planning/src/approvals/`); the register row; where applicable, the
+  review-schedule row.
 - **Does not touch:** the approved document itself.

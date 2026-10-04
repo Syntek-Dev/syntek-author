@@ -6,14 +6,18 @@ decide, what it costs, what they must do, and what happens if something goes wro
 
 ## Paths and unit
 
-- **The unit** is a document in a family under `library/src/<family>/`: a `.tex` deliverable or
-  Markdown correspondence, read as it will render.
+- **The unit** is a document in one of the families this project selected, under
+  `library/src/<family>/` (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`): a
+  `.tex` deliverable or Markdown copy such as an email, read as it will render.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the
+  family's required sections and conventions.
 - **The pass** is step 8 of `library/workflows/05-review-a-document/`.
 - **The reader** is the one the unit brief's `audience_note` names, within the audience in
-  `.claude/CLAUDE.md` Section 1 (client, staff, board or public).
+  `00-project.md` `## Brief` (client, staff, board or public).
 - **Extra reads:** `library/docs/reference/document-anatomy.md` (the reader's map, and the parts by
   family); `standards/method/BUSINESS.md` rule 5 (lead with the point); the document's definitions
-  clause; `standards/brand/brand-voice.md` Section 2 (the registers).
+  clause; Section 2 of the brand voice, the registers (`brand-voice.md` in the brand folder
+  `00-project.md` `## Paths` names; by default `standards/brand/brand-voice.md`).
 
 ## Additions to the steps
 

@@ -47,7 +47,7 @@ for turning the author's earlier writing into a chapter's accessible prose.
   standing** unless the author says otherwise (Section 7).
 - **Scripture and original languages are checked, never recalled** (Section 9), including in text
   quarried from the author's own earlier work.
-- **The reader named in `.claude/CLAUDE.md` Section 1 sets the register** of the main text; the
+- **The reader named in `00-project.md` `## Brief` sets the register** of the main text; the
   footnotes may carry the academic register, and the two are never mixed in one sentence.
 
 ## Examples

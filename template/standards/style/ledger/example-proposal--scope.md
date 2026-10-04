@@ -9,7 +9,7 @@ learned: false          # set true by learn-voice once promoted and mined
 ---
 
 <!-- WORKED EXAMPLE: the ledger entry for the example proposal's AI draft,
-     library/src/proposals/drafts/example-proposal/02-scope.md, shipped once by the template so
+     library/src/business/drafts/example-proposal/02-scope.md, shipped once by the template so
      that the draft's ledger: key resolves and the loop can be practised on it from the first
      session. Its AI original is the draft's body exactly as shipped. It is not a real document.
      Delete it with the example proposal, together with any provenance.md row added while

@@ -2,12 +2,15 @@
 %
 % Every .tex document starts from skeleton.tex, which loads this file with
 % \input{house-preamble}; `make pdf FILE=…` puts tooling/latex/ and assets/ on TEXINPUTS
-% so it is found from any folder. Template-owned: `copier update` merges improvements here.
+% so it is found from any folder (after LOGO_DIRS, when tooling/project.mk sets it, so a
+% logo is taken from the folder named there first). Template-owned: `copier update` merges
+% improvements here.
 %
 % THE BRAND IS NOT SET HERE. Colours and fonts below are neutral defaults. The author's
 % own values live in house-brand.tex (an optional file the author creates in
 % tooling/latex/, never shipped by the template), loaded at the end of this file, so a
-% template update never touches the brand. standards/brand/brand-guide.md maps each name.
+% template update never touches the brand. The brand guide maps each name (in the brand folder
+% 00-project.md ## Paths names; by default standards/brand/brand-guide.md).
 % house-brand.tex holds only \definecolor{house…}{HTML}{…} lines and font settings
 % (\setmainfont{…}, \setfontfamily\headingfont{…}), each naming an installed font.
 %
@@ -23,9 +26,13 @@
 %   \ins{…} \del{…} \cmt{…}        redline: inserted, deleted, commented text.
 %   \srule                         a short centred divider.
 %   \housetitle{title}{name}{date} the title block.
-%   housenotice environment        the disclaimer block (wording from
-%                                  standards/brand/disclaimers.md).
+%   housenotice environment        the disclaimer block (wording from the disclaimers file
+%                                  00-project.md ## Paths names).
 %   housecontrol environment       the document-control block: one `Label & Value \\` per row.
+%   \houseclassification{level}    the classification, in the running header and footer of
+%                                  every page (plain pages too). Call it in the preamble, after
+%                                  \input{house-preamble}. A document that never calls it keeps
+%                                  LaTeX's own page style: a page number at the foot, no header.
 
 \usepackage{fontspec}
 \usepackage[a4paper,margin=20mm]{geometry}
@@ -40,6 +47,7 @@
 \usepackage[normalem]{ulem}
 \usepackage{hyperref}
 \usepackage{sectsty}
+\usepackage{fancyhdr} % loaded, never applied, until \houseclassification is called
 
 % ── Neutral defaults (override in house-brand.tex) ───────────────────────────────────
 \definecolor{housebody}{HTML}{1A1A1A}
@@ -55,16 +63,9 @@
 \IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}}{}
 \newcommand{\headingfont}{\relax}  % house-brand.tex may set it: \setfontfamily\headingfont{…}
 
-% Symbols the body font may lack, when a fallback font is installed.
-\IfFontExistsTF{DejaVu Sans}{%
-  \newfontfamily\symfallback{DejaVu Sans}%
-  \newunicodechar{✓}{{\symfallback ✓}}%
-  \newunicodechar{✗}{{\symfallback ✗}}%
-  \newunicodechar{☐}{{\symfallback ☐}}%
-  \newunicodechar{☑}{{\symfallback ☑}}%
-  \newunicodechar{⚠}{{\symfallback ⚠}}%
-}{}
-\newunicodechar{^^^^fe0f}{}
+% Symbols the body font may lack (check marks, ballot boxes, arrows, box drawing): each is
+% drawn by the first installed fallback font that has it (symbol-fallback.tex, beside this file).
+\input{symbol-fallback}
 
 % ── Layout ───────────────────────────────────────────────────────────────────────────
 \setlength{\parindent}{0pt}
@@ -98,6 +99,27 @@
 \newenvironment{housecontrol}
   {\par\small\tabularx{\linewidth}{@{}>{\leavevmode\bfseries\color{housemuted}}p{3.6cm}X@{}}\toprule}
   {\bottomrule\endtabularx\par\medskip}
+
+% The classification sits at the head and foot of every page: header centre, foot left, with
+% the page number kept in the centre of the foot. The header gets the height fancyhdr needs,
+% and the top margin gives it back, so the text block does not move.
+\newcommand{\houseclassificationmark}{}
+\newcommand{\houseclassification}[1]{%
+  \renewcommand{\houseclassificationmark}{{\small\bfseries\color{houseprimary}#1}}%
+  \ifdim\headheight<14pt
+    \addtolength{\topmargin}{\headheight}\setlength{\headheight}{14pt}%
+    \addtolength{\topmargin}{-\headheight}%
+  \fi
+  \fancypagestyle{houseclassified}{\houseclassificationstyle}%
+  \fancypagestyle{plain}{\houseclassificationstyle}%
+  \pagestyle{houseclassified}}
+\newcommand{\houseclassificationstyle}{%
+  \fancyhf{}%
+  \fancyhead[C]{\houseclassificationmark}%
+  \fancyfoot[L]{\houseclassificationmark}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}
 
 % ── The author's brand (optional; never shipped by the template) ─────────────────────
 \InputIfFileExists{house-brand}{}{}

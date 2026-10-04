@@ -25,7 +25,8 @@ agreed brief and never from memory.
      `planning/docs/reference/CONTEXT.md`).
   3. Change the plan, then check that the outline, the brief and any doc-type plan still agree.
 - **Definition of done:** every unit about to be drafted has a brief at `outlined` or later; the
-  outline lists every unit in order; nothing here contradicts `.claude/MEMORY.md` Decisions.
+  outline lists every unit in order; nothing here contradicts `.claude/MEMORY.md` Decisions
+  (mapped in `00-project.md` `## Memory headings`).
 
 ## Guardrails
 

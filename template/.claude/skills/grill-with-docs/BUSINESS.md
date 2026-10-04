@@ -9,11 +9,15 @@ the document's own internal note and the house standards.
   `## Obligations and defined terms`.
 - **Register and schedule:** `planning/src/document-register.md` (one `DOC-NNN` per document for
   life) and `planning/src/review-schedule.md`.
-- **Client facts:** `library/src/contracts/client-docs/<client-slug>/CONTEXT.md` under `## Facts`,
-  the one home every other family cites.
-- **Precedence and approvals:** `planning/src/precedence.md`; approval records in
-  `planning/src/approvals/`, made through `planning/workflows/07-record-an-approval/`.
-- **House standards:** `standards/method/BUSINESS.md` and `standards/brand/`.
+- **Client facts:** the client facts path in `00-project.md` `## Paths` (by default
+  `library/src/business/client-docs/<client-slug>/CONTEXT.md`, under `## Facts`), the one home
+  every other family cites; no family gets a client folder just to hold facts.
+- **Precedence and approvals:** `planning/src/precedence.md`; approval records in the Approvals
+  path (`00-project.md` `## Paths`; by default `planning/src/approvals/`), made through
+  `planning/workflows/07-record-an-approval/`.
+- **House standards:** `standards/method/BUSINESS.md`, the brand folder named in `00-project.md`
+  `## Paths` (by default `standards/brand/`, which also holds the disclaimers), and each family's
+  standard, `library/docs/reference/<family>-standards.md`.
 
 ## Additions to the steps
 
@@ -28,16 +32,18 @@ the document's own internal note and the house standards.
 | versions, supersedes or moves a registered document | its row in `planning/src/document-register.md`, through `planning/workflows/08-update-the-register/` |
 | sets a review date, renewal or sign-off | `planning/src/review-schedule.md` |
 | fixes which document governs when two conflict | `planning/src/precedence.md` |
-| records who approved what, and when | an approval record in `planning/src/approvals/` |
+| records who approved what, and when | an approval record in the Approvals path (`00-project.md` `## Paths`; by default `planning/src/approvals/`) |
 | is a drafting decision or an authorised deviation confined to one document | the document's internal note: a `%` comment block in a `.tex`, `<!-- INTERNAL NOTE: … -->` in Markdown |
-| changes the house voice or a disclaimer | `standards/brand/`, **author-confirmed first** |
+| changes the house voice or a disclaimer | the brand folder or the disclaimers file, **author-confirmed first** |
 
 A new document is registered at the end of its line edit
 (`library/workflows/05-review-a-document/`), never when it is created.
 
 - **Step 4 — also apply the gate to client matters with care.** A client fact usually fails the
-  `Decisions` gate (it is a fact, not a trade-off) and belongs in the client's `CONTEXT.md`; a
-  house rule the author rules on (no em dashes in client copy, the voice person) passes it.
+  gate for the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+  `## Memory headings`), because it is a fact, not a trade-off, and belongs in the client's
+  `CONTEXT.md`; a house rule the author rules on (no em dashes in client copy, a change to the
+  voice person in `00-project.md` `## Brief`) passes it.
 
 ## Domain rules
 

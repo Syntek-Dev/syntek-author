@@ -27,7 +27,8 @@ typeset/workflows/local/
 | — | — | — |
 
 Nothing yet. Add a row for every procedure placed here. For an override, name the template
-procedure it replaces, and record the date and reason in `.claude/MEMORY.md` Decisions.
+procedure it replaces, and record the date and reason in `.claude/MEMORY.md` Decisions (mapped
+in `00-project.md` `## Memory headings`).
 
 ## Cross-references
 

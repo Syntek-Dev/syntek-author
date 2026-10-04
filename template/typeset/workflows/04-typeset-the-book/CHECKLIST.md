@@ -23,7 +23,7 @@ model: opus
 
 ## Execution Checklist
 
-- [ ] `make tex` run over the whole manuscript; every new or updated chapter taken through procedure 02 or 03. · _sonnet_
+- [ ] `make tex` run over the whole manuscript; every new or updated chapter taken through `02-typeset-a-chapter` or `03-retypeset-after-edits`. · _sonnet_
 - [ ] Front and back matter set with words the author supplied; nothing composed or invented. · _opus_
 - [ ] `book.tex` lists every chapter in outline order; the example's line gone if the example is. · _opus_
 - [ ] For a release print only, and on the author's word: the `final` option set. · _opus_

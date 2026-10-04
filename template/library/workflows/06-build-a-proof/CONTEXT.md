@@ -3,7 +3,7 @@
 The procedure for rendering a document to PDF, or to a Word copy, and **reading** what was
 rendered. A proof is a working copy for checking how the document looks and whether it builds;
 it is ungated, so any document at any status can be proofed. The issue copy of a `final` document
-is made at the end of workflow 05, not here.
+is made at the end of `library/workflows/05-review-a-document/`, not here.
 
 ## Directory Tree
 

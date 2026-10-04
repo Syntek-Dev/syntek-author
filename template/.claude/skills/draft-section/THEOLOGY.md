@@ -33,7 +33,7 @@ beside the brief, and how a section signals the kind of claim each sentence make
   `planning/workflows/02-map-the-argument/`.
 - **Step 4 — also check Scripture and the original languages.** Check every reference to the
   verse and every quotation word for word against the named translation; the default
-  translation's citation key is in `standards/style/style-sheet.md`. A claim about a Hebrew,
+  translation's citation key is in `00-project.md` `## Brief`. A claim about a Hebrew,
   Aramaic or Greek word cites a lexicon or grammar. Until checked, each carries `VERIFY`.
 - **Step 6 — also make each claim's category audible.** Signal the category in the prose ('the
   passage repeats…', 'on this reading…', 'I hold…'). State an objection so that those who hold
@@ -44,8 +44,9 @@ beside the brief, and how a section signals the kind of claim each sentence make
   `CLAIM CATEGORIES` HTML comment (format under Examples): one numbered line per substantive
   sentence, quoting its opening words and naming its category. It is draft-only:
   `promote-section` strips it, and it is never cited as part of the text.
-- **Step 6 — also declare the author's stake where it first bears.** Where `.claude/MEMORY.md`
-  `Decisions` records the author's stake (the bias disclosure) and this section is where the
+- **Step 6 — also declare the author's stake where it first bears.** Where the `Decisions`
+  heading of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) records the
+  author's stake (the bias disclosure) and this section is where the
   argument first depends on it, declare it once, plainly (`standards/method/THEOLOGY.md`
   Section 8); where that is unclear, flag `AUTHOR TO CONFIRM` instead of guessing.
 - **Step 7 — also flag the author's calls.** `AUTHOR TO CONFIRM` wherever the section concedes,

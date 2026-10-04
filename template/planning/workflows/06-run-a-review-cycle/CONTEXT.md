@@ -48,4 +48,5 @@ it, and this procedure makes the reading count.
 
 - `planning/docs/reference/the-document-register.md` — cycles, versions and the two lifecycles.
 - `planning/docs/reference/reviews-are-advice.md` — the review file and the advice line.
-- `library/docs/reference/` — the guides each document family is reviewed against.
+- `library/docs/reference/` — each family's standard (`<family>-standards.md`) and the guides it
+  is reviewed against.

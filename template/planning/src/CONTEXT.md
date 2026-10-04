@@ -41,7 +41,8 @@ planning/src/
 <: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING :>- `quests/` — one plan per quest: goal, stakes, cost, reward and its ties to arcs and causality.
 <: endif :><: if DOC_TYPE == 'business' :>- `document-register.md`, `review-schedule.md`, `precedence.md` — **the publication record**
   for every document in the library, from its registration at the end of line edit onwards.
-- `approvals/` — one record per approval event: who approved what, when, and how.
+- `approvals/` — one record per approval event: who approved what, when, and how. It is the
+  default Approvals path; `00-project.md` `## Paths` may name another.
 <: endif :>- `maps/` — decision maps for bodies of work too big for one sitting, indexed in
   `maps/CONTEXT.md` (a seed: yours once generated, and `wayfinder` appends its rows).
 - `reviews/` — review reports, **advice only**; a decision exists only once the author dates it

@@ -36,7 +36,7 @@ standards/risk/
 - `sensitive-content.md` — the standard for the work's hardest subjects: handled with care,
   sourced more rigorously than anything else, signposted to help, and written without harm to
   any child, third party or the author. The subjects themselves are named only in
-  `.claude/MEMORY.md` `## Sensitivities`.
+  `.claude/MEMORY.md` `## Sensitivities` (mapped in `00-project.md` `## Memory headings`).
 <: endif -:>
 <: if DOC_TYPE == 'theology' -:>
 - `THEOLOGY.md` — examining a practice without despising the practitioner; claims about named
@@ -57,7 +57,8 @@ standards/risk/
 <: endif -:>
 ## Cross-references
 
-- `.claude/MEMORY.md` — `## Sensitivities` records the project's own sensitive matters, once.
+- `.claude/MEMORY.md` — `## Sensitivities` records the project's own sensitive matters, once
+  (mapped in `00-project.md` `## Memory headings`).
 - `.claude/rules/syntek-author/03-authorship.md` — never fabricate; the `AUTHOR TO CONFIRM` flag.
 - `standards/method/method.md` — the sourcing rules every risky claim must also meet.
 - `.claude/skills/structure-review/SKILL.md` — its risk lens reads this folder.

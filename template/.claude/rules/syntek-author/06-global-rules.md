@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. Project-specific rules belong in `.claude/CLAUDE.md` Section 3.
+> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 These hold everywhere, whatever the layer or the skill. A folder's `CLAUDE.md` may add to them;
 it never relaxes them.
@@ -23,9 +23,9 @@ it never relaxes them.
 | Dates in database columns | ISO 8601 only, and only there |
 | Time | 24-hour, in <%TIMEZONE%> |
 | Cross-references | "Section 3.2", never the section sign |
-<: if DOC_TYPE == 'theology' :>| Bible translation | the default citation key is `<%BIBLE_TRANSLATION%>`; another translation is named where it is used |
-<: endif :><: if DOC_TYPE == 'business' :>| Currency | <%CURRENCY%>, with two decimal places in figures |
-| Jurisdiction | <%JURISDICTION%>, unless a document states otherwise |
+<: if DOC_TYPE == 'theology' :>| Bible translation | the default citation key is in `00-project.md` `## Brief`; another translation is named where it is used |
+<: endif :><: if DOC_TYPE == 'business' :>| Currency | as `00-project.md` `## Brief` sets, with two decimal places in figures |
+| Jurisdiction | as `00-project.md` `## Brief` sets, unless a document states otherwise |
 <: endif :>
 The style sheet (`standards/style/style-sheet.md`) and terminology (`standards/style/terminology.md`)
 win over this table for any word or mark they settle.
@@ -37,10 +37,12 @@ reads as one piece only if its mechanics are fixed once and checked every time.
 
 ## 2. Route; do not restate
 
-**Requirement.** Every rule has one owner file, and everything else cites it by path and section.
-The title, brief, audience and reader test live only in `.claude/CLAUDE.md` Section 1 and the
-Copier answers; project state lives only in `.claude/MEMORY.md`. Never copy either into a skill,
-a guide or a folder file.
+**Requirement.** Every rule has one owner file, and everything else cites it by path and section,
+or, for a project setting, by its heading in `.claude/rules/syntek-author/00-project.md`. The
+audience, the reader test and the variant's answers live only in its `## Brief`; the title, the
+brief and the near-term goal only in the project brief its `## Paths` locates; project state only
+in `.claude/MEMORY.md`. Never copy any of them into a skill, a guide or a folder file, and never
+cite a numbered section of `.claude/CLAUDE.md`: its numbers are the project's to change.
 
 **Why this rule exists.** Two wordings of one rule drift apart, and the stale one is always the one
 that gets read. A thesis restated in seven files is out of date in six of them after its first
@@ -120,7 +122,8 @@ destroys the record `learn-voice` learns from.
 
 **Requirement.** Planning a unit, settling an argument, a plot turn or a document's scope opens
 with `grill-with-docs`, not with drafting. Ask in chat prose, in frontier rounds (every question
-not blocked by another, in one message), each with a recommended answer. Look facts up rather than asking for them; put only genuine decisions to the
+not blocked by another, in one message), each with a recommended answer, unless
+`00-project.md` `## Overrides` sets another questioning style. Look facts up rather than asking for them; put only genuine decisions to the
 author, and route empirical questions to `fact-check`. Never soften a recommendation because the
 author leaned the other way; say so, then record the author's decision.
 
@@ -158,16 +161,46 @@ hurry is published with the next push.
 **Requirement.** The answers given when this project was generated are recorded in
 `.copier-answers.syntek-author.yml`. Never edit that file by hand. A changed answer (a new title, a
 different audience) is re-answered through `copier update` (`README.md`, "Updating from the
-template"), and the seeded files that quote it, such as `.claude/CLAUDE.md` Section 1, are then
-updated by hand, because Copier never rewrites a seed.
+template"), and the seeded files that quote it, such as `00-project.md` `## Brief` and the
+project brief in `.claude/CLAUDE.md`, are then updated by hand, because Copier never rewrites a
+seed.
 
 - **`DOC_TYPE` never changes**: the update refuses it. A different variant is a new project.
 - **Turning an option off deletes every file it generated, seeds included**, even ones the
   author has filled in. Before such an update, list those files for the author (the README
   section names them for this project), have them copied out and committed, and only then run
   it. After any toggle, the seeds that describe the options (`README.md`, `CONTEXT.md`,
-  `.claude/CLAUDE.md` Section 1, `.claude/settings.json`, `.gitignore`) are edited by hand.
+  `.claude/CLAUDE.md`, `00-project.md`, `.claude/settings.json`, `.gitignore`) are edited by hand.
+<: if DOC_TYPE == 'business' :>- **Unticking a family in `BUSINESS_FAMILIES` deletes its template files**: its folder's
+  signposts (the `CONTEXT.md` and `CLAUDE.md` of the folder and its sub-folders, and
+  `drafts/README.md`), its standard `library/docs/reference/<family>-standards.md` and the
+  standard's sub-documents, its `<family>-documents` skill and its create workflow, the author's
+  edits to any of them included. No family folder ships a seed. The documents the author wrote
+  elsewhere in its folder stay.
+<: endif :>- **In a repository adopted additively**, the project's own files at template paths are template
+  files to Copier. A file the project already had at an option's <: if DOC_TYPE == 'business' :>or a family's <: endif :>template path (its
+  skill, its folder pairs) is deleted with it: list those files for the author and have them
+  copied out before the update. On any update, a file the project kept at a template path
+  comes back with conflict markers whenever the template changed it; keep the project's version
+  (`01-layout-and-routing.md` Section 9).
 
 **Why this rule exists.** A hand edit in a rendered file and a stale answer diverge silently, and
 the next update turns the difference into a conflict. An option turned off without warning takes
-the author's filled-in seeds with it.
+the author's filled-in seeds with it<: if DOC_TYPE == 'business' :>, a family unticked takes the edits to its standard and skill<: endif :>,
+and in an adopted project the files it already had.
+
+---
+
+## 12. What Git ignores stays out of the session
+
+**Requirement.** Never search, scan, list or quote a file Git ignores. A search of the project
+covers only the files Git tracks or would track
+(`git ls-files --cached --others --exclude-standard`, `git grep`, or a list filtered through
+`git check-ignore`), never a plain recursive search over everything on disk. An ignored file is
+opened only when the author names that file, or when it is output in `build/` that a skill has
+just made in order to read it.
+
+**Why this rule exists.** Ignored folders are where credentials, client copies and local-only
+material are kept, precisely because they must never be committed. A search that reads them
+prints their lines into the session, and from there into a handoff, a review or a commit. The
+build follows the same rule (`.claude/rules/syntek-author/04-build-pipeline.md` Section 3).

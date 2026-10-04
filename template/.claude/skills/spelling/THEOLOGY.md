@@ -9,9 +9,9 @@ texts whose spelling is not the book's to change.
 - **The unit** is a chapter: `manuscript/src/NN-kebab-title/NN-kebab-title.md`, with section drafts
   in its `drafts/` folder. Main text and footnotes are both checked.
 - **The pass** is step 10 of `manuscript/workflows/05-review-a-chapter/`.
-- **Extra reads:** the Project settings of `standards/style/style-sheet.md` (the default
-  translation and how Scripture is quoted); any transliteration scheme the style sheet records;
-  the contested terms in `standards/style/terminology.md`.
+- **Extra reads:** the default translation in `00-project.md` `## Brief`, and how Scripture is
+  quoted in the Project settings of `standards/style/style-sheet.md`; any transliteration scheme
+  the style sheet records; the contested terms in `standards/style/terminology.md`.
 - **Where corrections go:** an accepted spelling correction may be applied in the chapter file
   directly, logged as a row in that section's ledger entry
   (`manuscript/workflows/05-review-a-chapter/`, 'Applying agreed fixes'); in a draft, in the draft.

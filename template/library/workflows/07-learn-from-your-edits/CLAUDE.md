@@ -32,9 +32,9 @@ draft starts closer to their voice.
 - **Registers stay apart.** A lesson from editing a contract or a policy is a drafting rule for
   instruments, not a voice note for proposals and emails, and the reverse.
 - **Write only what the author approves**, in the author's words where they gave any.
-- **Never change a standard by learning.** A lesson that would change `standards/method/` or
-  `standards/brand/` is put to the author as a proposal; a standards change is author-confirmed,
-  always.
+- **Never change a standard by learning.** A lesson that would change `standards/method/` or the
+  brand folder (`00-project.md ## Paths`) is put to the author as a proposal; a standards change is
+  author-confirmed, always.
 - **Never rewrite an earlier lesson.** If a new lesson contradicts an old one, append the new one
   and mark the old one superseded, with the date.
 

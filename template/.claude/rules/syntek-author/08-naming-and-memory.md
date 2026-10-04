@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. Project-specific rules belong in `.claude/CLAUDE.md` Section 3.
+> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 Names are how files find each other, so they follow one pattern each. Memory is how sessions find
 what earlier sessions settled, so it has one home and a gate.
@@ -30,7 +30,7 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 | `<doc-type>-<client-slug>-v<major>-<minor>-DD-MM-YYYY.tex` | proposal-harbour-bakery-v1-0-03-10-2026.tex | a client's copy, under `client-docs/<client-slug>/` |
 | `planning/src/units/<document-slug>.md` | service-agreement.md | the document's brief |
 | `DOC-NNN` | DOC-014 | a document's identifier in the register |
-| `planning/src/approvals/approval-<type>-DD-MM-YYYY.md` | approval-pricing-03-10-2026.md | an approval record |
+| `approval-<doc-type>-DD-MM-YYYY.md` | approval-pricing-03-10-2026.md | an approval record, in `planning/src/approvals/` (default) |
 <: endif :>| `drafts/<NN>-<section-slug>.md` | drafts/04-crossing-at-night.md | a section draft, beside the unit it will join |
 <: if DOC_TYPE != 'business' :>| `<!-- section: <slug> -->` | `<!-- section: crossing-at-night -->` | where a promoted section sits in the unit file |
 <: else :>| `% section: <slug>` … `% end section: <slug>` | % section: payment-terms | where a promoted section sits in a `.tex` document |
@@ -39,8 +39,8 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 | `workflows/local/NN-verb-first-name/` | 01-prepare-a-reading/ | the author's own procedure |
 | `kebab-case.md` in `docs/` | drafting-with-ai.md | a guide, named for the question it answers |
 | `SCREAMING-SNAKE-CASE.md` | CONTEXT.md, STEPS.md | structural files, and sub-documents behind a thin index |
-| `HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` | HANDOFF-OPENING-SECTIONS-03-10-2026.md | a session handoff, in `handoffs/` |
-| `MAP-<TOPIC>.md` | MAP-PART-TWO.md | a decision map, in `planning/src/maps/` |
+| `HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` | HANDOFF-OPENING-SECTIONS-03-10-2026.md | a session handoff, in `handoffs/` (default) |
+| `MAP-<TOPIC>.md` | MAP-PART-TWO.md | a decision map, in `planning/src/maps/` (default) |
 | `REVIEW-<scope>-DD-MM-YYYY.md` | REVIEW-whole-work-03-10-2026.md | a structural review (advice only), in `planning/src/reviews/` |
 | `SPIKE-<slug>.md` | drafts/SPIKE-second-person.md | a throwaway prototype, deleted once answered |
 | `learning/<kebab-topic>/` | learning/dialogue-punctuation/ | a learning topic: `MISSION.md`, `RESOURCES.md`, `PROGRESS.md`, `LESSONS/` |
@@ -57,6 +57,9 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 <: endif :>
 Dates in filenames are DD-MM-YYYY. A name that other files cite (a skill, a workflow number, a
 citation key) is never changed without a migration, because every citation of it breaks silently.
+Where `00-project.md` `## Paths` gives another folder or filename form for a role (handoffs,
+decision maps, research notes<: if DOC_TYPE == 'business' :>, approvals<: endif :>), it wins over the defaults above; any other path
+moves only by a redirect line in its `## Overrides` (`01-layout-and-routing.md` Section 9).
 
 ---
 
@@ -67,14 +70,20 @@ decisions, the author's feedback, status, open questions and sensitivities. Proj
 there and only there; skills and governance files point to it and never restate it. Write there,
 not to any global or automatic memory.
 
+**The headings below are the template's.** `00-project.md` `## Memory headings` maps each one
+to the heading this project uses. Wherever a template file names a `MEMORY.md` heading, read
+and write under the heading it is mapped to, and never add a template heading that the map
+sends elsewhere: a second Decisions list beside the project's own is two records that drift.
+
 | What you learned | Where it goes |
 |---|---|
-| A fact about the project not visible in the files (target length, delivery date, reader test) | `MEMORY.md` Facts |
+| A fact about the project not visible in the files (target length, delivery date) | `MEMORY.md` Facts |
 | A decision that passed the gate (Section 3) | `MEMORY.md` Decisions |
 | How the author wants the work done, or a correction they gave | `MEMORY.md` Feedback |
 | Where the work stands | `MEMORY.md` Status |
 | A question only the author can settle, not yet settled | `MEMORY.md` Open questions |
 | A risk to people, privacy or reputation | `MEMORY.md` Sensitivities |
+| A project setting: the audience, a path, a memory heading, an override | `.claude/rules/syntek-author/00-project.md`, under its heading |
 | A decision about one unit | that unit's brief in `planning/src/units/` |
 | What a folder holds | that folder's `CONTEXT.md` |
 | A rule for one folder | that folder's `CLAUDE.md` |
@@ -108,4 +117,4 @@ what the author has confirmed, never what the AI inferred.
 - **Supersede; never delete.** Append `*(Superseded DD/MM/YYYY — see below.)*` to the old bullet
   and add the new one. The history of a decision is part of the decision.
 - Past 300 lines, split by topic into `.claude/memory/<topic>.md` and leave `MEMORY.md` as the
-  index.
+  index, unless `00-project.md` `## Overrides` keeps it as one file.

@@ -50,4 +50,5 @@ There are no statistics, sources or claims about others here; the argument's evi
 - `research/docs/reference/handling-testimony.md` — the guide: consent, protecting other people,
   the author's wellbeing.
 - `research/workflows/05-handle-testimony-safely/` — the only procedure that works in this folder.
-- `.claude/MEMORY.md` — Sensitivities: standing decisions about what is never used.
+- `.claude/MEMORY.md` — Sensitivities (mapped in `00-project.md` `## Memory headings`): standing
+  decisions about what is never used.

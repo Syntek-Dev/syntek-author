@@ -25,6 +25,10 @@ and rejected rows are AI suggestions; an author-note row is a change the author 
 the AI applied, and is counted as neither. An empty decision is still open. Any other word is
 reported. A pipe written as \\| inside a cell is text, not a column break.
 
+Never read: a ledger file git ignores. Inside a git work tree the entries are listed through
+`git check-ignore`, keeping only what git does not ignore (or a negation re-includes), because
+ignored files hold local-only material; outside one, every entry is read.
+
 Check: every promoted entry needs its row in provenance.md, and every row its promoted entry.
 The one exception is the template's worked example: an entry that opens with a
 '<!-- WORKED EXAMPLE' comment ships promoted while provenance.md ships empty, so its missing
@@ -40,6 +44,8 @@ import argparse
 import datetime
 import difflib
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -247,10 +253,35 @@ class Entry:
                     self.errors.append(f"change_ratio is {stored!r}; it must be a number 0.00 to 1.00")
 
 
+def not_ignored(paths: list, where: Path) -> list:
+    """The paths git does not ignore (or a negation re-includes); all of them outside a work tree."""
+    git = shutil.which("git")
+    if not paths or not git:
+        return paths
+    inside = subprocess.run([git, "rev-parse", "--is-inside-work-tree"], cwd=where,
+                            capture_output=True, text=True)
+    if inside.stdout.strip() != "true":
+        return paths
+    names = {str(p.resolve()): p for p in paths}
+    proc = subprocess.run([git, "check-ignore", "-z", "--stdin", "--verbose", "--non-matching"],
+                          cwd=where, input="".join(n + "\0" for n in names),
+                          capture_output=True, text=True, encoding="utf-8")
+    if proc.returncode not in (0, 1):
+        raise UsageError(f"git check-ignore failed in {shown(where)}: {proc.stderr.strip()}")
+    fields = proc.stdout.split("\0")
+    keep = set()
+    for k in range(0, len(fields) - 3, 4):  # source, line, pattern, path
+        source, pattern, path = fields[k], fields[k + 2], fields[k + 3]
+        if not source or pattern.startswith("!"):
+            keep.add(path)
+    return [p for n, p in names.items() if n in keep]
+
+
 def load_entries(ledger: Path) -> list:
     if not ledger.is_dir():
         raise UsageError(f"ledger folder not found: {shown(ledger)}")
-    return [Entry(p) for p in sorted(ledger.glob("*.md")) if p.name not in NOT_ENTRIES]
+    found = [p for p in sorted(ledger.glob("*.md")) if p.name not in NOT_ENTRIES]
+    return [Entry(p) for p in not_ignored(found, ledger)]
 
 
 def resolve_entry(arg: str, ledger: Path) -> Path:
@@ -487,6 +518,21 @@ def self_test() -> int:
             label = ("a worked example's missing register row is only a warning" if example
                      else "any other promoted entry with no register row fails the check")
             verdict(label, code == want_code and "no row for" in out.getvalue(), out.getvalue())
+    if shutil.which("git"):
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(ledger)], check=True)
+            for name in ("01-test--opening.md", "01-test--local.md", "01-test--kept.md"):
+                (ledger / name).write_text(SELF_TEST_ENTRY, encoding="utf-8")
+            (ledger / ".gitignore").write_text("*--local.md\n*--kept.md\n!*--kept.md\n", encoding="utf-8")
+            got = sorted(p.name for p in not_ignored(sorted(ledger.glob("*.md")), ledger))
+            verdict("an entry git ignores is never read; a re-included one is",
+                    got == ["01-test--kept.md", "01-test--opening.md"], got)
+        with tempfile.TemporaryDirectory() as tmp:
+            plain = [Path(tmp) / "01-test--opening.md"]
+            verdict("outside a work tree every entry is read", not_ignored(plain, Path(tmp)) == plain)
+    else:
+        print("  skip git: git not found")
     if failures:
         print(f"self-test FAILED: {len(failures)} case(s)")
         return 1

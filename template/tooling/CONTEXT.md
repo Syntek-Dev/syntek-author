@@ -14,6 +14,7 @@ tooling/
 ├── CONTEXT.md          ← this file
 ├── CLAUDE.md           ← operating rules
 ├── defaults.yaml       ← Pandoc settings and the work's title and author metadata
+├── project.mk          ← seed: this project's build settings (logos, typefaces, open-item marks…)
 ├── pandoc/             ← house.lua: semantic Markdown (epigraphs, scene breaks…) to each output
 ├── latex/              ← the house LaTeX, one file per kind of output
 <: if DOC_TYPE != 'business' :>├── book.latex          ← PDF preamble additions: widow, orphan and footnote penalties
@@ -32,8 +33,18 @@ tooling/
 
 ## What's here
 
-- `defaults.yaml` — the Pandoc defaults every Markdown build shares. **Title and author come
-  from the answers given at generation**, and live here and in `.claude/CLAUDE.md` only.
+<: if DOC_TYPE != 'business' :>- `defaults.yaml` — the Pandoc defaults every Markdown build shares. **Title and author come
+  from the answers given at generation**, and live here and in the project brief (the
+  'Project brief' row of `.claude/rules/syntek-author/00-project.md` `## Paths` names it).
+<: endif :><: if DOC_TYPE == 'business' :>- `defaults.yaml` — the Pandoc defaults every Markdown build shares. **The author is the
+  trading name from the answers given at generation**, and lives here and in
+  `.claude/rules/syntek-author/00-project.md` `## Brief`.
+<: endif :>- `project.mk` — **the project's own build settings**, written once at generation and never
+  touched by `copier update`; the `Makefile` reads it first. It sets the logo folders TeX
+  searches first (`LOGO_DIRS`), the typefaces of Pandoc's PDFs (`MAINFONT`, `SANSFONT`,
+  `MONOFONT`) and extra open-item marks `make flags` counts (`FLAG_EXTRA_RE`)<: if DOC_TYPE == 'business' :>, the Word converter
+  for a `.tex` (`DOCX_CONVERTER`) and the statuses `ISSUE=1` may issue at (`ISSUE_STATUSES`)<: endif :>.
+  Each setting is commented in the file; project-only targets may go at its end.
 - `tooling/pandoc/house.lua` — the house filter every Pandoc run passes through: it turns what
   the author marked in Markdown into the right thing for each output, and lets the fidelity check
   read the Markdown exactly as the LaTeX was made.
@@ -68,6 +79,11 @@ tooling/
 <: endif :>- `provenance.py` — reads `standards/style/ledger/`; `make provenance` prints the table a
   publisher asks for. Every script here is standard-library Python 3.11 or later, with no
   dependencies<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, except `font.py`<: endif :>.
+- **Nothing here reads a file git ignores.** `make flags`, `make lint`, every other file list
+  the `Makefile` builds, and `provenance.py`, pass what they find through `git check-ignore`
+  and keep only what git does not ignore (or a negation re-includes), because ignored folders
+  hold credentials and local-only material and the checks print the lines they match. Flags
+  and lint say how many files that left unread. Outside a git work tree every file is read.
 
 ## Cross-references
 

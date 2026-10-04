@@ -54,9 +54,10 @@ output, and every rule below serves it.
 ### 1. Read the record, then map the decision tree
 
 Decisions hang off other decisions. Before asking anything, read what is already written down, in
-the mode file's lookup order: `.claude/MEMORY.md` (Decisions, Open questions, Feedback,
-Sensitivities), the brief or artefact being grilled, and the files the mode names. Then sort every
-question the subject raises into three piles:
+the mode file's lookup order: `.claude/MEMORY.md` (the `Decisions`, `Open questions`, `Feedback` and
+`Sensitivities` headings, mapped in `00-project.md` `## Memory headings`), the brief or artefact
+being grilled, and the files the mode names. Then sort every question the subject raises into three
+piles:
 
 - **Settled** — a record already answers it (see *A decision already recorded is a fact*, below).
 - **Frontier** — unblocked: everything it rests on is settled.

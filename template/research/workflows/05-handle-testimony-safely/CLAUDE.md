@@ -3,9 +3,9 @@
 # CLAUDE.md — research/workflows/05-handle-testimony-safely/
 
 Read order: **`standards/risk/sensitive-content.md`** → `.claude/CLAUDE.md` → `.claude/MEMORY.md`
-(Sensitivities) → `research/CONTEXT.md` → `research/CLAUDE.md` → `research/workflows/CONTEXT.md`
-→ `research/workflows/CLAUDE.md` → this folder's `CONTEXT.md` (imported above) → this file →
-`STEPS.md` (with `CHECKLIST.md` open).
+(Sensitivities, mapped in `00-project.md` `## Memory headings`) → `research/CONTEXT.md` →
+`research/CLAUDE.md` → `research/workflows/CONTEXT.md` → `research/workflows/CLAUDE.md` → this
+folder's `CONTEXT.md` (imported above) → this file → `STEPS.md` (with `CHECKLIST.md` open).
 
 ## Purpose (one line)
 

@@ -18,12 +18,13 @@ and LaTeX under Git, with Claude Code as a drafting and checking partner.
 <: if SUBTITLE :>- **Subtitle:** <%SUBTITLE%>
 <: endif :><: else :>- **Trading name:** <%TRADING_NAME%>
 - **Jurisdiction:** <%JURISDICTION%>
+- **Document families:** <% BUSINESS_FAMILIES | join(', ') %>
 <: endif :>- **Author:** <%AUTHOR_NAME%>
 - **Audience:** <%AUDIENCE%>
 - **Reader test:** <%READER_TEST%>
 
-The brief above is a starting point. The working version, kept current, is `.claude/CLAUDE.md`
-Section 1.
+The brief above is a starting point. The working versions, kept current, are the project brief in
+`.claude/CLAUDE.md` and the settings in `.claude/rules/syntek-author/00-project.md`.
 
 ---
 
@@ -34,12 +35,12 @@ Section 1.
 | `planning/` | production | The outline, one brief per <%UNIT_NOUN%>, decision maps and reviews |
 | `research/` | production | Sources, verified evidence and research notes |
 <: if DOC_TYPE != 'business' :>| `manuscript/` | production | The book: one folder per chapter, with a `drafts/` folder inside each |
-<: endif :><: if DOC_TYPE == 'business' :>| `library/` | production | The documents, by family: templates, client documents and drafts |
+<: endif :><: if DOC_TYPE == 'business' :>| `library/` | production | The documents, one folder per family (<% BUSINESS_FAMILIES | join(', ') %>), each with templates, client documents and drafts |
 <: endif :><: if DOC_TYPE != 'business' :>| `typeset/` | production | The printed book: page design, the master file and each chapter styled for print |
 <: endif :><: if DOC_TYPE != 'business' and INCLUDE_PROPOSAL :>| `proposal/` | production | <: if DOC_TYPE == 'theology' :>The book proposal, endorsements and sample<: else :>The query letter, synopses, comparable titles, submissions and sample<: endif :> |
 <: endif :><: if DOC_TYPE == 'fiction' :>| `world/` | production | The story bible: characters, places and the names register<: if DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING :>, peoples, cultures, world history and creatures<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, constructed languages<: endif :> |
 <: endif :>| `standards/` | supporting | Style, voice, method, risk and verification rules |
-| `tooling/` | supporting | The build and its scripts |
+| `tooling/` | supporting | The build and its scripts, and your build settings in `tooling/project.mk` |
 | `handoffs/` | working | Notes that carry work from one session to the next |
 | `learning/` | working | A practice workspace; nothing in it is the work |
 | `assets/` | working | Images and other binaries |
@@ -48,6 +49,31 @@ Section 1.
 Each production layer has `docs/` (guides), `src/` (the work) and `workflows/` (step-by-step
 procedures). Every folder carries a `CONTEXT.md` (what is here) and a `CLAUDE.md` (how to work
 here). The full map is `CONTEXT.md`.
+
+---
+
+## Your settings
+
+Two files hold this project's settings. Both were written once from your answers, and an update
+never overwrites them, so edit them whenever the project changes:
+
+- **`.claude/rules/syntek-author/00-project.md`** is what Claude reads for anything particular to
+  this project, and it outranks the template's rules:
+  - the settings of the brief: the audience<: if DOC_TYPE == 'theology' :>, the reader test and the default Bible translation<: elif DOC_TYPE == 'fiction' :>, the reader test and the genre<: else :>, the reader test, the trading name, the voice, the jurisdiction and the currency<: endif :>
+  - where you keep handoffs, decision maps and research notes<: if DOC_TYPE == 'business' :>, the brand files, the disclaimers, each client's facts, the approval records and the LaTeX skeleton<: endif :>
+  - any other template path you keep somewhere else, as a redirect line
+  - which heading of `.claude/MEMORY.md` means what
+  - a workflow of your own to use instead of one of the template's
+  - any template rule this project works without, and what it does instead
+- **`tooling/project.mk`** holds the build settings the `Makefile` reads:
+  - extra open-item markers for `make flags` to count
+  - the fonts for PDFs made from Markdown
+  - the folders where logos are found first
+<: if DOC_TYPE == 'business' :>  - the folders holding your brand files, which `make flags` also checks
+  - a lossless LaTeX-to-Word converter, if you have one
+  - the statuses at which a document may be issued
+<: endif :>
+Your own rules for the project go in `.claude/CLAUDE.md`, under 'Project-specific rules'.
 
 ---
 
@@ -78,14 +104,15 @@ make book                 # the whole manuscript, as .docx and .pdf
 make tex SCOPE=manuscript/src/<chapter-folder>     # a chapter's Pandoc base, for typesetting
 make tex-check            # every styled chapter still carries exactly its Markdown's words
 make print                # the printed book, from typeset/src/book.tex
-<: else :>make pdf FILE=library/src/proposals/…/document.tex   # render one deliverable
-<: endif :>make flags                # every AUTHOR TO CONFIRM and VERIFY still open
+<: else :>make pdf FILE=library/src/business/…/document.tex   # a proof of one document, in build/
+make pdf FILE=… ISSUE=1   # issue it beside its source (final by default; never over an issued file)
+<: endif :>make flags                # every AUTHOR TO CONFIRM and VERIFY still open<: if DOC_TYPE == 'business' :>, and every [AWAITING USER INPUT]<: endif :>
 make provenance           # the AI-disclosure table
 make clean                # remove build/
 ```
 
 Built files are generated: never edit one by hand; change the source and rebuild. The `build/`
-folder is ignored by Git.
+folder is ignored by Git, and no target ever reads a file Git ignores.
 
 **Requirements:** `git`; `make`; Python 3.11 or later; `pandoc`; TeX Live with XeLaTeX<: if INCLUDE_REFERENCES :>;
 `sqlite3`<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>; `espeak-ng` (optional, for pronunciation)<: endif :>; and `uv`, for Copier<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> and for building the script fonts (`make font`)<: endif :>.
@@ -133,17 +160,23 @@ expected and harmless: the template reads your previous answers so it can refuse
 - **What updates:** the template's own files: the rules in `.claude/rules/syntek-author/`, the
   skills, the reference guides, the template workflows, the standards and the tooling.
 - **What never changes:** your work, and the files seeded for you once: this README,
-  `CONTEXT.md`, `.claude/CLAUDE.md`, `.claude/MEMORY.md`, `.claude/settings.json`, the style
-  files and the other seeds. If you delete a seed, the update brings back an empty one. If you
-  delete the worked example, it stays deleted. **The one exception:** turning an option off
-  deletes the seeds that option generated (below).
-- **Never edit `.claude/rules/syntek-author/`**, or any other file the template owns: the next
-  update overwrites the edit or turns it into a conflict. Put project rules in
-  `.claude/CLAUDE.md` Section 3, your own guides in a layer's `docs/project/`, and your own
-  procedures in its `workflows/local/`.
+  `CONTEXT.md`, `.claude/CLAUDE.md`, `.claude/MEMORY.md`, `.claude/settings.json`,
+  `.claude/rules/syntek-author/00-project.md`, `tooling/project.mk`, the style files and the
+  other seeds. If you delete a seed, the update brings back an empty one. If you
+  delete the worked example, it stays deleted. **The exceptions:** turning an option off
+  deletes the seeds that option generated, and in a repository adopted additively, your own
+  files at its template paths (below).
+- **In a repository adopted additively,** a file you kept at a template path comes back with
+  conflict markers whenever the template changed it: keep your version, and extend it by hand
+  if you want the template's change.
+- **Never edit the rules from `01-` to `08-` in `.claude/rules/syntek-author/`**, or any other
+  file the template owns: the next update overwrites the edit or turns it into a conflict. Put
+  settings and overrides in `00-project.md`, project rules under 'Project-specific rules' in
+  `.claude/CLAUDE.md`, your own guides in a layer's `docs/project/`, and your own procedures in
+  its `workflows/local/`.
 - **Never edit `.copier-answers.syntek-author.yml` by hand.** To change an answer, give it to
   the update, then make the same change by hand in the seeded files that quote it, such as
-  `.claude/CLAUDE.md` Section 1:
+  `00-project.md` and the project brief in `.claude/CLAUDE.md`:
 
   ```sh
   uvx copier update --trust -a .copier-answers.syntek-author.yml --data READER_TEST='…'
@@ -156,8 +189,10 @@ expected and harmless: the template reads your previous answers so it can refuse
 
 Answering an `INCLUDE_…` question `false` on an update deletes **every file that option
 generated, seeds included, even ones you have filled in**. Git keeps the last committed copy,
-but copy out anything you still need and commit before you run the update. Files you created
-yourself are never deleted. In this project:
+but copy out anything you still need and commit before you run the update. Your own files are
+never deleted, except in one case: in a repository adopted additively, a file of yours at
+an <: if DOC_TYPE == 'business' :>unticked family's or <: endif :>option's template path (its skill, its folder
+pairs) is deleted with it, so copy it out first. In this project:
 
 <: if DOC_TYPE == 'theology' and INCLUDE_PROPOSAL :>- `INCLUDE_PROPOSAL=false` deletes the proposal stubs `proposal/src/book-proposal/01-overview-and-hook.md`
   to `proposal/src/book-proposal/08-sample-chapters.md`, `proposal/src/endorsements/tracker.md` and
@@ -177,8 +212,15 @@ yourself are never deleted. In this project:
 <: endif :><: if DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT :>- `INCLUDE_SENSITIVE_CONTENT=false` deletes `standards/risk/sensitive-content.md`, the
   testimony workflow and the `sensitivity-pass` skill; your testimony records stay.
 <: endif :><: if DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC :>- `INCLUDE_DRIVE_SYNC=false` deletes `.github/`, the Drive push and pull workflows.
+<: endif :><: if DOC_TYPE == 'business' :>- Unticking a family in `BUSINESS_FAMILIES` deletes its folder's signposts (the `CONTEXT.md` and
+  `CLAUDE.md` of `library/src/<family>/` and its sub-folders, and `drafts/README.md`), its
+  standard `library/docs/reference/<family>-standards.md` and the standard's sub-documents
+  (`EMAIL-ANATOMY-AND-NAMING.md` for email, `MSP-SCP-POLICY-SUITE.md` for msp-scp), its
+  `<family>-documents` skill and its create workflow, including your edits to any of these files.
+  No family folder ships a seed. Your own documents elsewhere in its folder stay. Ticking a
+  family brings all of them in.
 <: endif :>- Turning any option off also deletes your edits to the template's own files for it.
 
 **After any option change, edit the seeds that describe your options by hand**, because Copier
-never rewrites a seed: this README, `CONTEXT.md`, `.claude/CLAUDE.md` Section 1,
-`.claude/settings.json` and `.gitignore`.
+never rewrites a seed: this README, `CONTEXT.md`, `.claude/CLAUDE.md`,
+`.claude/rules/syntek-author/00-project.md`, `.claude/settings.json` and `.gitignore`.

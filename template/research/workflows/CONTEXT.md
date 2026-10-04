@@ -43,5 +43,5 @@ expected.
 - `research/docs/reference/CONTEXT.md` — the guides these procedures cite.
 - `research/src/CONTEXT.md` — the routing table, and where each procedure's output lands.
 - `.claude/skills/run-workflow/SKILL.md` — resolves an intent to a procedure, local first.
-- `standards/verification/verification.md` — the gates a unit passes; `02` feeds the fact-check
-  gate.
+- `standards/verification/verification.md` — the gates a unit passes; `02-verify-a-claim/` feeds
+  the fact-check gate.

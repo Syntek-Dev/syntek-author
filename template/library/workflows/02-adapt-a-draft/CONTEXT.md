@@ -48,4 +48,4 @@ everything they did not mention is exactly as they left it.
 
 - `library/docs/reference/drafting-with-ai.md` — the loop and who decides.
 - `library/docs/reference/versioning-and-the-register.md` — when an adaptation is a new version.
-- `library/src/contracts/templates/` — the instrument templates most often adapted.
+- `library/src/<family>/templates/` — the family templates a client document is adapted from.

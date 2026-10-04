@@ -6,11 +6,12 @@
 The governing standard for the subjects this work handles that could wound a reader, endanger a
 third party or cost the author: abuse, addiction, self-harm, violence, trauma, or whatever this
 project's own list holds. **The subjects themselves are recorded once, in `.claude/MEMORY.md`
-`## Sensitivities`, with the project's highest-risk class of claim; this file never names them**,
-so a change of scope is one edit. The `sensitivity-pass` skill applies this standard as a
-checklist before any unit touching those subjects is called done; first-person material is
-handled through `research/src/testimony/` and the research workflow
-`research/workflows/05-handle-testimony-safely/`. It adds to `risk.md`, never relaxes it.
+`## Sensitivities` (mapped in `00-project.md` `## Memory headings`), with the project's
+highest-risk class of claim; this file never names them**, so a change of scope is one edit.
+The `sensitivity-pass` skill applies this standard as a checklist before any unit touching those
+subjects is called done; first-person material is handled through `research/src/testimony/` and
+the research workflow `research/workflows/05-handle-testimony-safely/`. It adds to `risk.md`,
+never relaxes it.
 
 Dates DD/MM/YYYY.
 
@@ -38,7 +39,8 @@ people into hiding and silence; a passage that leaves them able to speak has don
 every statistic names its study, year, population and jurisdiction; sub-populations and
 jurisdictions are never blended; a dated or weak figure is stated with its caveat or cut. **Cite
 what is defensible, not what is alarming.** The project's highest-risk class of claim, recorded
-in `.claude/MEMORY.md` `## Sensitivities`, is never stated without a `verified` verdict.
+in `.claude/MEMORY.md` `## Sensitivities` (mapped in `00-project.md` `## Memory headings`), is
+never stated without a `verified` verdict.
 
 **Why this rule exists.** A sensational figure that collapses under scrutiny discredits the
 whole work on the subject where it most needed to be trusted, and hands its critics an excuse to

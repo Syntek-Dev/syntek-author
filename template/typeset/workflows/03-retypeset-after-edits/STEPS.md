@@ -97,7 +97,8 @@ make print
 ```
 
 Read the pages around each change: an edit can undo a page-fit made earlier (a widow returns, a
-nudge is no longer needed). Fix by procedure 02 step 8, then check and print again. _Substantive._
+nudge is no longer needed). Fix by `02-typeset-a-chapter` step 8, then check and print again.
+_Substantive._
 
 ## 8. Tidy and report
 

@@ -16,9 +16,9 @@ Assemble, prove and print the whole book, and read it before anyone else does.
 **Follow `STEPS.md` in order and tick `CHECKLIST.md` as you go.** The model tags in the checklist
 are authoritative.
 
-- **Routing:** skill `typeset` for every stage, dispatching procedures 02 and 03 for chapters that
-  need them; `build` for the quick proofs and the references export. The `typeset` skill is this
-  procedure in skill form.
+- **Routing:** skill `typeset` for every stage, dispatching `02-typeset-a-chapter` and
+  `03-retypeset-after-edits` for chapters that need them; `build` for the quick proofs and the
+  references export. The `typeset` skill is this procedure in skill form.
 - **Model:** the **mechanical tier** for the `make` runs; **Opus** for every chapter's styling,
   every judgement about readiness and the full read of the proof
   (`.claude/rules/syntek-author/05-model-allocation.md`).

@@ -40,7 +40,7 @@ model: opus
 - [ ] Ledger: author final copied, `promoted` dated, `change_ratio` set by `tooling/provenance.py`; on a re-promotion, `learned: false`. · _sonnet_
 - [ ] Row added or updated in `standards/style/ledger/provenance.md`. · _sonnet_
 - [ ] Draft at `status: promoted`; brief's section entry `promoted`; chapter `status:` unchanged. · _sonnet_
-- [ ] Chapter's Status line in `.claude/MEMORY.md` superseded with the new count. · _sonnet_
+- [ ] Chapter's Status line in `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) superseded with the new count. · _sonnet_
 
 **Reading and hand-back**
 

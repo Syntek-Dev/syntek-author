@@ -15,8 +15,10 @@ procedure in order.
 
 - **Routing:** the `run-workflow` skill matches the author's request to a procedure using the
   table in this folder's `CONTEXT.md`. It looks in `local/<slug>/` first: a local procedure with
-  the same slug as a template one replaces it. Each `STEPS.md` names its skills in its routing
-  frontmatter; load them before step 1.
+  the same slug as a template one replaces it, and a procedure `00-project.md ## Workflow aliases`
+  names replaces the template one it is mapped to. A new document starts at its family's create
+  procedure, which drives the loop procedures in turn. Each `STEPS.md` names its skills in its
+  routing frontmatter; load them before step 1.
 - **Model:** the checklist tags are authoritative. `_opus_` marks substantive work; `_sonnet_`
   names the mechanical tier, which runs on the model set in
   `.claude/rules/syntek-author/05-model-allocation.md` and never lower.
@@ -41,7 +43,8 @@ procedure in order.
 - **Change all four files together** when writing a local procedure; a step without its checklist
   item is a step nobody checks.
 - **Numbering is frozen and append-only.** Template numbers never change; local procedures use
-  their own numbering inside `local/`.
+  their own numbering inside `local/`. Cite a procedure by its full folder name, never by its
+  number alone: a local or project procedure may share the number.
 
 ## Output & naming
 

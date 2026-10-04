@@ -35,7 +35,8 @@ defined once and the brand changes in one place.
 - **Concrete steps (a new document):**
   1. Copy `skeleton.tex` to the document's folder in the content layer; never fill it in here.
   2. Replace each `[BRACKETED]` field; leave `\fillme` where only the author can supply a value.
-  3. Take the disclaimer for the document's class from `standards/brand/disclaimers.md`.
+  3. Take the disclaimer for the document's class from the disclaimers file `00-project.md`
+     `## Paths` names (by default `standards/brand/disclaimers.md`); a class with none has none.
   4. Render with `make pdf FILE=…` and read the proof.
 - **Definition of done:** the document renders with no XeLaTeX error, every `\ref` resolves, and
   the proof has been read.
@@ -48,6 +49,8 @@ defined once and the brand changes in one place.
   a macro's arguments are words or layout; add both together, or the check misreads it.
 - **Fall back, never fail silently.** A missing typeface, lettrine or script font falls back with a
   warning in the log; keep it that way.
+- **`symbol-fallback.tex` reaches every Pandoc PDF.** Add a character or a fallback font there,
+  never a typeface for one book: the book's typefaces are class options.
 <: endif :><: if DOC_TYPE == 'business' :>- **No brand in the template.** Colours, fonts and logos go in the author's `house-brand.tex` and
   in `assets/`, never into `house-preamble.tex`, which `copier update` merges.
 - **No client data here.** The skeleton and preamble stay counterparty-neutral; a filled-in
@@ -58,13 +61,20 @@ defined once and the brand changes in one place.
   whether its arguments are words or layout, or `make section-check` misreads it.
 - **Delete every drafting note before issue.** A `\dnote` that survives into a sent document
   publishes an internal thought; the issue-readiness gate checks for them.
+- **An issued copy is a record.** `ISSUE=1` refuses below an issuing status or while any open
+  item is left (a flag, a `\fillme` field: what `make flags` counts), and never replaces an
+  issued PDF; a revision is issued as a new version under its own name, and `FORCE=1` is used
+  only on the author's explicit word. Neither switch takes `0`: leave it out instead.
+- **Logos by resolution, not by luck.** The folder holding the right size goes in `LOGO_DIRS`
+  (`tooling/project.mk`), which TeX searches first; never copy a brand logo beside a document
+  to make TeX pick it.
 <: endif :>
 ## Output & naming
 
-<: if DOC_TYPE != 'business' :>- **Template-owned:** `housebook.cls` and this pair.
+<: if DOC_TYPE != 'business' :>- **Template-owned:** `housebook.cls`, `symbol-fallback.tex` and this pair.
 - **Generated (never hand-edit):** the print PDF and its working files in `build/typeset/`.
-<: endif :><: if DOC_TYPE == 'business' :>- **Hand-written:** `house-preamble.tex`, `skeleton.tex`, this pair; the author's
-  `house-brand.tex`.
+<: endif :><: if DOC_TYPE == 'business' :>- **Hand-written:** `house-preamble.tex`, `skeleton.tex`, `symbol-fallback.tex`, this pair; the
+  author's `house-brand.tex`.
 - **Generated (never hand-edit):** the PDF in `build/`, and the issued copy beside its source when
   `ISSUE=1` is used.
 <: endif :>

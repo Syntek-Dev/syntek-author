@@ -7,13 +7,17 @@ copy carries no em dash.
 
 ## Paths and unit
 
-- **The unit** is a document in a family under `library/src/<family>/`: a `.tex` deliverable or
-  Markdown correspondence. In a `.tex` file only the text is checked, never macros, labels or
-  `\ref` keys.
+- **The unit** is a document in one of the families this project selected, under
+  `library/src/<family>/` (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`): a
+  `.tex` deliverable or Markdown copy such as an email. In a `.tex` file only the text is checked,
+  never macros, labels or `\ref` keys.
+- **Family skill:** read the family's skill, `<family>-documents`, as well as this file: the
+  family's required sections and conventions.
 - **The pass** is step 11 of `library/workflows/05-review-a-document/`, before `spelling`.
-- **Extra reads:** `standards/brand/brand-voice.md` (the two registers and the marks of running
-  copy); `standards/method/BUSINESS.md` rules 2, 4 and 7; the house person ('I' or 'we') in
-  `.claude/CLAUDE.md` Section 1 and `standards/style/voice-notes.md`.
+- **Extra reads:** the brand voice, in the brand folder `00-project.md` `## Paths` names (by
+  default `standards/brand/brand-voice.md`: the two registers and the marks of running copy);
+  `standards/method/BUSINESS.md` rules 2, 4 and 7; the house person ('I' or 'we'), the voice
+  person in `00-project.md` `## Brief`, and `standards/style/voice-notes.md`.
 - **Where corrections go:** accepted corrections are applied in the `.tex` or Markdown file
   directly and listed in the hand-back (`library/workflows/05-review-a-document/` step 11). A
   correction inside a promoted section is also made in its draft and logged in its ledger entry,
@@ -23,8 +27,10 @@ copy carries no em dash.
 
 ## Additions to the steps
 
-- **Step 2 — also:** `make lint` reports every em dash in client-facing copy; there must be none
-  before issue (gate V6.2 in `standards/verification/BUSINESS.md`). For each, offer the mark that
+- **Step 2 — also:** scope the check to the document in hand, `make lint SCOPE=<the document's
+  path>`, never the whole library: an unscoped run reports every older document too, and is not
+  this document's gate. It reports every em dash in client-facing copy; there must be none before
+  issue (gate V6.2 in `standards/verification/BUSINESS.md`). For each, offer the mark that
   keeps the sentence's meaning: a full stop, a comma, a colon or brackets.
 - **Step 3 — also:** 'shall', 'may', 'must' and 'will' are never changed by a grammar correction;
   a doubt about one is reported and handed to `obligation-check`. The 'and' or 'or' that joins a
@@ -34,7 +40,7 @@ copy carries no em dash.
   of a defined term is not filler.
 - **Step 3 — also:** one document holds one house person; a mix of 'I' and 'we' is reported.
 - **Step 4 — also:** numbered clause lists are punctuated as the house preamble lays them out;
-  amounts, dates and times follow the style sheet and `.claude/CLAUDE.md` Section 1 (the currency
+  amounts, dates and times follow the style sheet and `00-project.md` `## Brief` (the currency
   and its format, DD/MM/YYYY, the 24-hour clock).
 - **Step 5 — also:** the formal register of an instrument or a policy ('the Client shall…', long
   conditional sentences) is the register working as designed; it is checked for grammar, not
@@ -46,7 +52,7 @@ copy carries no em dash.
 - **Grammar never changes an obligation.** Modal verbs, list conjunctions, numbers and defined terms
   are reported, never corrected in passing.
 - **The register is set by the reader:** formal for an instrument, plain and direct for a proposal
-  or a letter (`standards/brand/brand-voice.md` Section 2).
+  or a letter (the brand voice's Section 2).
 
 ## Examples
 

@@ -5,10 +5,12 @@ where settled nodes go.
 
 ## Paths and unit
 
-- **Map files:** `planning/src/maps/MAP-<TOPIC>.md`, for example `MAP-EXAMPLE-CLIENT-ONBOARDING.md`
-  or `MAP-POLICY-REFRESH.md`.
-- **Reads (step 5):** every relevant folder `CONTEXT.md` in `library/src/`, the client's facts in
-  `library/src/contracts/client-docs/<client-slug>/CONTEXT.md`, `planning/src/document-register.md`,
+- **Map files:** in the decision maps folder `00-project.md` `## Paths` names (by default
+  `planning/src/maps/MAP-<TOPIC>.md`), for example `MAP-EXAMPLE-CLIENT-ONBOARDING.md` or
+  `MAP-POLICY-REFRESH.md`.
+- **Reads (step 5):** every relevant folder `CONTEXT.md` in `library/src/`, the client's facts at
+  the client facts path in `00-project.md` `## Paths` (by default
+  `library/src/business/client-docs/<client-slug>/CONTEXT.md`), `planning/src/document-register.md`,
   `planning/src/review-schedule.md`, `planning/src/precedence.md`, and the house standards.
 - **Procedures that chart with a map:** `planning/workflows/06-run-a-review-cycle/` when a review
   covers a whole document family.
@@ -29,10 +31,10 @@ where settled nodes go.
 | A settled decision that is… | Graduates to… |
 |---|---|
 | a producible document | its brief in `planning/src/units/`, then the document, and its row in `planning/src/document-register.md` |
-| a client fact | the client's `CONTEXT.md` `## Facts` |
+| a client fact | the client's `## Facts`, at the client facts path |
 | a dated obligation: a review, a renewal, a sign-off | `planning/src/review-schedule.md` |
 | which document governs when two conflict | `planning/src/precedence.md` |
-| an approval | a record in `planning/src/approvals/` |
+| an approval | a record in the Approvals path (`00-project.md` `## Paths`; by default `planning/src/approvals/`) |
 | a drafting decision confined to one document | that document's internal note |
 
 - **There is no separate blockers file.** A blocker lives on the map as a task node and, where it

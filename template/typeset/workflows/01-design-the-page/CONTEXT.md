@@ -34,8 +34,9 @@ Reach for a **different** procedure when: the page design is settled and a chapt
   flag removed, and a row in its decisions table.
 - **`typeset/src/book.tex`** with the matching class options set.
 - **A sample print** in `build/typeset/book.pdf`, read with the author.
-- **A dated line** in `.claude/MEMORY.md` Decisions for any choice that is costly to reverse
-  (the trim above all, because it sets the page count and the cover).
+- **A dated line** in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
+  `## Memory headings`) for any choice that is costly to reverse (the trim above all, because it
+  sets the page count and the cover).
 
 ## The one thing this procedure exists to protect
 

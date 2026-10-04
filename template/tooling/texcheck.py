@@ -23,13 +23,16 @@ reads from the Markdown. Any word inserted, deleted or changed is reported with 
 each side, and the check fails.
 
 The LaTeX side keeps the text a command prints (\\emph{…}, \\footnote{…}, \\smallcaps{…},
-\\dropcap{T}{he}, \\conlang[…]{…}, \\url{…} as written, \\ctitle{…}) and drops what only lays
-the page out (\\label, \\vspace, \\enlargethispage, \\looseness=-1, \\dnote{…}, comments, the
-repeated head of a long table). The Markdown side is `pandoc -t plain` through the same house
-filter, with footnotes kept where they are called and every list number, table rule and heading
-mark removed. Both sides then get the same normalisation: quotation marks and apostrophes, TeX
-dashes and ellipses, ligatures, spaces (non-breaking, thin, ~). Letter case is compared exactly,
-except inside small capitals, where the case of the letters is styling.
+\\dropcap{T}{he}, \\conlang[…]{…}, \\url{…} as written, \\ctitle{…}, the text of a
+\\multicolumn) and drops what only lays the page out (\\label, \\vspace, \\enlargethispage,
+\\looseness=-1, \\dnote{…}, comments, the repeated head of a long table, a list's options such
+as \\begin{enumerate}[label=(\\alph*)], table colours, rules and spacing such as \\rowcolor{…},
+\\cellcolor{…}, \\arrayrulecolor{…} and \\addlinespace, \\needspace{…}, \\hypersetup{…}). The
+Markdown side is `pandoc -t plain` through the same house filter, with footnotes kept where they
+are called and every list number, table rule and heading mark removed. Both sides then get the
+same normalisation: quotation marks and apostrophes, TeX dashes and ellipses, ligatures, spaces
+(non-breaking, thin, ~). Letter case is compared exactly, except inside small capitals, where the
+case of the letters is styling.
 
 Structure is compared with the words, as marks in the stream (a report shows them):
   ⟦note⟧ … ⟦/note⟧          where each footnote opens and closes (\\footnote{…})
@@ -213,6 +216,7 @@ SWITCHES = {
     "frontmatter", "mainmatter", "backmatter", "tableofcontents", "housetitlepage",
     "maketitle", "phantomsection", "selectfont", "strut", "nopagebreak", "nolinebreak",
     "pagebreak", "vfill", "onehalfspacing", "singlespacing", "endgraf", "headingfont",
+    "hrulefill",
 }
 # Commands whose arguments are read: m = keep as text, joined to its neighbours as print joins
 # it (\dropcap{T}{he} is one word); M = keep as text, set apart (a heading); d = drop;
@@ -234,6 +238,10 @@ ARGS = {
     "markright": "d", "addcontentsline": "ddd", "pagenumbering": "d", "fontsize": "dd",
     "input": "d", "include": "d", "colorbox": "dm", "textcolor": "dm", "color": "d",
     "rule": "odd", "raisebox": "doom", "parbox": "oood", "item": "O",
+    # Tables and pages (colortbl, booktabs, needspace, hyperref): colours, rules, spacing and
+    # settings are layout; a \multicolumn's last argument is its cell's text.
+    "rowcolor": "od", "cellcolor": "od", "arrayrulecolor": "od", "multicolumn": "ddm",
+    "addlinespace": "o", "needspace": "d", "hypersetup": "d",
     "looseness": "n", "penalty": "n", "hyphenpenalty": "n", "tolerance": "n",
     "linebreak": "o", "pagebreak": "o", "nopagebreak": "o", "nolinebreak": "o",
     # The house class (tooling/latex/housebook.cls)
@@ -243,8 +251,10 @@ ARGS = {
     "CSLBlock": "m", "CSLLeftMargin": "m", "CSLRightInline": "m", "CSLIndent": "m",
     "MakeUppercase": "m", "MakeLowercase": "m", "textsc": "m",
     # The business preamble: \ctitle heads a clause; \ins is redline text added, \del and \cmt
-    # are redline marks (struck text, a comment), not the document's words.
+    # are redline marks (struck text, a comment), not the document's words; \houseclassification
+    # sets the running header's classification, which is layout.
     "ctitle": "M", "ins": "m", "del": "d", "cmt": "d", "housetitle": "ddd",
+    "houseclassification": "d",
 }
 FOLD = {"smallcaps", "textsc", "MakeUppercase", "MakeLowercase"}
 DEFINERS = {"newcommand", "renewcommand", "providecommand", "DeclareRobustCommand"}
@@ -256,6 +266,8 @@ ENV_ARGS = {
     "longtable": "od", "tabular": "od", "tabularx": "dd", "minipage": "oood",
     "CSLReferences": "dd", "otherlanguage": "od", "figure": "o", "table": "o", "list": "dd",
     "Shaded": "", "Highlighting": "o", "multicols": "d",
+    # A list's options (enumitem: label=…, leftmargin=…, resume) are layout, not words.
+    "enumerate": "o", "itemize": "o", "description": "o", "clause": "o",
 }
 ENV_MARKS = {"epigraph": (EPIGRAPH, EPIGRAPH_END), "quote": (QUOTE, QUOTE_END),
              "quotation": (QUOTE, QUOTE_END)}
@@ -1120,6 +1132,27 @@ In this document, the Work means the rewrite.
 The fees are in clause 1.1 and paid within 30 days.
 """
 
+# One sentence set with each layout command a deliverable uses around words: list options
+# (enumitem), table colours, rules, spans and spacing, and page settings.
+LAYOUT_PLAIN = "Paid on time.\n"
+LAYOUT_CASES = (
+    ("enumerate options", "\\begin{enumerate}[label=(\\alph*), leftmargin=1.5em]\n"
+                          "  \\item Paid on time.\n\\end{enumerate}"),
+    ("itemize options", "\\begin{itemize}[noitemsep, topsep=2pt]\n  \\item Paid on time.\n\\end{itemize}"),
+    ("description options", "\\begin{description}[style=nextline]\n  \\item[Paid] on time.\n\\end{description}"),
+    ("clause options", "\\begin{clause}[resume]\n  \\item Paid on time.\n\\end{clause}"),
+    ("\\rowcolor", "\\rowcolor{housesurface} Paid on time."),
+    ("\\rowcolor with a colour model", "\\rowcolor[HTML]{F1F3F4} Paid on time."),
+    ("\\cellcolor", "\\cellcolor[gray]{0.9} Paid on time."),
+    ("\\arrayrulecolor", "\\arrayrulecolor{housedivider}\nPaid on time."),
+    ("\\multicolumn", "\\multicolumn{2}{l}{Paid on time.}"),
+    ("\\addlinespace", "\\addlinespace[2pt]\nPaid on time."),
+    ("\\addlinespace with no length", "\\addlinespace\nPaid on time."),
+    ("\\needspace", "\\needspace{4\\baselineskip}\nPaid on time."),
+    ("\\hypersetup", "\\hypersetup{hidelinks}\nPaid on time."),
+    ("\\hrulefill", "Paid on time.\\hrulefill"),
+)
+
 
 def self_test() -> int:
     failures = []
@@ -1194,6 +1227,16 @@ def self_test() -> int:
             verdict("section mode: " + label, False, ["no error was raised"])
         except SectionError as err:
             verdict("section mode: " + label, err.code == code, [f"code {err.code}: {err}"])
+
+    # Layout is never words: each of these must match its text with no problem and no warning.
+    for name, tex in LAYOUT_CASES:
+        problems, warnings, _ = check(tex, LAYOUT_PLAIN, LAYOUT_PLAIN)
+        verdict(f"layout, not words: {name}", not problems and not warnings, problems + warnings)
+    expect("a changed word after a list's options still fails",
+           LAYOUT_CASES[0][1].replace("Paid on", "Paid in"), False, "changed",
+           plain=LAYOUT_PLAIN, md=LAYOUT_PLAIN)
+    expect("a changed word inside a \\multicolumn still fails",
+           r"\multicolumn{2}{l}{Paid in time.}", False, "changed", plain=LAYOUT_PLAIN, md=LAYOUT_PLAIN)
 
     exe = shutil.which("pandoc")
     if exe and DEFAULT_FILTER.is_file():

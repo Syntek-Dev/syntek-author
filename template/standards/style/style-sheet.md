@@ -57,20 +57,25 @@ _No entries yet._
 
 ## Project settings
 
-These come from the answers given when the project was generated; change them here, with the
-author, if they change.
-
-<: if DOC_TYPE == 'theology' -:>
-**Scripture.** Quote the project's default translation and name it in prose; its citation key is
-`<%BIBLE_TRANSLATION%>`. Another translation is named at the quotation where it is used.
-<: endif -:>
 <: if DOC_TYPE == 'fiction' -:>
+How the project's own invented words are spelled.
+
 **Invented words.** Names are spelled as in `world/src/names-register.md`, and words of an
 invented language as in its lexicon; `spelling` treats both as known words and reports
 near-misses of them.
-<: endif -:>
-<: if DOC_TYPE == 'business' -:>
-**Currency.** <%CURRENCY%>, always with two decimal places and no space after the symbol.
+<: else -:>
+How the project's settings are written, never what they are. Their values
+(<: if DOC_TYPE == 'theology' :>the default Bible translation<: else :>the currency and the jurisdiction<: endif :>) are the answers given
+when the project was generated, kept in `.claude/rules/syntek-author/00-project.md` `## Brief`; a
+change follows `.claude/rules/syntek-author/06-global-rules.md` Section 11. Where this file and
+`00-project.md` differ, `00-project.md` wins.
 
-**Jurisdiction.** <%JURISDICTION%>; named in every legal document and every legal claim.
+<: if DOC_TYPE == 'theology' -:>
+**Scripture.** Quote the default translation and name it in prose. Another translation is named
+at the quotation where it is used.
+<: else -:>
+**Currency.** Two decimal places, and no space after the symbol.
+
+**Jurisdiction.** Named in every legal document and every legal claim.
+<: endif -:>
 <: endif -:>

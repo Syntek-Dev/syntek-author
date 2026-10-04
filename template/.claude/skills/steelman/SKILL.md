@@ -3,15 +3,15 @@ name: steelman
 description: >-
   Audit a theology chapter for good faith and report three verdicts: every objection stated so its
   holders would recognise it (recognition, ease and missing-objection tests); every concession
-  placed ahead of its response on the page; the 'you would say that' objection at full strength
-  when .claude/MEMORY.md records the author's stake; the objection designated as left standing
-  still unanswered; no sentence leaving a reader who decides differently defensive rather than
-  thoughtful. Gate V4.4, and manuscript workflow 10 in skill form. Use when the author says
-  'steelman the objections in chapter 4', 'is this objection fair?', 'is this concession real?',
-  'am I arguing in good faith?' or 'is the standing objection still standing?'. Never rewrites the
-  argument. Not the argument's structure (`argument-audit`); not how each tradition reads a passage
-  (`tradition-check`); not claim categories (`category-check`); not polishing prose
-  (`improve-section`).
+  placed ahead of its response on the page; the 'you would say that' objection at full strength when
+  the Decisions heading of .claude/MEMORY.md records the author's stake; the objection designated as
+  left standing still unanswered; no sentence leaving a reader who decides differently defensive
+  rather than thoughtful. Gate V4.4, and manuscript/workflows/10-steelman-the-objections/ in skill
+  form. Use when the author says 'steelman the objections in chapter 4', 'is this objection fair?',
+  'is this concession real?', 'am I arguing in good faith?' or 'is the standing objection still
+  standing?'. Never rewrites the argument. Not the argument's structure (`argument-audit`); not how
+  each tradition reads a passage (`tradition-check`); not claim categories (`category-check`); not
+  polishing prose (`improve-section`).
 ---
 
 # Skill: Steelman (<%PROJECT_NAME%>)
@@ -44,8 +44,9 @@ These are the procedure of record — do not restate them at length here.
 
 1. **Find what the chapter is committed to.** Read the brief's `## Claims and categories`, the
    argument map in `planning/src/arguments/` (its objections `O` and concessions `K`), and
-   `.claude/MEMORY.md`: `## Decisions` for any objection designated as left standing, and any stake
-   the author has in the question, wherever it is recorded. Note when none is designated: leaving
+   `.claude/MEMORY.md`: its `Decisions` heading (mapped in `00-project.md` `## Memory headings`)
+   for any objection designated as left standing, and any stake the author has in the question,
+   wherever it is recorded. Note when none is designated: leaving
    one standing is allowed by the method, not required. *Complete when:* the map's objections and
    concessions, the designated standing objection (or 'none designated') and any recorded stake are
    listed.
@@ -88,8 +89,8 @@ These are the procedure of record — do not restate them at length here.
    standing, sweep the chapter for anything that answers it: in part, in a footnote, or by
    implication. A chapter that quietly answers it is a defect in that chapter, not a win. If it has
    been answered, **report and stop**: do not resolve it and do not re-designate it; the author
-   decides whether the chapter or the designation changes, and the decision is dated in
-   `.claude/MEMORY.md` `## Decisions`. *Complete when:* the standing objection is confirmed still
+   decides whether the chapter or the designation changes, and the decision is dated under the
+   `Decisions` heading of `.claude/MEMORY.md`. *Complete when:* the standing objection is confirmed still
    standing, reported as answered at a named location, or recorded as none designated.
 
 8. **Check the charity of every sentence.** Read for the reader who decides differently. Flag any
@@ -136,7 +137,8 @@ Then the three verdicts, stated explicitly even when they pass:
 - `standards/method/THEOLOGY.md` — rules 5 to 8; `standards/risk/THEOLOGY.md` — rule 1.
 - `standards/verification/THEOLOGY.md` — gate V4.4 and the order within V4.
 - `planning/src/arguments/` — the objections and concessions on the chapter's map.
-- `.claude/MEMORY.md` — `## Decisions`: the standing objection and the author's recorded stake.
+- `.claude/MEMORY.md` — the `Decisions` heading (mapped in `00-project.md` `## Memory headings`):
+  the standing objection and the author's recorded stake.
 - `.claude/skills/tradition-check/SKILL.md` — readings as their holders state them.
 - `.claude/skills/category-check/SKILL.md` — answers kept in the right category.
 - `.claude/skills/argument-audit/SKILL.md` — the support behind each answer.

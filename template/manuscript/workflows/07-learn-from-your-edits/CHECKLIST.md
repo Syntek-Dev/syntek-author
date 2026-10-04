@@ -39,7 +39,7 @@ model: opus
 
 - [ ] Approved notes appended under `## Learned`, and approved rules and terms to the style sheet and terminology, dated, each with one example; nothing else changed. · _sonnet_
 - [ ] `learned: true` set on every promoted entry read, and on no unpromoted one; nothing else in the entries changed. · _sonnet_
-- [ ] Any overturned voice decision superseded, with a date, in `.claude/MEMORY.md` Decisions. · _sonnet_
+- [ ] Any overturned voice decision superseded, with a date, in `.claude/MEMORY.md` Decisions (mapped in `00-project.md` `## Memory headings`). · _sonnet_
 - [ ] Handed back: notes added, notes declined, conflicts raised, entries marked. · _opus_
 
 ## Done When

@@ -36,7 +36,7 @@ every word that reaches the chapter file.
      few chapters (`manuscript/workflows/07-learn-from-your-edits/`).
 - **Definition of done:** the chapter file holds every planned section in plan order, each promoted
   on the author's word with its provenance recorded; the chapter has passed every gate for its
-  status; it reads as one voice to the reader named in `.claude/CLAUDE.md` Section 1; the chapter
+  status; it reads as one voice to the reader named in `00-project.md` `## Brief`; the chapter
   proof-builds.
 
 ## Guardrails
@@ -66,5 +66,5 @@ every word that reaches the chapter file.
   `manuscript/src/NN-kebab-title/drafts/<NN>-<section-slug>.md`; the guides and the procedures.
 - **Also written from this layer:** ledger entries in `standards/style/ledger/`, rows in
   `standards/style/ledger/provenance.md`, statuses in the chapter's brief, and dated lines in
-  `.claude/MEMORY.md` Status.
+  `.claude/MEMORY.md` Status (mapped in `00-project.md` `## Memory headings`).
 - **Generated (never hand-edit):** everything under `build/`.

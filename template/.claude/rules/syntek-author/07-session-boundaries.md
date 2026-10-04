@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. Project-specific rules belong in `.claude/CLAUDE.md` Section 3.
+> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 The `PreCompact` hook (`.claude/hooks/pre-compact-handoff.sh`) cites this file. It is the rule the
 hook enforces.
@@ -43,13 +43,15 @@ likely to leave something out.
 ## 3. The steps
 
 1. **Record durable knowledge in its real home first**: a decision or fact in `.claude/MEMORY.md`
-   (through the gate in `.claude/rules/syntek-author/08-naming-and-memory.md` Section 3); a
+   (through the gate in `.claude/rules/syntek-author/08-naming-and-memory.md` Section 3, under
+   the heading `00-project.md` `## Memory headings` maps it to); a
    unit decision in its brief in `planning/src/units/`; a folder rule in that folder's
    `CLAUDE.md`; a provenance record in the ledger.
 2. **Invoke the `handoff` skill.** It writes
-   `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, where the descriptor names the work, not the
-   session (`HANDOFF-OPENING-SECTIONS-03-10-2026.md`, not `HANDOFF-TUESDAY-…`). Its mode file adds
-   the part this doc type must never drop:
+   `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` (or the folder and filename `00-project.md`
+   `## Paths` gives for 'Handoffs' and 'Handoff filename'), where the descriptor names the work,
+   not the session (`HANDOFF-OPENING-SECTIONS-03-10-2026.md`, not `HANDOFF-TUESDAY-…`). Its mode
+   file adds the part this doc type must never drop:
 <: if DOC_TYPE == 'theology' :>   the standing commitments (an objection left standing, a disclosure that must be restated).
 <: elif DOC_TYPE == 'fiction' :>   the open continuity threads (planted set-ups not yet paid off, unresolved continuity rows).
 <: else :>   what is unsent or unregistered (a document drafted but not sent, a version not yet in the register).
@@ -69,5 +71,6 @@ likely to leave something out.
 - **Not confidential.** It is committed. Confidential material is named and located, never pasted
   (`.claude/rules/syntek-author/06-global-rules.md` Section 10).
 - **Not permanent.** Prune a handoff once its work has resumed and landed; never edit an old one
-  to bring it up to date. Work that will span many sessions by design belongs in a decision map in
-  `planning/src/maps/` (the `wayfinder` skill), not in a chain of handoffs.
+  to bring it up to date. Work that will span many sessions by design belongs in a decision map
+  (the `wayfinder` skill; `00-project.md` `## Paths`, 'Decision maps'), not in a chain of
+  handoffs.

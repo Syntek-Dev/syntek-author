@@ -24,7 +24,8 @@ the author made knowingly, never an accident of drafting.
   2. Flag it in place with `AUTHOR TO CONFIRM`, saying what the risk is and the options.
   3. Tell the author in plain words, and wait for the decision.
   4. Record the decision, dated, in `.claude/MEMORY.md` (`## Sensitivities` or
-     `## Decisions`), so the same question is not asked again in the next unit.
+     `## Decisions`, mapped in `00-project.md` `## Memory headings`), so the same question is not
+     asked again in the next unit.
 - **Definition of done:** every risk in the unit is either resolved by the author's recorded
   decision or still flagged; nothing was resolved silently.
 
@@ -33,8 +34,9 @@ the author made knowingly, never an accident of drafting.
 - **Flag and defer.** A skill never decides alone to name, anonymise, soften or keep anything
   covered here; it flags and the author decides.
 - **Name the subjects once.** Sensitive topics, named high-risk claim classes and people who
-  must not be identified are recorded in `.claude/MEMORY.md` `## Sensitivities`, never copied
-  into skills or other governance files, so a change of scope is one edit.
+  must not be identified are recorded in `.claude/MEMORY.md` `## Sensitivities` (mapped in
+  `00-project.md` `## Memory headings`), never copied into skills or other governance files, so
+  a change of scope is one edit.
 - **Never fabricate or embellish personal detail**, about the author or anyone else.
 - **The author's wellbeing comes before the schedule.** On hard material, pause and ask; the
   author sets the pace.

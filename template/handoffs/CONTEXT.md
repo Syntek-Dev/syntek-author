@@ -6,6 +6,9 @@ the project's alternative to letting a session compact
 (`.claude/rules/syntek-author/07-session-boundaries.md`). It is a transient bridge, not a memory
 store, and nothing in it is the work.
 
+This is the default home. A project that keeps its handoffs elsewhere, or names them another
+way, says so in `00-project.md` `## Paths` ('Handoffs', 'Handoff filename'), and that wins.
+
 ## Directory Tree
 
 ```text

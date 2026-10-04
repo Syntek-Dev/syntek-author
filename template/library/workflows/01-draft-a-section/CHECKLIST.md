@@ -20,7 +20,7 @@ model: opus
 - [ ] Confirmed with the author which document and which section: slug and `order` from the brief's `sections:` list. · _opus_
 - [ ] The brief's status is not `idea` (V1 dated); otherwise stopped: the brief is not agreed (`planning/workflows/01-plan-a-unit/`). · _sonnet_
 - [ ] Unit brief read: Scope, What this unit does, Sections, Obligations and defined terms, Draws on, Draft notes. · _opus_
-- [ ] Family folder pair read; for a client document, the client's facts in `library/src/contracts/client-docs/<client-slug>/CONTEXT.md` read. · _opus_
+- [ ] Family folder pair and family standard read; for a client document, the client's facts (`## Facts` in `library/src/business/client-docs/<client-slug>/CONTEXT.md`, or where `00-project.md ## Paths` says) read. · _opus_
 
 ## Execution Checklist
 

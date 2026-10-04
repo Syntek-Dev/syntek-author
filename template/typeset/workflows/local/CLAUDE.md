@@ -26,7 +26,8 @@ template updates can never reach them.
      items ending ` · _opus_` or ` · _sonnet_`.
   4. Add a row to this folder's `CONTEXT.md`.
 - **Concrete steps to override a template procedure:**
-  1. Confirm with the author, and date the decision in `.claude/MEMORY.md` Decisions.
+  1. Confirm with the author, and date the decision in `.claude/MEMORY.md` Decisions (mapped in
+     `00-project.md` `## Memory headings`).
   2. Copy the template folder here under the same name, all four files, and change only what
      differs.
   3. Add a row to this folder's `CONTEXT.md` naming what it overrides.

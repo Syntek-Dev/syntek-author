@@ -41,14 +41,17 @@ These are the procedure of record — do not restate them at length here.
 
 ## How to check the clauses
 
-1. **Fix the scope and the family.** Agree with <%AUTHOR_FIRST_NAME%> which document, by its
-   `.tex` path in `library/src/`, and read its unit brief in `planning/src/units/`, especially the
-   terms table in `## Obligations and defined terms`. Find the family it belongs to from
-   `planning/src/precedence.md`, the brief and the client's facts file
-   (`library/src/contracts/client-docs/<client-slug>/CONTEXT.md`), and read every document in it
-   that this one relies on or is relied on by. Read `standards/style/terminology.md` for terms the
-   whole family must use alike. *Complete when:* the document, its brief, its family members and
-   the terminology rows in play are named and read.
+1. **Fix the scope and the family.** Agree with <%AUTHOR_FIRST_NAME%> which document, by its `.tex`
+   path in `library/src/`, and read its unit brief in `planning/src/units/`, especially the terms
+   table in `## Obligations and defined terms`. Find the document family it belongs to (the
+   instruments that rely on one another for one client, which may sit in more than one library
+   folder) from `planning/src/precedence.md`, the brief and the client's facts at the client facts
+   path in `00-project.md` `## Paths` (by default
+   `library/src/business/client-docs/<client-slug>/CONTEXT.md`), and read every document in it that
+   this one relies on or is relied on by. Read the skill of the library family its folder sits in,
+   `<family>-documents`, for that family's own conventions. Read `standards/style/terminology.md`
+   for terms the whole family must use alike. *Complete when:* the document, its brief, its family
+   members and the terminology rows in play are named and read.
 
 2. **Build the term inventory.** List every defined term: where it is defined (the definitions
    clause, or inline as `(\textbf{Term})`), every place it is bolded, and every use. A capitalised
@@ -72,7 +75,7 @@ These are the procedure of record — do not restate them at length here.
    `\label{cl:…}`; labels are unique; a reference to a schedule or annex points at one that exists;
    the word 'clause' is lower-case; a clause referring to itself says so. Render the document with
    `make pdf FILE=<path>.tex` (it runs twice so references resolve) and read the proof for any `??`.
-   Correspondence and proposals that describe a term reproduce its substance, never its clause
+   Emails, letters and proposals that describe a term reproduce its substance, never its clause
    number. *Complete when:* every reference resolves in the proof, or is listed with the label it
    wants.
 
@@ -120,7 +123,7 @@ Close with a verdict: **V5.1 pass or fail**, and the count of terms and referenc
   never a sentence this skill supplies.
 - **Copying another client's terms.** A family is one client's documents; definitions are never
   carried across clients (`standards/risk/BUSINESS.md` rule 1).
-- **Citing clause numbers in correspondence.** A letter describes the substance; the clause lives
+- **Citing clause numbers in an email or a letter.** It describes the substance; the clause lives
   in the instrument.
 - **Editing a signed or issued document.** A change after issue is a new version
   (`standards/method/BUSINESS.md` rule 8).

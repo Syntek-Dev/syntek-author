@@ -49,6 +49,7 @@ are authoritative.
   rules and terms in `standards/style/style-sheet.md` and `standards/style/terminology.md`, each
   dated DD/MM/YYYY with its before-and-after.
 - **Also writes:** `learned: true` in the promoted ledger entries read; a dated Decisions entry in
-  `.claude/MEMORY.md` when a note overturns an earlier voice decision.
+  `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) when a note overturns an
+  earlier voice decision.
 - **Generated:** nothing.
 - **Does not touch:** the manuscript, the drafts or the ledger's texts.

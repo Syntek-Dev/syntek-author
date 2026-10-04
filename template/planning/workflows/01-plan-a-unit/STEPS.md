@@ -38,10 +38,10 @@ author before changing anything. Those slugs are kept. _Mechanical._
 
 > **Skill:** `grill-with-docs` · **Guide:** `planning/docs/reference/unit-briefs.md`
 
-Read `.claude/MEMORY.md` (Decisions, Open questions, Sensitivities), the briefs either side of
-this unit, the research notes and evidence it will lean on in `research/src/`, and any open map
-in `planning/src/maps/` that touches it. A question the repository can answer is never put to
-the author. _Substantive._
+Read `.claude/MEMORY.md` (Decisions, Open questions, Sensitivities, mapped in `00-project.md`
+`## Memory headings`), the briefs either side of this unit, the research notes and evidence it
+will lean on in `research/src/`, and any open map in `planning/src/maps/` that touches it. A
+question the repository can answer is never put to the author. _Substantive._
 
 ## 4. Settle the scope and the job
 
@@ -94,7 +94,8 @@ read-back is substantive._
 
 Decisions that pass the memory gate go to `.claude/MEMORY.md` `Decisions`, dated; new or
 sharpened terms go to `standards/style/terminology.md`; questions left open go to
-`Open questions`. Everything else stays in the brief. _Substantive._
+`Open questions` (both headings mapped in `00-project.md` `## Memory headings`). Everything else
+stays in the brief. _Substantive._
 
 ## 10. Reconcile with the content layer
 

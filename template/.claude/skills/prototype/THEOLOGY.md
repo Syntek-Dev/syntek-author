@@ -27,8 +27,9 @@ The two branches for a theology book, ARGUMENT and VOICE, and what each relaxes.
   British-English sweep. **What does not relax:** confidentiality, and the rule that scripture is
   quoted only from the text: a verse not yet checked is a placeholder, never a recollection.
 - **Step 5 — also** record an ARGUMENT verdict in the brief's `## Claims and categories` or the
-  argument map; a VOICE verdict that should govern later chapters goes to `.claude/MEMORY.md`
-  `Decisions` through the gate, so later drafting stays consistent.
+  argument map; a VOICE verdict that should govern later chapters goes to the `Decisions` heading
+  of `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) through the gate, so
+  later drafting stays consistent.
 
 ## Domain rules
 

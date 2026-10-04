@@ -91,8 +91,9 @@ are the procedure of record — do not restate them at length here.
 
 9. **Hand back.** Report the arc type, the truth, the turn and the open items; name the unit briefs
    whose `## Sections` should now mention the shifts they carry. Decisions that are hard to reverse
-   go to `.claude/MEMORY.md` `## Decisions` through `grill-with-docs`. *Complete when:* the author
-   has the report and the next procedure is named.
+   go under the `Decisions` heading of `.claude/MEMORY.md` (mapped in `00-project.md`
+   `## Memory headings`) through `grill-with-docs`. *Complete when:* the author has the report and
+   the next procedure is named.
 
 ## Anti-patterns
 

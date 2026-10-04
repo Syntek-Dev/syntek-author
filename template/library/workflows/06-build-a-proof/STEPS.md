@@ -54,12 +54,14 @@ no heading stranded at the foot of a page; the document's parts in order. _Subst
 
 > **Skill:** `build` · **Guide:** `library/docs/reference/latex-deliverables.md`
 
-A Word copy of a `.tex` comes only from a lossless converter the author has chosen:
-`make docx FILE=<path>.tex DOCX_CONVERTER='<command>'`. Without one, `make docx` refuses a `.tex`
-on purpose, because a lossy copy is worse than none: ask the author, and send the PDF instead.
+`make docx FILE=<path>.tex` uses `DOCX_CONVERTER` from `tooling/project.mk`, the author's lossless
+converter. Only where that is empty, ask the author for a lossless converter (or send the PDF):
+`make docx` refuses a `.tex` without one on purpose, because a lossy copy is worse than none.
 Markdown copy needs no converter: `make docx FILE=<path>.md`. Compare any Word copy with the PDF:
 clause numbers resolved, tables intact, redline marks kept, no paragraph missing. If anything is
-lost, stop and report what failed; never patch the Word file. _Mechanical._
+lost, stop and report what failed; never patch the Word file. A Word copy that is sent is copied
+from `build/` beside its source on the author's word, named as the issued PDF (with `.docx`), and
+committed with it. _Mechanical._
 
 ## 6. Report
 
@@ -77,5 +79,5 @@ problem goes through the loop; a conversion problem is fixed in the promotion. _
 | `Missing $ inserted` or a stray symbol | an unescaped `_`, `$`, `&`, `%` or `#` in prose | escape it in the `.tex` |
 | `??` where a clause number belongs | a `\label` missing or misspelt | fix the label or the `\ref` |
 | a font error | a font the preamble names is not installed | report it; never swap the font in one document |
-| `make docx` refuses a `.tex` | no `DOCX_CONVERTER` named | ask the author for a lossless converter, or send the PDF |
+| `make docx` refuses a `.tex` | `DOCX_CONVERTER` empty in `tooling/project.mk` | ask the author for a lossless converter, or send the PDF |
 | the Word copy drops text | a construct the converter cannot carry | report it; send the PDF instead if the author agrees |

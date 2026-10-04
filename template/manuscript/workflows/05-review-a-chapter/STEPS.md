@@ -78,7 +78,7 @@ pass, set `status: line-edit` and date them. _Substantive._
 
 > **Skill:** `comprehension` · **Guide:** the guide for this kind of book in `manuscript/docs/reference/`
 
-Read the chapter as the reader named in `.claude/CLAUDE.md` Section 1. Report undefined terms,
+Read the chapter as the reader named in `00-project.md` `## Brief`. Report undefined terms,
 leaps, buried points and lost orientation, by location. Report only. _Substantive._
 
 ## 8. Flow
@@ -123,8 +123,9 @@ and its sub-gates met but the author's word. Where the project has the sensitive
 and the chapter touches a subject recorded in `.claude/MEMORY.md` `## Sensitivities`, the
 sensitivity pass runs over it before this step, and every item it raises is answered. Then ask
 the author. Only on their explicit word set `status: final` and date V6 in `verified:`; then add
-the author's word, with its date, to `.claude/MEMORY.md` `## Status`
-(`standards/verification/verification.md` Section 2). _Substantive (the author's call)._
+the author's word, with its date, to `.claude/MEMORY.md` `## Status` (both headings mapped in
+`00-project.md` `## Memory headings`; `standards/verification/verification.md` Section 2).
+_Substantive (the author's call)._
 
 ## 13. Hand back
 

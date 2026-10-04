@@ -26,9 +26,10 @@ name on the cover or in the proposal tells a particular audience the book is wor
   (their yes says the book is serious; approach first); **practitioners** who can vouch for its
   subject-matter claims; **church-institutional voices**, always through a named person, never a
   department; **voices beyond the church**, only if crossover is pursued, and told early that the
-  book is Christian. Name which objection their yes answers: where `.claude/MEMORY.md` records the
-  author's stake, a practitioner who can judge the field answers 'you would say that' better than
-  a bigger name who cannot.
+  book is Christian. Name which objection their yes answers: where the `Decisions` heading of
+  `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`) records the author's stake, a
+  practitioner who can judge the field answers 'you would say that' better than a bigger name who
+  cannot.
 - **Step 3 — also** the ask is one the author can honour: a short endorsement, or a read of named
   chapters, each already promoted or with an agreed date.
 - **Step 5 — also** keep it **under 250 words**: the book in two sentences, leading with the hook;

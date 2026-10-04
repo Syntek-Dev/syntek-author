@@ -9,8 +9,9 @@ accepted as an alias of `outlined` and rewritten on first touch). Every rung but
 by passing numbered gates, each run by the skill named with it: V1 gates `idea → outlined`;
 `outlined → draft` has no gate of its own; V2 and V3 together gate `draft → structural-review`;
 V4, V5 and V6 gate the three review transitions. `promote-section` holds every section it
-promotes to V2's terms; the review workflow (05) in the content layer confirms V2 and V3 as it
-opens, then runs V4 to V6 in order. The mode file beside this one (exactly one of `THEOLOGY.md`,
+promotes to V2's terms; the content layer's review workflow (`05-review-a-chapter` in a book,
+`05-review-a-document` in a business project) confirms V2 and V3 as it opens, then runs V4 to V6
+in order. The mode file beside this one (exactly one of `THEOLOGY.md`,
 `FICTION.md` or `BUSINESS.md` ships here) adds sub-gates numbered under V4, V5 or V6.
 
 Dates DD/MM/YYYY.
@@ -30,7 +31,7 @@ passes, together with every sub-gate the mode file adds to it.
 | **V3** | `draft → structural-review` (with V2) | A proof of the whole unit builds and has been read. | `build` |
 | **V4** | `structural-review → fact-check` | A structural review of the whole unit is written to `planning/src/reviews/` as advice, and the author has answered every finding (accepted, declined or deferred, each dated). | `structure-review` |
 | **V5** | `fact-check → line-edit` | Every checkable claim in the unit has a verdict recorded in `research/src/evidence/` (`standards/method/method.md` rule 7); no `VERIFY` flag remains; anything `cannot-be-dated` or `unsupported` has been cut or rewritten; where references are on, every citation key resolves in a proof. | `fact-check` |
-| **V6** | `line-edit → final` | The `comprehension`, `flow`, `grammar` and `spelling` reports have been run and every item resolved by the author; `make flags SCOPE=<the unit>` lists nothing; `make lint` has been read; the author has given their explicit word that the unit is final. | the review workflow (05), and the author |
+| **V6** | `line-edit → final` | The `comprehension`, `flow`, `grammar` and `spelling` reports have been run and every item resolved by the author; `make flags SCOPE=<the unit>` lists nothing; `make lint` has been read; the author has given their explicit word that the unit is final. | the content layer's review workflow (named above), and the author |
 
 **Why this rule exists.** A ladder with named gates tells everyone (the author, every skill, a
 later session) exactly what 'draft' or 'final' means for this unit, and makes 'nearly done' a
@@ -42,8 +43,8 @@ checkable statement rather than a feeling.
 
 **Requirement.** No unit becomes `final` with any `AUTHOR TO CONFIRM` or `VERIFY` flag anywhere
 in it, and no skill sets `final`: the author's explicit word does, recorded with its date in
-`.claude/MEMORY.md` `## Status`. `promote-section` moves sections into a unit; it never
-finalises the unit.
+`.claude/MEMORY.md` `## Status` (mapped in `00-project.md` `## Memory headings`).
+`promote-section` moves sections into a unit; it never finalises the unit.
 
 **Why this rule exists.** Every flag is a decision or a check that has not happened. A unit
 called final with one still in it publishes a guess, and only the author can decide that the

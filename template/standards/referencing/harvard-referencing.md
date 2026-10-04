@@ -65,12 +65,14 @@ written any other way prints wrongly in every reference that uses it.
 author, its short title as the title and its year in `year`; sections are locators in the
 citation (`[@someact2024, s. 4]`), never separate rows. A sacred or canonical text
 (for example, Scripture in a theology project) is cited in prose by its own reference system,
-with the translation or edition named, not as a key at every quotation. A theology project
-records its default translation's key in `standards/style/style-sheet.md`; `make refs` writes it
-to `build/nocite.yaml`, which `tooling/defaults.yaml` loads, so it is in every reference list
-without a citation in the text. The key still needs its row in the database, added with
-`add-reference`; until it has one the build leaves it out without a warning, so check the
-reference list in the proof for it.
+with the translation or edition named, not as a key at every quotation. A theology project's
+default translation is named in `00-project.md` `## Brief` by its key. `make refs` writes the key
+from the Copier answer to `build/nocite.yaml`, which `tooling/defaults.yaml` loads, so it is in
+every reference list without a citation in the text. A change of translation is therefore made
+with `uvx copier update --trust -a .copier-answers.syntek-author.yml --data BIBLE_TRANSLATION=…`
+(`README.md`, 'Updating from the template'), then by hand in `## Brief`. The key still needs its
+row in the database, added with `add-reference`; until it has one the build leaves it out
+without a warning, so check the reference list in the proof for it.
 
 **Why this rule exists.** These sources have reference systems older and more precise than any
 author-date style; forcing them into one helps no reader.

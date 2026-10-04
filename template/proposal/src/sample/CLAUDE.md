@@ -17,7 +17,7 @@ Point at the manuscript units a reader will receive, with a reason for each, and
   and run the export (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps:**
   1. Recommend a selection, with reasons, and let the author choose; record the choice in
-     `.claude/MEMORY.md` (Decisions).
+     `.claude/MEMORY.md` (Decisions, mapped in `00-project.md` `## Memory headings`).
   2. Check that every planned section of each chosen unit is promoted, none still in its
      `drafts/`.
   3. Add a row per chosen unit to `sample-index.md`: order, path, the date its last section was

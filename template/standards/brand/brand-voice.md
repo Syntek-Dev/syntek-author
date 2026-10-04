@@ -8,6 +8,10 @@
 > `copier update` never overwrites it. Each section states the house writing rule and holds no
 > entries until the author records one; every decision only the author can make is flagged
 > `AUTHOR TO CONFIRM`, and `make flags` lists it until it is made.
+>
+> **The default home.** A project that keeps its brand voice somewhere else names that folder in
+> `00-project.md` `## Paths` ('Brand folder'); every skill reads the voice there, and this file
+> is then not used.
 
 The voice standard for every document the business issues: proposals, letters, emails, policies,
 web and social copy, and the running text of instruments. `tone` enforces it at line edit (gate
@@ -15,14 +19,15 @@ V6.1); `draft-section` writes from it; `improve-section` cites it when it propos
 house drafting principles it builds on, the marks of running copy among them, are in
 `standards/method/BUSINESS.md`, which template updates keep current; this file records what is
 particular to this business. The person the business writes in is in
-`standards/style/voice-notes.md`; the trading name, exactly as printed, is in
-`standards/brand/disclaimers.md`.
+`standards/style/voice-notes.md`; the trading name, exactly as printed, is in `00-project.md`
+`## Brief`.
 
 **How to add an entry.** Under the section's heading, one bullet per decision:
 `- **DD/MM/YYYY** — **<the decision>.** <the reason>`, and, for a mark, a real before and after
 from the business's own documents. Remove the section's flag once its decision is made, record
-the decision in `.claude/MEMORY.md` `## Decisions`, and mark an overturned entry
-`*(Superseded DD/MM/YYYY — see below.)*` rather than deleting it.
+the decision in `.claude/MEMORY.md` `## Decisions` (mapped in `00-project.md`
+`## Memory headings`), and mark an overturned entry `*(Superseded DD/MM/YYYY — see below.)*`
+rather than deleting it.
 
 Dates DD/MM/YYYY; British English throughout.
 
@@ -92,8 +97,8 @@ answers their question.
 
 ## 5. Mechanics of the name and the headlines
 
-**Requirement.** The trading name is printed exactly as in `standards/brand/disclaimers.md`;
-product and service names keep their recorded casing (`standards/style/terminology.md`). A
+**Requirement.** The trading name is printed exactly as in `00-project.md` `## Brief`; product
+and service names keep their recorded casing (`standards/style/terminology.md`). A
 tagline, if the business has one, and the cadence and casing of headlines are entries here.
 
 <!-- AUTHOR TO CONFIRM: the tagline, if any, word for word, and where it may appear. -->

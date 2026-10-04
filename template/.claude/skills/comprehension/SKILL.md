@@ -2,15 +2,15 @@
 name: comprehension
 description: >-
   Read a section, a unit or the whole work as its stated reader (the audience and reader test in
-  .claude/CLAUDE.md Section 1, narrowed by any reader a unit brief names) and report, by location,
-  where that reader would stumble: an undefined or unexplained term, a leap they must make alone,
-  knowledge the text assumes, a point buried under its qualifications, lost orientation, a
-  sentence they would have to read twice. Report only, most serious first, each with a suggested
-  remedy; the author decides every change. Use when the author asks 'will my reader follow
-  this?', 'is this too technical?', 'read it as a client would', 'where would someone get lost?'
-  or 'does this assume too much?', or at the line-edit stage of a review. Not grammar or spelling
-  (`grammar`, `spelling`), not transitions and rhythm (`flow`), and not whether the structure or
-  the argument holds (`structure-review`).
+  00-project.md ## Brief, narrowed by any reader a unit brief names) and report, by location, where
+  that reader would stumble: an undefined or unexplained term, a leap they must make alone,
+  knowledge the text assumes, a point buried under its qualifications, lost orientation, a sentence
+  they would have to read twice. Report only, most serious first, each with a suggested remedy; the
+  author decides every change. Use when the author asks 'will my reader follow this?', 'is this too
+  technical?', 'read it as a client would', 'where would someone get lost?' or 'does this assume too
+  much?', or at the line-edit stage of a review. Not grammar or spelling (`grammar`, `spelling`),
+  not transitions and rhythm (`flow`), and not whether the structure or the argument holds
+  (`structure-review`).
 ---
 
 # Skill: Comprehension (<%PROJECT_NAME%>)
@@ -19,7 +19,7 @@ Locale: en_GB · <%TIMEZONE%> · dates DD/MM/YYYY.
 
 Read the work as the person it is written for, not as its author and not as an expert, and report
 every place that person would slow down, stop or misread. The reader is named once, in
-`.claude/CLAUDE.md` Section 1; this skill never restates them in its own words. It reports and
+`00-project.md` `## Brief`; this skill never restates them in its own words. It reports and
 suggests; it changes nothing. It never makes the work simpler than its reader needs: a term the
 stated audience already owns is not a finding.
 
@@ -29,7 +29,8 @@ These own the rules; this skill applies them and cites them.
 
 - The content layer's review workflow, step 'Comprehension' (the mode file names it) — part of gate
   V6 (`line-edit → final`) in `standards/verification/verification.md`.
-- `.claude/CLAUDE.md` Section 1 — the audience and the reader test this pass reads as.
+- `.claude/rules/syntek-author/00-project.md` `## Brief` — the audience and the reader test this
+  pass reads as.
 - `standards/style/terminology.md` — the terms the work uses in a fixed sense.
 - `planning/src/units/` — each unit brief's `audience_note`, which narrows the reader for one unit.
 - `standards/method/method.md` and its mode file — what the work must say plainly in the body.
@@ -41,12 +42,12 @@ These own the rules; this skill applies them and cites them.
 
 ## Steps
 
-1. **Fix the scope and the reader.** Name what is being read. Read `.claude/CLAUDE.md` Section 1
-   (Audience, Reader test) and, for a unit, the brief's `audience_note`, which narrows the reader
-   for that unit and wins for it. Write the reader at the head of the report in one sentence, taken
-   from those files, not invented. Then establish what this reader has already been told: the
-   units before this one in reading order (`planning/src/outline.md`), not in the order they were
-   drafted.
+1. **Fix the scope and the reader.** Name what is being read. Read `00-project.md` `## Brief` (the
+   audience and the reader test) and, for a unit, the unit brief's `audience_note`, which narrows
+   the reader for that unit and wins for it. Write the reader at the head of the report in one
+   sentence, taken from those files, not invented. Then establish what this reader has already been
+   told: the units before this one in reading order (`planning/src/outline.md`), not in the order
+   they were drafted.
    *Complete when:* the reader is stated from its source, and the reading order before the scope
    is known.
 
@@ -99,7 +100,7 @@ These own the rules; this skill applies them and cites them.
   meant it.
 - **Talking down.** Flagging a term the stated audience owns, or recommending a gloss that insults
   the reader's intelligence.
-- **Inventing the reader.** The reader comes from `.claude/CLAUDE.md` Section 1 and the brief,
+- **Inventing the reader.** The reader comes from `00-project.md` `## Brief` and the unit brief,
   never from this skill's idea of a typical reader.
 - **Rewriting.** A remedy is suggested in a phrase; the wording is the author's.
 - **Judging the argument.** Whether a claim is right or the structure holds is

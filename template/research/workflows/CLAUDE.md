@@ -37,8 +37,9 @@ same way every time, before drafting needs them.
 
 ## Guardrails
 
-- **These procedures run before drafting.** `02` is a prerequisite of drafting a unit, not a tidy-up
-  after it; running it afterwards produces a unit that quietly keeps its unverified claims.
+- **These procedures run before drafting.** `02-verify-a-claim` is a prerequisite of drafting a
+  unit, not a tidy-up after it; running it afterwards produces a unit that quietly keeps its
+  unverified claims.
 - **Never skip verification.** `02-verify-a-claim` is the only route by which a claim gets a
   verdict; a figure that has not been through it has not been checked by anything.
 - **Procedures cite rules; they never restate them.** If a `STEPS.md` starts explaining why a claim

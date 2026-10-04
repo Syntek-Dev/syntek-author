@@ -13,7 +13,7 @@
 #                    nothing else (Section 3.3), because anything else in them is the template
 #                    writing into the author's space.
 #
-#                    Fifteen checks:
+#                    Seventeen checks:
 #                      1. Every DESIGN.md seed is listed in copier.yml's _skip_if_exists.
 #                      2. Every _skip_if_exists entry names a file under template/.
 #                      3. Every seed-once example has its copy-only _exclude line, gated
@@ -52,8 +52,20 @@
 #                     15. A brand seed (brand-voice.md, brand-guide.md) has no open
 #                         `AUTHOR TO CONFIRM` slot: every brand fact is the author's call, so a
 #                         brand seed with none left has shipped somebody's brand.
+#                     16. .claude/rules/syntek-author/00-project.md (DESIGN.md D40) carries its
+#                         five H2s — Brief · Paths · Memory headings · Workflow aliases ·
+#                         Overrides — and no entry under Workflow aliases or Overrides (a filled
+#                         table row or a dated bullet). Brief, Paths and Memory headings hold
+#                         answer-rendered values and the template's defaults; the last two are
+#                         the project's alone, and a row shipped there is an instruction that
+#                         outranks every rule in every project.
+#                     17. tooling/project.mk (D43) assigns only the D43 build settings
+#                         (BRAND_DIRS, LOGO_DIRS, DOCX_CONVERTER, FLAG_EXTRA_RE, ISSUE_STATUSES,
+#                         MAINFONT, SANSFONT, MONOFONT), defines no make rule, and names no
+#                         absolute path: the Makefile -includes it in every build, so anything
+#                         else in it is a project's build shipped to every project.
 #
-#                    Checks 1–4 read copier.yml and template/ (static, once). Checks 5–15 read
+#                    Checks 1–4 read copier.yml and template/ (static, once). Checks 5–17 read
 #                    every tree given — template/ by default, or renders — and skip a seed the
 #                    tree does not ship.
 #
@@ -77,7 +89,7 @@
 
 set -euo pipefail
 SCRIPT_NAME="shipped-seeds.sh"
-# shellcheck source=_common.sh
+# shellcheck source=SCRIPTDIR/_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SELF_TEST=false
@@ -122,6 +134,11 @@ STYLE_SEEDS="standards/style/style-sheet.md standards/style/voice-notes.md"
 INDEX_SEEDS="$SA_INDEX_SEEDS"
 BRAND_SEEDS="$SA_BRAND_SEEDS"
 MEMORY_H2S=("Facts" "Decisions" "Feedback" "Status" "Open questions" "Sensitivities")
+PROJECT_SEED=".claude/rules/syntek-author/00-project.md"
+PROJECT_H2S=("Brief" "Paths" "Memory headings" "Workflow aliases" "Overrides")
+PROJECT_EMPTY_H2S=("Workflow aliases" "Overrides")
+PROJECT_MK="tooling/project.mk"
+PROJECT_MK_KEYS="BRAND_DIRS LOGO_DIRS DOCX_CONVERTER FLAG_EXTRA_RE ISSUE_STATUSES MAINFONT SANSFONT MONOFONT"
 
 # Block delimiters removed, fenced code and HTML comments dropped: what an entry would look like.
 readable() {
@@ -240,6 +257,21 @@ for spec in specs:
 PY
 }
 
+# One line per thing tooling/project.mk must not carry (check 17). Block delimiters are removed
+# first, so a source seed is read as the line it renders to.
+project_mk_problems() { # $1 = file
+  sed -E 's/<:([^:]|:[^>])*:>//g' "$1" | awk -v keys=" $PROJECT_MK_KEYS " '
+    /^[[:space:]]*(#|$)/ { next }
+    /^\t/ { next }
+    /^[[:space:]]*(export[[:space:]]+|override[[:space:]]+)?[A-Za-z_][A-Za-z0-9_]*[[:space:]]*(:::|::|:|\?|\+|!)?=/ {
+      k = $0; sub(/^[[:space:]]*(export[[:space:]]+|override[[:space:]]+)?/, "", k); sub(/[[:space:]]*(:::|::|:|\?|\+|!)?=.*$/, "", k)
+      if (index(keys, " " k " ") == 0) printf "assigns %s, which is not a D43 setting\n", k
+      if ($0 ~ /(=|[[:space:]])(\/home\/|\/Users\/|\/root\/|[A-Za-z]:\\)/) printf "names an absolute path in %s\n", k
+      next
+    }
+    /^[^[:space:]#][^=]*:/ { r = $0; sub(/:.*/, "", r); printf "defines the make rule %s\n", r; next }'
+}
+
 tree_checks() { # on TREE
   local f s h line rel d ok e base
   # ── 5 and 6. MEMORY ─────────────────────────────────────────────────────────
@@ -334,6 +366,29 @@ tree_checks() { # on TREE
       || finding "check 15 — $s has no open AUTHOR TO CONFIRM slot — a brand seed ships the structure, and every brand fact is the author's call"
   done
 
+  # ── 16. 00-project.md: the five headings, and the project's two sections empty ──
+  f="$TREE/$PROJECT_SEED"
+  if [[ -f "$f" ]]; then
+    for h in "${PROJECT_H2S[@]}"; do
+      grep -qx "## $h" "$f" || finding "check 16 — $PROJECT_SEED has no '## $h' heading (DESIGN.md D40)"
+    done
+    for h in "${PROJECT_EMPTY_H2S[@]}"; do
+      awk -v h="## $h" '$0 == h { on = 1; next } on && /^## / { exit } on { print }' "$f" > "$f.section.$$"
+      while IFS= read -r line; do
+        finding "check 16 — $PROJECT_SEED carries an entry under '## $h' ($line) — that section is the project's to fill"
+      done < <(register_entries "$f.section.$$")
+      rm -f "$f.section.$$"
+    done
+  fi
+
+  # ── 17. project.mk: the D43 settings only ───────────────────────────────────
+  f="$TREE/$PROJECT_MK"
+  if [[ -f "$f" ]]; then
+    while IFS= read -r line; do
+      finding "check 17 — $PROJECT_MK $line"
+    done < <(project_mk_problems "$f")
+  fi
+
   # ── 12. settings.json ───────────────────────────────────────────────────────
   f="$TREE/.claude/settings.json"
   if [[ -f "$f" ]] && ! grep -q '<:' "$f"; then
@@ -382,6 +437,40 @@ write_fixture() { # $1 = repo root
   for s in $BRAND_SEEDS; do
     printf '# %s\n\n## Colour\n\n| Role | Preamble name | Value |\n|---|---|---|\n| Body | `housebody` | <!-- AUTHOR TO CONFIRM: hex --> |\n' "${s##*/}" > "$t/$s"
   done
+  cat > "$t/$PROJECT_SEED" <<'EOF'
+# 00-project.md — Probe Project
+
+## Brief
+
+| Setting | Value |
+|---|---|
+| Audience | client |
+
+## Paths
+
+| What | Where |
+|---|---|
+| Brand folder | `standards/brand/` |
+
+## Memory headings
+
+| Template heading | This project's heading |
+|---|---|
+| Facts | Facts |
+
+## Workflow aliases
+
+| Template workflow | Use instead |
+|---|---|
+| — | — |
+
+## Overrides
+
+| Rule | Override |
+|---|---|
+| — | — |
+EOF
+  printf '# project.mk — build settings.\nLOGO_DIRS ?= assets//\nFLAG_EXTRA_RE ?=\nISSUE_STATUSES ?= final\nMAINFONT ?=\n' > "$t/$PROJECT_MK"
   printf '# CONTEXT.md\n\n```text\nplanning/workflows/local/\n├── CONTEXT.md\n├── CLAUDE.md\n└── NN-verb-first-name/   ← one folder per procedure\n    └── STEPS.md\n```\n\n| You want to… | Procedure |\n|---|---|\n| *(no local procedures yet)* | — |\n' > "$t/planning/workflows/local/CONTEXT.md"
   printf '# CONTEXT.md\n\n```text\nplanning/docs/project/\n├── CONTEXT.md\n└── <question>.md\n```\n' > "$t/planning/docs/project/CONTEXT.md"
   printf '{"mcpServers": {}}\n' > "$t/.mcp.json"
@@ -458,6 +547,18 @@ self_test() {
   cp "$t/standards/brand/brand-guide.md" "$tmp/h"
   sed -i 's/<!-- AUTHOR TO CONFIRM: hex -->/#1A2B3C/' "$t/standards/brand/brand-guide.md"
   probe "check 15 fires on a brand seed with every slot filled" "check 15 — standards/brand/brand-guide.md"; cp "$tmp/h" "$t/standards/brand/brand-guide.md"
+  cp "$t/$PROJECT_SEED" "$tmp/h"
+  sed -i '/^## Overrides$/d' "$t/$PROJECT_SEED"
+  probe "check 16 fires when 00-project.md loses a heading" "check 16 — $PROJECT_SEED has no '## Overrides'"; cp "$tmp/h" "$t/$PROJECT_SEED"
+  awk '/^## Workflow aliases$/ { on = 1 } on && /^\| — \| — \|$/ { print "| 05-review-a-document | our-review-procedure |"; on = 0; next } { print }' "$tmp/h" > "$t/$PROJECT_SEED"
+  probe "check 16 fires on a workflow alias shipped in the seed" "check 16 — $PROJECT_SEED carries an entry under '## Workflow aliases'"; cp "$tmp/h" "$t/$PROJECT_SEED"
+  cp "$t/$PROJECT_MK" "$tmp/h"
+  printf 'CLIENT_NAME := Example Client Ltd\n' >> "$t/$PROJECT_MK"
+  probe "check 17 fires on a setting D43 does not name" "check 17 — $PROJECT_MK assigns CLIENT_NAME"; cp "$tmp/h" "$t/$PROJECT_MK"
+  printf 'publish:\n\t@echo sent\n' >> "$t/$PROJECT_MK"
+  probe "check 17 fires on a make rule in the seed" "check 17 — $PROJECT_MK defines the make rule publish"; cp "$tmp/h" "$t/$PROJECT_MK"
+  printf 'MAINFONT := /home/someone/fonts/body.otf\n' >> "$t/$PROJECT_MK"
+  probe "check 17 fires on an absolute path" "check 17 — $PROJECT_MK names an absolute path"; cp "$tmp/h" "$t/$PROJECT_MK"
 
   SA_ROOT="$real_root"; TPL="$real_tpl"; COPIER="$real_copier"; SA_SETS_FOR=""
   st_finish "wired, empty seeds from polluted or unwired ones"

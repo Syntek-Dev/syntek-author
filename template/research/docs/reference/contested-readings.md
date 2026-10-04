@@ -20,7 +20,7 @@ document that did the work properly.
 One file per passage in `research/src/contested-readings/`, named for the passage and never for the
 chapter, because maps are shared:
 
-- the passage in the default translation named in `standards/style/style-sheet.md`, with enough
+- the passage in the default translation named in `00-project.md` `## Brief`, with enough
   context that the dispute is visible rather than asserted;
 - each reading, named as its holders name it, and who holds it and where it is argued;
 - **what each reading does to the book's argument**;

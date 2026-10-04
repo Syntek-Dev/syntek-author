@@ -5,18 +5,22 @@ before any question, and the order in which document decisions block one another
 
 ## Paths and unit
 
-- **Unit:** a document in `library/src/<family>/`, where the families are `proposals`,
-  `contracts`, `policies`, `correspondence`, `finance` and `marketing`; its brief is
+- **Unit:** a document in `library/src/<family>/`, the family being one this project selected
+  (`business`, `legal`, `email`, `accounting`, `social-media`, `msp-scp`), whose skill,
+  `<family>-documents`, names its document types and required sections; its brief is
   `planning/src/units/<document-slug>.md`, whose settled-positions slot is
   `## Obligations and defined terms`.
-- **Lookup order (step 1):** `.claude/MEMORY.md` (house rules, client facts, past corrections) →
-  the target folder's `CONTEXT.md` then `CLAUDE.md`, and the client's facts in
-  `library/src/contracts/client-docs/<client-slug>/CONTEXT.md` → `planning/src/document-register.md`
-  and `planning/src/review-schedule.md` (does this document exist, at what version and status?) →
-  the document's previous version and any covering email beside it → `planning/src/precedence.md`
-  → the house standard: `standards/method/BUSINESS.md`, `standards/brand/` and
-  `library/docs/reference/document-anatomy.md` → an official register, through `research`, for
-  any entity detail that will appear on an instrument or invoice.
+- **Lookup order (step 1):** `.claude/MEMORY.md` (house rules, client facts, past corrections,
+  under the headings `00-project.md` `## Memory headings` maps) → the target folder's `CONTEXT.md`
+  then `CLAUDE.md`, and the client's facts at the client facts path in `00-project.md` `## Paths`
+  (by default `library/src/business/client-docs/<client-slug>/CONTEXT.md`) →
+  `planning/src/document-register.md` and `planning/src/review-schedule.md` (does this document
+  exist, at what version and status?) → the document's previous version and any covering email
+  beside it → `planning/src/precedence.md` → the house standard: `standards/method/BUSINESS.md`,
+  the brand folder (by default `standards/brand/`), the family's standard
+  (`library/docs/reference/<family>-standards.md`) and `library/docs/reference/document-anatomy.md`
+  → an official register, through `research`, for any entity detail that will appear on an
+  instrument or invoice.
 - **Procedures that open with a grilling pass:** `planning/workflows/06-run-a-review-cycle/`,
   `library/workflows/01-draft-a-section/` (when a section's job is thin) and
   `library/workflows/08-ingest-an-existing-document/`, besides the shared planning procedures.
@@ -41,14 +45,15 @@ before any question, and the order in which document decisions block one another
 
 ## Domain rules
 
-| Surface | The decisions it turns on |
+| Surface (family) | The decisions it turns on |
 |---|---|
-| Proposal | the reader and what they already know; the scope boundary, in and out; the price, what it buys, and whether it is packaged; the objection being pre-empted; validity period; how acceptance happens |
-| Legal instrument | the counterparty as its verified legal entity and who may sign; its tier (master agreement, service levels, statement of work, schedule); term and termination; liability cap; IP and licence on exit; payment, suspension and withdrawal triggers; precedence; conditions precedent |
-| Correspondence | the single ask; what the recipient's last message obliges; what must be flagged up front rather than found; whether it contradicts another unsent message; whether it needs a register number |
-| Policy | who and what it applies to; the standard and control it aligns to; the owner; the review cadence; the evidence that proves compliance |
-| Finance | the period and the basis; the rounding rule and who takes the residue; tax treatment; which generator owns the numbers |
-| Structural | where the document lives; whether a client needs a folder; what the register row says |
+| Proposal or statement of work (`business`) | the reader and what they already know; the scope boundary, in and out; the price, what it buys, and whether it is packaged; the objection being pre-empted; validity period; how acceptance happens |
+| Legal instrument (`legal`) | the counterparty as its verified legal entity and who may sign; its tier (master agreement, service levels, statement of work, schedule); term and termination; liability cap; IP and licence on exit; payment, suspension and withdrawal triggers; precedence; conditions precedent |
+| Email (`email`) | the single ask; what the recipient's last message obliges; what must be flagged up front rather than found; whether it contradicts another unsent message; whether it needs a register number |
+| Policy or plan (`business`, or `msp-scp` for a managed-service client's IT) | who and what it applies to; the standard and control it aligns to; the owner; the review cadence; the evidence that proves compliance |
+| Accounting document (`accounting`) | the period and the basis; the rounding rule and who takes the residue; tax treatment; which generator owns the numbers |
+| Social media (`social-media`) | the platform and who reads it there; the one job of the post or plan; what it may say about a client or a result, and whose permission that needs; who approves before it goes out |
+| Structural | which family the document belongs to; where it lives; whether a client needs a folder; what the register row says |
 
 - **Never ask for a fact a register holds.** Entity details come from the official register for
   the jurisdiction, never from the entity's own website or from memory.
@@ -58,7 +63,7 @@ before any question, and the order in which document decisions block one another
 ## Examples
 
 ```text
-**Settled — Counterparty:** Example Client Ltd, verified (library/src/contracts/client-docs/example-client/CONTEXT.md:12)
+**Settled — Counterparty:** Example Client Ltd, verified (library/src/business/client-docs/example-client/CONTEXT.md:12)
 **Settled — Register:** DOC-014 at v1.0, Draft (planning/src/document-register.md:9)
 
 **Q1 — How the support is sold**

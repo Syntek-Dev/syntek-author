@@ -41,7 +41,8 @@ lines. Session transcripts do not survive; the review file is the durable record
 1. The author reads the review.
 2. Item by item, the author accepts, rejects or defers.
 3. Accepted and rejected items that pass the memory gate go to MEMORY `Decisions`, dated, citing
-   the review; deferred items go to `Open questions`.
+   the review; deferred items go to `Open questions` (both mapped in `00-project.md`
+   `## Memory headings`).
 4. The change itself is made by the procedure that owns the artefact — the outline, a brief, a
    map, a section — and never by the review or the session that wrote it.
 

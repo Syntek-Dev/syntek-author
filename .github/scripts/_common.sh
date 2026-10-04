@@ -205,8 +205,10 @@ negate_gate() {
 #
 # Gates are written in a small vocabulary so a tree's answers can be tested against them:
 #   always · optional · theology · fiction · business · books · wb · conlang · refs ·
-#   proposal · sensitive · drive · seed — joined with & for "and". Each carries its DOC_TYPE
-#   test (DESIGN.md Section 2), exactly as Section 3.5 writes it.
+#   proposal · sensitive · drive · seed · fam-<family> — joined with & for "and". Each carries
+#   its DOC_TYPE test (DESIGN.md Section 2), exactly as Section 3.5 writes it. A fam-<family>
+#   gate is one business document family chosen in BUSINESS_FAMILIES (D39); the `business`
+#   family is always chosen, so its paths carry the plain `business` gate.
 
 declare -A SA_GATE_EXPR=(
   [theology]="DOC_TYPE == 'theology'"
@@ -219,7 +221,18 @@ declare -A SA_GATE_EXPR=(
   [proposal]="DOC_TYPE != 'business' and INCLUDE_PROPOSAL"
   [sensitive]="DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT"
   [drive]="DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC"
+  [fam-legal]="DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES"
+  [fam-email]="DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES"
+  [fam-accounting]="DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES"
+  [fam-social-media]="DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES"
+  [fam-msp-scp]="DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES"
 )
+
+# The business document families (DESIGN.md D39), the default BUSINESS_FAMILIES answer, and
+# v0.1.0's family folders, which v0.2.0 retired (D44): none may ship again.
+SA_FAMILIES="business legal email accounting social-media msp-scp"
+SA_FAMILIES_DEFAULT="business legal email accounting social-media"
+SA_RETIRED_FAMILIES="proposals contracts policies correspondence finance marketing"
 
 # Skills (DESIGN.md Section 5): name · gate · modes (TFB = THEOLOGY+FICTION+BUSINESS, TF, -).
 SA_SKILLS=$(cat <<'EOF'
@@ -265,6 +278,12 @@ typeset             books     TF
 clause-consistency  business  -
 tone                business  -
 obligation-check    business  -
+business-documents     business          -
+legal-documents        fam-legal         -
+email-documents        fam-email         -
+accounting-documents   fam-accounting    -
+social-media-documents fam-social-media  -
+msp-scp-documents      fam-msp-scp       -
 add-reference       refs      -
 approach-a-reader   proposal  TF
 sensitivity-pass    sensitive TF
@@ -316,6 +335,7 @@ always             f  .claude/rules/syntek-author/05-model-allocation.md
 always             f  .claude/rules/syntek-author/06-global-rules.md
 always             f  .claude/rules/syntek-author/07-session-boundaries.md
 always             f  .claude/rules/syntek-author/08-naming-and-memory.md
+always             f  .claude/rules/syntek-author/00-project.md
 always             d  handoffs
 always             d  learning
 always             d  assets
@@ -341,12 +361,45 @@ fiction            f  manuscript/docs/reference/scene-craft.md
 business           f  library/docs/reference/document-anatomy.md
 business           f  library/docs/reference/latex-deliverables.md
 business           f  library/docs/reference/versioning-and-the-register.md
-business           d  library/src/proposals
-business           d  library/src/contracts
-business           d  library/src/policies
-business           d  library/src/correspondence
-business           d  library/src/finance
-business           d  library/src/marketing
+business           d  library/src/business
+business           d  library/src/business/templates
+business           d  library/src/business/client-docs
+business           f  library/src/business/drafts/README.md
+business           f  library/docs/reference/business-standards.md
+business           d  library/workflows/10-create-a-business-document
+fam-legal          d  library/src/legal
+fam-legal          d  library/src/legal/templates
+fam-legal          d  library/src/legal/client-docs
+fam-legal          f  library/src/legal/drafts/README.md
+fam-legal          f  library/docs/reference/legal-standards.md
+fam-legal          d  library/workflows/11-create-a-legal-document
+fam-email          d  library/src/email
+fam-email          d  library/src/email/templates
+fam-email          d  library/src/email/client-emails
+fam-email          d  library/src/email/supplier-emails
+fam-email          f  library/src/email/drafts/README.md
+fam-email          f  library/docs/reference/email-standards.md
+fam-email          f  library/docs/reference/EMAIL-ANATOMY-AND-NAMING.md
+fam-email          d  library/workflows/12-write-an-email
+fam-accounting     d  library/src/accounting
+fam-accounting     d  library/src/accounting/templates
+fam-accounting     d  library/src/accounting/client-docs
+fam-accounting     f  library/src/accounting/drafts/README.md
+fam-accounting     f  library/docs/reference/accounting-standards.md
+fam-accounting     d  library/workflows/13-create-an-accounting-document
+fam-social-media   d  library/src/social-media
+fam-social-media   d  library/src/social-media/templates
+fam-social-media   d  library/src/social-media/client-docs
+fam-social-media   f  library/src/social-media/drafts/README.md
+fam-social-media   f  library/docs/reference/social-media-standards.md
+fam-social-media   d  library/workflows/14-create-a-social-media-document
+fam-msp-scp        d  library/src/msp-scp
+fam-msp-scp        d  library/src/msp-scp/templates
+fam-msp-scp        d  library/src/msp-scp/client-docs
+fam-msp-scp        f  library/src/msp-scp/drafts/README.md
+fam-msp-scp        f  library/docs/reference/msp-scp-standards.md
+fam-msp-scp        f  library/docs/reference/MSP-SCP-POLICY-SUITE.md
+fam-msp-scp        d  library/workflows/15-create-an-msp-scp-document
 always             d  planning/docs/reference
 always             d  planning/docs/project
 always             d  planning/workflows/local
@@ -480,6 +533,8 @@ business           f  standards/brand/brand-voice.md
 business           f  standards/brand/brand-guide.md
 business           f  standards/brand/disclaimers.md
 always             d  tooling/latex
+always             f  tooling/latex/symbol-fallback.tex
+always             f  tooling/project.mk
 business           f  tooling/latex/house-preamble.tex
 business           f  tooling/latex/skeleton.tex
 books              f  tooling/latex/housebook.cls
@@ -513,7 +568,7 @@ drive              d  .github
 books&seed         d  manuscript/src/01-example-chapter
 books&seed         f  planning/src/units/01-example-chapter.md
 theology&seed      f  planning/src/arguments/01-example-chapter.md
-business&seed      d  library/src/proposals/drafts/example-proposal
+business&seed      d  library/src/business/drafts/example-proposal
 business&seed      f  planning/src/units/example-proposal.md
 books&seed         f  standards/style/ledger/01-example-chapter--the-turn.md
 books&seed         f  standards/style/ledger/01-example-chapter--opening.md
@@ -539,10 +594,10 @@ SA_INDEX_SEED_LAYERS="manuscript library planning research proposal world typese
 SA_INDEX_SEEDS="planning/src/maps/CONTEXT.md$(for l in $SA_INDEX_SEED_LAYERS; do for d in docs/project workflows/local; do printf ' %s/%s/CONTEXT.md %s/%s/CLAUDE.md' "$l" "$d" "$l" "$d"; done; done)"
 SA_BRAND_SEEDS="standards/brand/brand-voice.md standards/brand/brand-guide.md"
 SA_PROPOSAL_STUBS="proposal/src/book-proposal/01-overview-and-hook.md proposal/src/book-proposal/02-why-now.md proposal/src/book-proposal/03-audience.md proposal/src/book-proposal/04-comparable-titles.md proposal/src/book-proposal/05-chapter-outline.md proposal/src/book-proposal/06-about-the-author.md proposal/src/book-proposal/07-endorsements-and-reach.md proposal/src/book-proposal/08-sample-chapters.md proposal/src/query-letter.md proposal/src/synopsis-short.md proposal/src/synopsis-long.md proposal/src/comp-titles.md"
-SA_SEEDS="README.md CONTEXT.md .gitignore .mcp.json .claude/CLAUDE.md .claude/CONTEXT.md .claude/MEMORY.md .claude/settings.json .claude/skills/CONTEXT.md .claude/skills/CLAUDE.md .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md standards/style/style-sheet.md standards/style/voice-notes.md standards/style/terminology.md standards/style/ledger/provenance.md planning/src/outline.md planning/src/causality.md planning/src/timeline.md planning/src/continuity.md world/src/names-register.md planning/src/document-register.md planning/src/review-schedule.md planning/src/precedence.md standards/brand/disclaimers.md tooling/seed-refs.sql research/src/permissions.md proposal/src/endorsements/tracker.md proposal/src/submissions/tracker.md proposal/src/sample/sample-index.md world/src/history/eras.md typeset/src/page-design.md typeset/src/book.tex $SA_PROPOSAL_STUBS $SA_BRAND_SEEDS $SA_INDEX_SEEDS"
+SA_SEEDS=".claude/rules/syntek-author/00-project.md tooling/project.mk README.md CONTEXT.md .gitignore .mcp.json .claude/CLAUDE.md .claude/CONTEXT.md .claude/MEMORY.md .claude/settings.json .claude/skills/CONTEXT.md .claude/skills/CLAUDE.md .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md standards/style/style-sheet.md standards/style/voice-notes.md standards/style/terminology.md standards/style/ledger/provenance.md planning/src/outline.md planning/src/causality.md planning/src/timeline.md planning/src/continuity.md world/src/names-register.md planning/src/document-register.md planning/src/review-schedule.md planning/src/precedence.md standards/brand/disclaimers.md tooling/seed-refs.sql research/src/permissions.md proposal/src/endorsements/tracker.md proposal/src/submissions/tracker.md proposal/src/sample/sample-index.md world/src/history/eras.md typeset/src/page-design.md typeset/src/book.tex $SA_PROPOSAL_STUBS $SA_BRAND_SEEDS $SA_INDEX_SEEDS"
 
 # Seed-once examples (DESIGN.md Section 3.2).
-SA_EXAMPLES="manuscript/src/01-example-chapter planning/src/units/01-example-chapter.md planning/src/arguments/01-example-chapter.md library/src/proposals/drafts/example-proposal planning/src/units/example-proposal.md standards/style/ledger/01-example-chapter--the-turn.md standards/style/ledger/01-example-chapter--opening.md standards/style/ledger/example-proposal--scope.md world/src/languages/example-proto world/src/languages/example-tongue research/src/setting/example-model-classical-latin.md research/src/setting/example-model-old-spanish.md research/src/setting/example-model-ogham.md world/src/peoples/example-people.md world/src/cultures/example-culture.md"
+SA_EXAMPLES="manuscript/src/01-example-chapter planning/src/units/01-example-chapter.md planning/src/arguments/01-example-chapter.md library/src/business/drafts/example-proposal planning/src/units/example-proposal.md standards/style/ledger/01-example-chapter--the-turn.md standards/style/ledger/01-example-chapter--opening.md standards/style/ledger/example-proposal--scope.md world/src/languages/example-proto world/src/languages/example-tongue research/src/setting/example-model-classical-latin.md research/src/setting/example-model-old-spanish.md research/src/setting/example-model-ogham.md world/src/peoples/example-people.md world/src/cultures/example-culture.md"
 SA_EXAMPLE_GATE="_copier_operation == 'update' or not SEED_EXAMPLES"
 
 # The root spine (DESIGN.md Section 2, Token discipline), plus the answers file, which differs
@@ -667,7 +722,7 @@ is_allowed_gate() {
 # ── A rendered tree's answers, and the gate evaluator ────────────────────────
 
 A_DOC_TYPE=""; A_PROPOSAL=false; A_REFS=false; A_SENSITIVE=false; A_WB=false
-A_CONLANG=false; A_DRIVE=false; A_SEED=true
+A_CONLANG=false; A_DRIVE=false; A_SEED=true; A_FAMILIES=""
 
 answer_value() { # $1 = key, $2 = answers file → raw value, unquoted
   awk -v key="$1" '
@@ -676,6 +731,19 @@ answer_value() { # $1 = key, $2 = answers file → raw value, unquoted
       if (v ~ /^".*"$/ || v ~ /^\047.*\047$/) v = substr(v, 2, length(v) - 2)
       print v; exit
     }' "$2" 2>/dev/null
+}
+
+# Every value of a list answer (a multiselect such as BUSINESS_FAMILIES), one per line. Copier
+# writes a block list (`KEY:` then `- value` lines); a flow list (`KEY: [a, b]`) is read too.
+answer_list() { # $1 = key, $2 = answers file
+  awk -v key="$1" '
+    $0 ~ "^" key ":" {
+      v = $0; sub("^" key ":[ \t]*", "", v)
+      if (v ~ /^\[/) { gsub(/[][ \t"\047]/, "", v); n = split(v, a, ","); for (i = 1; i <= n; i++) if (a[i] != "") print a[i]; exit }
+      on = 1; next
+    }
+    on && /^[ \t]*- / { v = $0; sub(/^[ \t]*- [ \t]*/, "", v); gsub(/["\047]/, "", v); print v; next }
+    on { exit }' "$2" 2>/dev/null
 }
 
 load_answers() { # $1 = answers file. Returns 1 if absent or carries no DOC_TYPE.
@@ -689,6 +757,12 @@ load_answers() { # $1 = answers file. Returns 1 if absent or carries no DOC_TYPE
   A_CONLANG=$(bool INCLUDE_CONLANG); A_DRIVE=$(bool INCLUDE_DRIVE_SYNC)
   v="$(answer_value SEED_EXAMPLES "$f")"
   case "$v" in false|False|no) A_SEED=false ;; *) A_SEED=true ;; esac
+  A_FAMILIES=""
+  if [[ "$A_DOC_TYPE" == business ]]; then
+    A_FAMILIES="$(answer_list BUSINESS_FAMILIES "$f" | tr '\n' ' ')"
+    A_FAMILIES="${A_FAMILIES% }"
+    [[ -n "$A_FAMILIES" ]] || A_FAMILIES="$SA_FAMILIES_DEFAULT"
+  fi
   return 0
 }
 
@@ -707,6 +781,7 @@ gate_true() { # $1 = gate in the catalogue vocabulary
       proposal)  [[ "$A_DOC_TYPE" != business && "$A_PROPOSAL" == true ]] || return 1 ;;
       sensitive) [[ "$A_DOC_TYPE" != business && "$A_SENSITIVE" == true ]] || return 1 ;;
       drive)     [[ "$A_DOC_TYPE" == business && "$A_DRIVE" == true ]] || return 1 ;;
+      fam-*)     [[ "$A_DOC_TYPE" == business && " $A_FAMILIES " == *" ${atom#fam-} "* ]] || return 1 ;;
       seed)      [[ "$A_SEED" == true ]] || return 1 ;;
       *) return 1 ;;
     esac
@@ -815,6 +890,7 @@ _message_before_update: |
     INCLUDE_REFERENCES=false
     INCLUDE_SENSITIVE_CONTENT=false
     INCLUDE_DRIVE_SYNC=false
+    BUSINESS_FAMILIES, a family unticked
 _templates_suffix: ""
 _envops:
   variable_start_string: "<%"
@@ -832,7 +908,7 @@ _exclude:
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/manuscript/src/01-example-chapter<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/01-example-chapter.md<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/arguments/01-example-chapter.md<: endif :>"
-  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/proposals/drafts/example-proposal<: endif :>"
+  - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/business/drafts/example-proposal<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/example-proposal.md<: endif :>"
 _skip_if_exists:
   - /README.md
@@ -867,8 +943,8 @@ SEED_EXAMPLES:
   default: true
 EOF
   cd "$t/template" || return 1
-  mkdir -p .claude/skills/run-workflow .claude/hooks .claude/rules/syntek-author standards/style \
-    manuscript/src/01-example-chapter library/src/proposals/drafts/example-proposal \
+  mkdir -p .claude/skills/run-workflow .claude/skills/grilling .claude/hooks .claude/rules/syntek-author standards/style \
+    manuscript/src/01-example-chapter library/src/business/drafts/example-proposal \
     planning/src/units planning/src/arguments
   printf '<%% _copier_answers|to_nice_yaml -%%>\n' > "$SA_ANSWERS_FILE"
   printf '# <%%PROJECT_NAME%%>\n\nA fixture project.\n' > README.md
@@ -886,11 +962,14 @@ EOF
   printf '{"model": "opus"}\n' > .claude/settings.json
   printf '# 01 — layout and routing\n\nTemplate-owned; updated by copier update.\n' > .claude/rules/syntek-author/01-layout-and-routing.md
   printf -- '---\nname: run-workflow\ndescription: Route a request to its workflow.\n---\n\n# Skill: run-workflow (<%%PROJECT_NAME%%>)\n' > .claude/skills/run-workflow/SKILL.md
+  # A moded skill, so an additive adoption has a mode file to write beside a kept SKILL.md.
+  printf -- '---\nname: grilling\ndescription: Question a plan.\n---\n\n# Skill: Grilling (<%%PROJECT_NAME%%>)\n\n> **Mode.** Before step 1, read the doc-type mode file beside this one.\n' > .claude/skills/grilling/SKILL.md
+  printf '# Grilling — theology mode\n' > .claude/skills/grilling/THEOLOGY.md
   printf '# Style sheet\n\n## Spelling\n' > standards/style/style-sheet.md
   printf '# Voice notes\n\n## Learned\n' > standards/style/voice-notes.md
   printf '# Terminology\n\n| Term | Meaning | Use | Avoid |\n|---|---|---|---|\n' > standards/style/terminology.md
   printf '# The example chapter\n' > manuscript/src/01-example-chapter/01-example-chapter.md
-  printf '\\documentclass{article}\n' > library/src/proposals/drafts/example-proposal/example-proposal.tex
+  printf '\\documentclass{article}\n' > library/src/business/drafts/example-proposal/example-proposal.tex
   printf '# Example chapter brief\n' > planning/src/units/01-example-chapter.md
   printf '# Example proposal brief\n' > planning/src/units/example-proposal.md
   printf '# Example argument map\n' > planning/src/arguments/01-example-chapter.md

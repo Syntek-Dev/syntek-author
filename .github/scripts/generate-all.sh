@@ -10,8 +10,11 @@
 #
 #                   Renders, per DOC_TYPE (theology, fiction, business):
 #                     defaults   only the answers that have no default
-#                     all-on     every option the variant offers set true
+#                     all-on     every option the variant offers set true (business: every
+#                                document family, msp-scp included)
 #                     minimal    every option the variant offers set false — the negative path
+#                                (business: BUSINESS_FAMILIES=[business], the one family that
+#                                cannot be dropped)
 #                     adoption   SEED_EXAMPLES=false, as `copier copy` into an existing repository
 #                   plus, for fiction,
 #                     conlang    FICTION_GENRE=literary with INCLUDE_WORLDBUILDING and
@@ -56,7 +59,7 @@
 
 set -euo pipefail
 SCRIPT_NAME="generate-all.sh"
-# shellcheck source=_common.sh
+# shellcheck source=SCRIPTDIR/_common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 OUT="${TMPDIR:-/tmp}/syntek-author-render"
@@ -103,7 +106,8 @@ done
 # ── The render matrix ────────────────────────────────────────────────────────
 #
 # name · extra --data answers. Only options the variant SHOWS are passed: a hidden question's
-# value comes from its default, which is exactly what a real generation sees.
+# value comes from its default, which is exactly what a real generation sees. A list answer is
+# a YAML flow list with no spaces (fields split on whitespace), which Copier parses as a list.
 RENDERS=$(cat <<'EOF'
 theology-defaults
 theology-all-on      INCLUDE_PROPOSAL=true INCLUDE_REFERENCES=true INCLUDE_SENSITIVE_CONTENT=true
@@ -115,8 +119,8 @@ fiction-minimal      FICTION_GENRE=literary INCLUDE_PROPOSAL=false INCLUDE_REFER
 fiction-conlang      FICTION_GENRE=literary INCLUDE_WORLDBUILDING=true INCLUDE_CONLANG=true
 fiction-adoption     SEED_EXAMPLES=false
 business-defaults
-business-all-on      INCLUDE_REFERENCES=true INCLUDE_DRIVE_SYNC=true
-business-minimal     INCLUDE_REFERENCES=false INCLUDE_DRIVE_SYNC=false
+business-all-on      INCLUDE_REFERENCES=true INCLUDE_DRIVE_SYNC=true BUSINESS_FAMILIES=[business,legal,email,accounting,social-media,msp-scp]
+business-minimal     INCLUDE_REFERENCES=false INCLUDE_DRIVE_SYNC=false BUSINESS_FAMILIES=[business]
 business-adoption    SEED_EXAMPLES=false
 EOF
 )
@@ -134,7 +138,7 @@ expect_for() { # $1 = name → KEY=value lines
   case "$doc" in
     theology) e[INCLUDE_PROPOSAL]=true; e[INCLUDE_REFERENCES]=true; e[AUDIENCE]=lay ;;
     fiction)  e[INCLUDE_PROPOSAL]=true; e[AUDIENCE]=adult; e[INCLUDE_WORLDBUILDING]=true; e[INCLUDE_CONLANG]=true ;;
-    business) e[MODEL_MECHANICAL]=opus; e[AUDIENCE]=client ;;
+    business) e[MODEL_MECHANICAL]=opus; e[AUDIENCE]=client; e[BUSINESS_FAMILIES]="${SA_FAMILIES_DEFAULT// /,}" ;;
   esac
   while IFS= read -r kv; do
     [[ -z "$kv" ]] && continue
@@ -143,14 +147,18 @@ expect_for() { # $1 = name → KEY=value lines
       e[INCLUDE_WORLDBUILDING]=false; e[INCLUDE_CONLANG]=false
     fi
     [[ "$k" == FICTION_GENRE ]] && continue
+    # A list answer is expected as its values joined by commas, as shipped-variants.sh reads it.
+    [[ "$v" == '['*']' ]] && { v="${v#[}"; v="${v%]}"; }
     e["$k"]="$v"
   done < <(render_data "$name")
   # INCLUDE_CONLANG defaults to INCLUDE_WORLDBUILDING and is hidden without it.
   if [[ "${e[INCLUDE_WORLDBUILDING]}" == false ]]; then e[INCLUDE_CONLANG]=false; fi
   for k in DOC_TYPE INCLUDE_PROPOSAL INCLUDE_REFERENCES INCLUDE_SENSITIVE_CONTENT INCLUDE_WORLDBUILDING \
-           INCLUDE_CONLANG INCLUDE_DRIVE_SYNC SEED_EXAMPLES MODEL_MECHANICAL AUDIENCE; do
+           INCLUDE_CONLANG INCLUDE_DRIVE_SYNC SEED_EXAMPLES MODEL_MECHANICAL AUDIENCE BUSINESS_FAMILIES; do
     [[ -n "${e[$k]:-}" ]] && printf '%s=%s\n' "$k" "${e[$k]}"
   done
+  # The last key is unset outside business; that must not be this function's status (set -e).
+  return 0
 }
 
 SELECTED=()

@@ -40,11 +40,12 @@ session that changes a word has failed, however good the page looks.
 
 > **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain (paths, unit, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the author.
 
-1. **Route the request and read the state.** Name the procedure (01 to 04) and the chapter or
-   chapters, by folder name (`NN-kebab-title`). Read `typeset/src/page-design.md` for the choices
-   still open, `.claude/MEMORY.md` Decisions, and `planning/src/outline.md` for the running order.
-   Settle whether this is a working proof or a release print: a release needs every chapter
-   `final` and the author's explicit word.
+1. **Route the request and read the state.** Name the procedure by its full folder name (one of the
+   four above) and the chapter or chapters, by folder name (`NN-kebab-title`). Read
+   `typeset/src/page-design.md` for the choices still open, the `Decisions` heading of
+   `.claude/MEMORY.md` (mapped in `00-project.md` `## Memory headings`), and
+   `planning/src/outline.md` for the running order. Settle whether this is a working proof or a
+   release print: a release needs every chapter `final` and the author's explicit word.
    *Complete when:* the procedure, the chapters and the open page-design choices are known.
 
 2. **Settle page design with the author, when asked or when a choice blocks the work.** One choice

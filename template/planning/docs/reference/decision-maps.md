@@ -40,10 +40,10 @@ and why). The `wayfinder` skill owns the exact format.
 
 ## Where a settled node goes
 
-A decision goes to `.claude/MEMORY.md` `Decisions`; a unit's plan to its brief; a fact to
-`research/src/evidence/`; a term to `standards/style/terminology.md`; a change of order to
-`planning/src/outline.md`. The map keeps the link, not the answer; a decision living only on a
-map will be argued again.
+A decision goes to `.claude/MEMORY.md` `Decisions` (mapped in `00-project.md`
+`## Memory headings`); a unit's plan to its brief; a fact to `research/src/evidence/`; a term to
+`standards/style/terminology.md`; a change of order to `planning/src/outline.md`. The map keeps
+the link, not the answer; a decision living only on a map will be argued again.
 
 ## How we apply it here
 
@@ -56,8 +56,8 @@ map will be argued again.
 ## Who implements it
 
 - **Skill:** `wayfinder` charts and resolves maps, and suggests where one is wanted from MEMORY
-  `Open questions` and the open flags. `grill-with-docs`, `research` and `prototype` settle the
-  nodes of their type.
+  `Open questions` (mapped in `00-project.md` `## Memory headings`) and the open flags.
+  `grill-with-docs`, `research` and `prototype` settle the nodes of their type.
 
 ## Governing standard
 

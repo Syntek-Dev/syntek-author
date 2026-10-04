@@ -2,8 +2,9 @@
 
 The procedure for recording an approval event: an instrument signed by all parties, a policy
 approved as `Active`, or a notice issued. It confirms every detail with the author, writes one
-record in `planning/src/approvals/`, and moves the document's register row to the status the
-event produced. It records what happened; it never decides that something was approved.
+record in the Approvals path (`00-project.md` `## Paths`; by default `planning/src/approvals/`),
+and moves the document's register row to the status the event produced. It records what
+happened; it never decides that something was approved.
 
 ## Directory Tree
 
@@ -27,8 +28,8 @@ its status changed); or the document is not yet registered (`08-update-the-regis
 
 ## What it produces, and where
 
-- `planning/src/approvals/approval-<doc-type>-DD-MM-YYYY.md` — one record per event, dated by
-  the approval.
+- `approval-<doc-type>-DD-MM-YYYY.md` in the Approvals path (`00-project.md` `## Paths`; by
+  default `planning/src/approvals/`) — one record per event, dated by the approval.
 - The register row's Status set to `Executed` or `Active`, and Last Reviewed where the approval
   was a formal review.
 - A review-schedule row added or changed, where the event sets a review date.
@@ -42,5 +43,6 @@ A record written at the time, with every field confirmed, is the evidence.
 ## Cross-references
 
 - `planning/docs/reference/the-document-register.md` — when a record is made, and what follows.
-- `planning/src/approvals/CONTEXT.md` — the record's fields.
+- `planning/src/approvals/CONTEXT.md` — the record's fields, where the Approvals folder has no
+  `CONTEXT.md` of its own giving them.
 - `planning/src/document-register.md` — the row the record updates.
