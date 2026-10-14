@@ -15,6 +15,9 @@ syntek-author/
 ├── copier.yml                ← questions, gated _exclude, _skip_if_exists, _tasks, _migrations
 ├── VERSION                   ← the template's release number (0.3.0)
 ├── CHANGELOG.md              ← the template's history, Keep a Changelog
+├── AGENTS.md · GEMINI.md     ← development entrypoints for Codex, OpenCode, Gemini CLI and Antigravity (D47)
+├── .agents                   ← link to the development .claude/ (no skills)
+├── .codex/                   ← disables every product skill in Codex (dev isolation, D47)
 ├── .claude/                  ← the DEVELOPMENT manual and dev-isolation settings (never shipped)
 │   ├── CLAUDE.md             ← how to work on the template: contract, tokens, recipes, audits
 │   ├── CONTEXT.md            ← what this .claude/ folder holds
@@ -33,9 +36,10 @@ syntek-author/
 │   └── examples/             ← theology · fiction · business .answers.yml (invented values)
 └── template/                 ← EVERYTHING that ships, at its real path
     ├── .copier-answers.syntek-author.yml   ← renders the project's answers record
+    ├── AGENTS.md · GEMINI.md · .agents · .codex/ · .gemini/ · opencode.json   ← other coding agents (copy-only, per AGENT_CLIENTS, D47)
     ├── README.md · CONTEXT.md · .gitignore · .mcp.json   ← seeds (written once if missing)
     ├── Makefile              ← build entry point (spine); reads tooling/project.mk (seed)
-    ├── .claude/              ← CLAUDE.md, CONTEXT.md, MEMORY.md, settings.json (seeds) · hooks/ · rules/syntek-author/ (00-project.md is a seed) · skills/
+    ├── .claude/              ← CLAUDE.md, CONTEXT.md, MEMORY.md, settings.json (seeds) · hooks/ · rules/syntek-author/ (00-project.md is a seed) · skills/ · syntek-author-agents.md (the bridge, D47)
     ├── manuscript/           ← content layer, books (theology, fiction)
     ├── library/              ← content layer, business: one folder per document family chosen in BUSINESS_FAMILIES
     ├── planning/ · research/ ← production layers, every variant
@@ -48,9 +52,10 @@ syntek-author/
 
 ## What's here
 
-- `DESIGN.md` — the decisions (D1–D46), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
+- `DESIGN.md` — the decisions (D1–D47), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
 - `copier.yml` — the contract Copier executes. **Every gated path is one `_exclude` line whose gate is copied verbatim from DESIGN.md Section 3.5** (a business document family's read `DOC_TYPE == 'business' and '<family>' in BUSINESS_FAMILIES`), and the mode-file block between its `BEGIN`/`END generated mode excludes` markers is written by `.github/scripts/gen-mode-excludes.sh`, never by hand.
 - `template/` — the product. **Every file in it is rendered**, so the delimiters `<%`, `<:` and `<~` appear only where a token is meant (token discipline: `.claude/CLAUDE.md` Section 4).
+- `AGENTS.md`, `GEMINI.md`, `.agents`, `.codex/` — the development entrypoints for the other coding agents. They route to the development manual, and `.codex/config.toml` disables every product skill, so no client treats `template/` as instructions (D47).
 - `.claude/` — the development manual. Its settings deny every skill under `template/.claude/skills/` and exclude the template's `CLAUDE.md` files from development sessions, so the product's instructions never steer the people building it.
 - `.github/scripts/` — the audits, each with a `--self-test`; its `CONTEXT.md` lists what each checks. CI runs all of them on every push.
 - `migrations/` — one script per release that moved a folder holding author work, run by `copier update` through `copier.yml`'s `_migrations` when the update crosses that release (D44). Each is idempotent, never overwrites or deletes a file, and always exits `0`.
@@ -59,6 +64,6 @@ syntek-author/
 
 ## Cross-references
 
-- `README.md` — what a user of the template needs: the questions, the settings files (`00-project.md`, `project.mk`), the four ownership classes, updating with `-a` and migrations, both adoption modes, a second template, the ElevenLabs note.
+- `README.md` — what a user of the template needs: the questions, the settings files (`00-project.md`, `project.mk`), the five ownership classes, updating with `-a` and migrations, both adoption modes, a second template, the ElevenLabs note.
 - `.claude/CLAUDE.md` — what a maintainer needs: dev isolation, token discipline, how to add a skill, a mode file, a gated path, a workflow, a seed or a question.
 - `DESIGN.md` Section 3 — ownership classes and the gating table; Section 7 — this repository's root and audits; Section 8 and D41 — adoption; D39 and D44 — the business families and their migration.

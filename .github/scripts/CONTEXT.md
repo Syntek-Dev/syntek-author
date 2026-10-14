@@ -21,17 +21,17 @@ Nothing here is rendered, and nothing here writes under `template/`.
 ├── docs-pairing.sh           ← folder pairs; CONTEXT, CLAUDE, workflow, guide and header shapes
 ├── line-cap.sh               ← 300 lines for every instructional .md
 ├── scrub.sh                  ← personal data, source-repository names, absolute paths
-├── dev-isolation.sh          ← template skills denied in the root settings; CLAUDE.md excludes
-├── shipped-seeds.sh          ← seeds wired and empty (registers, index pairs, brand guides, 00-project.md, project.mk); examples copy-only
+├── dev-isolation.sh          ← template skills denied in the root settings; CLAUDE.md excludes; every product skill disabled for Codex; the development AGENTS.md, GEMINI.md and .agents link (D47)
+├── shipped-seeds.sh          ← seeds wired and empty (registers, index pairs, brand guides, 00-project.md, project.mk); examples copy-only; the D47 agent files copy-only
 ├── skill-conformance.sh      ← DESIGN.md Section 5's contract for every skill and mode file
 ├── generate-all.sh           ← renders every DOC_TYPE × profile from a snapshot of the working tree
-├── shipped-variants.sh       ← a render carries exactly its variant: skills, modes, gated paths, business families
+├── shipped-variants.sh       ← a render carries exactly its variant: skills, modes, gated paths, business families, the agent files AGENT_CLIENTS chose and what they say
 ├── byte-identity.sh          ← shared files identical in every render that ships them
 ├── doc-references.sh         ← every cited path and skill exists in that render
-├── tooling-smoke.sh          ← the generated Makefile's targets and the tooling self-tests run in every render; no ignored file read; ISSUE guarded (issued PDFs, open items, switch values); the classification header; make flags honours BRAND_DIRS; make compare on a planted multi-round chain (every actor's macro, no ignored entry, SECTION needs UNIT, nothing to compare is no error, the PDF where XeLaTeX exists); business make lint lists a list step over 20 words, never a short one or one in a legal document (D46)
-├── update-test.sh            ← a real copier update keeps author work, delivers template work, refuses a DOC_TYPE change; the v0.1.0 → v0.2.0 migrations (business families; every book's brief, a re-answered value kept)
+├── tooling-smoke.sh          ← the generated Makefile's targets and the tooling self-tests run in every render; no ignored file read; ISSUE guarded (issued PDFs, open items, switch values); the classification header; make flags honours BRAND_DIRS; make compare on a planted multi-round chain (every actor's macro, no ignored entry, SECTION needs UNIT, nothing to compare is no error, the PDF where XeLaTeX exists)
+├── update-test.sh            ← a real copier update keeps author work, delivers template work, refuses a DOC_TYPE change; copy-only agent files never re-rendered or recreated; the v0.1.0 → v0.2.0 migrations (business families; every book's brief, a re-answered value kept)
 ├── adopt-test.sh             ← adopting an existing book, moving or additive, leaves its author's files untouched; the additive report on a business library names what an untick, an ignore rule or a kept workflow would cost, each same-named file with its redirect, and each kept file as committed, untracked or ignored
-└── coexist-test.sh           ← a second template shares a project without collision
+└── coexist-test.sh           ← a second template shares a project without collision, the agent files and .agents link included
 ```
 
 ## What's here
@@ -41,8 +41,9 @@ Grouped by what each script reads:
 - **The template source** (`copier.yml`, `template/`, the root settings):
   `check-template-tokens.sh`, `gen-mode-excludes.sh`, `docs-pairing.sh`, `line-cap.sh`,
   `scrub.sh`, `dev-isolation.sh`, `shipped-seeds.sh`, `skill-conformance.sh`.
-- **The renders** that `generate-all.sh` produces (thirteen: theology, fiction and business ×
-  defaults, all-on, minimal, adoption, plus fiction-conlang): `shipped-variants.sh`,
+- **The renders** that `generate-all.sh` produces (sixteen: theology, fiction and business ×
+  defaults, all-on, minimal, adoption, plus fiction-conlang, and three for the other coding
+  agents: business Claude-only, fiction with OpenCode on Ollama, theology with hosted models): `shipped-variants.sh`,
   `byte-identity.sh`, `doc-references.sh`, `tooling-smoke.sh`, and `docs-pairing.sh`,
   `shipped-seeds.sh`, `skill-conformance.sh` again.
 - **Their own scratch projects**: `update-test.sh`, `adopt-test.sh`, `coexist-test.sh`. Their

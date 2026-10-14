@@ -17,6 +17,7 @@ Nothing here ships (`_subdirectory: template`).
 
 - `CLAUDE.md` — how to work on the template. It imports the root `CONTEXT.md` and this file, and routes every design question to `DESIGN.md`.
 - `settings.json` — **two layers of isolation, both required** (DESIGN.md Section 7). `permissions.deny` lists `Skill(<name>)` for every skill under `template/.claude/skills/`, because Claude Code loads a nested skills folder as soon as a session reads a file beneath it; `claudeMdExcludes` keeps `template/**/CLAUDE.md` and `template/.claude/**` out of development sessions. Every new template skill needs its deny line here, added or approved by the maintainer.
+- Codex, Gemini CLI, Antigravity and OpenCode reach this folder through root `AGENTS.md` and `GEMINI.md`, and see it as `.agents` (a link). It holds no `skills/` folder, so the link exposes no skill; root `.codex/config.toml` disables the product's skills (D47).
 - There is no `MEMORY.md`, no hook and no skills folder: the template's own decisions live in `DESIGN.md` and `CHANGELOG.md`, where a reviewer can see them.
 
 ## Cross-references

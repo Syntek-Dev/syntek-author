@@ -15,7 +15,7 @@
 #                   runtime (its own answers file, its own rules file, its own skill, and the
 #                   D17 root files as seeds), changes both templates, updates both, and checks.
 #
-#                   Seven checks:
+#                   Eight checks:
 #                     1. The second template applies over the project without --overwrite —
 #                        nothing it ships collides with what is there.
 #                     2. Both answers files exist, under different names.
@@ -25,6 +25,12 @@
 #                     6. No file is owned by both: a path syntek-author renders and does not
 #                        seed is never shipped by the second template, and the reverse.
 #                     7. No conflict is left behind (no *.rej file, no conflict marker).
+#                     8. The copy-only agent files syntek-author wrote (DESIGN.md D47, Section
+#                        3.6: AGENTS.md, GEMINI.md, .codex/, .gemini/, opencode.json,
+#                        .claude/mcp_config.json and the .agents link) are byte for byte what it
+#                        wrote, and .agents still links to .claude, after the second template's
+#                        copy and both updates. The dummy ships the same paths copy-only, as
+#                        syntek-media does (its D73), with its own bridge beside syntek-author's.
 #
 #                   Numbers are stable identifiers. Append, never renumber.
 #
@@ -81,9 +87,11 @@ B_RULE=".claude/rules/dummy-media/01-media.md"
 A_MARK="<!-- coexist-test: syntek-author change -->"
 B_MARK="<!-- coexist-test: dummy-media change -->"
 SHARED_ROOT="README.md CONTEXT.md .gitignore .mcp.json .claude/CLAUDE.md .claude/CONTEXT.md .claude/MEMORY.md .claude/settings.json .claude/skills/CONTEXT.md .claude/skills/CLAUDE.md .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md"
+B_BRIDGE=".claude/dummy-media-agents.md"
 
 PROJ=""; A_RULE=""; A_COPY=0; B_COPY=0; A_UPDATE=0; B_UPDATE=0
 A_OWNED=(); A_ALL=(); B_OWNED=(); B_ALL=()
+declare -A A_KEPT=()
 
 # The second template, as DESIGN.md Section 9 requires one to be written.
 build_dummy() { # $1 = dir
@@ -105,7 +113,9 @@ _envops:
   keep_trailing_newline: true
 _skip_if_exists:
 EOF
-    for s in $SHARED_ROOT; do printf '  - /%s\n' "$s"; done
+    for s in $SHARED_ROOT $SA_COPY_ONLY; do printf '  - /%s\n' "$s"; done
+    printf '_preserve_symlinks: true\n_exclude:\n  - .git\n'
+    for s in $SA_COPY_ONLY; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$b/copier.yml"
   printf '<%% _copier_answers|to_nice_yaml -%%>\n' > "$b/template/$B_ANSWERS"
@@ -113,7 +123,12 @@ EOF
   printf -- '---\nname: dummy-media-clip\ndescription: Clip a recording.\n---\n' > "$b/template/.claude/skills/dummy-media-clip/SKILL.md"
   printf '# CONTEXT.md — media/\n' > "$b/template/media/CONTEXT.md"
   printf '@./CONTEXT.md\n\n# CLAUDE.md — media/\n' > "$b/template/media/CLAUDE.md"
-  for s in $SHARED_ROOT; do mkdir -p "$(dirname "$b/template/$s")"; printf '# seeded by dummy-media\n' > "$b/template/$s"; done
+  for s in $SHARED_ROOT $SA_COPY_ONLY; do
+    [[ "$s" == .agents ]] && continue
+    mkdir -p "$(dirname "$b/template/$s")"; printf '# seeded by dummy-media\n' > "$b/template/$s"
+  done
+  ln -s .claude "$b/template/.agents"
+  printf '# dummy-media bridge\n\nTemplate-owned by dummy-media.\n' > "$b/template/$B_BRIDGE"
   sa_git "$b" init -q && sa_git "$b" add -A && sa_git "$b" commit -q -m 'dummy-media'
 }
 
@@ -149,6 +164,11 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
   while read -r kind path; do
     if [[ "$kind" == O ]]; then A_OWNED+=("$path"); else A_ALL+=("$path"); fi
   done < <(owned_and_all "$PROJ" "$a/copier.yml" "$SA_ANSWERS_FILE")
+  A_KEPT=()
+  for path in $SA_COPY_ONLY; do
+    if [[ -L "$PROJ/$path" ]]; then A_KEPT["$path"]="link:$(readlink "$PROJ/$path")"
+    elif [[ -f "$PROJ/$path" ]]; then A_KEPT["$path"]="$(sha256sum < "$PROJ/$path")"; fi
+  done
 
   "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref=HEAD --data "PROJECT_NAME=$SA_RENDER_NAME" "$b" "$w/b-alone" </dev/null >>"$log" 2>&1 || true
   while read -r kind path; do
@@ -199,6 +219,14 @@ run_checks() {
     finding "check 7 — conflict left behind: ${f#"$PROJ"/}"
   done < <( { find "$PROJ" -name .git -prune -o -name '*.rej' -print; \
               grep -rlI --exclude-dir=.git -e '^<<<<<<< ' "$PROJ" 2>/dev/null; } | sort -u || true)
+  local now
+  for p in "${!A_KEPT[@]}"; do
+    now=""
+    if [[ -L "$PROJ/$p" ]]; then now="link:$(readlink "$PROJ/$p")"
+    elif [[ -f "$PROJ/$p" ]]; then now="$(sha256sum < "$PROJ/$p")"; fi
+    [[ "$now" == "${A_KEPT[$p]}" ]] || finding "check 8 — the copy-only $p syntek-author wrote did not survive the second template and both updates unchanged"
+  done
+  [[ -z "${A_KEPT[.agents]:-}" || "${A_KEPT[.agents]}" == link:.claude ]] || finding "check 8 — syntek-author's .agents links to ${A_KEPT[.agents]#link:}, not .claude"
 }
 
 self_test() {
@@ -220,6 +248,8 @@ self_test() {
   mv "$PROJ/$B_RULE" "$tmp/h"; probe "check 5 fires when one template's file vanishes" "check 5"; mv "$tmp/h" "$PROJ/$B_RULE"
   A_OWNED+=("README.md"); probe "check 6 fires on a root file syntek-author owns" "check 6 — README.md"; unset 'A_OWNED[-1]'
   printf 'x\n' > "$PROJ/CONTEXT.md.rej"; probe "check 7 fires on a rejected hunk" "check 7"; rm -f "$PROJ/CONTEXT.md.rej"
+  printf '# yours\n' > "$PROJ/AGENTS.md"; A_KEPT[AGENTS.md]="not-this"
+  probe "check 8 fires when a copy-only file was overwritten" "check 8 — the copy-only AGENTS.md"; unset 'A_KEPT[AGENTS.md]'; rm -f "$PROJ/AGENTS.md"
   st_finish "templates that coexist from templates that collide"
 }
 
@@ -243,5 +273,6 @@ fi
 bold "✗ ${#FINDINGS[@]} finding(s) (work kept in $work; output in $work/flow.log):"
 print_findings
 log ""
-log "  DESIGN.md Section 9: own answers file, own rules folder, shared root files seeded in both."
+log "  DESIGN.md Section 9: own answers file, own rules folder, shared root files seeded in both,"
+log "  agent entrypoints and client settings copy-only in both (D47)."
 exit 1

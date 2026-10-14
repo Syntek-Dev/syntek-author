@@ -1,0 +1,12 @@
+# Codex's project settings (written once by syntek-author; yours from now on).
+# Codex loads this file only after you trust the project.
+# Started inside a folder, Codex reads that folder's and its parents' CLAUDE.md where there is
+# no AGENTS.md. It reads them once, at the start: the bridge has every other folder read by hand.
+project_doc_fallback_filenames = ['CLAUDE.md']
+<: if CODEX_MODEL :>
+# The substantive tier (.claude/rules/syntek-author/05-model-allocation.md).
+model = '<%CODEX_MODEL%>'
+<: endif :>
+# MCP servers use Codex's own TOML format ([mcp_servers.<name>]); authenticate locally.
+# This file sets no trust level, no permission bypass and no credentials. A local model for
+# Codex is a user-level setting: Codex refuses model_provider in a project file.

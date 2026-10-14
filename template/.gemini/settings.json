@@ -1,0 +1,6 @@
+{
+<: if GEMINI_MODEL :>  "model": {
+    "name": "<%GEMINI_MODEL%>"
+  },
+<: endif :>  "mcpServers": {}
+}

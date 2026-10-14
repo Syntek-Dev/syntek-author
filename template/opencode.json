@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+<: if OPENCODE_PROVIDER != 'hosted' :>  "model": "<%OPENCODE_PROVIDER%>/<%OPENCODE_MODEL%>",
+  "providers": {
+    "<%OPENCODE_PROVIDER%>": {
+      "name": "<% {'llama-cpp': 'llama.cpp (local)', 'ollama': 'Ollama (local)', 'vllm': 'vLLM (local)', 'lmstudio': 'LM Studio (local)'}.get(OPENCODE_PROVIDER, 'OpenAI-compatible server') %>",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": <% OPENCODE_BASE_URL | tojson %>
+      },
+      "models": {
+        "<%OPENCODE_MODEL%>": {
+          "modelID": "<%OPENCODE_MODEL%>",
+          "name": "<%OPENCODE_MODEL%>",
+          "capabilities": {
+            "tools": true,
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": <%OPENCODE_CONTEXT%>,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+<: elif OPENCODE_MODEL :>  "model": "<%OPENCODE_MODEL%>",
+<: endif :>  "permissions": [
+    { "action": "edit", "resource": "*.pdf", "effect": "deny" },
+    { "action": "edit", "resource": "build/**", "effect": "deny" },
+    { "action": "edit", "resource": "typeset/src/units/.base/**", "effect": "deny" }
+  ]
+}

@@ -201,6 +201,20 @@ heading() { printf '\n▸ %s\n' "$1"; }
 item() { printf '  %-11s %s\n' "$1" "$2"; }
 note() { item report "$1"; NOTES=$((NOTES + 1)); }
 
+# A real .agents directory (DESIGN.md D47, Section 3.6): Copier cannot write the template's
+# .agents link over a directory and fails before its skip check, so every copy command this
+# script prints excludes the link there, and the report says agent integration is manual.
+# The directory is never renamed, moved or removed. A link of any target is left to the skip.
+AGX=""
+agents_exclude() {
+  AGX=""
+  if [ -d .agents ] && [ ! -L .agents ]; then
+    AGX=" --exclude /.agents"
+    note ".agents is a real directory: the copy below excludes the template's .agents link (--exclude /.agents). Keep the directory; link its skills to .claude/skills by hand with the author (.claude/syntek-author-agents.md, 'Enabling a client in an existing project')."
+  fi
+  return 0
+}
+
 # ── Template knowledge ────────────────────────────────────────────────────────
 # The workflow and reference-guide names of DESIGN.md Section 4.4, across every variant,
 # unioned with whatever the template tree beside this script holds. A name from another
@@ -712,6 +726,7 @@ additive_report() {
   # clean at it, otherwise this clone at HEAD (the command README.md gives for a local clone).
   ans="<answers>"; [ -z "$ANSWERS" ] || ans=$(printf '%q' "$ANSWERS")
   q=$(printf '%q' "$tpl_root")
+  agents_exclude
   if [ -n "$ANSWERS" ]; then
     step2="    2. The answers file: $ANSWERS, the one this report previewed."
   else
@@ -721,18 +736,18 @@ additive_report() {
   if [ -n "$tag" ] && [ -z "$dirty" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact. This clone is
        clean at the tag $tag, so that published release is the same tree:
-         uvx copier copy --trust --skip '*' --skip-tasks --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=$tag gh:Syntek-Dev/syntek-author .
+         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=$tag gh:Syntek-Dev/syntek-author .
        (Or this clone: $q in place of gh:…, and --vcs-ref=HEAD.)"
   elif [ -n "$ref" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact:
-         uvx copier copy --trust --skip '*' --skip-tasks --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=HEAD $q .
+         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=HEAD $q .
        Copier records that ABSOLUTE path for every later update.${dirty:+ This clone has uncommitted
        changes, which Copier copies too: commit them first, so the version it records is one
        this clone holds.} For a published release of gh:Syntek-Dev/syntek-author instead, check
        this clone out at that release's tag and run this report again."
   else
     step3="    3. Copy from the folder this report previewed, or it is not exact:
-         uvx copier copy --trust --skip '*' --skip-tasks --data-file $ans --data SEED_EXAMPLES=false $q .
+         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false $q .
        It is not a git clone, so Copier records no version and no update can follow: prefer a
        clone of gh:Syntek-Dev/syntek-author at a release tag, and run this report from it."
   fi
@@ -1094,6 +1109,7 @@ fi
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 heading "Summary"
+agents_exclude
 if [ "$APPLY" -eq 1 ]; then
   printf '  moved %d, edited %d, collisions %d, failed %d, for the author %d\n' "$MOVED" "$EDITED" "$COLLIDED" "$FAILED" "$NOTES"
 else
@@ -1105,7 +1121,7 @@ cat <<EOF
   Next:
     1. Review with \`git add -A && git diff --cached -M\`, then commit on this branch.
     2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml
-    3. uvx copier copy --trust --overwrite --data-file <answers> --data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .
+    3. uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .
        (From a local clone: its ABSOLUTE path in place of gh:…, plus --vcs-ref=HEAD. Copier
        records the path for every later update, and a relative one breaks them all.)
     4. Review git diff: recover project text the copy replaced into docs/project/,
