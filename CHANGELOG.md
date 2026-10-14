@@ -7,11 +7,30 @@ All notable changes to syntek-author are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite it by decision (D1–D45) or section.
+Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite it by decision (D1–D47) or section.
 
 ---
 
 ## [Unreleased]
+
+Codex, Gemini CLI, Antigravity and OpenCode can now work in a generated project, reading the same rules, skills and memory as Claude Code, and OpenCode can run on a local model server (D47).
+
+### Added
+
+- **Seven questions (D47, Section 2).** `AGENT_CLIENTS` (multiple choice, labelled 'Codex', 'Gemini CLI', 'Antigravity' and 'OpenCode'; all four by default; Claude Code always ships) chooses the other clients. `CODEX_MODEL` and `GEMINI_MODEL` (blank: the client's own default) set each client's model for substantive work. `OPENCODE_PROVIDER` (`llama-cpp`, `ollama`, `vllm`, `lmstudio`, `openai-compatible`, `hosted`), `OPENCODE_BASE_URL` (the provider's usual loopback port, ending `/v1`), `OPENCODE_MODEL` (`qwen3.6-35b-a3b` for llama.cpp, required for every local provider) and `OPENCODE_CONTEXT` (`262144` for llama.cpp, otherwise `32768`) describe OpenCode's model. Model names are validated as character sets, so no answer can break the file it is written into.
+- **Per-client files, gated on `AGENT_CLIENTS` (Section 3.5).** Root `AGENTS.md` (Codex, OpenCode) and `GEMINI.md` (Gemini CLI, Antigravity), each routing to the bridge; the relative link `.agents -> .claude`, the skill path every one of these clients reads; `.codex/config.toml` with its pair (the `CLAUDE.md` fallback, and `model` when answered); `.gemini/settings.json` with its pair (`model.name` when answered, an empty `mcpServers`); `.claude/mcp_config.json` (Antigravity's workspace MCP file, `{"mcpServers": {}}`); and `opencode.json` (one OpenAI-compatible provider named for the answer, tools on, the answered context, an 8192-token output limit, and edit denies for PDFs, `build/` and the typesetting bases; nothing for `hosted` but the model). No file carries a key, a trust level, a permission bypass or an MCP server.
+- **The bridge, `.claude/syntek-author-agents.md`** (template-owned, shared, updated). It gives the read order no other client loads by itself (Claude's `@` imports, every rules file under `.claude/rules/`, `00-project.md` first, memory and folder pairs; OpenCode reads no `CLAUDE.md` at all), maps skills and tools by capability, names what Claude Code enforces that the others follow by hand (hand off, never compact; the settings file's denies; the author's approval; paid calls), each client's setup, other templates' bridges, and how to enable a client in an existing project.
+- **A model table in `05-model-allocation.md`**, rendered from the answers: each chosen client's model and where it is set. `opus` and `sonnet` stay tier labels everywhere else.
+- **A fifth ownership class, copy-only shared (Section 3.6).** Every per-client path has an anchored `_skip_if_exists` line and an `_exclude` line gated on the update: a copy writes it where missing, an update never renders, recreates or re-renders it. syntek-media treats the same paths the same way (its D73). The gated seeds (`README.md`, `CONTEXT.md`, `.claude/CONTEXT.md`, `.claude/CLAUDE.md`) and rules 01 name them only where they ship.
+- **Development isolation for the other clients.** Root `AGENTS.md` and `GEMINI.md` route to the development manual; `.agents` links to the development `.claude/`, which holds no skills; `.codex/config.toml` disables all fifty-one product skills by path and sets no `CLAUDE.md` fallback. `template/AGENTS.md` and `template/GEMINI.md` open with a guard sending a development session back to the root.
+- **Audits.** `dev-isolation.sh` checks 5–8 (the Codex config parses, disables every product skill and sets no fallback; the development entrypoints and link). `shipped-seeds.sh` check 18 (every copy-only path wired both ways and on disk). `shipped-variants.sh` check 12 (each client file parses and says what the answers chose), with check 6 now reading the link and the per-client gates. `update-test.sh` checks 24–29 (an edited `AGENTS.md` kept and never re-rendered, deleted entrypoints never recreated, the link kept, the bridge updated, a new model answer reaching rules 05 and not `opencode.json`, and no copy-only file added by an upgrade from v0.1.0). `coexist-test.sh` check 8 (the agent files and the link survive a second template that ships them too). `generate-all.sh` adds three renders: business Claude-only, fiction with OpenCode on Ollama, and theology with hosted models.
+
+### Changed
+
+- **`adopt/adopt.sh`** adds `--exclude /.agents` to every copy command it prints when the repository has a real `.agents` directory, which Copier cannot write a link over, and reports that agent integration is manual. The directory is never moved.
+- **`DESIGN.md` Section 11** no longer defers `AGENTS.md` and multi-host entry points.
+
+No migration: nothing moves. An update asks `AGENT_CLIENTS` with all four ticked by default; a project that wants none answers `--data 'AGENT_CLIENTS=[]'`. The clients answered gain the bridge and the model table, never their files: a client is enabled by the bridge's steps.
 
 ## [0.3.0] - 04/10/2026
 

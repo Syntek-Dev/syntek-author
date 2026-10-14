@@ -18,7 +18,8 @@ every skill reads (the audience, the reader test, where things are kept) in
 │   ├── MEMORY.md           ← project memory (read second)
 │   ├── rules/syntek-author/ ← loaded at launch: 00-project.md (this project's settings; yours) and the template's rules (never edit)
 │   └── skills/             ← one folder per skill
-<: if DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC :>├── .github/workflows/      ← Google Drive push and pull
+<: if AGENT_CLIENTS | length > 0 :>│       (and syntek-author-agents.md, the bridge every other coding agent reads first)
+<: endif :><: if DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC :>├── .github/workflows/      ← Google Drive push and pull
 <: endif :>├── planning/               ← LAYER (production): outline, <%UNIT_NOUN%> briefs, decision maps, reviews
 ├── research/               ← LAYER (production): sources, evidence entries, research notes
 <: if DOC_TYPE != 'business' :>├── manuscript/             ← LAYER (production): the book, one folder per chapter
@@ -36,7 +37,13 @@ every skill reads (the audience, the reader test, where things are kept) in
 ├── README.md               ← the human-facing overview
 ├── .gitignore              ← what Git never tracks
 ├── .mcp.json               ← project MCP servers (none by default)
-└── .copier-answers.syntek-author.yml ← Copier's record of the answers; never edit by hand
+<: if 'codex' in AGENT_CLIENTS or 'opencode' in AGENT_CLIENTS :>├── AGENTS.md               ← Codex and OpenCode start here (yours; written once)
+<: endif :><: if 'gemini-cli' in AGENT_CLIENTS or 'antigravity' in AGENT_CLIENTS :>├── GEMINI.md               ← Gemini CLI and Antigravity start here (yours; written once)
+<: endif :><: if AGENT_CLIENTS | length > 0 :>├── .agents                 ← a link to .claude: the one skill tree every client reads
+<: endif :><: if 'codex' in AGENT_CLIENTS :>├── .codex/                 ← Codex's project settings (yours; written once)
+<: endif :><: if 'gemini-cli' in AGENT_CLIENTS :>├── .gemini/                ← Gemini CLI's project settings (yours; written once)
+<: endif :><: if 'opencode' in AGENT_CLIENTS :>├── opencode.json           ← OpenCode's model and local server (yours; written once)
+<: endif :>└── .copier-answers.syntek-author.yml ← Copier's record of the answers; never edit by hand
 ```
 
 ## What's here

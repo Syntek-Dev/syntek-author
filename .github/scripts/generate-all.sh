@@ -122,6 +122,9 @@ business-defaults
 business-all-on      INCLUDE_REFERENCES=true INCLUDE_DRIVE_SYNC=true BUSINESS_FAMILIES=[business,legal,email,accounting,social-media,msp-scp]
 business-minimal     INCLUDE_REFERENCES=false INCLUDE_DRIVE_SYNC=false BUSINESS_FAMILIES=[business]
 business-adoption    SEED_EXAMPLES=false
+business-claude-only AGENT_CLIENTS=[]
+fiction-ollama       AGENT_CLIENTS=[opencode] OPENCODE_PROVIDER=ollama OPENCODE_MODEL=qwen3:30b
+theology-hosted      AGENT_CLIENTS=[codex,gemini-cli,opencode] CODEX_MODEL=gpt-5.5 GEMINI_MODEL=gemini-3-pro OPENCODE_PROVIDER=hosted
 EOF
 )
 
@@ -134,7 +137,8 @@ expect_for() { # $1 = name → KEY=value lines
   local name="$1" doc="${1%%-*}" kv k v
   local -A e=([DOC_TYPE]="$doc" [INCLUDE_PROPOSAL]=false [INCLUDE_REFERENCES]=false
               [INCLUDE_SENSITIVE_CONTENT]=false [INCLUDE_WORLDBUILDING]=false [INCLUDE_CONLANG]=false
-              [INCLUDE_DRIVE_SYNC]=false [SEED_EXAMPLES]=true [MODEL_MECHANICAL]=sonnet)
+              [INCLUDE_DRIVE_SYNC]=false [SEED_EXAMPLES]=true [MODEL_MECHANICAL]=sonnet
+              [AGENT_CLIENTS]="codex,gemini-cli,antigravity,opencode")
   case "$doc" in
     theology) e[INCLUDE_PROPOSAL]=true; e[INCLUDE_REFERENCES]=true; e[AUDIENCE]=lay ;;
     fiction)  e[INCLUDE_PROPOSAL]=true; e[AUDIENCE]=adult; e[INCLUDE_WORLDBUILDING]=true; e[INCLUDE_CONLANG]=true ;;
@@ -154,7 +158,8 @@ expect_for() { # $1 = name → KEY=value lines
   # INCLUDE_CONLANG defaults to INCLUDE_WORLDBUILDING and is hidden without it.
   if [[ "${e[INCLUDE_WORLDBUILDING]}" == false ]]; then e[INCLUDE_CONLANG]=false; fi
   for k in DOC_TYPE INCLUDE_PROPOSAL INCLUDE_REFERENCES INCLUDE_SENSITIVE_CONTENT INCLUDE_WORLDBUILDING \
-           INCLUDE_CONLANG INCLUDE_DRIVE_SYNC SEED_EXAMPLES MODEL_MECHANICAL AUDIENCE BUSINESS_FAMILIES; do
+           INCLUDE_CONLANG INCLUDE_DRIVE_SYNC SEED_EXAMPLES MODEL_MECHANICAL AUDIENCE BUSINESS_FAMILIES \
+           AGENT_CLIENTS; do
     [[ -n "${e[$k]:-}" ]] && printf '%s=%s\n' "$k" "${e[$k]}"
   done
   # The last key is unset outside business; that must not be this function's status (set -e).

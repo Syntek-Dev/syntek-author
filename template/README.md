@@ -135,7 +135,28 @@ folder is ignored by Git, and no target ever reads a file Git ignores.
 - When a session grows long, Claude writes a handoff to `handoffs/` and stops, rather than
   compacting. Run `/clear` and continue from the handoff.
 
----
+<: if AGENT_CLIENTS | length > 0 :>---
+
+## Other coding agents
+
+The same rules, skills and memory serve every client; `.claude/` is the one source.
+
+<: if 'codex' in AGENT_CLIENTS :>- **Codex** starts from `AGENTS.md` and reads `.codex/config.toml` once you trust the project.
+<: endif :><: if 'gemini-cli' in AGENT_CLIENTS :>- **Gemini CLI** starts from `GEMINI.md` and reads `.gemini/settings.json`.
+<: endif :><: if 'antigravity' in AGENT_CLIENTS :>- **Antigravity** starts from `GEMINI.md`; its MCP servers go in `.claude/mcp_config.json`.
+<: endif :><: if 'opencode' in AGENT_CLIENTS :>- **OpenCode** starts from `AGENTS.md`; `opencode.json` names its model<: if OPENCODE_PROVIDER != 'hosted' :> and the local server at <%OPENCODE_BASE_URL%>: start the server first<: endif :>.
+<: endif :>
+Each entrypoint sends the client to `.claude/syntek-author-agents.md`, which gives the read
+order these clients cannot load by themselves, and `.agents` links to `.claude` so every client
+finds the same skills. The model each client uses is in
+`.claude/rules/syntek-author/05-model-allocation.md`. Hand off rather than compact in every
+client: only Claude Code enforces it.
+
+These files are written once and are yours: an update never changes them, adds a missing one or
+brings back one you deleted. To add a client later, follow 'Enabling a client in an existing
+project' in `.claude/syntek-author-agents.md`.
+
+<: endif :>---
 
 ## Conventions
 

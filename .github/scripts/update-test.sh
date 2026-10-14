@@ -34,7 +34,7 @@
 #                  seed 00-project.md must carry the hand-edited audience, not the old answer,
 #                  and the reader test answered during the update, not the older hand edit.
 #
-#                  Twelve checks per DOC_TYPE, six more for business, and five more for each
+#                  Twelve checks per DOC_TYPE (and 24–28 below), six more for business, and six more for each
 #                  book variant:
 #                    1. The project renders.
 #                    2. `copier update` succeeds.
@@ -74,6 +74,21 @@
 #                       .claude/CLAUDE.md Section 1 never overwrites a fresh answer (D44).
 #                   23. The migration reported that older hand edit as a conflict, naming
 #                       .claude/CLAUDE.md:<line> and its value, so the author can reconcile it.
+#
+#                  Copy-only agent files (DESIGN.md D47, Section 3.6), in every DOC_TYPE: the
+#                  author edits AGENTS.md and deletes GEMINI.md and .codex/config.toml; the
+#                  template changes AGENTS.md, opencode.json and the bridge; the update answers
+#                  OPENCODE_MODEL anew.
+#                   24. The author's edit to AGENTS.md survives, and the template's change to it
+#                       never arrives: an update never renders a copy-only file.
+#                   25. The deleted GEMINI.md and .codex/config.toml stay deleted.
+#                   26. .agents is still a link to exactly .claude.
+#                   27. The template's change to .claude/syntek-author-agents.md (the bridge,
+#                       template-owned) arrives.
+#                   28. The new OPENCODE_MODEL answer reaches the model table in rules 05, and
+#                       opencode.json is byte for byte what the copy wrote.
+#                   29. Books: a project generated at v0.1.0, before D47, gains none of the
+#                       copy-only files from the upgrade: they arrive by a copy only.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -142,6 +157,8 @@ done
 MEMORY_MARK="Update-test entry"
 STYLE_MARK="Update-test: an author's own style rule."
 TEMPLATE_MARK="<!-- update-test: a template change -->"
+AGENTS_MARK="Update-test: the author's own agent instruction."
+NEW_MODEL="update-test-model"
 DOCTYPE_REFUSAL="DOC_TYPE cannot change on update"
 MESSAGE_MARK="Before you answer: turning an option off deletes"
 # What the warning must name: each option as `KEY=false`, and the family list by its key.
@@ -151,6 +168,7 @@ MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLAN
 DOC=""; PROJ=""; COPY_STATUS=0; UPDATE_STATUS=0; AUTHOR_FILE=""; AUTHOR_SUM=""; TARGET_REL=""
 UPDATE_LOG=""; SWITCH_STATUS=0; SWITCH_LOG=""; SWITCH_DIRTY=""; SWITCH_RECORDED=""
 DELETED=()
+CO_RAN=false; OPENCODE_SUM=""
 
 other_doc() { # the variant a DOC_TYPE change is attempted to
   case "$1" in theology) echo fiction ;; fiction) echo business ;; *) echo theology ;; esac
@@ -189,6 +207,14 @@ run_flow() { # $1 = template repo, $2 = DOC_TYPE, $3 = work dir — fills the st
   mkdir -p "$(dirname "$PROJ/$AUTHOR_FILE")"
   printf '# Written by the author\n\nA paragraph no update may touch.\n' > "$PROJ/$AUTHOR_FILE"
   AUTHOR_SUM="$(sha1sum < "$PROJ/$AUTHOR_FILE")"
+  # The copy-only agent files (D47), where the render wrote them (every default render does).
+  CO_RAN=false
+  if [[ -f "$PROJ/AGENTS.md" && -f "$PROJ/GEMINI.md" && -f "$PROJ/.codex/config.toml" && -f "$PROJ/opencode.json" ]]; then
+    CO_RAN=true
+    printf '\n%s\n' "$AGENTS_MARK" >> "$PROJ/AGENTS.md"
+    rm -f "$PROJ/GEMINI.md" "$PROJ/.codex/config.toml"
+    OPENCODE_SUM="$(sha1sum < "$PROJ/opencode.json")"
+  fi
   sa_git "$PROJ" add -A && sa_git "$PROJ" commit -q -m 'the author at work' >>"$log" 2>&1
 
   # The template moves on. A template-owned skill every variant ships; a rule file if the
@@ -197,9 +223,16 @@ run_flow() { # $1 = template repo, $2 = DOC_TYPE, $3 = work dir — fills the st
   [[ -f "$tpl/template/$TARGET_REL" ]] || TARGET_REL=".claude/rules/syntek-author/01-layout-and-routing.md"
   [[ -f "$tpl/template/$TARGET_REL" ]] || die "the template has neither run-workflow/SKILL.md nor the layout rule — nothing template-owned to update"
   printf '\n%s\n' "$TEMPLATE_MARK" >> "$tpl/template/$TARGET_REL"
+  if $CO_RAN; then
+    printf '\n%s\n' "$TEMPLATE_MARK" >> "$tpl/template/AGENTS.md"
+    printf '\n%s\n' "$TEMPLATE_MARK" >> "$tpl/template/.claude/syntek-author-agents.md"
+    printf ' \n' >> "$tpl/template/opencode.json"
+  fi
   sa_git "$tpl" add -A && sa_git "$tpl" commit -q -m 'a template change' >>"$log" 2>&1
 
-  sa_update "$PROJ" >"$UPDATE_LOG" 2>&1 || UPDATE_STATUS=$?
+  local -a co_data=()
+  $CO_RAN && co_data=(--data "OPENCODE_MODEL=$NEW_MODEL")
+  sa_update "$PROJ" "${co_data[@]}" >"$UPDATE_LOG" 2>&1 || UPDATE_STATUS=$?
   cat "$UPDATE_LOG" >>"$log"
 
   # A changed DOC_TYPE, tried in a clone so checks 3–9 judge the real update alone. The clone
@@ -415,6 +448,10 @@ set_checks() {
   got="$(brief_value "$SET_PROJ/$SETTINGS_FILE" "Reader test")"
   [[ "$got" == "$READER_FRESH" ]] \
     || finding "check 22 — [$SET_DOC] $SETTINGS_FILE ## Brief gives the reader test as '${got:-nothing}', not the one the author answered during the update ($READER_FRESH)"
+  for found in $SA_COPY_ONLY .codex .gemini; do
+    [[ -e "$SET_PROJ/$found" || -L "$SET_PROJ/$found" ]] \
+      && finding "check 29 — [$SET_DOC] the upgrade from $MIGRATION_FROM created the copy-only $found — an update must never add one"
+  done
   if ! grep -qF "$READER_CONFLICT" "$SET_LOG" 2>/dev/null \
      || ! grep -F '.claude/CLAUDE.md:' "$SET_LOG" 2>/dev/null | grep -qF "$READER_HAND"; then
     finding "check 23 — [$SET_DOC] the settings migration did not report the older reader test in .claude/CLAUDE.md ('$READER_HAND') as a conflict with its file:line"
@@ -436,7 +473,12 @@ mig_fixture() { # $1 = dest
   # Section 1 (a seed), with the reader test's note as v0.1.0 wrote it.
   printf '# CLAUDE.md — <%%PROJECT_NAME%%>\n\n## 1. Project\n\n- **Audience:** <%%AUDIENCE%%>\n- **Reader test** (every `comprehension` pass reads as this person): <%%READER_TEST%%>\n\n## 3. Project-specific rules\n' > "$t/template/.claude/CLAUDE.md"
   printf 'AUDIENCE:\n  type: str\n  default: invented general readers\nREADER_TEST:\n  type: str\n  default: an invented reader at the end of a working day\n' >> "$t/copier.yml"
+  # v0.1.0 predates D47: no agent entrypoints, link or client settings. The fixture's later
+  # release ships them, so check 29 proves an update across it never adds one.
+  mkdir -p "$t.held"
+  (cd "$t/template" && mv AGENTS.md GEMINI.md .agents .codex opencode.json "$t.held/")
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture v0.1.0' && sa_git "$t" tag v0.1.0
+  (cd "$t.held" && mv AGENTS.md GEMINI.md .agents .codex opencode.json "$t/template/") && rmdir "$t.held"
   sed -i 's#/library/src/proposals/drafts/example-proposal<#/library/src/business/drafts/example-proposal<#' "$t/copier.yml"
   mkdir -p "$t/template/library/src/business/drafts"
   mv "$t/template/library/src/proposals/drafts/example-proposal" "$t/template/library/src/business/drafts/"
@@ -509,6 +551,24 @@ flow_checks() {
   if [[ -n "$SWITCH_DIRTY" || "$SWITCH_RECORDED" != "$DOC" ]]; then
     finding "check 11 — [$DOC] the refused DOC_TYPE change touched the project ($(printf '%s\n' "$SWITCH_DIRTY" | grep -c . || true) path(s) changed; the answers record '$SWITCH_RECORDED')"
   fi
+  if $CO_RAN; then
+    if ! grep -qF "$AGENTS_MARK" "$PROJ/AGENTS.md" 2>/dev/null; then
+      finding "check 24 — [$DOC] the author's edit to AGENTS.md did not survive the update"
+    elif grep -qF "$TEMPLATE_MARK" "$PROJ/AGENTS.md"; then
+      finding "check 24 — [$DOC] the update rendered the copy-only AGENTS.md — the template's change reached it"
+    fi
+    for e in GEMINI.md .codex/config.toml; do
+      [[ -e "$PROJ/$e" ]] && finding "check 25 — [$DOC] the deleted copy-only $e came back on update"
+    done
+    [[ -L "$PROJ/.agents" && "$(readlink "$PROJ/.agents")" == .claude ]] \
+      || finding "check 26 — [$DOC] .agents is no longer a link to .claude after the update"
+    grep -qF "$TEMPLATE_MARK" "$PROJ/.claude/syntek-author-agents.md" 2>/dev/null \
+      || finding "check 27 — [$DOC] the bridge .claude/syntek-author-agents.md did not take the template's change"
+    grep -qF "$NEW_MODEL" "$PROJ/.claude/rules/syntek-author/05-model-allocation.md" 2>/dev/null \
+      || finding "check 28 — [$DOC] the new OPENCODE_MODEL answer did not reach the model table in rules 05"
+    [[ "$(sha1sum < "$PROJ/opencode.json" 2>/dev/null)" == "$OPENCODE_SUM" ]] \
+      || finding "check 28 — [$DOC] the update changed the copy-only opencode.json"
+  fi
   if ! grep -qF "$MESSAGE_MARK" "$UPDATE_LOG" 2>/dev/null; then
     finding "check 12 — [$DOC] copier update printed no option-off warning (_message_before_update)"
   else
@@ -550,6 +610,15 @@ self_test() {
   probe "check 12 fires when the option-off warning is not printed" "check 12"; cp "$tmp/h" "$UPDATE_LOG"
   grep -vF "INCLUDE_DRIVE_SYNC=false" "$tmp/h" > "$UPDATE_LOG" || true
   probe "check 12 fires when the warning leaves an option out" "check 12 — [theology] the option-off warning does not name INCLUDE_DRIVE_SYNC"; cp "$tmp/h" "$UPDATE_LOG"
+  $CO_RAN || { finding "self-test: the fixture wrote no agent files"; }
+  cp "$PROJ/AGENTS.md" "$tmp/h"; printf '%s\n' "$TEMPLATE_MARK" >> "$PROJ/AGENTS.md"
+  probe "check 24 fires when the update renders AGENTS.md" "check 24 — [theology] the update rendered"; cp "$tmp/h" "$PROJ/AGENTS.md"
+  printf 'x\n' > "$PROJ/GEMINI.md"; probe "check 25 fires when a deleted entrypoint comes back" "check 25 — [theology] the deleted copy-only GEMINI.md"; rm -f "$PROJ/GEMINI.md"
+  rm "$PROJ/.agents"; mkdir "$PROJ/.agents"; probe "check 26 fires when .agents is no longer the link" "check 26"; rmdir "$PROJ/.agents"; ln -s .claude "$PROJ/.agents"
+  cp "$PROJ/.claude/syntek-author-agents.md" "$tmp/h"; grep -vF "$TEMPLATE_MARK" "$tmp/h" > "$PROJ/.claude/syntek-author-agents.md"
+  probe "check 27 fires when the bridge misses the template's change" "check 27"; cp "$tmp/h" "$PROJ/.claude/syntek-author-agents.md"
+  cp "$PROJ/opencode.json" "$tmp/h"; printf ' \n' >> "$PROJ/opencode.json"
+  probe "check 28 fires when the update changes opencode.json" "check 28 — [theology] the update changed"; cp "$tmp/h" "$PROJ/opencode.json"
 
   # Checks 13–18: a real upgrade between the fixture's two tagged releases.
   FLOW_RAN=false
@@ -593,6 +662,8 @@ self_test() {
   probe "check 23 fires when the conflict is not reported" "check 23"; cp "$tmp/h" "$SET_LOG"
   grep -vF "$READER_HAND" "$tmp/h" > "$SET_LOG" || true
   probe "check 23 fires when the conflict does not name the hand edit" "check 23"; cp "$tmp/h" "$SET_LOG"
+  printf 'x\n' > "$SET_PROJ/AGENTS.md"
+  probe "check 29 fires when an upgrade adds a copy-only file" "check 29 — [theology] the upgrade from v0.1.0 created the copy-only AGENTS.md"; rm -f "$SET_PROJ/AGENTS.md"
   SET_RAN=false
   st_finish "an update that keeps its promises from one that breaks them"
 }
@@ -632,6 +703,7 @@ for doc in ${DOC_TYPES//,/ }; do
   run_checks
   if [[ ${#FINDINGS[@]} -eq 0 ]]; then
     log "  ✓ $doc — edits kept, example still gone, voice-notes.md recreated, author unit untouched, $TARGET_REL updated; DOC_TYPE change refused untouched; option-off warning printed"
+    $CO_RAN && log "  ✓ $doc — copy-only agent files: AGENTS.md edit kept and never re-rendered, deleted entrypoints stay deleted, .agents still the link, the bridge updated, a new model answer in rules 05 only"
     $MIG_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: every author file moved to its family byte for byte, the collision kept and named, a second run a no-op, msp-scp honoured"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     rm -rf "$work"

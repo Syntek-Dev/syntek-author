@@ -13,7 +13,7 @@
 #                    nothing else (Section 3.3), because anything else in them is the template
 #                    writing into the author's space.
 #
-#                    Seventeen checks:
+#                    Eighteen checks:
 #                      1. Every DESIGN.md seed is listed in copier.yml's _skip_if_exists.
 #                      2. Every _skip_if_exists entry names a file under template/.
 #                      3. Every seed-once example has its copy-only _exclude line, gated
@@ -65,7 +65,15 @@
 #                         absolute path: the Makefile -includes it in every build, so anything
 #                         else in it is a project's build shipped to every project.
 #
-#                    Checks 1–4 read copier.yml and template/ (static, once). Checks 5–17 read
+#                     18. Every copy-only shared path of DESIGN.md Section 3.6 (D47: the other
+#                         coding agents' entrypoints, the .agents link, their settings) has its
+#                         anchored _skip_if_exists line, its _exclude line gated
+#                         "_copier_operation == 'update'", and a file (or, for .agents, a
+#                         link) under template/. Without the skip a copy overwrites the author's
+#                         file; without the exclusion an update re-renders it, or brings back
+#                         one the author deleted.
+#
+#                    Checks 1–4 and 18 read copier.yml and template/ (static, once). Checks 5–17 read
 #                    every tree given — template/ by default, or renders — and skip a seed the
 #                    tree does not ship.
 #
@@ -204,6 +212,17 @@ static_checks() {
   for e in $SA_EXAMPLES; do
     [[ -n "${copy_only[$e]:-}" ]] || finding "check 3 — the example $e has no copy-only _exclude line ($SA_EXAMPLE_GATE) — a deleted example would come back"
     [[ -e "$TPL/$e" ]] || finding "check 4 — the example $e is not under template/"
+  done
+
+  # ── 18. Copy-only shared paths (D47) ────────────────────────────────────────
+  local -A on_update=()
+  while IFS=$'\t' read -r cond path; do
+    [[ "$(norm_expr "$cond")" == "$SA_COPY_ONLY_GATE" ]] && on_update["$path"]=1
+  done < <(exclude_gates "$COPIER")
+  for s in $SA_COPY_ONLY; do
+    [[ -n "${skip[$s]:-}" ]] || finding "check 18 — the copy-only $s is not in _skip_if_exists — a copy over a project overwrites the author's file"
+    [[ -n "${on_update[$s]:-}" ]] || finding "check 18 — the copy-only $s has no _exclude line gated on the update — an update re-renders it, or brings back a deleted one"
+    [[ -e "$TPL/$s" || -L "$TPL/$s" ]] || finding "check 18 — the copy-only $s is not under template/"
   done
 }
 
@@ -421,11 +440,17 @@ write_fixture() { # $1 = repo root
   {
     printf '_exclude:\n  - .git\n'
     for s in $SA_EXAMPLES; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_EXAMPLE_GATE" "$s"; done
+    for s in $SA_COPY_ONLY; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf '_skip_if_exists:\n'
-    for s in $SA_SEEDS; do printf '  - /%s\n' "$s"; done
+    for s in $SA_SEEDS $SA_COPY_ONLY; do printf '  - /%s\n' "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$r/copier.yml"
   for s in $SA_SEEDS; do mkdir -p "$(dirname "$t/$s")"; printf '# %s\n' "${s##*/}" > "$t/$s"; done
+  for s in $SA_COPY_ONLY; do
+    [[ "$s" == .agents ]] && continue
+    mkdir -p "$(dirname "$t/$s")"; printf '{}\n' > "$t/$s"
+  done
+  ln -s .claude "$t/.agents"
   for s in $REGISTER_SEEDS; do
     printf '# %s\n\n%s\n\n## Register\n\n| Name | Notes |\n|---|---|\n| _No entries yet._ | |\n' "${s##*/}" "$banner" > "$t/$s"
   done
@@ -510,6 +535,12 @@ self_test() {
   cp "$tmp/c" "$COPIER"
   grep -vF '/world/src/languages/example-tongue<' "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
   probe "check 3 fires when an example loses its copy-only line" "check 3 — the example world/src/languages/example-tongue"
+  cp "$tmp/c" "$COPIER"
+  grep -vxF '  - /opencode.json' "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
+  probe "check 18 fires when a copy-only path loses its skip line" "check 18 — the copy-only opencode.json is not in _skip_if_exists"
+  cp "$tmp/c" "$COPIER"
+  grep -vF "'update' :>/GEMINI.md<" "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
+  probe "check 18 fires when a copy-only path loses its update exclusion" "check 18 — the copy-only GEMINI.md has no _exclude line"
   cp "$tmp/c" "$COPIER"; SA_SETS_FOR=""
   mv "$t/planning/src/units/example-proposal.md" "$tmp/h"
   probe "check 4 fires when an example is missing" "check 4"

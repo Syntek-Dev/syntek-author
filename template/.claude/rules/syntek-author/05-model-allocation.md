@@ -48,3 +48,27 @@ Substantive work is where an error costs the author: a fabricated source, a flat
 changed obligation, a lost turn of voice. The cheaper tier is safe only where the result can be
 checked at a glance, which is why the line sits at mechanical work and never higher, and why the
 fallback never drops below the tier the work needs.
+<: if AGENT_CLIENTS | length > 0 :>
+
+---
+
+## 4. Other coding agents
+
+Claude Code runs the tiers above. The other clients the answers name run them on these models,
+the substantive tier first; the mechanical tier uses the same model unless the owner sets a
+cheaper one in the client. A client's files exist only if the project was generated with it,
+or it was added by the steps in `.claude/syntek-author-agents.md`.
+
+| Client | Model | Set in |
+|---|---|---|
+<: if 'codex' in AGENT_CLIENTS :>| Codex | <: if CODEX_MODEL :>`<%CODEX_MODEL%>`<: else :>Codex's own default<: endif :> | `config.toml` in `.codex` |
+<: endif :><: if 'gemini-cli' in AGENT_CLIENTS :>| Gemini CLI | <: if GEMINI_MODEL :>`<%GEMINI_MODEL%>`<: else :>Gemini CLI's own default<: endif :> | `settings.json` in `.gemini` |
+<: endif :><: if 'antigravity' in AGENT_CLIENTS :>| Antigravity | chosen in the app | Antigravity |
+<: endif :><: if 'opencode' in AGENT_CLIENTS :>| OpenCode | <: if OPENCODE_PROVIDER != 'hosted' :>`<%OPENCODE_MODEL%>` on <%OPENCODE_PROVIDER%> at <%OPENCODE_BASE_URL%>, <%OPENCODE_CONTEXT%> tokens of context<: elif OPENCODE_MODEL :>`<%OPENCODE_MODEL%>`<: else :>OpenCode's own default<: endif :> | `opencode.json` |
+<: endif :>
+This table follows the project's answers and is updated with this file. The client files are
+written once and are the owner's: after a change of answer, change the client file to match.
+Elsewhere, `opus` and `sonnet` stay tier labels in every client. A local model must handle tool
+calls reliably before it drafts: test it on a scratch copy first, and when in doubt keep
+substantive work on the strongest model available. Client setup: `.claude/syntek-author-agents.md`.
+<: endif :>

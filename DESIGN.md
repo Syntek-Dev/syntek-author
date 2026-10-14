@@ -62,6 +62,7 @@ The private sources are named and located only in the maintainer's local notes, 
 | D43 | **Issuing and project build settings.** `make pdf ISSUE=1` refuses to overwrite an existing file beside the source unless `FORCE=1`, and issues only at a status in `ISSUE_STATUSES` (default `final`). `ISSUE=1` also refuses while the document has an open flag, with no `FORCE` bypass, and `ISSUE`/`FORCE` accept only `1`, `yes` or `true`. `tooling/project.mk` (seed, included by the Makefile with `-include`) sets `BRAND_DIRS` (where `make flags` looks for brand files; default `standards/brand`), `LOGO_DIRS` (searched first in `TEXINPUTS`), `DOCX_CONVERTER`, `FLAG_EXTRA_RE` (extra open-item patterns `make flags` counts; business default `\[AWAITING USER INPUT\]` and `\fillme`), `ISSUE_STATUSES`, and `MAINFONT` / `SANSFONT` / `MONOFONT` for Pandoc. `tooling/latex/symbol-fallback.tex` ships so Markdown PDFs keep symbol glyphs. `texcheck.py` treats list options (`enumitem`) and table colour and span macros as layout, not words. | v0.2.0, 03/10/2026. |
 | D44 | **Releases that move author work ship a migration.** v0.2.0's `migrations/v0.2.0-business-families.sh` moves anything an author created under v0.1.0's family folders to the D39 families (`proposals`→`business`, `contracts`→`legal`, `policies`→`business` (or `msp-scp` when selected), `correspondence`→`email`, `finance`→`accounting`, `marketing`→`social-media`), only where the destination is free, idempotently, never deleting, and reports what it left. A second v0.2.0 migration, `migrations/v0.2.0-project-settings.sh` (every variant), carries brief values the author edited by hand under v0.1.0 into `00-project.md` `## Brief` only where the value is unambiguous, lists conflicting or stale seed lines for the author, never overwrites a value the author re-answered during the update itself, and edits nothing else. In business, `correspondence/client-docs/<slug>/` moves to `email/client-emails/<slug>/`. Migration scripts live in the template repository's root `migrations/` and run through `_migrations`. | v0.2.0, 03/10/2026. |
 | D45 | **Three-stage comparison of every section.** The ledger records how each section moved from its original to its final text, and `make compare` prints that record. **The record.** An entry written from v0.3.0 carries `format: 2` and two optional sections between `## AI original` and `## Author final`: `## Author original` (the text the loop started from when the AI did not draft it, written by the first skill to revise an author-drafted section; empty for AI-drafted entries) and `## Revisions`, an ordered chain of full-text states, oldest first, each opened by one marker comment `<!-- revision N · <kind> · DD/MM/YYYY · <skill> (<strength>) · rows a–b -->`. The kind names who made the change from the state before it, in D38's words: `ai` (an AI suggestion the author accepted: `improve-section` proposals, `adapt-section` alternatives, accepted proofreading corrections), `author-note` (the AI applying the author's own notes or flag answers) or `author` (the author's hand-edits, which every skill finds by comparing the draft with the last recorded state before it changes anything). The difference between the last state and the Author final is the author's. Every skill that changes a draft's words appends a revision; a re-promotion or a correction after promotion first moves the previous Author final into the chain; a redraft moves the live chain, with a promoted section's Author final, into the superseded-original comment, after which the section is a draft again (`promoted` and `change_ratio` cleared, its `provenance.md` row removed); two states are equal when they match word for word and paragraph for paragraph, comments aside, and a state equal to the one before it is never written. A promoted section that has changed since without being promoted again is reopened (a revision reads `promoted <its promoted date>`, or is dated after it): its Author final is the previous final, so its chain, `make compare` and `learn-voice` stop at its last revision until it is promoted again. Entries are never backfilled: an entry without `format: 2` predates the record and is shown as such. **The output.** `make compare [UNIT=…] [SECTION=…]` (every variant) writes `build/compare/<unit>.pdf`, or `build/compare/<unit>--<section>.pdf` with `SECTION=`, so a one-section comparison never overwrites the unit's: a cover with the key and the unit's disclosure table, then, for each section in the brief's plan order, a portrait **redline** (the final text, each added word marked by who added it, each removed word struck by who removed it) and a landscape **three-column** page (Original · AI edit · Final, aligned by paragraph; the AI edit is the state after the last `ai` or `author-note` revision). The comparison follows words, not passages: a passage a step moved shows as removed where it stood and added where it went, both marked by the step that moved it. Each actor has a colour-blind-safe Okabe–Ito colour and its own line style, so the page reads in greyscale: the AI blue, dashed underline and cross-out; `author-note` green, dotted underline and double strike; the author vermillion, solid underline and single strike; a change in an entry written before the record grey, wavy underline and wavy strike, shown but never assigned. `tooling/compare.py` (stdlib; imports `provenance.py`'s reader) builds a Pandoc AST through the house Lua filter with `tooling/compare.yaml` and `tooling/latex/compare.tex`; the Makefile runs XeLaTeX twice with the missing-character report; `FORMAT=tex` stops at LaTeX, which is what CI proves. Comparison output is never issued, committed or synced. No migration: nothing moves, every addition is optional, and a v0.2.0 entry renders with the stages it has. | v0.3.0, 04/10/2026. |
+| D47 | **Coding agents other than Claude Code share the one production contract.** `.claude/` stays the single canonical tree: rules, skills, mode files, memory, folder pairs and workflows are written once and read by every client. `AGENT_CLIENTS` (multi-select: Codex, Gemini CLI, Antigravity, OpenCode; Claude Code always ships) gates the per-client files of Section 3.6: root `AGENTS.md` (Codex, OpenCode), root `GEMINI.md` (Gemini CLI, Antigravity), the relative link `.agents -> .claude` (any client; every one of them discovers skills under `.agents/skills`), `.codex/config.toml` and its pair (Codex: `project_doc_fallback_filenames = ['CLAUDE.md']`), `.gemini/settings.json` and its pair (Gemini CLI), `.claude/mcp_config.json` (Antigravity's workspace MCP file, seen through the link) and `opencode.json` (OpenCode). The entrypoints read the template-owned bridge `.claude/syntek-author-agents.md`, then every other `.claude/syntek-*-agents.md` bridge present (a companion template's, such as `syntek-media`'s, whose copy skips the shared entrypoints), because no other client expands Claude's `@` imports, loads `.claude/rules/**` or (OpenCode) reads `CLAUDE.md` at all. **Models.** `CODEX_MODEL` and `GEMINI_MODEL` (blank: the client's own default) set the substantive-tier model in that client's file; `OPENCODE_PROVIDER` (`llama-cpp`, `ollama`, `vllm`, `lmstudio`, `openai-compatible`, `hosted`), `OPENCODE_BASE_URL`, `OPENCODE_MODEL` and `OPENCODE_CONTEXT` write one local provider into `opencode.json` (OpenAI-compatible, tools on, the server's context, no key). `05-model-allocation.md` gains a per-client table rendered from these answers, so an update keeps it current; elsewhere `opus` and `sonnet` remain tier labels, and the mechanical tier runs on the same model unless the owner changes it in the client. Codex refuses `model_provider` in a project file, so a local model for Codex is the owner's user-level setting. **Ownership.** Every per-client path is **copy-only shared** (Section 3.6): an anchored `_skip_if_exists` line and an `_exclude` line `<: if _copier_operation == 'update' :>/path<: endif :>`, plus its client gate. A copy writes it where it is missing; an update never renders, recreates or re-renders it, so a deleted entrypoint stays deleted and a changed answer reaches rules 05, not the client file. A real `.agents` directory is preserved: the copy passes `--exclude /.agents` (Copier fails before its skip check when a link lands on a directory), and `adopt.sh` says so. Existing projects enable a client through the bridge's temporary-generation procedure, never through an update. **Never** a credential, an API key, a trust or permission bypass, an installed MCP server or a paid call; D29's hand-off rule, D28 and every `.claude/settings.json` deny apply as instructions in every client; client permissions never imply author approval. **Development:** root `AGENTS.md`, `GEMINI.md`, `.agents -> .claude` (the development tree, no skills) and `.codex/config.toml` disabling every product skill by path, with no `CLAUDE.md` fallback; `dev-isolation.sh` proves them. | Mirrors `syntek-media` D73 (copy-only shared paths, the bridge, the alias) so a combined project treats each path one way; adds the client and model questions at the maintainer's request (14/10/2026). OpenAI Codex, Gemini CLI and OpenCode v2 documentation checked that day. Supersedes the Section 11 deferral. |
 | D21 | **References** (`INCLUDE_REFERENCES`, default on for theology): SQLite master `tooling/references.db` → `export_refs.py` → CSL-JSON → Pandoc `--citeproc` + `harvard.csl`; citation keys `authorYYYY[a-c]`, lower-case, never renamed. The `.db` is never shipped (binary); `make init` builds it from `schema.sql` + `seed-refs.sql`. | AT pipeline; drop AT's vestigial `appearances` table. |
 | D22 | **Supportive proofreading is the default for every author**: a report, not a rewrite; say what and where; offer the correction; group recurring items. No health question, no diagnosis in any file. | Cross-check row 28. |
 | D23 | **Locale.** en_GB; single quotation marks; DD/MM/YYYY in prose; `DD-MM-YYYY` in filenames; ISO 8601 only in database columns; 24-hour time; write "Section 3.2", never the section sign. | |
@@ -108,12 +109,19 @@ House style: UPPER_SNAKE keys, `>-` help written to the person answering, valida
 | `INCLUDE_SENSITIVE_CONTENT` | bool | books | `false` | Sensitive-content standard, `sensitivity-pass`, testimony handling. |
 | `SEED_EXAMPLES` | bool | always | `true` | One worked example unit (and, with the conlang, one example language). Adoption passes `false`. |
 | `MODEL_MECHANICAL` | str | always | business `opus`, otherwise `sonnet` | `choices: [sonnet, opus]`. Never Haiku. |
+| `AGENT_CLIENTS` | str, multi-select | always | `[codex, gemini-cli, antigravity, opencode]` | D47. Labels 'Codex', 'Gemini CLI', 'Antigravity', 'OpenCode'; Claude Code always ships. Gates the Section 3.6 paths. |
+| `CODEX_MODEL` | str | `'codex' in AGENT_CLIENTS` | `""` | Substantive-tier model for Codex; blank leaves Codex's default. Written as `model` in `.codex/config.toml` and into rules 05. |
+| `GEMINI_MODEL` | str | `'gemini-cli' in AGENT_CLIENTS` | `""` | Substantive-tier model for Gemini CLI; blank leaves its default. Written as `model.name` in `.gemini/settings.json` and into rules 05. |
+| `OPENCODE_PROVIDER` | str | `'opencode' in AGENT_CLIENTS` | `llama-cpp` | `choices`: `llama-cpp` (llama-server or llama-swap), `ollama`, `vllm`, `lmstudio`, `openai-compatible` (any other server), `hosted` (OpenCode's own login; no provider written). |
+| `OPENCODE_BASE_URL` | str | OpenCode and a local provider | `http://127.0.0.1:8080/v1` (llama-cpp), `:11434/v1` (ollama), `:8000/v1` (vllm), `:1234/v1` (lmstudio), none (openai-compatible) | Validator: an `http://` or `https://` URL ending `/v1`. |
+| `OPENCODE_MODEL` | str | `'opencode' in AGENT_CLIENTS` | `qwen3.6-35b-a3b` for llama-cpp, otherwise none | The model ID the server lists at `/v1/models` (hosted: `provider/model`, or blank for OpenCode's default). Required for a local provider. |
+| `OPENCODE_CONTEXT` | int | OpenCode and a local provider | `262144` (llama-cpp), otherwise `32768` | The context the server actually loads; never larger. |
 | `CONTENT_LAYER` | computed (`when: false`) | — | `library` if business else `manuscript` | |
 | `UNIT_NOUN` | computed (`when: false`) | — | `document` if business else `chapter` | |
 
 Every gate expression includes its `DOC_TYPE` test, so a default computed for a hidden question can never open a gate.
 
-**Token discipline.** Variant tokens (`DOC_TYPE`, `CONTENT_LAYER`, `UNIT_NOUN`, `FICTION_GENRE`, `INCLUDE_*`, `AUDIENCE`, `READER_TEST`, and every other variant answer) and `<: if … :>` blocks may appear only in the **spine set**:
+**Token discipline.** Variant tokens (`DOC_TYPE`, `CONTENT_LAYER`, `UNIT_NOUN`, `FICTION_GENRE`, `INCLUDE_*`, `AUDIENCE`, `READER_TEST`, `AGENT_CLIENTS` and the client model answers of D47, and every other variant answer) and `<: if … :>` blocks may appear only in the **spine set**:
 
 - the root spine: `.claude/CLAUDE.md`, `.claude/rules/syntek-author/*.md`, root `CONTEXT.md`, `README.md`, `Makefile`, `tooling/defaults.yaml`, `.claude/settings.json`;
 - every seed (Section 3.1) and every seed-once example (Section 3.2), because they render once and are never merged;
@@ -185,9 +193,26 @@ Everything else: every other governance pair, `docs/reference/**`, `workflows/NN
 | `standards/risk/sensitive-content.md`, `research/src/testimony`, research workflow 05, skill `sensitivity-pass` | books and `INCLUDE_SENSITIVE_CONTENT` |
 | `.github/` | business and `INCLUDE_DRIVE_SYNC` |
 | `tooling/book.latex` | books |
+| `AGENTS.md` | `'codex' in AGENT_CLIENTS or 'opencode' in AGENT_CLIENTS` |
+| `GEMINI.md` | `'gemini-cli' in AGENT_CLIENTS or 'antigravity' in AGENT_CLIENTS` |
+| `.agents`, `.claude/syntek-author-agents.md` | `AGENT_CLIENTS \| length > 0` |
+| `.codex/` | `'codex' in AGENT_CLIENTS` |
+| `.gemini/` | `'gemini-cli' in AGENT_CLIENTS` |
+| `.claude/mcp_config.json` | `'antigravity' in AGENT_CLIENTS` |
+| `opencode.json` | `'opencode' in AGENT_CLIENTS` |
 | Variant-only skills and their mode files | Section 5 |
 
 The mode-file block of `_exclude` (three lines per moded skill and per moded standards folder) is **generated** by `.github/scripts/gen-mode-excludes.sh` between the markers `# BEGIN generated mode excludes` and `# END generated mode excludes`; `--check` fails on drift.
+
+### 3.6 Copy-only shared (D47)
+
+`AGENTS.md` · `GEMINI.md` · `.agents` · `.codex/config.toml` · `.codex/CONTEXT.md` · `.codex/CLAUDE.md` · `.gemini/settings.json` · `.gemini/CONTEXT.md` · `.gemini/CLAUDE.md` · `.claude/mcp_config.json` · `opencode.json`.
+
+- **Three `copier.yml` lines each:** anchored in `_skip_if_exists` (a copy over an existing file skips; `coexist-test.sh` classes it as a seed); `<: if _copier_operation == 'update' :>/path<: endif :>` in `_exclude` (an update never renders it, so an edit or a deletion stands); and its client gate from Section 3.5. The same paths are copy-only in `syntek-media` (its D73), so whichever template comes first writes them and neither updates them.
+- **Spine.** They render once, so they may carry the D47 answers; none carries a `DOC_TYPE` difference, and `.claude/syntek-author-agents.md` (template-owned, updated) is shared and byte-identical.
+- **The link.** `.agents` is the relative link `.claude` (`_preserve_symlinks: true`). A real `.agents` directory is never replaced, renamed or merged: copy with `--exclude /.agents` and integrate its skills by hand.
+- **Existing projects.** An update never adds these files. The bridge documents the route: generate a fresh project from the recorded answers into a temporary folder, copy only the missing files, and route an existing entrypoint to the bridge by an agreed edit.
+- **Config contents.** `.codex/config.toml`: the `CLAUDE.md` fallback and `model` when `CODEX_MODEL` is set. `.gemini/settings.json`: `model.name` when `GEMINI_MODEL` is set and an empty `mcpServers`. `.claude/mcp_config.json`: `{"mcpServers": {}}`. `opencode.json`: `$schema`; for a local provider one `providers.<provider>` entry (`@opencode/ai/providers/openai-compatible`, `settings.baseURL`, one model with `tools: true`, `limit.context` = `OPENCODE_CONTEXT`, `limit.output` 8192) and `model` = `<provider>/<model>`; `permissions` denying edits to `*.pdf`, `build/**` and, for books, `typeset/src/units/.base/**` (the `.claude/settings.json` denies, D47). No key, trust level or approval bypass in any of them.
 
 ---
 
@@ -203,11 +228,17 @@ The mode-file block of `_exclude` (three lines per moded skill and per moded sta
 ├── Makefile             ← template-owned build entry point
 ├── .gitignore           ← seed
 ├── .mcp.json            ← seed: {"mcpServers": {}}
+├── AGENTS.md · GEMINI.md  ← copy-only, per client (D47): route to .claude/syntek-author-agents.md
+├── .agents             ← copy-only link to .claude (D47): one skill tree for every client
+├── .codex/ · .gemini/  ← copy-only, per client: config + pair (D47)
+├── opencode.json       ← copy-only, OpenCode: the local provider and model (D47)
 ├── .claude/
 │   ├── CLAUDE.md        ← seed: Section 1 Project brief (from answers) + where the rules live
 │   ├── CONTEXT.md       ← seed
 │   ├── MEMORY.md        ← seed: six empty H2s
 │   ├── settings.json    ← seed: model opus, autoCompactEnabled false, PreCompact hook, denies, allow-list
+│   ├── syntek-author-agents.md  ← template-owned bridge for Codex, Gemini CLI, Antigravity, OpenCode (D47)
+│   ├── mcp_config.json  ← copy-only, Antigravity: {"mcpServers": {}} (D47)
 │   ├── hooks/           ← pair (seed) + pre-compact-handoff.sh (template-owned)
 │   ├── rules/syntek-author/   ← template-owned rules, loaded at launch; NO pair here
 │   └── skills/          ← pair (seed) + one folder per skill (template-owned)
@@ -633,6 +664,9 @@ codepoint = ""               # optional pin in the Private Use Area, e.g. "U+E00
 syntek-author/
 ├── copier.yml · DESIGN.md · README.md · CONTEXT.md · CHANGELOG.md · VERSION
 ├── .claude/              ← development manual + settings.json (dev isolation)
+├── AGENTS.md · GEMINI.md ← development entrypoints for Codex, Gemini CLI, Antigravity, OpenCode (D47)
+├── .agents               ← link to the development .claude/ (no skills)
+├── .codex/               ← config.toml disabling every product skill + pair
 ├── .github/
 │   ├── scripts/          ← audits and tests (SB house shape)
 │   └── workflows/audit-template.yml
@@ -641,6 +675,7 @@ syntek-author/
 ```
 
 **Dev isolation** (root `.claude/settings.json`): `permissions.deny` lists `Skill(<name>)` for every skill under `template/.claude/skills/`; `"claudeMdExcludes": ["**/template/**/CLAUDE.md", "**/template/.claude/**"]`.
+Other clients (D47): root `AGENTS.md` and `GEMINI.md` route to `.claude/CLAUDE.md` and this file and say that `template/` is product text; `.agents` links to the development `.claude/`, which has no skills; `.codex/config.toml` disables every product skill by a path relative to `.codex/` and sets no `CLAUDE.md` fallback. `template/AGENTS.md` and `template/GEMINI.md` open with a guard sending a development session back to the root files. OpenCode and Gemini CLI discover project skills only from the working directory upwards, so a session started at the root never sees the product's.
 
 **Audits** (`.github/scripts/`, each with SB's header, numbered checks, what it cannot check, `--self-test`, exit codes 0/1/2):
 
@@ -653,15 +688,15 @@ syntek-author/
 | `byte-identity.sh` | Shared non-spine files identical across variant trees. |
 | `docs-pairing.sh` | Every directory has its pair except the declared exceptions. |
 | `doc-references.sh` | Every backticked path in a shipped file exists in that variant's tree (markers `variant-only` exempt). |
-| `shipped-seeds.sh` | Seeds have their headings and no entries; every seed is in `_skip_if_exists`. |
+| `shipped-seeds.sh` | Seeds have their headings and no entries; every seed is in `_skip_if_exists`; every copy-only shared path (Section 3.6) has its anchored skip line and its update exclusion. |
 | `skill-conformance.sh` | Frontmatter, sections, mode contract paragraph, mode H2s, line cap. |
 | `line-cap.sh` | 300-line cap. |
 | `update-test.sh` | Generate at a baseline commit in a scratch clone → author edits MEMORY and style, deletes the example, deletes `voice-notes.md`, adds a section → template change committed → `copier update` → author edits kept, example still gone, `voice-notes.md` recreated, author section untouched, template-owned skill updated. |
 | `adopt-test.sh` | Anonymised fixture shaped like AT built at runtime → `copier copy --overwrite --data SEED_EXAMPLES=false` → seeds, `src/` and style untouched; no example added. |
-| `coexist-test.sh` | Apply a dummy second template with its own answers file and its own rules file over a generated project → both update cleanly; no file owned by both. |
+| `coexist-test.sh` | Apply a dummy second template with its own answers file and its own rules file over a generated project → both update cleanly; no file owned by both; the D47 copy-only paths and the `.agents` link survive both updates. |
 | `tooling-smoke.sh` | In a conlang tree: `make lexicon`, `make derive`, `make coverage`, `make glossary`, `make font` (when `uv` is available), `make script-sample`; in every book tree: `make tex SCOPE=…` on the example, `make tex-check` (and a mutation proving it fails on a changed word), `make print` where XeLaTeX exists; in every tree: `make help`, `make flags`, `make provenance`, and `make compare FORMAT=tex` on a planted D45 entry (a multi-round chain; a git-ignored entry never reaches the output; `SECTION=` without `UNIT=` exits 2), with `make compare` to PDF where XeLaTeX exists; `make pdf`/`make docx` where Pandoc and XeLaTeX exist.; every `tooling/*.py --self-test`; and in business, the example section converted into a copy of `skeleton.tex` passing `make section-check`, with a one-word mutation failing it. |
 | `scrub.sh` | Fails on personal data, source-repository names and absolute paths under `template/`. |
-| `dev-isolation.sh` | Every template skill denied at the root; `claudeMdExcludes` present. |
+| `dev-isolation.sh` | Every template skill denied at the root; `claudeMdExcludes` present; every template skill disabled in `.codex/config.toml`, no fallback there; the development entrypoints and `.agents -> .claude` present (D47). |
 
 CI runs every audit on every push, with no path filter, `permissions: contents: read`, renders in a shell loop, and never contains a literal `${{` beyond the workflow's own expressions.
 
@@ -680,7 +715,7 @@ Seeds (`.claude/CLAUDE.md`, `MEMORY.md`, `settings.json`, `README.md` and the re
 
 1. Each template sets its own `_answers_file`.
 2. Each template's instructions live in `.claude/rules/<template>/`; no template updates `.claude/CLAUDE.md`.
-3. Shared root files are seed-if-missing (D17).
+3. Shared root files are seed-if-missing (D17); agent entrypoints and client settings are copy-only (D47), and each template ships its own `.claude/<template>-agents.md` bridge.
 4. Skill and layer names never collide; the shared writing skills ship only from `syntek-author`.
 5. Large binaries never sit in plain Git: generated audio and renders are git-ignored.
 
@@ -694,4 +729,4 @@ Never template: author identity or health data; income; clients, prices, invoice
 
 ## 11. Deferred (not in v0.1)
 
-biblatex for business `.tex` citations (D36); SC's support directory (`add-organisation`, `verify-support`, `gen_support.py`); SC's two-level `sections` manuscript layout (`MANUSCRIPT_STRUCTURE`); `AGENTS.md` and multi-host entry points (`.ai/`, `.agents/`, `.codex/`); a fiction `reference.docx` (binary under an empty template suffix); a `course` doc type; `syntek-media`.
+biblatex for business `.tex` citations (D36); SC's support directory (`add-organisation`, `verify-support`, `gen_support.py`); SC's two-level `sections` manuscript layout (`MANUSCRIPT_STRUCTURE`); a fiction `reference.docx` (binary under an empty template suffix); a `course` doc type; `syntek-media`.

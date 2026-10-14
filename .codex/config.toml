@@ -1,0 +1,210 @@
+# Development isolation: product skills are source text, never tools here.
+# Codex reads [[skills.config]] only from the USER config (~/.codex/config.toml), never from a
+# project file: this list is the snippet a maintainer copies there, with each path made
+# absolute to their clone. The isolation that holds in every client is starting each session
+# at the repository root, where .agents exposes no skill (DESIGN.md D47, .claude/CLAUDE.md
+# Section 3). One entry per folder under template/.claude/skills/; dev-isolation.sh checks it.
+
+[[skills.config]]
+path = '../template/.claude/skills/accounting-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/adapt-section/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/add-reference/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/add-word/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/approach-a-reader/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/argument-audit/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/build/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/build-language/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/business-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/category-check/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/causality/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/character-voice/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/chart-character-arc/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/clause-consistency/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/comprehension/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/continuity/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/create-creature/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/create-name/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/design-quest/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/design-script/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/draft-section/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/email-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/fact-check/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/flow/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/grammar/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/grilling/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/grill-me/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/grill-with-docs/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/handoff/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/improve-section/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/learn-voice/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/legal-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/msp-scp-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/obligation-check/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/pacing/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/promote-section/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/pronounce/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/prototype/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/research/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/run-workflow/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/sensitivity-pass/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/social-media-documents/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/spelling/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/steelman/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/structure-review/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/teach/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/tone/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/tradition-check/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/typeset/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/wait-what/SKILL.md'
+enabled = false
+
+[[skills.config]]
+path = '../template/.claude/skills/wayfinder/SKILL.md'
+enabled = false

@@ -26,17 +26,35 @@
 #                      4. claudeMdExcludes carries "**/template/**/CLAUDE.md" and
 #                         "**/template/.claude/**".
 #
+#                    Codex, Gemini CLI, Antigravity and OpenCode (DESIGN.md D47) read none of
+#                    those settings. They find skills under .agents/skills and read AGENTS.md
+#                    or GEMINI.md, so the root carries its own development entrypoints, an
+#                    .agents link to this development .claude/ (which holds no skills), and a
+#                    .codex/config.toml that disables every product skill by path:
+#                      5. The root .codex/config.toml exists and is valid TOML.
+#                      6. Every skill folder under template/.claude/skills/ is disabled there
+#                         as [[skills.config]] path = '../template/.claude/skills/<name>/SKILL.md',
+#                         enabled = false. Codex honours that list only from the USER config, so
+#                         the file is the maintainer's snippet; what isolates every client is a
+#                         session started at the root, where .agents (check 8) exposes no skill.
+#                      7. It sets no project_doc_fallback_filenames: a CLAUDE.md fallback would
+#                         load the product's manuals as development instructions.
+#                      8. Root AGENTS.md and GEMINI.md exist, the root .agents is a link to
+#                         exactly .claude, and the root .claude/ holds no skills/ folder.
+#
 #                    Numbers are stable identifiers. Append, never renumber.
 #
-#                    What it CANNOT check: that Claude Code honours the settings. Proving that
+#                    What it CANNOT check: that Claude Code, or any other client, honours the
+#                    settings. Proving that
 #                    needs a live session (`claude -p` asked to list its skills inside
 #                    template/), which needs credentials CI does not hold; run that probe by hand
-#                    after any Claude Code upgrade that touches skill discovery.
+#                    after any Claude Code upgrade that touches skill discovery. The same holds
+#                    for Codex's skill list, Gemini CLI's `/skills list` and OpenCode's skills.
 #
 # SELF-TEST. --self-test writes a fixture repository at runtime, proves it clean, then applies
 #            one mutation per check and asserts exactly one finding each.
 #
-# Requirements: bash 4+, python3. No network.
+# Requirements: bash 4+, python3 3.11+ (tomllib). No network.
 #
 # Usage: dev-isolation.sh [--root DIR] [--quiet] [--self-test] [--help]
 #
@@ -79,6 +97,7 @@ done
 
 SETTINGS="$SA_ROOT/.claude/settings.json"
 SKILLS="$SA_ROOT/template/.claude/skills"
+CODEX="$SA_ROOT/.codex/config.toml"
 EXCLUDES=("**/template/**/CLAUDE.md" "**/template/.claude/**")
 ON_DISK=0
 
@@ -95,6 +114,23 @@ for d in ((data.get("permissions") or {}).get("deny") or []):
     print(f"D\t{d}")
 for x in (data.get("claudeMdExcludes") or []):
     print(f"X\t{x}")
+PY
+}
+
+# Prints "S<TAB>path" per disabled [[skills.config]] path, "F<TAB>" when a fallback is set, or
+# "E<TAB>reason" when the file is not valid TOML.
+read_codex() {
+  python3 - "$CODEX" <<'PY'
+import sys, tomllib
+try:
+    data = tomllib.load(open(sys.argv[1], "rb"))
+except Exception as exc:
+    print(f"E\t{exc.__class__.__name__}: {exc}"); sys.exit(0)
+for entry in ((data.get("skills") or {}).get("config") or []):
+    if isinstance(entry, dict) and entry.get("enabled") is False and entry.get("path"):
+        print(f"S\t{entry['path']}")
+if "project_doc_fallback_filenames" in data:
+    print("F\t")
 PY
 }
 
@@ -128,6 +164,30 @@ run_checks() {
   for x in "${EXCLUDES[@]}"; do
     [[ -n "${excluded[$x]:-}" ]] || finding "check 4 — claudeMdExcludes does not carry \"$x\""
   done
+
+  local -A disabled=()
+  local codex_ok=true
+  if [[ ! -f "$CODEX" ]]; then
+    finding "check 5 — there is no .codex/config.toml at the repository root — Codex can load every product skill"
+  else
+    while IFS=$'\t' read -r kind val; do
+      case "$kind" in
+        E) finding "check 5 — .codex/config.toml is not valid TOML ($val)"; codex_ok=false ;;
+        S) disabled["$val"]=1 ;;
+        F) finding "check 7 — .codex/config.toml sets project_doc_fallback_filenames — Codex would read the product's CLAUDE.md manuals as instructions" ;;
+      esac
+    done < <(read_codex)
+    $codex_ok && for s in "${!on_disk[@]}"; do
+      [[ -n "${disabled["../template/.claude/skills/$s/SKILL.md"]:-}" ]] \
+        || finding "check 6 — template skill $s is not disabled in .codex/config.toml — Codex can load it in a development session"
+    done
+  fi
+  [[ -f "$SA_ROOT/AGENTS.md" ]] || finding "check 8 — there is no root AGENTS.md — Codex and OpenCode get no development instructions"
+  [[ -f "$SA_ROOT/GEMINI.md" ]] || finding "check 8 — there is no root GEMINI.md — Gemini CLI and Antigravity get no development instructions"
+  if [[ ! -L "$SA_ROOT/.agents" || "$(readlink "$SA_ROOT/.agents")" != .claude ]]; then
+    finding "check 8 — the root .agents is not a link to .claude — the other clients' skill path is not the development tree"
+  fi
+  [[ ! -e "$SA_ROOT/.claude/skills" ]] || finding "check 8 — the root .claude/ holds a skills/ folder — .agents would expose it to every client"
 }
 
 self_test() {
@@ -137,7 +197,17 @@ self_test() {
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   SA_ROOT="$tmp"; SETTINGS="$tmp/.claude/settings.json"; SKILLS="$tmp/template/.claude/skills"
-  mkdir -p "$tmp/.claude" "$SKILLS/draft-section" "$SKILLS/grill-me"
+  CODEX="$tmp/.codex/config.toml"
+  mkdir -p "$tmp/.claude" "$tmp/.codex" "$SKILLS/draft-section" "$SKILLS/grill-me"
+  printf '# dev\n' > "$tmp/AGENTS.md"; printf '# dev\n' > "$tmp/GEMINI.md"; ln -s .claude "$tmp/.agents"
+  write_codex() { # $1 = skill to leave enabled, $2 = extra TOML
+    { printf '%s\n' "$2"
+      for s in draft-section grill-me; do
+        [[ "$s" == "$1" ]] && continue
+        printf "[[skills.config]]\npath = '../template/.claude/skills/%s/SKILL.md'\nenabled = false\n" "$s"
+      done; } > "$CODEX"
+  }
+  write_codex "" ""
   write_settings() { # $1 = names to leave out of deny, $2 = excludes JSON
     local first=true
     {
@@ -158,8 +228,18 @@ self_test() {
   write_settings "grill-me" "$ok";                                    probe "check 2 fires when a skill on disk is not denied" "check 2 — template skill grill-me"
   write_settings "pronounce" "$ok";                                   probe "check 3 fires when a catalogued skill is not denied" "check 3 — DESIGN.md names the skill pronounce"
   write_settings "" '["**/template/**/CLAUDE.md"]';                   probe "check 4 fires when an exclusion is lost" "check 4"
+  write_settings "" "$ok"
+  printf '[[skills.config\n' > "$CODEX";                               probe "check 5 fires on a Codex config that is not TOML" "check 5"
+  write_codex "grill-me" "";                                          probe "check 6 fires when a skill is not disabled for Codex" "check 6 — template skill grill-me"
+  write_codex "" "project_doc_fallback_filenames = ['CLAUDE.md']";   probe "check 7 fires on a CLAUDE.md fallback" "check 7"
+  write_codex "" ""
+  rm "$tmp/GEMINI.md";                                                probe "check 8 fires without a development GEMINI.md" "check 8 — there is no root GEMINI.md"
+  printf '# dev\n' > "$tmp/GEMINI.md"
+  rm "$tmp/.agents"; ln -s template/.claude "$tmp/.agents";          probe "check 8 fires when .agents points at the product" "check 8 — the root .agents"
+  rm "$tmp/.agents"; ln -s .claude "$tmp/.agents"
 
   SA_ROOT="$real_root"; SETTINGS="$SA_ROOT/.claude/settings.json"; SKILLS="$SA_ROOT/template/.claude/skills"
+  CODEX="$SA_ROOT/.codex/config.toml"
   st_finish "an isolated template from a leaking one"
 }
 
@@ -172,12 +252,13 @@ fi
 bold "▸ $SCRIPT_NAME"
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
-  bold "✓ $ON_DISK template skill(s) on disk and every catalogued skill denied; both CLAUDE.md exclusions present."
+  bold "✓ $ON_DISK template skill(s) on disk, every catalogued skill denied, both CLAUDE.md exclusions present; every skill disabled for Codex; development entrypoints and .agents in place."
   exit 0
 fi
 bold "✗ ${#FINDINGS[@]} finding(s):"
 print_findings
 log ""
 log "  Add Skill(<name>) to permissions.deny in the ROOT .claude/settings.json (never the one"
-log "  under template/, which ships)."
+log "  under template/, which ships), and a [[skills.config]] entry (path .../<name>/SKILL.md,"
+log "  enabled = false) to the root .codex/config.toml."
 exit 1

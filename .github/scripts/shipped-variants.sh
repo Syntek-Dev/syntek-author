@@ -16,7 +16,7 @@
 #                       Sections 3–5 transcribed), evaluated against the answers the render
 #                       recorded in .copier-answers.syntek-author.yml.
 #
-#                       Eleven checks:
+#                       Twelve checks:
 #                         1. The answers file is present and records DOC_TYPE.
 #                         2. Every skill the variant needs is present, with its SKILL.md.
 #                         3. No skill the variant must not have, and no skill DESIGN.md does
@@ -39,6 +39,15 @@
 #                            that ships again would compete with its successor for every
 #                            document. Whether each family ships exactly when it is chosen is
 #                            checks 2, 3 and 6, through the fam-<family> gates of _common.sh.
+#                        12. The other coding agents' files (DESIGN.md D47, Section 3.6) say what
+#                            the answers chose: each JSON file parses and .codex/config.toml
+#                            parses as TOML; .codex/config.toml keeps the CLAUDE.md fallback and
+#                            sets `model` exactly when CODEX_MODEL is set; .gemini/settings.json
+#                            sets model.name exactly when GEMINI_MODEL is set; opencode.json
+#                            writes one provider named for OPENCODE_PROVIDER with the answered
+#                            URL, model and context, or none when hosted, and denies edits to
+#                            PDFs and build/; and none of them carries a key. Whether each file
+#                            and the .agents link (a link to exactly .claude) ship is check 6.
 #
 #                       Numbers are stable identifiers. Append, never renumber.
 #
@@ -159,11 +168,14 @@ run_checks() {
     [[ -z "$gate" ]] && continue
     p="$(expand_layer "$path")"
     if gate_true "$gate"; then
-      if [[ "$kind" == d && ! -d "$TREE/$p" ]]; then finding "check 6 — $p/ is missing (gate: $gate is open)"
+      if [[ "$kind" == l ]]; then
+        if [[ ! -L "$TREE/$p" ]]; then finding "check 6 — $p is missing or not a link (gate: $gate is open)"
+        elif [[ "$(readlink "$TREE/$p")" != .claude ]]; then finding "check 6 — $p links to $(readlink "$TREE/$p"), not .claude"; fi
+      elif [[ "$kind" == d && ! -d "$TREE/$p" ]]; then finding "check 6 — $p/ is missing (gate: $gate is open)"
       elif [[ "$kind" == f && ! -f "$TREE/$p" ]]; then finding "check 6 — $p is missing (gate: $gate is open)"; fi
     else
       # A {L} row whose layer is the OTHER one is check 5's, not a second finding here.
-      [[ -e "$TREE/$p" ]] && finding "check 6 — $p leaked into this project (gate: $gate is shut)"
+      [[ -e "$TREE/$p" || -L "$TREE/$p" ]] && finding "check 6 — $p leaked into this project (gate: $gate is shut)"
     fi
   done <<< "$SA_PATHS"
 
@@ -194,7 +206,7 @@ run_checks() {
     while IFS='=' read -r k v; do
       [[ -z "$k" ]] && continue
       got="$(answer_value "$k" "$TREE/$SA_ANSWERS_FILE")"
-      if [[ "$k" == BUSINESS_FAMILIES ]]; then
+      if [[ "$k" == BUSINESS_FAMILIES || "$k" == AGENT_CLIENTS ]]; then
         got="$(answer_list "$k" "$TREE/$SA_ANSWERS_FILE" | paste -sd, -)"
       fi
       case "$k" in INCLUDE_*|SEED_EXAMPLES) [[ -z "$got" ]] && got=false ;; esac
@@ -214,6 +226,81 @@ run_checks() {
       fi
     done < <(find "$TREE/library/src" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
   fi
+
+  # ── 12. The other coding agents' files say what the answers chose ───────────
+  if [[ -n "${A_CLIENTS// /}" ]]; then
+    while IFS= read -r hits; do
+      [[ -n "$hits" ]] && finding "check 12 — $hits"
+    done < <(python3 - "$TREE" "$TREE/$SA_ANSWERS_FILE" "$A_CLIENTS" <<'PY'
+import json, re, sys, tomllib
+tree, answers, clients = sys.argv[1], sys.argv[2], sys.argv[3].split()
+def ans(key):
+    for line in open(answers, encoding="utf-8"):
+        m = re.match(rf"^{key}:\s*(.*?)\s*$", line)
+        if m:
+            return m.group(1).strip("'\"")
+    return ""
+def load(rel, kind):
+    try:
+        with open(f"{tree}/{rel}", "rb") as fh:
+            return tomllib.load(fh) if kind == "toml" else json.load(fh)
+    except FileNotFoundError:
+        return None
+    except Exception as exc:
+        print(f"{rel} does not parse as {kind.upper()} ({exc.__class__.__name__})"); return None
+def keyless(rel, data):
+    if re.search(r'"?(api_?key|apiKey|token|secret|password)"?\s*[:=]', json.dumps(data)):
+        print(f"{rel} carries a credential key")
+if "codex" in clients:
+    d = load(".codex/config.toml", "toml")
+    if d is not None:
+        if "CLAUDE.md" not in (d.get("project_doc_fallback_filenames") or []):
+            print(".codex/config.toml lost the CLAUDE.md fallback — Codex would read no folder manual")
+        if d.get("model", "") != ans("CODEX_MODEL"):
+            print(f".codex/config.toml sets model {d.get('model', '(none)')!r}; CODEX_MODEL is {ans('CODEX_MODEL')!r}")
+        for k in ("model_provider", "model_providers", "approval_policy", "sandbox_mode"):
+            if k in d: print(f".codex/config.toml sets {k}, which D47 never ships")
+        keyless(".codex/config.toml", d)
+if "gemini-cli" in clients:
+    d = load(".gemini/settings.json", "json")
+    if d is not None:
+        got = (d.get("model") or {}).get("name", "")
+        if got != ans("GEMINI_MODEL"):
+            print(f".gemini/settings.json sets model.name {got!r}; GEMINI_MODEL is {ans('GEMINI_MODEL')!r}")
+        keyless(".gemini/settings.json", d)
+if "antigravity" in clients:
+    d = load(".claude/mcp_config.json", "json")
+    if d is not None and d != {"mcpServers": {}}:
+        print(".claude/mcp_config.json is not exactly {\"mcpServers\": {}}")
+if "opencode" in clients:
+    d = load("opencode.json", "json")
+    if d is not None:
+        prov, model = ans("OPENCODE_PROVIDER") or "llama-cpp", ans("OPENCODE_MODEL")
+        provs = d.get("providers") or {}
+        if prov == "hosted":
+            if provs: print("opencode.json writes a provider for a hosted model")
+            if d.get("model", "") != model: print(f"opencode.json sets model {d.get('model')!r}; OPENCODE_MODEL is {model!r}")
+        else:
+            p = provs.get(prov)
+            if list(provs) != [prov] or not p:
+                print(f"opencode.json providers are {list(provs)}; OPENCODE_PROVIDER is {prov!r}")
+            else:
+                if d.get("model") != f"{prov}/{model}":
+                    print(f"opencode.json sets model {d.get('model')!r}, not {prov}/{model}")
+                if (p.get("settings") or {}).get("baseURL") != ans("OPENCODE_BASE_URL"):
+                    print("opencode.json's baseURL is not OPENCODE_BASE_URL")
+                m = (p.get("models") or {}).get(model) or {}
+                if m.get("modelID") != model or str((m.get("limit") or {}).get("context")) != ans("OPENCODE_CONTEXT"):
+                    print("opencode.json's model entry does not carry OPENCODE_MODEL and OPENCODE_CONTEXT")
+                if not (m.get("capabilities") or {}).get("tools"):
+                    print("opencode.json's model is not marked as calling tools")
+        denied = {(r.get("action"), r.get("resource")) for r in d.get("permissions") or [] if r.get("effect") == "deny"}
+        for res in ("*.pdf", "build/**"):
+            if ("edit", res) not in denied: print(f"opencode.json does not deny edits to {res}")
+        keyless("opencode.json", d)
+PY
+)
+  fi
 }
 
 # ── Self-test ────────────────────────────────────────────────────────────────
@@ -225,7 +312,8 @@ build_tree() { # $1 = dir — every path the catalogue says the current answers 
     [[ -z "$gate" ]] && continue
     gate_true "$gate" || continue
     p="$(expand_layer "$path")"
-    if [[ "$kind" == d ]]; then mkdir -p "$t/$p"; else mkdir -p "$(dirname "$t/$p")"; printf 'x\n' > "$t/$p"; fi
+    if [[ "$kind" == l ]]; then ln -s .claude "$t/$p"
+    elif [[ "$kind" == d ]]; then mkdir -p "$t/$p"; else mkdir -p "$(dirname "$t/$p")"; printf 'x\n' > "$t/$p"; fi
   done <<< "$SA_PATHS"
   while read -r s g m; do
     [[ -z "$s" || "$g" == optional ]] && continue
@@ -241,6 +329,21 @@ build_tree() { # $1 = dir — every path the catalogue says the current answers 
     printf 'DOC_TYPE: theology\nINCLUDE_PROPOSAL: true\nINCLUDE_REFERENCES: true\nINCLUDE_SENSITIVE_CONTENT: false\nSEED_EXAMPLES: true\nMODEL_MECHANICAL: sonnet\nAUDIENCE: lay\n' \
       > "$t/$SA_ANSWERS_FILE"
   fi
+  if [[ -n "${A_CLIENTS// /}" ]]; then
+    printf 'AGENT_CLIENTS:\n' >> "$t/$SA_ANSWERS_FILE"
+    printf -- '- %s\n' $A_CLIENTS >> "$t/$SA_ANSWERS_FILE"
+    printf 'CODEX_MODEL: ""\nGEMINI_MODEL: ""\nOPENCODE_PROVIDER: ollama\nOPENCODE_BASE_URL: http://127.0.0.1:11434/v1\nOPENCODE_MODEL: qwen3:30b\nOPENCODE_CONTEXT: 32768\n' >> "$t/$SA_ANSWERS_FILE"
+    has_client codex && printf "project_doc_fallback_filenames = ['CLAUDE.md']\n" > "$t/.codex/config.toml"
+    has_client gemini-cli && printf '{"mcpServers": {}}\n' > "$t/.gemini/settings.json"
+    has_client antigravity && printf '{"mcpServers": {}}\n' > "$t/.claude/mcp_config.json"
+    has_client opencode && cat > "$t/opencode.json" <<'JSON'
+{"model": "ollama/qwen3:30b",
+ "providers": {"ollama": {"package": "@opencode/ai/providers/openai-compatible", "settings": {"baseURL": "http://127.0.0.1:11434/v1"},
+   "models": {"qwen3:30b": {"modelID": "qwen3:30b", "capabilities": {"tools": true}, "limit": {"context": 32768, "output": 8192}}}}},
+ "permissions": [{"action": "edit", "resource": "*.pdf", "effect": "deny"}, {"action": "edit", "resource": "build/**", "effect": "deny"}]}
+JSON
+  fi
+  return 0
 }
 
 self_test() {
@@ -250,7 +353,7 @@ self_test() {
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   A_DOC_TYPE=theology; A_PROPOSAL=true; A_REFS=true; A_SENSITIVE=false; A_WB=false; A_CONLANG=false
-  A_DRIVE=false; A_SEED=true
+  A_DRIVE=false; A_SEED=true; A_CLIENTS="codex gemini-cli antigravity opencode"
   TREE="$tmp/gen"; EXPECT=""
   build_tree "$TREE"
   st_baseline "a theology tree built from the catalogue"
@@ -299,7 +402,21 @@ self_test() {
   probe "check 10 fires when the recorded answers differ from DESIGN.md's" "check 10 — the render recorded INCLUDE_REFERENCES=true"
   EXPECT=""
 
+  rm "$TREE/.agents"; ln -s ../.claude "$TREE/.agents"
+  probe "check 6 fires when .agents links anywhere but .claude" "check 6 — .agents links to ../.claude"
+  rm "$TREE/.agents"; ln -s .claude "$TREE/.agents"
+
+  printf '{"mcpServers": {}, "model": {"name": "gemini-x"}}\n' > "$TREE/.gemini/settings.json"
+  probe "check 12 fires when Gemini CLI's model is not the answer" "check 12 — .gemini/settings.json sets model.name 'gemini-x'"
+  printf '{"mcpServers": {}}\n' > "$TREE/.gemini/settings.json"
+
+  sed -i 's#ollama/qwen3:30b#vllm/qwen3:30b#' "$TREE/opencode.json"
+  probe "check 12 fires when opencode.json names another model" "check 12 — opencode.json sets model 'vllm/qwen3:30b'"
+  sed -i 's#vllm/qwen3:30b#ollama/qwen3:30b#' "$TREE/opencode.json"
+
   # A business tree with two of the six families chosen: the family gates in both directions.
+  # Claude Code only: no other client's file may ship.
+  A_CLIENTS=""
   A_DOC_TYPE=business; A_PROPOSAL=false; A_REFS=false; A_FAMILIES="business legal"
   TREE="$tmp/biz"
   build_tree "$TREE"
@@ -308,6 +425,10 @@ self_test() {
   mv "$TREE/.claude/skills/legal-documents" "$tmp/held"
   probe "check 2 fires when a chosen family's skill is missing" "check 2 — skill legal-documents"
   mv "$tmp/held" "$TREE/.claude/skills/legal-documents"
+
+  printf '# x\n' > "$TREE/AGENTS.md"
+  probe "check 6 fires when an entrypoint ships with no client chosen" "check 6 — AGENTS.md leaked"
+  rm -f "$TREE/AGENTS.md"
 
   mkdir -p "$TREE/.claude/skills/msp-scp-documents"
   probe "check 3 fires when an unchosen family's skill ships" "check 3 — skill msp-scp-documents leaked"

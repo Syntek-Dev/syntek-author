@@ -25,6 +25,7 @@ How many questions it asks depends on your answers: the fiction kits only appear
 - [Updating a project](#updating-a-project)
 - [Adopting an existing repository](#adopting-an-existing-repository)
 - [Applying a second template](#applying-a-second-template)
+- [Codex, Gemini CLI, Antigravity and OpenCode](#codex-gemini-cli-antigravity-and-opencode)
 - [Pronunciation audio for constructed languages](#pronunciation-audio-for-constructed-languages)
 - [Running the audits](#running-the-audits)
 - [Working on the template](#working-on-the-template)
@@ -148,6 +149,13 @@ When generation finishes, open the project in Claude Code. The generated `README
 | `INCLUDE_SENSITIVE_CONTENT` | books | off | See the options table. |
 | `SEED_EXAMPLES` | all | on | Ships one worked example, once. Adoption answers `false`. |
 | `MODEL_MECHANICAL` | all | `opus` for business, otherwise `sonnet` | The model for renames, ticks and builds. Substantive writing always uses Opus; Haiku is never used. |
+| `AGENT_CLIENTS` | all | all four | Which coding agents besides Claude Code the project is set up for (a multiple choice): `codex`, `gemini-cli`, `antigravity`, `opencode` (OpenCode 2 or later: `opencode.json` uses its format). Claude Code always ships. Tick none for a Claude-only project: `--data 'AGENT_CLIENTS=[]'`. See [Codex, Gemini CLI, Antigravity and OpenCode](#codex-gemini-cli-antigravity-and-opencode). |
+| `CODEX_MODEL` | with Codex | blank | Codex's model for substantive work, written to `.codex/config.toml`. Blank keeps Codex's own default. |
+| `GEMINI_MODEL` | with Gemini CLI | blank | Gemini CLI's model for substantive work, written to `.gemini/settings.json`. Blank keeps its default. |
+| `OPENCODE_PROVIDER` | with OpenCode | `llama-cpp` | Where OpenCode's model runs: `llama-cpp` (llama-server or llama-swap), `ollama`, `vllm`, `lmstudio`, `openai-compatible` (any other server) or `hosted` (OpenCode's own sign-in; no provider written). |
+| `OPENCODE_BASE_URL` | with OpenCode and a local server | the provider's usual port: `:8080/v1`, `:11434/v1`, `:8000/v1`, `:1234/v1` on `127.0.0.1` | The server's OpenAI-compatible address, ending `/v1`. Required for `openai-compatible`. |
+| `OPENCODE_MODEL` | with OpenCode | `qwen3.6-35b-a3b` for llama.cpp, otherwise none | The model's ID as the server lists it at `/v1/models` (Ollama: for example `qwen3:30b`). Hosted: `provider/model`, or blank. |
+| `OPENCODE_CONTEXT` | with OpenCode and a local server | `262144` for llama.cpp, otherwise `32768` | The context the server actually loads, in tokens. Never more than the server's setting: Ollama loads 4096 unless started with `OLLAMA_CONTEXT_LENGTH` (or a model's `num_ctx`) at least this large. |
 | `TIMEZONE` | all | Europe/London | An IANA timezone name. |
 | `DATE` | all | — | The baseline date in every metadata header, DD/MM/YYYY. Answered once and kept, so updates never churn your headers. |
 
@@ -179,7 +187,7 @@ Two build rules come with them. `make pdf FILE=… ISSUE=1` refuses to overwrite
 
 ## What `copier update` will and will not touch
 
-Every file in a generated project belongs to one of four classes. Knowing which is which is the whole of updating safely.
+Every file in a generated project belongs to one of five classes. Knowing which is which is the whole of updating safely.
 
 **1. Template files — updated, and merged with your edits.**
 The rules in `.claude/rules/syntek-author/`, the skills, the hook, every folder's `CONTEXT.md` and `CLAUDE.md` (apart from the seeded ones below), the reference guides in `docs/reference/`, the numbered workflows, the standards (apart from the seeds below), `tooling/` and the `Makefile`.
@@ -198,6 +206,9 @@ The example chapter or proposal, its brief, and the example language. They arriv
 **4. Your folders — the template ships only the signposts.**
 `docs/project/`, `workflows/local/`, the unit briefs in `planning/src/units/`, maps and reviews, every folder of sources, evidence and notes in `research/src/`, every folder in `world/src/`, the voice samples and ledger in `standards/style/`, `handoffs/`, `learning/` and `assets/`.
 The template ships each folder's `CONTEXT.md` and `CLAUDE.md` and nothing else, so nothing you put there is ever touched. Where you add rows to the pair itself (`docs/project/`, `workflows/local/` and the map index), the pair is a seed (class 2), so an update never merges into your rows.
+
+**5. Copy-only agent files — written once, and never again.**
+`AGENTS.md`, `GEMINI.md`, the `.agents` link, `.codex/`, `.gemini/`, `opencode.json` and `.claude/mcp_config.json`, for the clients `AGENT_CLIENTS` chose. A copy writes them where they are missing; an update never renders them, so your edits stand, a file you delete stays deleted, and a client you add later is set up by hand (below). Only the bridge they point to, `.claude/syntek-author-agents.md`, is a template file (class 1).
 
 Your prose is never a template file: drafts, promoted sections and ledger entries are yours in every class above.
 
@@ -327,7 +338,7 @@ syntek-author is built to share a repository with later templates (the first pla
 
 1. Each template records its answers in its own file — this one's is `.copier-answers.syntek-author.yml`.
 2. Each template keeps its instructions in its own folder, `.claude/rules/<template>/`. No template updates `.claude/CLAUDE.md`, which stays yours.
-3. The shared root files (`README.md`, `CONTEXT.md`, `.claude/CLAUDE.md`, `.claude/CONTEXT.md`, `.claude/MEMORY.md`, `.claude/settings.json`, `.mcp.json`, `.gitignore`, and the skills and hooks signposts) are seeds in every template: the first one writes them, and no template ever updates them. Each template's own ignore rules live in nested `.gitignore` files inside its own folders.
+3. The shared root files (`README.md`, `CONTEXT.md`, `.claude/CLAUDE.md`, `.claude/CONTEXT.md`, `.claude/MEMORY.md`, `.claude/settings.json`, `.mcp.json`, `.gitignore`, and the skills and hooks signposts) are seeds in every template: the first one writes them, and no template ever updates them. The agent entrypoints and client settings (`AGENTS.md`, `GEMINI.md`, `.agents`, `.codex/`, `.gemini/`, `opencode.json`, `.claude/mcp_config.json`) are copy-only in both templates, and each template ships its own bridge, `.claude/<template>-agents.md`; syntek-author's entrypoints read every bridge present. Each template's own ignore rules live in nested `.gitignore` files inside its own folders.
 4. Skill and layer names never collide. The shared writing skills ship only from syntek-author.
 5. Large binaries never sit in plain Git: generated audio and builds are ignored.
 
@@ -341,6 +352,27 @@ git add -A && git commit -m 'Update from syntek-author'
 uvx copier update --trust -a .copier-answers.syntek-media.yml
 git add -A && git commit -m 'Update from syntek-media'
 ```
+
+---
+
+## Codex, Gemini CLI, Antigravity and OpenCode
+
+Claude Code always ships, and `.claude/` is the one tree every client reads: the rules, skills, memory and folder manuals are written once. `AGENT_CLIENTS` adds the other clients (DESIGN.md D47):
+
+| Client | Entrypoint | Settings | Skills |
+|---|---|---|---|
+| Codex | `AGENTS.md` | `.codex/config.toml`: reads `CLAUDE.md` where a folder has no `AGENTS.md`; `model` if `CODEX_MODEL` was set; loads once you trust the project | `.agents/skills` |
+| Gemini CLI | `GEMINI.md` | `.gemini/settings.json`: `model.name` if `GEMINI_MODEL` was set, and MCP servers | `.agents/skills` |
+| Antigravity | `GEMINI.md` | `.claude/mcp_config.json` (seen as `.agents/mcp_config.json`); model chosen in the app | `.agents/skills` |
+| OpenCode | `AGENTS.md` | `opencode.json`: the model, one local provider, edit denies for PDFs, `build/` and the typesetting bases | `.claude/skills`, `.agents/skills` |
+
+Each entrypoint sends the client to `.claude/syntek-author-agents.md`, which gives the read order no other client loads by itself (Claude's `@` imports and `.claude/rules/` are Claude Code features, and OpenCode reads no `CLAUDE.md` at all), the model tiers, and what Claude Code enforces that the others must follow by hand: hand off rather than compact, the settings file's denies, and the author's approval. `.agents` is a relative link to `.claude`, so every client sees one copy of each skill. No file carries a key, a trust level or a permission bypass, and no MCP server ships.
+
+**Local models.** OpenCode is the client for them. `opencode.json` writes one OpenAI-compatible provider from `OPENCODE_PROVIDER`, `OPENCODE_BASE_URL`, `OPENCODE_MODEL` and `OPENCODE_CONTEXT`: llama.cpp's `llama-server` or `llama-swap`, Ollama, vLLM, LM Studio, or any other OpenAI-compatible server. Start the server first, keep `OPENCODE_CONTEXT` no larger than the context it loads, and test tool calling on a scratch repository before trusting a local model with a draft. Codex accepts a local model only in your user-level settings, never in a project's.
+
+**Copy-only.** These files are written once (class 5 above): an update never adds, changes or recreates them (`copier recopy` is a fresh copy and does write a missing one), and a changed answer reaches the model table in `.claude/rules/syntek-author/05-model-allocation.md`, not the client's file. **Updating to this release:** the update asks `AGENT_CLIENTS` with all four ticked. Answer the clients you will use, or `--data 'AGENT_CLIENTS=[]'` for none: the answer brings the bridge and the model table, never the client files. To add a client's files, follow 'Enabling a client in an existing project' in the project's `.claude/syntek-author-agents.md`: generate a fresh project from its answers into a temporary folder and copy only the missing files.
+
+**A real `.agents` directory.** Copier cannot write a link over a directory and fails before its skip check, so copying into a repository that already has one needs `--exclude /.agents`; `adopt/adopt.sh` adds it for you. Never rename or remove the directory to make room: integrate its skills by hand.
 
 ---
 

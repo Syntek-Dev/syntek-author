@@ -310,7 +310,7 @@ modes_list() { # TFB → THEOLOGY.md FICTION.md BUSINESS.md
 
 # Gated and required paths (DESIGN.md Sections 3.2, 3.5, 4). {L} is the content layer.
 # Layer roots manuscript/ and library/ are checked on their own (content layer xor), so they are
-# not rows here. kind: d = directory, f = file.
+# not rows here. kind: d = directory, f = file, l = a link whose target is exactly .claude.
 SA_PATHS=$(cat <<'EOF'
 always             f  .copier-answers.syntek-author.yml
 always             f  README.md
@@ -328,6 +328,18 @@ always             f  .claude/hooks/pre-compact-handoff.sh
 always             f  .claude/skills/CONTEXT.md
 always             f  .claude/skills/CLAUDE.md
 always             f  .claude/rules/syntek-author/01-layout-and-routing.md
+agents             l  .agents
+agents             f  .claude/syntek-author-agents.md
+agents-md          f  AGENTS.md
+gemini-md          f  GEMINI.md
+cl-codex           f  .codex/config.toml
+cl-codex           f  .codex/CONTEXT.md
+cl-codex           f  .codex/CLAUDE.md
+cl-gemini-cli      f  .gemini/settings.json
+cl-gemini-cli      f  .gemini/CONTEXT.md
+cl-gemini-cli      f  .gemini/CLAUDE.md
+cl-antigravity     f  .claude/mcp_config.json
+cl-opencode        f  opencode.json
 always             f  .claude/rules/syntek-author/02-skills.md
 always             f  .claude/rules/syntek-author/03-authorship.md
 always             f  .claude/rules/syntek-author/04-build-pipeline.md
@@ -603,6 +615,12 @@ SA_SEEDS=".claude/rules/syntek-author/00-project.md tooling/project.mk README.md
 SA_EXAMPLES="manuscript/src/01-example-chapter planning/src/units/01-example-chapter.md planning/src/arguments/01-example-chapter.md library/src/business/drafts/example-proposal planning/src/units/example-proposal.md standards/style/ledger/01-example-chapter--the-turn.md standards/style/ledger/01-example-chapter--opening.md standards/style/ledger/example-proposal--scope.md world/src/languages/example-proto world/src/languages/example-tongue research/src/setting/example-model-classical-latin.md research/src/setting/example-model-old-spanish.md research/src/setting/example-model-ogham.md world/src/peoples/example-people.md world/src/cultures/example-culture.md"
 SA_EXAMPLE_GATE="_copier_operation == 'update' or not SEED_EXAMPLES"
 
+# Copy-only shared paths (DESIGN.md Section 3.6, D47): the other coding agents' entrypoints, the
+# .agents link and their settings. Written by a copy, never by an update: each needs an anchored
+# _skip_if_exists line AND an _exclude line gated on the update.
+SA_COPY_ONLY="AGENTS.md GEMINI.md .agents .codex/config.toml .codex/CONTEXT.md .codex/CLAUDE.md .gemini/settings.json .gemini/CONTEXT.md .gemini/CLAUDE.md .claude/mcp_config.json opencode.json"
+SA_COPY_ONLY_GATE="_copier_operation == 'update'"
+
 # The root spine (DESIGN.md Section 2, Token discipline), plus the answers file, which differs
 # between every pair of renders by construction.
 SA_ROOT_SPINE=".claude/CLAUDE.md CONTEXT.md README.md Makefile tooling/defaults.yaml .claude/settings.json .copier-answers.syntek-author.yml"
@@ -725,7 +743,7 @@ is_allowed_gate() {
 # ── A rendered tree's answers, and the gate evaluator ────────────────────────
 
 A_DOC_TYPE=""; A_PROPOSAL=false; A_REFS=false; A_SENSITIVE=false; A_WB=false
-A_CONLANG=false; A_DRIVE=false; A_SEED=true; A_FAMILIES=""
+A_CONLANG=false; A_DRIVE=false; A_SEED=true; A_FAMILIES=""; A_CLIENTS=""
 
 answer_value() { # $1 = key, $2 = answers file → raw value, unquoted
   awk -v key="$1" '
@@ -766,10 +784,15 @@ load_answers() { # $1 = answers file. Returns 1 if absent or carries no DOC_TYPE
     A_FAMILIES="${A_FAMILIES% }"
     [[ -n "$A_FAMILIES" ]] || A_FAMILIES="$SA_FAMILIES_DEFAULT"
   fi
+  # No AGENT_CLIENTS key (a project generated before D47) or an empty list: Claude Code only.
+  A_CLIENTS="$(answer_list AGENT_CLIENTS "$f" | tr '\n' ' ')"
+  A_CLIENTS="${A_CLIENTS% }"
   return 0
 }
 
 content_layer() { [[ "$A_DOC_TYPE" == business ]] && echo library || echo manuscript; }
+
+has_client() { [[ " $A_CLIENTS " == *" $1 "* ]]; }
 
 gate_true() { # $1 = gate in the catalogue vocabulary
   local atom IFS='&'
@@ -786,6 +809,11 @@ gate_true() { # $1 = gate in the catalogue vocabulary
       drive)     [[ "$A_DOC_TYPE" == business && "$A_DRIVE" == true ]] || return 1 ;;
       fam-*)     [[ "$A_DOC_TYPE" == business && " $A_FAMILIES " == *" ${atom#fam-} "* ]] || return 1 ;;
       seed)      [[ "$A_SEED" == true ]] || return 1 ;;
+      # The other coding agents (DESIGN.md D47, Section 3.5): AGENT_CLIENTS, which every variant asks.
+      agents)    [[ -n "${A_CLIENTS// /}" ]] || return 1 ;;
+      agents-md) has_client codex || has_client opencode || return 1 ;;
+      gemini-md) has_client gemini-cli || has_client antigravity || return 1 ;;
+      cl-*)      has_client "${atom#cl-}" || return 1 ;;
       *) return 1 ;;
     esac
   done
@@ -917,6 +945,13 @@ _exclude:
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/arguments/01-example-chapter.md<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/library/src/business/drafts/example-proposal<: endif :>"
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/example-proposal.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/AGENTS.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/GEMINI.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.codex/config.toml<: endif :>"
+  - "<: if _copier_operation == 'update' :>/opencode.json<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.codex<: endif :>"
+_preserve_symlinks: true
 _skip_if_exists:
   - /README.md
   - /CONTEXT.md
@@ -933,6 +968,11 @@ _skip_if_exists:
   - /standards/style/style-sheet.md
   - /standards/style/voice-notes.md
   - /standards/style/terminology.md
+  - /AGENTS.md
+  - /GEMINI.md
+  - /.agents
+  - /.codex/config.toml
+  - /opencode.json
 PROJECT_NAME:
   type: str
 PROJECT_DESCRIPTION:
@@ -948,6 +988,9 @@ DOC_TYPE:
 SEED_EXAMPLES:
   type: bool
   default: true
+OPENCODE_MODEL:
+  type: str
+  default: fixture-model
 EOF
   cd "$t/template" || return 1
   mkdir -p .claude/skills/run-workflow .claude/skills/grilling .claude/hooks .claude/rules/syntek-author standards/style \
@@ -981,6 +1024,16 @@ EOF
   printf '# Example proposal brief\n' > planning/src/units/example-proposal.md
   printf '# Example argument map\n' > planning/src/arguments/01-example-chapter.md
   printf 'help:\n\t@echo help\n' > Makefile
+  # The other coding agents (D47): copy-only entrypoints and settings, the link, the bridge
+  # (template-owned) and a rule that renders a client's model answer.
+  mkdir -p .codex
+  printf '# AGENTS.md — <%%PROJECT_NAME%%>\n\nRead .claude/syntek-author-agents.md.\n' > AGENTS.md
+  printf '# GEMINI.md — <%%PROJECT_NAME%%>\n\nRead .claude/syntek-author-agents.md.\n' > GEMINI.md
+  printf "project_doc_fallback_filenames = ['CLAUDE.md']\n" > .codex/config.toml
+  printf '{"model": "local/<%%OPENCODE_MODEL%%>"}\n' > opencode.json
+  ln -s .claude .agents
+  printf '# Shared instructions for coding agents\n\nTemplate-owned.\n' > .claude/syntek-author-agents.md
+  printf '# 05 — model allocation\n\n| OpenCode | `<%%OPENCODE_MODEL%%>` |\n' > .claude/rules/syntek-author/05-model-allocation.md
   cd - >/dev/null || return 1
   sa_git "$t" init -q && sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture template'
 }
