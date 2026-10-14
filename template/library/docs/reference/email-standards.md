@@ -53,6 +53,9 @@ formal notice served under a contract is an instrument and is filed with the ins
 - First person as `00-project.md ## Brief` sets it; the trading name is a label, never an actor.
 - No em dashes in anything client-facing; en dashes only in ranges.
 - The register is set by the reader: peer to peer with a specialist, plainly with a lay reader.
+- Technical text (set-up steps, a fix, how a system works) follows Simplified Technical English
+  (`library/docs/reference/simplified-technical-english.md`) where it fits. The greeting and the
+  relationship text keep the voice, and STE never makes an email longer.
 - An email never creates an obligation the instruments do not carry, never cites a clause number,
   never invents an entity detail (`[AWAITING USER INPUT]`, flagged in the internal note) and never
   names another client. It carries the correspondence disclaimer only where the disclaimers file

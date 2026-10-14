@@ -17,7 +17,9 @@ the house shape, the register, and the commitments that never enter the diff.
   where those live; this file names the template defaults.
 - **Registers:** formal for an instrument or a policy; the brand voice (by default
   `standards/brand/brand-voice.md`) for running copy such as proposals, letters, emails and social
-  media posts; terse and action-first for microcopy.
+  media posts; terse and action-first for microcopy; ASD-STE100 Simplified Technical English for
+  technical text such as procedures, walkthroughs and technical descriptions
+  (`library/docs/reference/simplified-technical-english.md`, method rule 11).
 - **Guides:** `library/docs/reference/section-anatomy.md` and
   `library/docs/reference/document-anatomy.md`. **Method:** `standards/method/BUSINESS.md`.
 
@@ -32,7 +34,9 @@ the house shape, the register, and the commitments that never enter the diff.
   any reordering.
 - **Step 5 — also run a register pass.** Check the register against the document's kind, and the
   voice person in `00-project.md` `## Brief` ('I' or 'we') throughout. Propose only where the text
-  leaves its register. No em dash in client copy; no filler intensifier.
+  leaves its register. No em dash in client copy; no filler intensifier. In technical text, the
+  pass also covers STE: propose a rewrite only where it is clearer and no longer. An STE rewrite
+  that would change a modal, a figure or a defined term is a question (step 7), not a proposal.
 - **Step 7 — also keep out of the lane:** a price, a scope boundary, a defined term, a service
   level, a deadline, 'shall', 'may' or 'must', and a disclaimer's wording. Each concern about
   these is a question; `obligation-check` and `clause-consistency` own them at review.

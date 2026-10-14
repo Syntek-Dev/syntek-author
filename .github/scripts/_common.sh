@@ -361,6 +361,7 @@ fiction            f  manuscript/docs/reference/scene-craft.md
 business           f  library/docs/reference/document-anatomy.md
 business           f  library/docs/reference/latex-deliverables.md
 business           f  library/docs/reference/versioning-and-the-register.md
+business           f  library/docs/reference/simplified-technical-english.md
 business           d  library/src/business
 business           d  library/src/business/templates
 business           d  library/src/business/client-docs
@@ -825,6 +826,18 @@ copier_init() {
     die "neither uvx nor copier is on PATH — nothing can render (install uv, or set COPIER_CMD)"
   fi
 }
+
+# The same housekeeping stays off for every git the audits start indirectly, Copier's own
+# included: an update commits in a temporary copy, a background gc started there can still be
+# writing when Copier deletes it, and the update fails ('OSError: Directory not empty' on
+# copier._main.new_copy.*). Git reads GIT_CONFIG_COUNT pairs from the environment; appended once.
+if [[ -z "${SA_GIT_HOUSEKEEPING_OFF:-}" ]]; then
+  _sa_n="${GIT_CONFIG_COUNT:-0}"
+  export "GIT_CONFIG_KEY_${_sa_n}=gc.auto" "GIT_CONFIG_VALUE_${_sa_n}=0"
+  export "GIT_CONFIG_KEY_$((_sa_n + 1))=maintenance.auto" "GIT_CONFIG_VALUE_$((_sa_n + 1))=false"
+  export GIT_CONFIG_COUNT=$((_sa_n + 2)) SA_GIT_HOUSEKEEPING_OFF=1
+  unset _sa_n
+fi
 
 sa_git() { # $1 = dir, then git arguments — with an identity, so CI needs no global config
   # Automatic housekeeping stays off: a commit can start a background gc or maintenance run that

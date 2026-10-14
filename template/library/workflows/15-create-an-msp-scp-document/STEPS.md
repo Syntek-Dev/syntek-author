@@ -69,7 +69,8 @@ For each planned section, in order: `library/workflows/01-draft-a-section/` (or 
 `library/src/msp-scp/templates/` adapted through `library/workflows/02-adapt-a-draft/`); then, on
 the author's word, `library/workflows/04-promote-a-section/`, into a `.tex` from the house skeleton
 (`00-project.md ## Paths`). Every rule is a must or shall statement; every alignment note names a
-control verified against the framework's current edition. _Substantive._
+control verified against the framework's current edition. A procedure (a runbook's steps, a
+change or recovery procedure) is in Simplified Technical English (method rule 11). _Substantive._
 
 ## 7. Policy route: review, approve, schedule
 

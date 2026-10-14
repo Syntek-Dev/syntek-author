@@ -47,13 +47,15 @@ meet anyone; a document in a stranger's voice tells them the business does not k
 
 ---
 
-## 2. Two registers
+## 2. Registers
 
 **Requirement.** **Running copy** (proposals, letters, articles, the body of an email) uses full
 sentences, has room to explain and never room to pad. **Microcopy** (subject lines, labels,
 buttons, short notices) is terse and action-first, with no exclamation marks. Legal instruments
 and policies keep a formal register; the brand voice reaches into them only as far as the entry
-here records, and until there is one, not at all.
+here records, and until there is one, not at all. **Technical text** (steps, set-up, SOPs,
+walkthroughs, technical schedules) is in Simplified Technical English where it fits, and never
+longer for it (`standards/method/BUSINESS.md` rule 11).
 
 <!-- AUTHOR TO CONFIRM: how far the brand voice reaches into contracts and policies (for example 'plain English in recitals and schedules; formal drafting in operative clauses'). -->
 

@@ -33,6 +33,7 @@ model: opus
 - [ ] Brief planned through `planning/workflows/01-plan-a-unit/` to the policy structure; V1 dated. · _opus_
 - [ ] Each rule area run through the loop and promoted on the author's word. · _opus_
 - [ ] Every rule auditable; every framework and legal reference verified or flagged `VERIFY`. · _opus_
+- [ ] Procedures and steps in Simplified Technical English; rules keep 'must' and 'shall'. · _opus_
 - [ ] `library/workflows/05-review-a-document/` run in full; classification (in the running header too), review-date notice and version history present. · _opus_
 - [ ] Approval recorded through `planning/workflows/07-record-an-approval/` before Active; review-schedule row written. · _sonnet_
 

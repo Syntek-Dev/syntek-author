@@ -7,11 +7,30 @@ All notable changes to syntek-author are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite it by decision (D1–D45) or section.
+Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite it by decision (D1–D46) or section.
 
 ---
 
 ## [Unreleased]
+
+Technical text in a business project is now written in ASD-STE100 Simplified Technical English where it fits, so steps and technical explanations stay short and clear for clients and staff (D46). Books are not affected.
+
+### Added
+
+- **`library/docs/reference/simplified-technical-english.md`** (business). A guide to the STE rules that do the most work, in the template's own words (Issue 9): one instruction per sentence, in the imperative; the condition first; at most 20 words in a procedural sentence and 25 in a descriptive one; one word for one meaning; technical names allowed and recorded in `terminology.md`. It sets out what counts as technical text (procedures, set-up steps, SOPs, walkthroughs, runbooks, a client guide's steps, technical descriptions and schedules, the instructions in a financial document, the technical part of an email) and what keeps its own register. The STE dictionary is ASD's copyright and is never reproduced; the guide points to the free official copy.
+- **Method rule 11, 'Technical text in Simplified Technical English'** (`standards/method/BUSINESS.md`). An STE rewrite never makes the text longer, and it never reaches persuasive copy, an email's relationship text, operative clauses, policy rules or defined terms, or changes a modal or a figure.
+- **`make lint` reports list steps over 20 words** (business only, report-only, legal documents excluded): a hint for technical text, never a gate. `tooling-smoke.sh` check 38 proves it.
+
+### Changed
+
+- **`tone` reads technical text as a fourth register** beside running copy, microcopy and formal, at gate V6.1. The business, legal, email, MSP-SCP and accounting families, their standards and create workflows, the review workflow, `comprehension`, `obligation-check`, and the business modes of `draft-section`, `improve-section` and `adapt-section` point to the guide for their technical text. `obligation-check` treats an STE rewrite that changes a modal as a changed duty.
+- **The brand voice and voice-notes seeds name three registers** (new projects only; an existing project's seeds are never overwritten, and it gets the rule through method rule 11). `grammar`'s business mode now says 'the registers'.
+- **`04-build-pipeline.md` and `tone` step 4 name the new `make lint` report**; the `tooling-smoke.sh` rows in `README.md` and `.github/scripts/CONTEXT.md` name check 38.
+- **`legal-standards.md` reads 'must' as a condition**, as method rule 7 and `legal-documents` do; it said 'an absolute requirement'.
+
+### Fixed
+
+- **`copier update` in the audits no longer races git's housekeeping.** Copier commits in its own temporary copies, and a background gc started there could still be writing when Copier deleted the copy (`OSError: Directory not empty`, seen in `update-test.sh` on the business render). `_common.sh` now turns automatic gc and maintenance off for every git process the audits start, Copier's included, through git's `GIT_CONFIG_COUNT` environment, as `sa_git` already did for the audits' own repositories.
 
 ## [0.3.0] - 04/10/2026
 

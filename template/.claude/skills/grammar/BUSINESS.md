@@ -15,7 +15,7 @@ copy carries no em dash.
   family's required sections and conventions.
 - **The pass** is step 11 of `library/workflows/05-review-a-document/`, before `spelling`.
 - **Extra reads:** the brand voice, in the brand folder `00-project.md` `## Paths` names (by
-  default `standards/brand/brand-voice.md`: the two registers and the marks of running copy);
+  default `standards/brand/brand-voice.md`: the registers and the marks of running copy);
   `standards/method/BUSINESS.md` rules 2, 4 and 7; the house person ('I' or 'we'), the voice
   person in `00-project.md` `## Brief`, and `standards/style/voice-notes.md`.
 - **Where corrections go:** accepted corrections are applied in the `.tex` or Markdown file

@@ -35,6 +35,10 @@ decide, what it costs, what they must do, and what happens if something goes wro
   a summary holding everything needed to decide, every price included, then the contents); a
   missing map is a finding. The first paragraph says what the document is for and what the reader
   must decide or do.
+- **Step 5 — also, technical text:** in steps, set-up or a walkthrough, a sentence with two
+  instructions, a passive instruction or one word in two senses is friction; the remedy cites
+  `library/docs/reference/simplified-technical-english.md` (method rule 11). Persuasive copy and an
+  instrument's clauses are out of its scope.
 
 ## Domain rules
 

@@ -39,6 +39,7 @@ model: opus
 **Writing and review**
 
 - [ ] Each clause group run through the loop and promoted on the author's word; clauses cited by `\ref`. · _opus_
+- [ ] Technical schedules in Simplified Technical English where it fits; no clause, defined term or modal changed by it. · _opus_
 - [ ] `library/workflows/05-review-a-document/` run in full, with `clause-consistency` and `obligation-check`. · _opus_
 - [ ] **No statute, section number or requirement left unverified.** · _opus_
 - [ ] Disclaimer at the top, unchanged; Document Control complete; signature block present. · _opus_

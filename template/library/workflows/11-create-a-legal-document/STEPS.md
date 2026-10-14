@@ -82,7 +82,9 @@ For each planned section, in order: `library/workflows/01-draft-a-section/` (or 
 and `library/workflows/03-improve-your-draft/` follows); the author's notes through
 `library/workflows/02-adapt-a-draft/`; then, on the author's word,
 `library/workflows/04-promote-a-section/`. Clauses use the house `clause` list and cite each other
-by `\ref`, never by a typed number. _Substantive._
+by `\ref`, never by a typed number. A technical schedule (security measures, a service
+description) follows `library/docs/reference/simplified-technical-english.md`; clauses, defined
+terms and modals keep the formal register. _Substantive._
 
 ## 8. Review it to final
 

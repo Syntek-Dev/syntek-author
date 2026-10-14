@@ -62,7 +62,10 @@ instrument: reproduce the substance, never the clause number.
   an unfilled template field stays `[AWAITING USER INPUT]` and blocks `final`.
 - The register is set by the reader: an instrument or policy keeps the formal register, and brand
   voice does not soften it; proposals, letters, emails and social copy use the brand voice in the
-  brand folder `00-project.md ## Paths` names.
+  brand folder `00-project.md ## Paths` names. Technical text (steps, set-up, a system or service
+  described, a technical schedule) is in ASD-STE100
+  (`library/docs/reference/simplified-technical-english.md`), never longer than the text it
+  replaces; operative clauses, policy rules, defined terms and figures keep their wording.
 
 ## Who implements it
 

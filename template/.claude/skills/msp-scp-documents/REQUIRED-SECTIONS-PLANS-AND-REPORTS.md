@@ -11,6 +11,9 @@ agreement, and one part of the template a report is filled from. Every column na
 Response times, recovery targets, credits and periods come from the agreement or the client,
 never from this file; every legal duty is verified with `fact-check` before it is cited.
 
+Numbered steps (recovery runbooks, the incident phases, a register's instructions) are written in
+Simplified Technical English, as `SKILL.md` says.
+
 ## Incident response plan
 
 1. Purpose and scope
