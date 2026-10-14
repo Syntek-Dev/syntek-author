@@ -11,7 +11,10 @@
 #                   of each skill folder, each drafts/ and each typeset/src/units/.base/
 #                   (Pandoc bases, DESIGN.md Section 4.4), which carry only README.md. The
 #                   project root carries CONTEXT.md; its CLAUDE.md is .claude/CLAUDE.md. audio/
-#                   is generated and git-ignored, so it is exempt like build/.
+#                   is generated and git-ignored, so it is exempt like build/. The root .agents/
+#                   (DESIGN.md D47) is a client-discovery folder, the same in every template of
+#                   the family: it holds the skills link and Antigravity's mcp_config.json and
+#                   no pair, and the bridge and the root CONTEXT.md explain it.
 #
 #                   The same audit holds the shapes the routing depends on: a CLAUDE.md that
 #                   does not import its CONTEXT.md loads half a folder; a workflow without its
@@ -19,7 +22,7 @@
 #                   nowhere; a guide without its Governing standard section restates a rule it
 #                   should cite.
 #
-#                   Seventeen checks:
+#                   Eighteen checks:
 #                     1. A directory has no CONTEXT.md.
 #                     2. A directory has no CLAUDE.md (the root excepted).
 #                     3. A CLAUDE.md does not open with @./CONTEXT.md.
@@ -50,6 +53,9 @@
 #                    17. A STEPS.md, CHECKLIST.md, guide or standards file lacks the metadata
 #                        header (**Last Updated** … **Version** … **Maintained By** …, then
 #                        **Language**: British English (en_GB)).
+#                    18. The root .agents/ holds anything but `skills` and `mcp_config.json`: a
+#                        pair there, or any other file, is read by every client that scans it,
+#                        and breaks the folder's byte-for-byte match with syntek-media's.
 #
 #                   Numbers are stable identifiers. Append, never renumber.
 #
@@ -133,6 +139,7 @@ exempt_dir() { # tree-relative dir; true when it needs no pair
   case "/$1/" in
     */.git/*|*/build/*|*/audio/*|*/__pycache__/*|*/node_modules/*) return 0 ;;
     /.claude/rules/*) return 0 ;;
+    /.agents/*) return 0 ;;
     /.claude/skills/*/*) return 0 ;;
     */drafts/*) return 0 ;;
     */.base/*) return 0 ;;
@@ -275,6 +282,13 @@ run_checks() {
     if [[ -f "$TREE/$d/CONTEXT.md" || -f "$TREE/$d/CLAUDE.md" ]]; then finding "check 11 — $d/ carries a pair; a drafts/ folder carries README.md only"; fi
   done < <(cd "$TREE" && find . -name .git -prune -o -type d -name drafts -print | sort)
 
+  # ── 18. The root .agents/ holds the link and the MCP file only ──────────────
+  if [[ -d "$TREE/.agents" && ! -L "$TREE/.agents" ]]; then
+    while IFS= read -r f; do
+      case "$f" in skills|mcp_config.json) ;; *) finding "check 18 — .agents/$f does not belong in .agents/, which holds only skills and mcp_config.json (no pair)" ;; esac
+    done < <(cd "$TREE/.agents" && find . -mindepth 1 -maxdepth 1 -printf '%f\n' | LC_ALL=C sort)
+  fi
+
   # ── 16–17. Guides and standards ─────────────────────────────────────────────
   while IFS= read -r -d '' f; do
     f="${f#./}"
@@ -321,6 +335,7 @@ write_fixture() { # $1 = tree
   mkdir -p "$t/manuscript/src/01-the-ford/drafts"
   printf '# Work in progress\n' > "$t/manuscript/src/01-the-ford/drafts/README.md"
   printf '# The ford\n' > "$t/manuscript/src/01-the-ford/01-the-ford.md"
+  mkdir -p "$t/.agents"; ln -s ../.claude/skills "$t/.agents/skills"; printf '{\n  "mcpServers": {}\n}\n' > "$t/.agents/mcp_config.json"
   printf '# method.md — how arguments are built\n\n%s\n\n## 1. A rule\n' "$HEADER" > "$t/standards/method/method.md"
   for f in STEPS CHECKLIST; do
     printf -- '---\nworkflow: 01-draft-a-section\nphase: produce\nskills: [draft-section]\nmodel: opus\n---\n\n# %s.md — draft a section\n\n%s\n\n' "$f" "$HEADER" > "$t/$wf/$f.md"
@@ -372,6 +387,8 @@ self_test() {
   sed -i 's/^## Who implements it/## Who does it/' "$t/$g";   probe "check 16 fires on a guide missing a section" "check 16"; cp "$tmp/h" "$t/$g"
   sed -i '/^Line [0-9]* of the topic\./d' "$t/$g";            probe "check 16 fires on a guide that is too short" "check 16 — $g is"; cp "$tmp/h" "$t/$g"
   sed -i '/^\*\*Language\*\*/d' "$t/standards/method/method.md"; probe "check 17 fires on a standard with no header" "check 17"
+  printf '%s\n' "$HEADER" >> "$t/standards/method/method.md"
+  printf '# x\n' > "$t/.agents/CONTEXT.md";                     probe "check 18 fires on a pair file in .agents/" "check 18 — .agents/CONTEXT.md"; rm -f "$t/.agents/CONTEXT.md"
   st_finish "a paired, well-shaped tree from a broken one"
 }
 

@@ -1,6 +1,11 @@
 {
-<: if GEMINI_MODEL :>  "model": {
-    "name": "<%GEMINI_MODEL%>"
+<: if 'gemini-cli' in AGENT_CLIENTS and GEMINI_MODEL :>  "model": {
+    "name": <% GEMINI_MODEL | tojson %>
   },
-<: endif :>  "mcpServers": {}
+<: endif :>  "tools": {
+    "exclude": [
+      "ask_user"
+    ]
+  },
+  "mcpServers": {}
 }

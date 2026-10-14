@@ -7,7 +7,8 @@ folder's `CONTEXT.md` (imported above) → this file, before changing `config.to
 
 ## Purpose (one line)
 
-Keep the product's skills and manuals out of Codex sessions that develop the template.
+Keep the user-config snippet that disables the product's skills in Codex complete; the guard
+itself is starting every session at the repository root.
 
 ## How to work here
 
@@ -18,7 +19,8 @@ Keep the product's skills and manuals out of Codex sessions that develop the tem
 - **Concrete steps:** add `[[skills.config]]` with `path = '../template/.claude/skills/<name>/SKILL.md'`
   and `enabled = false`, keeping the entries sorted → run
   `bash .github/scripts/dev-isolation.sh`.
-- **Definition of done:** `dev-isolation.sh` passes, and the file parses as TOML.
+- **Definition of done:** `dev-isolation.sh` passes, and the file parses as TOML. Codex ignores
+  this list in a project file: never describe it as isolating a session.
 
 ## Guardrails
 

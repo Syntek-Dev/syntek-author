@@ -19,7 +19,7 @@ are gated on `INCLUDE_DRIVE_SYNC`, and ship.
 
 ## What's here
 
-- `scripts/` — sixteen audits and tests in the syntek-base house shape (a header saying why the
+- `scripts/` — seventeen audits and tests in the syntek-base house shape (a header saying why the
   check exists, numbered checks, what it cannot check, a `--self-test`, exit codes 0/1/2),
   `run-all.sh` to run them all against one set of renders, and `_common.sh`, the one reader of
   `copier.yml` and the one transcription of `DESIGN.md`'s catalogue. **A change to `DESIGN.md`

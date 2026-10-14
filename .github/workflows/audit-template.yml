@@ -51,13 +51,14 @@ jobs:
           python-version: "3.12"
 
       # Tokens, the generated mode-file block, pairs and routed shapes, the line cap, personal
-      # data, development isolation, seeds and skills — every one reads template/ or the
-      # repository root, and none renders anything.
+      # data, development isolation, seeds, skills and the family-shared set (D48) — every one
+      # reads template/ or the repository root, and none renders anything. dev-isolation's
+      # Codex probe is skipped here, by name: the runner has no codex.
       - name: Prove each detector, then run it on the template source
         run: |
           status=0
           for s in check-template-tokens gen-mode-excludes docs-pairing line-cap scrub \
-                   dev-isolation shipped-seeds skill-conformance; do
+                   dev-isolation shipped-seeds skill-conformance family-shared; do
             echo "::group::$s"
             bash ".github/scripts/$s.sh" --self-test \
               || { echo "::error::$s — the self-test no longer separates good input from bad"; status=1; }
@@ -108,8 +109,11 @@ jobs:
       - name: Prove the renderer
         run: bash .github/scripts/generate-all.sh --self-test
 
-      # Every DOC_TYPE × profile: defaults, all options on, all options off, adoption, and the
-      # fiction kit opened explicitly. The negative paths are the ones that rot silently.
+      # Every DOC_TYPE × profile: defaults, all options on, all options off, adoption, the
+      # fiction kit opened explicitly, and the other coding agents (Claude only, one render per
+      # OpenCode provider, and Trap 2's hidden answers by --data and by a settings file). The
+      # negative paths are the ones that rot silently. generate-all also proves the agent
+      # validators with Copier's own Jinja (through uvx).
       - name: Render every variant and profile
         run: |
           status=0
@@ -119,6 +123,8 @@ jobs:
           [ -s "$RUNNER_TEMP/trees.txt" ] || { echo "::error::generate-all — nothing rendered at all"; exit 1; }
           exit $status
 
+      # shipped-variants runs the permissions script's --check in every render (python 3.12
+      # here); its opencode and codex probes are skipped, by name, as neither is installed.
       - name: Prove each detector, then run it on every render
         if: always()
         run: |

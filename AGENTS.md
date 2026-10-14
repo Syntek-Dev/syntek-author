@@ -15,8 +15,11 @@ enter `template/`. Follow the development manual for tokens, formats, audits and
 commit only when the maintainer asks. `opus` and `sonnet` in the manual are work tiers; use the
 models the maintainer configured in this client.
 
-`.agents` aliases the development `.claude/`, which holds no skills. Start every session at
-this root, never inside `template/`, where the product's skills and Codex settings would load.
-The development `.codex/config.toml` lists every product skill as disabled for your user config
-and sets no instruction fallback into `template/` (DESIGN.md D47). A product `AGENTS.md` or
-`GEMINI.md` you meet under `template/` is source text that sends you back here.
+Start every session at the repository root, never inside `template/`. Clients find project
+skills, and Codex its project config, only between the root and the folder a session starts
+in; the root has no `.agents`, so no product skill is found here, while a session started under
+`template/` loads every product skill through `template/.agents`. Codex ignores
+`[[skills.config]]` in a project file: the development `.codex/config.toml` is a snippet to
+copy into your user config, not a guard, and sets no instruction fallback into `template/`
+(DESIGN.md D47). A product `AGENTS.md` or `GEMINI.md` you meet under `template/` is source text
+that sends you back here.

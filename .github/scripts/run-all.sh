@@ -2,11 +2,12 @@
 #
 # run-all.sh — Run every audit and test in DESIGN.md Section 7, rendering the template once.
 #
-#              Seventeen scripts, three kinds of input: the template source (tokens, mode
-#              excludes, pairs, line cap, scrub, isolation, seeds, skills), the renders (shipped
-#              variants, byte identity, references, pairs, seeds, skills, tooling), and their own
-#              scratch projects (update, adoption, coexistence). Rendering is the expensive part,
-#              so it happens once, and every per-tree audit reads the same thirteen renders.
+#              Eighteen scripts, three kinds of input: the template source (tokens, mode
+#              excludes, pairs, line cap, scrub, isolation, seeds, skills, the family-shared
+#              set), the renders (shipped variants, byte identity, references, pairs, seeds,
+#              skills, tooling), and their own scratch projects (update, adoption, coexistence).
+#              Rendering is the expensive part, so it happens once, and every per-tree audit
+#              reads the same twenty-two renders.
 #
 #              Discipline, from SB: every script's --self-test runs FIRST, because a detector
 #              nobody has seen fail is a detector nobody knows works (rule 38); failures
@@ -21,7 +22,7 @@
 #
 #              Numbers are stable identifiers. Append, never renumber.
 #
-#              What it CANNOT check: anything the seventeen cannot. It adds no check of its own
+#              What it CANNOT check: anything the eighteen cannot. It adds no check of its own
 #              to the template; it only refuses to let one of theirs go unrun or unread.
 #
 # SELF-TEST. --self-test points the runner at stub scripts written at runtime, proves an
@@ -88,12 +89,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-STATIC=(check-template-tokens gen-mode-excludes docs-pairing line-cap scrub dev-isolation shipped-seeds skill-conformance)
+STATIC=(check-template-tokens gen-mode-excludes docs-pairing line-cap scrub dev-isolation shipped-seeds skill-conformance
+        family-shared)
 PER_TREE=(shipped-variants byte-identity doc-references docs-pairing shipped-seeds skill-conformance tooling-smoke)
 INTEGRATED=(update-test adopt-test coexist-test)
 ALL_SCRIPTS=(check-template-tokens gen-mode-excludes generate-all shipped-variants byte-identity docs-pairing
              doc-references shipped-seeds skill-conformance line-cap update-test adopt-test coexist-test
-             tooling-smoke scrub dev-isolation)
+             tooling-smoke scrub dev-isolation family-shared)
 
 RESULTS=()   # "name<TAB>status"
 ERRORS=0
@@ -133,7 +135,7 @@ run_checks() {
   for s in "${STATIC[@]}"; do
     case "$s" in
       gen-mode-excludes) step "$s --check" bash "$SCRIPTS/$s.sh" --check --root "$SA_ROOT" ;;
-      dev-isolation|scrub|check-template-tokens) step "$s" bash "$SCRIPTS/$s.sh" --root "$SA_ROOT" ;;
+      dev-isolation|scrub|check-template-tokens|family-shared) step "$s" bash "$SCRIPTS/$s.sh" --root "$SA_ROOT" ;;
       *) step "$s (template/)" bash "$SCRIPTS/$s.sh" --root "$SA_ROOT" ;;
     esac
   done

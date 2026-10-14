@@ -17,9 +17,11 @@ template`); the product's own `.codex/` lives in `template/.codex/`.
 - `config.toml` — one `[[skills.config]]` entry with `enabled = false` for every skill under
   `template/.claude/skills/`, naming its `SKILL.md` by a path relative to this folder. Codex
   reads that list only from your user config (`~/.codex/config.toml`), never from a project
-  file, so copy the entries there with absolute paths if you start Codex inside `template/`.
-  Started at the repository root, Codex finds no product skill anyway: `.agents` links to this
-  development `.claude/`, which has none. It sets no
+  file, so this file is a snippet, not a guard: copy the entries there with absolute paths if
+  you ever start Codex inside `template/`. The isolation that holds is starting every session at
+  the repository root, which has no `.agents`, so Codex finds no product skill there. Nor is the
+  parse failure of the unrendered `template/.codex/config.toml` a guard: it stops only a trusted
+  checkout. It sets no
   `project_doc_fallback_filenames`: the product's `CLAUDE.md` manuals must stay source text,
   and root `AGENTS.md` gives the development read order instead. No model, trust level,
   permission bypass or MCP credential belongs here.
@@ -28,4 +30,5 @@ template`); the product's own `.codex/` lives in `template/.codex/`.
 
 - `AGENTS.md` — Codex's development entrypoint.
 - `.claude/CLAUDE.md` Section 3 — dev isolation in every client.
-- `.github/scripts/dev-isolation.sh` — proves the list is complete; DESIGN.md D47 and Section 7.
+- `.github/scripts/dev-isolation.sh` — checks the snippet lists every product skill, and that the
+  root has no `.agents` and documents the start-at-the-root rule; DESIGN.md D47 and Section 7.

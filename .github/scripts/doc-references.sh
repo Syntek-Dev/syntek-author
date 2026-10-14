@@ -39,6 +39,10 @@
 #                       <!-- doc-references: variant-only -->   or
 #                       <!-- doc-references: ignore — reason -->
 #                     Use the first sparingly: a gated row in an index file is the real answer.
+#                     A client row of the model table in .claude/rules/syntek-author/
+#                     05-model-allocation.md (`| Codex |`, `| Gemini CLI |`, `| Antigravity |`,
+#                     `| OpenCode |`) is exempt too: its backticks hold a model ID the owner
+#                     answered (`provider/model` for OpenCode, DESIGN.md D47), never a path.
 #
 #                     Numbers are stable identifiers. Append, never renumber.
 #
@@ -132,6 +136,7 @@ infm {
 /^[[:space:]]*```/ { fence = !fence; next }
 fence { next }
 {
+  if (modeltable && $0 ~ /^\| (Codex|Gemini CLI|Antigravity|OpenCode) \|/) next
   exempt = (prevmark || $0 ~ /doc-references: *(variant-only|ignore)/)
   prevmark = ($0 ~ /doc-references: *(variant-only|ignore)/)
   if (exempt) next
@@ -229,7 +234,7 @@ run_checks() {
               || finding "check 1 — $f:$ln cites \`$tok\`, which does not exist in this project"
           fi ;;
       esac
-    done < <(awk "$EXTRACT" "$TREE/$f")
+    done < <(awk -v modeltable="$([[ "$f" == .claude/rules/syntek-author/05-model-allocation.md ]] && echo 1)" "$EXTRACT" "$TREE/$f")
   done < <(cd "$TREE" && find . \( -name .git -o -name build -o -name node_modules \) -prune -o -type f -name '*.md' -print0 | sort -z)
 }
 
@@ -313,6 +318,13 @@ EOF
   printf 'Then run the `continuity` skill.\n' >> "$g"
   probe "check 4 fires on prose naming a variant skill this tree lacks" "check 4"
   sed -i '$d' "$g"
+
+  mkdir -p "$t/.claude/rules/syntek-author"
+  printf '| Client | Model |\n|---|---|\n| OpenCode | `example-cloud/example-model` |\n' > "$t/.claude/rules/syntek-author/05-model-allocation.md"
+  probe_clean "a model ID in rules 05's client table is an answer, not a citation"
+  printf 'Set it in `example-cloud/example-model`.\n' >> "$t/.claude/rules/syntek-author/05-model-allocation.md"
+  probe "check 1 still fires on the same token outside a client row" "check 1 — .claude/rules/syntek-author/05-model-allocation.md:4"
+  rm -rf "$t/.claude/rules"
 
   sed -i 's/(`research`)/(`continuity`)/' "$t/.claude/skills/flow/SKILL.md"
   probe "check 4 fires on a folded description naming a skill this tree lacks" \

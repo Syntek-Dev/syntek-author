@@ -27,10 +27,9 @@ AGENT_CLIENTS:
   - codex
   - opencode
 CODEX_MODEL: ""
-OPENCODE_PROVIDER: ollama
-OPENCODE_BASE_URL: http://127.0.0.1:11434/v1
-OPENCODE_MODEL: qwen3:30b
-OPENCODE_CONTEXT: 32768
+# named: a model OpenCode already knows, written provider/model; no address or context.
+OPENCODE_PROVIDER: named
+OPENCODE_MODEL: example-provider/example-model
 MODEL_MECHANICAL: sonnet
 TIMEZONE: Europe/London
 DATE: 03/10/2026

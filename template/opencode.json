@@ -1,34 +1,53 @@
 {
   "$schema": "https://opencode.ai/config.json",
-<: if OPENCODE_PROVIDER != 'hosted' :>  "model": "<%OPENCODE_PROVIDER%>/<%OPENCODE_MODEL%>",
+<: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] :>  "model": <% (OPENCODE_PROVIDER ~ '/' ~ OPENCODE_MODEL) | tojson %>,
   "providers": {
-    "<%OPENCODE_PROVIDER%>": {
-      "name": "<% {'llama-cpp': 'llama.cpp (local)', 'ollama': 'Ollama (local)', 'vllm': 'vLLM (local)', 'lmstudio': 'LM Studio (local)'}.get(OPENCODE_PROVIDER, 'OpenAI-compatible server') %>",
+    <% OPENCODE_PROVIDER | tojson %>: {
+      "name": <% {'llama-cpp': 'llama.cpp (local)', 'ollama': 'Ollama (local)', 'vllm': 'vLLM (local)', 'lmstudio': 'LM Studio (local)'}.get(OPENCODE_PROVIDER, 'OpenAI-compatible server') | tojson %>,
       "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
-        "baseURL": <% OPENCODE_BASE_URL | tojson %>
+        "baseURL": <% OPENCODE_BASE_URL.rstrip('/') | tojson %>
       },
       "models": {
-        "<%OPENCODE_MODEL%>": {
-          "modelID": "<%OPENCODE_MODEL%>",
-          "name": "<%OPENCODE_MODEL%>",
+        <% OPENCODE_MODEL | tojson %>: {
+          "modelID": <% OPENCODE_MODEL | tojson %>,
+          "name": <% OPENCODE_MODEL | tojson %>,
           "capabilities": {
             "tools": true,
-            "input": ["text"],
-            "output": ["text"]
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
-            "context": <%OPENCODE_CONTEXT%>,
+            "context": <% OPENCODE_CONTEXT | int %>,
             "output": 8192
           }
         }
       }
     }
   },
-<: elif OPENCODE_MODEL :>  "model": "<%OPENCODE_MODEL%>",
-<: endif :>  "permissions": [
-    { "action": "edit", "resource": "*.pdf", "effect": "deny" },
-    { "action": "edit", "resource": "build/**", "effect": "deny" },
-    { "action": "edit", "resource": "typeset/src/units/.base/**", "effect": "deny" }
+<: elif 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER == 'named' :>  "model": <% OPENCODE_MODEL | tojson %>,
+<: endif :>  "compaction": {
+    "auto": false
+  },
+  "permissions": [
+    {
+      "action": "edit",
+      "resource": "*.pdf",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "build/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "typeset/src/units/.base/*",
+      "effect": "deny"
+    }
   ]
 }

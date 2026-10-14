@@ -310,7 +310,10 @@ modes_list() { # TFB → THEOLOGY.md FICTION.md BUSINESS.md
 
 # Gated and required paths (DESIGN.md Sections 3.2, 3.5, 4). {L} is the content layer.
 # Layer roots manuscript/ and library/ are checked on their own (content layer xor), so they are
-# not rows here. kind: d = directory, f = file, l = a link whose target is exactly .claude.
+# not rows here. kind: d = a real directory (never a link), f = file, l = a link whose target is
+# exactly $SA_AGENTS_LINK_TARGET (the one link the template ships, D47: .agents/skills, never a
+# copy of the skills and never a link at .agents itself, which breaks Codex's Linux sandbox).
+SA_AGENTS_LINK_TARGET="../.claude/skills"
 SA_PATHS=$(cat <<'EOF'
 always             f  .copier-answers.syntek-author.yml
 always             f  README.md
@@ -328,8 +331,10 @@ always             f  .claude/hooks/pre-compact-handoff.sh
 always             f  .claude/skills/CONTEXT.md
 always             f  .claude/skills/CLAUDE.md
 always             f  .claude/rules/syntek-author/01-layout-and-routing.md
-agents             l  .agents
-agents             f  .claude/syntek-author-agents.md
+agents             d  .agents
+agents             l  .agents/skills
+always             f  .claude/syntek-author-agents.md
+always             f  .claude/syntek-author-permissions.py
 agents-md          f  AGENTS.md
 gemini-md          f  GEMINI.md
 cl-codex           f  .codex/config.toml
@@ -338,7 +343,7 @@ cl-codex           f  .codex/CLAUDE.md
 cl-gemini-cli      f  .gemini/settings.json
 cl-gemini-cli      f  .gemini/CONTEXT.md
 cl-gemini-cli      f  .gemini/CLAUDE.md
-cl-antigravity     f  .claude/mcp_config.json
+cl-antigravity     f  .agents/mcp_config.json
 cl-opencode        f  opencode.json
 always             f  .claude/rules/syntek-author/02-skills.md
 always             f  .claude/rules/syntek-author/03-authorship.md
@@ -599,9 +604,10 @@ wb&seed            f  world/src/cultures/example-culture.md
 EOF
 )
 
-# Paths that must never reach a generated project: the template's own state, and the retired
-# agent and command tiers (DESIGN.md D5).
-SA_NEVER="copier.yml DESIGN.md adopt template .copier-answers.yml .github/scripts .github/workflows/audit-template.yml .claude/agents .claude/commands"
+# Paths that must never reach a generated project: the template's own state (the family-shared
+# manifest of D48 included), the retired agent and command tiers (DESIGN.md D5), and
+# .claude/mcp_config.json, retired before release for .agents/mcp_config.json (D47).
+SA_NEVER="copier.yml DESIGN.md adopt template .copier-answers.yml family-shared.json .github/scripts .github/workflows/audit-template.yml .claude/agents .claude/commands .claude/mcp_config.json"
 
 # Seeds (DESIGN.md Section 3.1): the registers and style trio, the proposal package stubs, the
 # business brand files, and the author-filled index pairs (the map index, and the pair of every
@@ -617,9 +623,16 @@ SA_EXAMPLES="manuscript/src/01-example-chapter planning/src/units/01-example-cha
 SA_EXAMPLE_GATE="_copier_operation == 'update' or not SEED_EXAMPLES"
 
 # Copy-only shared paths (DESIGN.md Section 3.6, D47): the other coding agents' entrypoints, the
-# .agents link and their settings. Written by a copy, never by an update: each needs an anchored
-# _skip_if_exists line AND an _exclude line gated on the update.
-SA_COPY_ONLY="AGENTS.md GEMINI.md .agents .codex/config.toml .codex/CONTEXT.md .codex/CLAUDE.md .gemini/settings.json .gemini/CONTEXT.md .gemini/CLAUDE.md .claude/mcp_config.json opencode.json"
+# .agents/skills link, Antigravity's .agents/mcp_config.json and the client settings. Written by
+# a copy, never by an update: each needs an anchored _skip_if_exists line AND an _exclude line
+# gated on the update. .agents itself is a real folder, never a link and never copy-only.
+SA_COPY_ONLY="AGENTS.md GEMINI.md .agents/skills .agents/mcp_config.json .codex/config.toml .codex/CONTEXT.md .codex/CLAUDE.md .gemini/settings.json .gemini/CONTEXT.md .gemini/CLAUDE.md opencode.json"
+# The folders that hold copy-only paths. Each needs an _exclude line of its own gated on the
+# update: Copier 9.17.1 creates an EMPTY folder on an update that crosses the release which
+# introduced it, even when every path inside it is excluded.
+SA_COPY_ONLY_DIRS=".agents .codex .gemini"
+# Antigravity's MCP file, byte for byte what syntek-media 0.4.2 ships (D47, D48): 23 bytes.
+SA_AGENTS_MCP=$'{\n  "mcpServers": {}\n}\n'
 SA_COPY_ONLY_GATE="_copier_operation == 'update'"
 
 # The root spine (DESIGN.md Section 2, Token discipline), plus the answers file, which differs
@@ -911,6 +924,19 @@ sa_update() { # $1 = project dir, then extra copier arguments
      --answers-file "$SA_ANSWERS_FILE" "$@" </dev/null)
 }
 
+# A Python that imports Jinja2 and PyYAML, the two Copier renders with: python3 when it has
+# them, otherwise Copier's own environment through uvx. Returns 1 when neither is reachable.
+SA_JPY=()
+sa_jinja_init() {
+  [[ ${#SA_JPY[@]} -gt 0 ]] && return 0
+  if python3 -c 'import jinja2, yaml' >/dev/null 2>&1; then SA_JPY=(python3)
+  elif command -v uvx >/dev/null 2>&1 && uvx --from copier python -c 'import jinja2, yaml' >/dev/null 2>&1; then
+    SA_JPY=(uvx --from copier python)
+  else
+    return 1
+  fi
+}
+
 # ── The fixture template ─────────────────────────────────────────────────────
 #
 # A minimal template with the real repository's shape: the house delimiters, the named answers
@@ -960,10 +986,12 @@ _exclude:
   - "<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/example-proposal.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/AGENTS.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/GEMINI.md<: endif :>"
-  - "<: if _copier_operation == 'update' :>/.agents<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents/skills<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents/mcp_config.json<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex/config.toml<: endif :>"
   - "<: if _copier_operation == 'update' :>/opencode.json<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents<: endif :>"
 _preserve_symlinks: true
 _skip_if_exists:
   - /README.md
@@ -983,7 +1011,8 @@ _skip_if_exists:
   - /standards/style/terminology.md
   - /AGENTS.md
   - /GEMINI.md
-  - /.agents
+  - /.agents/skills
+  - /.agents/mcp_config.json
   - /.codex/config.toml
   - /opencode.json
 PROJECT_NAME:
@@ -1001,9 +1030,17 @@ DOC_TYPE:
 SEED_EXAMPLES:
   type: bool
   default: true
+# BEGIN fixture agent questions
+AGENT_CLIENTS:
+  type: str
+  multiselect: true
+  choices: [codex, gemini-cli, antigravity, opencode]
+  default: "<% (_external_data.prev.AGENT_CLIENTS | select('in', ['codex', 'gemini-cli', 'antigravity', 'opencode']) | list | tojson) if (_external_data.prev.get('AGENT_CLIENTS') is sequence and _external_data.prev.get('AGENT_CLIENTS') is not string) else ('[]' if _external_data.prev.get('_commit') else '[codex, gemini-cli, antigravity, opencode]') %>"
 OPENCODE_MODEL:
   type: str
   default: fixture-model
+  when: "<% 'opencode' in AGENT_CLIENTS %>"
+# END fixture agent questions
 EOF
   cd "$t/template" || return 1
   mkdir -p .claude/skills/run-workflow .claude/skills/grilling .claude/hooks .claude/rules/syntek-author standards/style \
@@ -1037,16 +1074,32 @@ EOF
   printf '# Example proposal brief\n' > planning/src/units/example-proposal.md
   printf '# Example argument map\n' > planning/src/arguments/01-example-chapter.md
   printf 'help:\n\t@echo help\n' > Makefile
-  # The other coding agents (D47): copy-only entrypoints and settings, the link, the bridge
-  # (template-owned) and a rule that renders a client's model answer.
-  mkdir -p .codex
-  printf '# AGENTS.md — <%%PROJECT_NAME%%>\n\nRead .claude/syntek-author-agents.md.\n' > AGENTS.md
-  printf '# GEMINI.md — <%%PROJECT_NAME%%>\n\nRead .claude/syntek-author-agents.md.\n' > GEMINI.md
+  # The other coding agents (D47, D48): token-free copy-only entrypoints, the client settings,
+  # a real .agents/ folder holding the skills link and Antigravity's MCP file, the bridge
+  # (template-owned, always shipped) and a rule whose Section 4 renders the clients chosen.
+  mkdir -p .codex .agents
+  printf '# AGENTS.md\n\nRead every .claude/syntek-*-agents.md present before working.\n' > AGENTS.md
+  printf '# GEMINI.md\n\nRead every .claude/syntek-*-agents.md present before working.\n' > GEMINI.md
   printf "project_doc_fallback_filenames = ['CLAUDE.md']\n" > .codex/config.toml
   printf '{"model": "local/<%%OPENCODE_MODEL%%>"}\n' > opencode.json
-  ln -s .claude .agents
+  ln -s "$SA_AGENTS_LINK_TARGET" .agents/skills
+  printf '%s' "$SA_AGENTS_MCP" > .agents/mcp_config.json
   printf '# Shared instructions for coding agents\n\nTemplate-owned.\n' > .claude/syntek-author-agents.md
-  printf '# 05 — model allocation\n\n| OpenCode | `<%%OPENCODE_MODEL%%>` |\n' > .claude/rules/syntek-author/05-model-allocation.md
+  cat > .claude/rules/syntek-author/05-model-allocation.md <<'EOF'
+# 05 — model allocation
+
+## 1. The two tiers
+<: if AGENT_CLIENTS | length > 0 :>
+## 4. Other coding agents
+
+| Client | Model |
+|---|---|
+<: if 'codex' in AGENT_CLIENTS :>| Codex | Codex's own default |
+<: endif :><: if 'gemini-cli' in AGENT_CLIENTS :>| Gemini CLI | Gemini CLI's own default |
+<: endif :><: if 'antigravity' in AGENT_CLIENTS :>| Antigravity | chosen in the app |
+<: endif :><: if 'opencode' in AGENT_CLIENTS :>| OpenCode | `<%OPENCODE_MODEL%>` |
+<: endif :><: endif :>
+EOF
   cd - >/dev/null || return 1
   sa_git "$t" init -q && sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture template'
 }
