@@ -2,7 +2,7 @@
 
 # CLAUDE.md — .codex/
 
-Read order: `.claude/syntek-author-agents.md` → `.claude/CLAUDE.md` → `.claude/MEMORY.md` →
+Read order: every `.claude/syntek-*-agents.md` → `.claude/CLAUDE.md` → `.claude/MEMORY.md` →
 this folder's `CONTEXT.md` (imported above) → this file, before changing `config.toml`.
 
 ## Purpose (one line)
@@ -11,9 +11,8 @@ Keep Codex's project settings working, without overriding the author's choices.
 
 ## How to work here
 
-- **Routing:** the shared read order and client setup → `.claude/syntek-author-agents.md`; the
-  model tiers → `.claude/rules/syntek-author/05-model-allocation.md`; Codex's settings →
-  `config.toml`.
+- **Routing:** the shared read order, client setup and model tiers → every
+  `.claude/syntek-*-agents.md` and the rules it names; Codex's settings → `config.toml`.
 - **Model:** the mechanical tier for an agreed setting; the substantive tier for a permission or
   a decision about what Codex may do.
 - **Concrete steps:** read `config.toml` → agree the change with the author → edit only the

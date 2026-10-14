@@ -9,7 +9,9 @@ with every decision only the author can make flagged `AUTHOR TO CONFIRM` until t
 The house drafting principles that template updates keep current, the marks of running copy
 among them, live in `standards/method/BUSINESS.md`. Not here: the mechanics of spelling and
 punctuation (`standards/style/style-sheet.md`), the person the business writes in
-(`standards/style/voice-notes.md`), or logo files (`assets/`).
+(`standards/style/voice-notes.md`), or logo files (`assets/`). Screen tokens, design exports
+and the spoken voice belong to any media template applied to this project; palette and type
+still have one owner, `brand-guide.md`, which such a template implements rather than redefines.
 
 **These are the default homes.** A project that keeps its brand voice and guide in another
 folder, or its disclaimer wordings in another file, names the place in `00-project.md`

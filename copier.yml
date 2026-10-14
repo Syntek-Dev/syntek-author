@@ -40,17 +40,23 @@ _answers_file: .copier-answers.syntek-author.yml
 # project's own record. On a fresh `copier copy`, and on adoption, the file does not exist yet:
 # Copier prints a MissingFileWarning and `_external_data.prev` is empty, which the validator's
 # `default(DOC_TYPE, true)` reads as "no previous answer". That warning on every copy is the
-# accepted cost. Never test `_copier_operation` in a validator instead: it is undefined there.
+# accepted cost. Never test `_copier_operation` in a validator, default or `when:` instead: it
+# is undefined there (Copier 9.17.1 `_main.py:434-458`; it exists only in _exclude, _tasks and
+# _migrations). AGENT_CLIENTS reads the same record for its default (DESIGN.md D47): a recorded
+# answer is kept, a record without one (a project from before D47) gives no client, and no
+# record gives all four.
 _external_data:
   prev: .copier-answers.syntek-author.yml
 
 # Every file is a template — tokens are not confined to a suffixed subset.
 _templates_suffix: ""
 
-# One path ships as a symbolic link: `.agents -> .claude` (DESIGN.md D47), the skill
-# discovery path Codex, Gemini CLI, Antigravity and OpenCode share. Preserved, it renders as
-# a link to the one canonical tree rather than as a second copy that drifts from the first.
-# The link is relative, so it survives a move or a clone.
+# One path ships as a symbolic link: `.agents/skills -> ../.claude/skills` (DESIGN.md D47),
+# the skill discovery path Codex, Gemini CLI, Antigravity and OpenCode share. Preserved, it
+# renders as a link to the one canonical skills tree rather than as a second copy that drifts
+# from the first. The link is relative, so it survives a move or a clone. `.agents` itself is
+# a real folder, never a link: a linked `.agents` makes every sandboxed Codex command fail on
+# Linux, and would show Antigravity all of .claude/ rather than its skills.
 _preserve_symlinks: true
 
 # Tokens are written <%TOKEN%> rather than {{TOKEN}} so they cannot collide with anything a
@@ -326,42 +332,55 @@ _exclude:
   #
   # Each client's files ship only when AGENT_CLIENTS names it; Claude Code's .claude/ tree is
   # the canonical one and always ships. Gates are DESIGN.md Section 3.5's, verbatim. The
-  # bridge is template-owned (updated); everything else here is copy-only (below).
+  # bridge, .claude/syntek-author-agents.md, is template-owned (updated) and always ships, so
+  # it has no line here: an entrypoint left by an earlier answer never points at a missing
+  # file, and a Claude-only project still has the steps for enabling a client. Everything
+  # else here is copy-only (below).
   - "<: if not ('codex' in AGENT_CLIENTS or 'opencode' in AGENT_CLIENTS) :>/AGENTS.md<: endif :>"
   - "<: if not ('gemini-cli' in AGENT_CLIENTS or 'antigravity' in AGENT_CLIENTS) :>/GEMINI.md<: endif :>"
   - "<: if not (AGENT_CLIENTS | length > 0) :>/.agents<: endif :>"
-  - "<: if not (AGENT_CLIENTS | length > 0) :>/.claude/syntek-author-agents.md<: endif :>"
   - "<: if not ('codex' in AGENT_CLIENTS) :>/.codex<: endif :>"
   - "<: if not ('gemini-cli' in AGENT_CLIENTS) :>/.gemini<: endif :>"
-  - "<: if not ('antigravity' in AGENT_CLIENTS) :>/.claude/mcp_config.json<: endif :>"
+  - "<: if not ('antigravity' in AGENT_CLIENTS) :>/.agents/mcp_config.json<: endif :>"
   - "<: if not ('opencode' in AGENT_CLIENTS) :>/opencode.json<: endif :>"
   #
   # ── Copy-only shared (DESIGN.md D47, Section 3.6): written by a copy, never by an update ──
   #
-  # The entrypoints, the link and the client settings are the author's once written: an
-  # update never renders them, so an edit stands and a deletion stays deleted (an author who
-  # does not use Codex deletes AGENTS.md once). syntek-media treats the same paths the same
-  # way (its D73), so whichever template comes first writes them and neither updates them.
-  # Each path also has an anchored line in _skip_if_exists, so a copy over an existing file
-  # skips it rather than overwriting it. A changed model answer therefore reaches the table
-  # in .claude/rules/syntek-author/05-model-allocation.md, not the client's file.
+  # The entrypoints, the skills link and the client settings are the author's once written:
+  # an update never renders them, so an edit stands and a deletion stays deleted (an author
+  # who does not use Codex deletes AGENTS.md once). syntek-media's D73 makes AGENTS.md,
+  # GEMINI.md, .agents, the .codex/ files and .claude/mcp_config.json copy-only in the same
+  # way (its 0.4.2, D76, replaces that link and file with the .agents/ layout below); media
+  # does not yet ship .gemini/ or opencode.json. Whichever template comes first writes them,
+  # and neither updates them; the shared bytes are DESIGN.md D48's. Each path also has an
+  # anchored line in _skip_if_exists, so a copy over an existing file skips it rather than
+  # overwriting it. A changed model answer therefore reaches the table in
+  # .claude/rules/syntek-author/05-model-allocation.md, not the client's file.
   #
-  # A REAL .agents DIRECTORY is the one thing the skip cannot protect: Copier fails before its
-  # skip check when a link would land on a directory. Copy with `--exclude /.agents` there
-  # (README.md, adopt/adopt.sh), and never rename or remove the directory to make room.
+  # .agents/ is a real folder: its two files are listed here, and the folder itself with the
+  # client folders below. A copy over an existing .agents/skills LINK, of any target, skips
+  # it, so a project already holding syntek-media 0.4.2's .agents/ needs no exclusion (proved
+  # by render, 14/10/2026). Copier fails before its skip check where a link would land on a
+  # real folder or a file: copy with `--exclude /.agents/skills` when .agents/skills is a real
+  # folder, and with `--exclude /.agents` when .agents itself is a link (the retired
+  # `.agents -> .claude`, which a copy would also write through) or a file (README.md,
+  # adopt/adopt.sh). Never rename or remove either to make room.
   - "<: if _copier_operation == 'update' :>/AGENTS.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/GEMINI.md<: endif :>"
-  - "<: if _copier_operation == 'update' :>/.agents<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents/skills<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.agents/mcp_config.json<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex/config.toml<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex/CONTEXT.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex/CLAUDE.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/.gemini/settings.json<: endif :>"
   - "<: if _copier_operation == 'update' :>/.gemini/CONTEXT.md<: endif :>"
   - "<: if _copier_operation == 'update' :>/.gemini/CLAUDE.md<: endif :>"
-  - "<: if _copier_operation == 'update' :>/.claude/mcp_config.json<: endif :>"
   - "<: if _copier_operation == 'update' :>/opencode.json<: endif :>"
-  # The two settings folders as well, so an update never creates an empty .codex/ or .gemini/
-  # in a project that never had one (one generated before D47) or whose author removed it.
+  # The client folders as well, so an update never creates an empty .agents/, .codex/ or
+  # .gemini/ in a project that never had one (one generated before D47) or whose author
+  # removed it. Without its line, an update from v0.3.0 that ticks a client leaves an empty
+  # .agents/ (proved by render under Copier 9.17.1, 14/10/2026).
+  - "<: if _copier_operation == 'update' :>/.agents<: endif :>"
   - "<: if _copier_operation == 'update' :>/.codex<: endif :>"
   - "<: if _copier_operation == 'update' :>/.gemini<: endif :>"
   #
@@ -550,14 +569,14 @@ _skip_if_exists:
   # ── Copy-only shared (DESIGN.md D47, Section 3.6): also excluded on update above ──
   - /AGENTS.md
   - /GEMINI.md
-  - /.agents
+  - /.agents/skills
+  - /.agents/mcp_config.json
   - /.codex/config.toml
   - /.codex/CONTEXT.md
   - /.codex/CLAUDE.md
   - /.gemini/settings.json
   - /.gemini/CONTEXT.md
   - /.gemini/CLAUDE.md
-  - /.claude/mcp_config.json
   - /opencode.json
   # ── The style trio and the provenance table ──
   - /standards/style/style-sheet.md
@@ -1069,41 +1088,60 @@ MODEL_MECHANICAL:
     - opus
   default: "<% 'opus' if DOC_TYPE == 'business' else 'sonnet' %>"
 
-# ── Coding agents (DESIGN.md D47) ────────────────────────────────────────────
+# ── Coding agents (DESIGN.md D47, D48) ───────────────────────────────────────
 #
 # Claude Code always ships: .claude/ is the one tree every client reads. These answers choose
 # the OTHER clients and the model each one uses for substantive work. The clients' files are
-# copy-only (Section 3.6), so a later change of answer re-renders the table in
+# copy-only (DESIGN.md Section 3.6), so a later change of answer re-renders the model table in
 # .claude/rules/syntek-author/05-model-allocation.md, never the client's own file.
 #
-# The values are the gates' strings (DESIGN.md Section 3.5) and never change; the labels may.
-# Gemini CLI and Antigravity are two choices, not one 'Google' or 'Gemini': they share
-# GEMINI.md and the .agents link, but only Gemini CLI reads .gemini/settings.json and only
-# Antigravity reads .claude/mcp_config.json.
+# The seven questions between the markers below are FAMILY-SHARED (DESIGN.md D48): every
+# template of the family carries this block byte for byte, so it names no template, no
+# template-only path and no decision number, and family-shared.sh hashes the lines strictly
+# between the markers. Change it here first, then in every sibling template, in one release.
+#
+# Every validator below opens with its question's own `when:` test, and every gate and
+# content block that reads one of these answers repeats that test (DESIGN.md Section 2).
+# Copier 9.17.1 gives a hidden question its default, a settings default or a --data value,
+# and validates and renders that value without recording it; without the test, a stray
+# OPENCODE_CONTEXT=999 fails a Codex-only copy. Copier still checks `choices` and `type` on a
+# hidden value before any validator runs, so a shared key keeps identical choices in every
+# template of the family.
+# BEGIN family-shared questions (D48)
+# The client values are the gate strings and never change; the labels may. Gemini CLI and
+# Antigravity are two choices, not one: they share GEMINI.md and the .agents/skills link, but
+# only Gemini CLI reads .gemini/settings.json and only Antigravity reads
+# .agents/mcp_config.json.
+#
+# The default reads the previous answers record. A record that already holds this answer
+# keeps it (only its values that are still choices), so a copy over an existing project
+# (re-adoption) never resets the clients, unless a Copier settings file sets them. A
+# record without it belongs to a project being updated, and the update that first asks this
+# question must record no client whose files the project never received, so the default
+# there is none. A fresh copy, with no record, gets all four. `_copier_operation` cannot make
+# this test: it is undefined in question defaults.
 AGENT_CLIENTS:
   type: str
   multiselect: true
   help: >-
     Which coding agents besides Claude Code will you use here? Each adds its entrypoint and
     settings; all of them read the same rules, skills and memory in .claude/. These files
-    are written once: an update never adds, changes or recreates them. To add a client later,
-    answer it in an update (which brings .claude/syntek-author-agents.md and its model table),
-    then follow that file's steps. Tick none to keep the project Claude-only.
+    are written once: an update never adds, changes or recreates them. On an update that
+    first asks this, the default is none: tick a client to add its row to the model table,
+    then follow the agents bridge in .claude/ (the .claude/syntek-*-agents.md file) to add
+    its files. Tick none to keep the project Claude-only.
   choices:
     "Codex — OpenAI's coding agent (AGENTS.md, .codex/)": codex
     "Gemini CLI — Google's terminal agent (GEMINI.md, .gemini/)": gemini-cli
-    "Antigravity — Google's agent IDE (GEMINI.md, .claude/mcp_config.json)": antigravity
+    "Antigravity — Google's agent IDE (GEMINI.md, .agents/mcp_config.json)": antigravity
     "OpenCode 2 or later — any model, including a local server (AGENTS.md, opencode.json)": opencode
-  default:
-    - codex
-    - gemini-cli
-    - antigravity
-    - opencode
+  default: "<% (_external_data.prev.AGENT_CLIENTS | select('in', ['codex', 'gemini-cli', 'antigravity', 'opencode']) | list | tojson) if (_external_data.prev.get('AGENT_CLIENTS') is sequence and _external_data.prev.get('AGENT_CLIENTS') is not string) else ('[]' if _external_data.prev.get('_commit') else '[codex, gemini-cli, antigravity, opencode]') %>"
 
-# Blank leaves the client's own default. Codex refuses `model_provider` in a project file, so
-# running Codex on a local model is the owner's user-level setting, not this answer.
-# Model names are checked as character sets (no Jinja regular expressions), so an answer can
-# never break the TOML or JSON it is written into.
+# Blank leaves the client's own default. Codex ignores `model_provider`, `model_providers` and
+# `profile(s)` in a project file, with a warning (0.160.1), so running Codex on a local model
+# is the owner's user-level setting, not this answer. Model names are checked as character
+# sets (no Jinja regular expressions), so an answer can never break the TOML or JSON it is
+# written into.
 CODEX_MODEL:
   type: str
   help: >-
@@ -1112,7 +1150,7 @@ CODEX_MODEL:
   default: ""
   when: "<% 'codex' in AGENT_CLIENTS %>"
   validator: >-
-    <: if CODEX_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>
+    <: if 'codex' in AGENT_CLIENTS and CODEX_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>
     Use a model name: letters, digits and . _ : / @ + - only, no spaces or quotation marks.
     <: endif :>
 
@@ -1124,82 +1162,78 @@ GEMINI_MODEL:
   default: ""
   when: "<% 'gemini-cli' in AGENT_CLIENTS %>"
   validator: >-
-    <: if GEMINI_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>
+    <: if 'gemini-cli' in AGENT_CLIENTS and GEMINI_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>
     Use a model name: letters, digits and . _ : / @ + - only, no spaces or quotation marks.
     <: endif :>
 
-# OpenCode is the client for local models. Every local provider is written as one
-# OpenAI-compatible provider in opencode.json, under the provider's own id, so the model reads
-# `<provider>/<model>` in OpenCode. No key is written: a server that needs one gets it from
-# OpenCode's own credential store or an environment variable the owner sets.
-# Every gate on these answers also tests 'opencode' in AGENT_CLIENTS: a hidden question keeps
-# its default in the render context.
+# OpenCode is the client for local models. `user` writes no model and no provider, so each
+# person's own OpenCode settings apply; `named` writes a `provider/model` only. Every local
+# server is written as one OpenAI-compatible provider in opencode.json, under the server's own
+# id, so the model reads `<provider>/<model>` in OpenCode. No key is written: a server that
+# needs one gets it from OpenCode's own credential store or an environment variable the owner
+# sets. A committed provider replaces, for every collaborator, the address of any provider of
+# theirs with the same id, which is why the default writes none.
 OPENCODE_PROVIDER:
   type: str
   help: >-
-    Where does OpenCode get its model? A local server keeps the writing on this machine.
+    Where does OpenCode get its model? A local server keeps the writing on this machine. A
+    local provider written here overrides, for every collaborator, any provider of theirs
+    with the same id.
   choices:
+    "Use my OpenCode settings (no model or provider written)": user
+    "A model I name (provider/model)": named
     "llama.cpp — llama-server or llama-swap": llama-cpp
     "Ollama": ollama
     "vLLM": vllm
     "LM Studio": lmstudio
     "Another OpenAI-compatible server": openai-compatible
-    "Hosted — OpenCode's own sign-in (opencode auth login); nothing written": hosted
-  default: llama-cpp
+  default: user
   when: "<% 'opencode' in AGENT_CLIENTS %>"
 
+# The defaults are each server's documented local port. The validator matches
+# ^https?://[^\s"]+/v1/?$ exactly, without a regular expression (fuzzed against re.fullmatch
+# over 200,023 strings, Unicode whitespace included): the answer is written inside a JSON
+# string, so whitespace or a quotation mark would break opencode.json. A trailing slash is
+# accepted and dropped when the address is written.
 OPENCODE_BASE_URL:
   type: str
   help: >-
-    The server's OpenAI-compatible address, ending /v1. The default is the provider's usual
+    The server's OpenAI-compatible address, ending /v1. The default is the server's usual
     local port.
   default: >-
     <% {'llama-cpp': 'http://127.0.0.1:8080/v1', 'ollama': 'http://127.0.0.1:11434/v1',
     'vllm': 'http://127.0.0.1:8000/v1', 'lmstudio': 'http://127.0.0.1:1234/v1'}.get(OPENCODE_PROVIDER, '') %>
-  when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER != 'hosted' %>"
-  # A URL character set, not a deny list: the answer is written inside a JSON string, so a
-  # backslash, a quotation mark or any whitespace would break opencode.json.
+  when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] %>"
   validator: >-
-    <: if not (OPENCODE_BASE_URL.startswith('http://') or OPENCODE_BASE_URL.startswith('https://'))
-       or not OPENCODE_BASE_URL.endswith('/v1') or OPENCODE_BASE_URL.split('://', 1)[-1][:1] in ['', '/']
-       or OPENCODE_BASE_URL | reject('in', "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&()*+,;=%") | list | length > 0 :>
-    Use the server's address with http:// or https://, a host, and ending /v1, for example
-    http://127.0.0.1:8080/v1 (no spaces, quotation marks or backslashes).
-    <: endif :>
+    <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] :><: set u = OPENCODE_BASE_URL :><: set body = u[8:] if u.startswith('https://') else (u[7:] if u.startswith('http://') else '') :><: set body = body[:-1] if body.endswith('/v1/') else body :><: if not body.endswith('/v1') or (body[:-3] | length) < 1 or (u.split() | join) != u or '"' in u :>Use the server's address with http:// or https:// and ending /v1 or /v1/, for example http://127.0.0.1:8080/v1.<: endif :><: endif :>
 
-# The llama.cpp default is the model a llama-swap catalogue most often serves first; any
-# other provider names its own models, so there is no honest default to offer.
+# No default model: one machine's catalogue is no project's honest default, so a local server
+# needs the owner to name its model, and the validator says so.
 OPENCODE_MODEL:
   type: str
   help: >-
-    The model's ID as the server lists it at /v1/models (Ollama, for example, qwen3:30b).
-    For a hosted model, provider/model, or blank for OpenCode's own default.
-  default: "<% 'qwen3.6-35b-a3b' if OPENCODE_PROVIDER == 'llama-cpp' else '' %>"
-  when: "<% 'opencode' in AGENT_CLIENTS %>"
+    The model's ID. For a local server, the name it lists at /v1/models (Ollama, for example,
+    qwen3:30b). For a model you name, provider/model as OpenCode lists it.
+  default: ""
+  when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER != 'user' %>"
   validator: >-
-    <: if OPENCODE_PROVIDER != 'hosted' and not OPENCODE_MODEL :>
-    A local server needs the model's ID: the name it lists at /v1/models.
-    <: elif OPENCODE_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>
-    Use a model ID: letters, digits and . _ : / @ + - only, no spaces or quotation marks.
-    <: elif OPENCODE_PROVIDER == 'hosted' and OPENCODE_MODEL and '/' not in OPENCODE_MODEL :>
-    A hosted model is written provider/model, as OpenCode lists it (for example
-    anthropic/claude-sonnet-4-5), or left blank for OpenCode's own default.
-    <: endif :>
+    <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER != 'user' :><: if not OPENCODE_MODEL :>Name the model: a local server's ID as it lists it at /v1/models, or provider/model.<: elif OPENCODE_MODEL | reject('in', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:/@+-') | list | length > 0 :>Use a model ID: letters, digits and . _ : / @ + - only, no spaces or quotation marks.<: elif OPENCODE_PROVIDER == 'named' and '/' not in OPENCODE_MODEL :>Write a model you name as provider/model, as OpenCode lists it.<: endif :><: endif :>
 
 # Never larger than the server loads: OpenCode plans its context from this number, and a
-# figure above the server's makes long sessions fail rather than shrink.
+# figure above the server's makes long sessions fail rather than shrink. The defaults are a
+# safe floor per server, not a recommendation: 4096 is small for agent work.
 OPENCODE_CONTEXT:
   type: int
   help: >-
     The context length the server actually loads for this model, in tokens. Never more than
-    the server's setting. Ollama loads 4096 unless started with OLLAMA_CONTEXT_LENGTH (or a
-    model's num_ctx) at least this large.
-  default: "<% 262144 if OPENCODE_PROVIDER == 'llama-cpp' else 32768 %>"
-  when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER != 'hosted' %>"
+    the server's setting: raise the server's own setting and this number together. Ollama's
+    default depends on the GPU's memory (4k, 32k or 256k) unless OLLAMA_CONTEXT_LENGTH or a
+    model's num_ctx sets it.
+  default: "<% {'llama-cpp': 262144, 'ollama': 4096, 'lmstudio': 4096, 'vllm': 32768}.get(OPENCODE_PROVIDER, 32768) %>"
+  when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] %>"
   validator: >-
-    <: if OPENCODE_CONTEXT | int < 1024 or OPENCODE_CONTEXT | int > 10000000 :>
-    Use the server's context length in tokens, from 1024 to 10000000.
-    <: endif :>
+    <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] and (OPENCODE_CONTEXT | int < 1024 or OPENCODE_CONTEXT | int > 10000000) :>Use the server's context length in tokens, from 1024 to 10000000.<: endif :>
+# END family-shared questions (D48)
 
 TIMEZONE:
   type: str
@@ -1368,6 +1402,12 @@ _message_before_update: |
   you created there into the new families where the destination is free, and lists anything
   it left behind and every file that still names an old folder. The old folders' signposts
   are deleted even where you edited them; your lines remain in git history.
+
+  A project created before agent clients were added records none on this update: the
+  question defaults to none there, and an update never writes a client's files. Pass
+  --data "AGENT_CLIENTS=[...]" (for example [codex, opencode]) to record the clients you use,
+  then follow .claude/syntek-author-agents.md to add their files. Scripted updates need
+  --defaults.
 
   Every project, updating from v0.2.0 or earlier: the ledger now records each section's
   original and every revision, with who made it, and make compare prints them. Sections

@@ -31,6 +31,8 @@ AGENT_CLIENTS:
   - codex
   - opencode
 CODEX_MODEL: ""
+# A local Ollama server. 32768 is above Ollama's safe floor of 4096, so the server must be
+# started with OLLAMA_CONTEXT_LENGTH (or the model's num_ctx) at least this large.
 OPENCODE_PROVIDER: ollama
 OPENCODE_BASE_URL: http://127.0.0.1:11434/v1
 OPENCODE_MODEL: qwen3:30b

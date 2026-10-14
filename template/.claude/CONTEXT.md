@@ -14,9 +14,9 @@ which is which.
 ├── MEMORY.md               ← project memory: facts, decisions, feedback, status (read second; yours)
 ├── settings.json           ← model, permissions, the PreCompact hook (yours)
 ├── settings.local.json     ← your machine-only overrides, if any (git-ignored; never committed)
-<: if 'antigravity' in AGENT_CLIENTS :>├── mcp_config.json         ← Antigravity's MCP servers (yours; written once)
-<: endif :><: if AGENT_CLIENTS | length > 0 :>├── syntek-author-agents.md ← the bridge for Codex, Gemini CLI, Antigravity and OpenCode (template-owned)
-<: endif :>├── hooks/                  ← pre-compact-handoff.sh (template-owned) and its pair (yours)
+├── syntek-author-agents.md       ← the bridge for Codex, Gemini CLI, Antigravity and OpenCode (template-owned)
+├── syntek-author-permissions.py  ← passes settings.json's denies and asks to the other clients' files (template-owned)
+├── hooks/                  ← pre-compact-handoff.sh (template-owned) and its pair (yours)
 ├── rules/                  ← rules loaded at launch, one folder per template (no pair here)
 │   └── syntek-author/      ← the template's rules, loaded at launch
 │       ├── 00-project.md   ← this project's settings: brief, paths, memory headings, aliases, overrides (yours)
@@ -52,10 +52,13 @@ which is which.
   short allow and deny list. It is committed and shared; personal overrides belong in
   `settings.local.json`.
 - `hooks/` and `skills/` — see each folder's own `CONTEXT.md`.
-<: if AGENT_CLIENTS | length > 0 :>- `syntek-author-agents.md` — how the other coding agents reach this folder: the read order
-  they must follow by hand, the skill link `.agents`, the model tiers and each client's setup.
-  Template-owned and updated; Claude Code never needs it.
-<: endif :>
+- `syntek-author-agents.md` — how the other coding agents reach this folder: the read order
+  they must follow by hand, the `skills` link in `.agents`, the model tiers, each client's
+  setup and how to add a client later. Template-owned and updated; Claude Code never needs it.
+- `syntek-author-permissions.py` — run with `python3` (3.11 or later): `--check` reports which
+  of `settings.json`'s denies and asks each other client's file carries, and `--write` adds the
+  missing ones to client files that already exist. Template-owned; it never creates a file.
+
 ## Cross-references
 
 - `.claude/rules/syntek-author/00-project.md` — this project's settings.

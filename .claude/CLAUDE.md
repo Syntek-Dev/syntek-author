@@ -1,6 +1,6 @@
 # CLAUDE.md — syntek-author (template development)
 
-**Last Updated**: 04/10/2026 **Version**: 0.3.0 **Maintained By**: Syntek Studio
+**Last Updated**: 14/10/2026 **Version**: 0.3.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB) **Timezone**: Europe/London
 
 @../CONTEXT.md
@@ -31,10 +31,10 @@ Claude Code loads a nested `.claude/skills/` the first time a session reads a fi
 
 - **Layer 1 — `.claude/settings.json` denies `Skill(<name>)` for every skill under `template/.claude/skills/`.** An unqualified deny also blocks the nested `template:<name>` form.
 - **Layer 2 — `claudeMdExcludes`** keeps `template/**/CLAUDE.md` and everything under `template/.claude/` out of this session's memory.
-- **Never invoke a template skill.** If one appears invocable (listed as `template:<name>`), the deny list has a gap: stop and report it rather than using it.
+- **Never invoke a template skill.** Claude Code may list the product's skills as available, scoped to `template/`, from the start of a session or once it reads a file there, under their plain names ('from template/.claude/skills') or as `template:<name>`. A listing is expected; the `Skill(<name>)` deny must still refuse them. Never invoke one. If one ever runs, or a template skill has no deny line, the deny list has a gap: stop and report it.
 - **Adding a skill to the template means adding its deny line and its `.codex/config.toml` entry.** That is a change to this repository's permission settings, so it is the maintainer's to make or approve; propose the exact lines.
-- **Codex, Gemini CLI, Antigravity and OpenCode (D47):** root `AGENTS.md` and `GEMINI.md` route to this manual; `.agents` links to this development `.claude/`, which holds no skills, never the product's. `.codex/config.toml` lists every product skill's `SKILL.md` as disabled and sets no `CLAUDE.md` fallback, but Codex honours that list only from the user config, so it is a snippet to copy there. **Start every session at the repository root, never inside `template/`:** every client finds project skills, and Codex its project config, only between the root and the working directory, and the root's `.agents` exposes no skill. Gemini CLI, Antigravity and OpenCode may still load the guarded `template/AGENTS.md` or `template/GEMINI.md` when they read files there; those files send a development session back here.
-- `.github/scripts/dev-isolation.sh` proves the Claude layers and the other clients' isolation on every push.
+- **Codex, Gemini CLI, Antigravity and OpenCode (D47):** root `AGENTS.md` and `GEMINI.md` route to this manual. **Start every session at the repository root, never inside `template/`.** Every client finds project skills, and Codex its project config, only between the root and the working directory; the root has no `.agents`, so a session started there finds no product skill, while one started under `template/` loads them all through `template/.agents`. Codex honours `[[skills.config]]` only from the user config and `-c` flags, never from a project file, so the root `.codex/config.toml` (every product skill's `SKILL.md` disabled, no `CLAUDE.md` fallback) is a snippet to copy there, not a guard; neither is the parse failure of the unrendered `template/.codex/config.toml`, which stops only a trusted checkout. Never add a root `.agents`: a link there also breaks Codex's Linux sandbox. Gemini CLI, Antigravity and OpenCode may still load `template/AGENTS.md` or `template/GEMINI.md` when they read files there; those files send a session in the `template/` folder of a Copier development repository to its root `AGENTS.md`.
+- `.github/scripts/dev-isolation.sh` proves the Claude layers, the root's lack of a `.agents` and that this start-at-the-root rule is written here and in root `AGENTS.md`, on every push.
 
 ## 4. Token discipline
 
@@ -51,6 +51,7 @@ Every file under `template/` is rendered (`_templates_suffix: ""`) with the hous
 - **Variant tokens and `<: if :>` blocks appear only in the spine set** (DESIGN.md Section 2): the root spine (`.claude/CLAUDE.md`, `.claude/rules/syntek-author/*.md`, root `CONTEXT.md`, `README.md`, `Makefile`, `tooling/defaults.yaml`, `.claude/settings.json`); every seed, seed-once example and copy-only shared file (D47); and **index files**. Variant tokens are `DOC_TYPE`, `CONTENT_LAYER`, `UNIT_NOUN`, `FICTION_GENRE`, every `INCLUDE_*`, `AUDIENCE`, `READER_TEST` and every other variant answer.
 - **An index file** is a `CONTEXT.md` or `CLAUDE.md` whose folder holds gated children. It wraps each gated row, tree line or cross-reference in `<: if GATE :>…<: endif :>`, where `GATE` is the exact string of DESIGN.md Section 3.5 — the same string `copier.yml` negates for that path — so no shipped file names a path that is absent from its variant.
 - **Every other shipped file is shared and byte-identical** in every variant that ships it. Put a variant difference in a gated file or a mode file, never in a conditional. A shared file says "the content layer (see `.claude/rules/syntek-author/01-layout-and-routing.md`)"; the mode file names the path. `byte-identity.sh` enforces this.
+- **Family-shared files (D48) carry only the seven D47 keys.** `AGENTS.md`, `GEMINI.md`, `.agents/`, the `.codex/` and `.gemini/` files, `opencode.json`, `.mcp.json` and `.claude/syntek-author-permissions.py` are byte-identical in every family template: no identity, locale, `DOC_TYPE` or `INCLUDE_*` token, and no path only this template ships (say 'every `.claude/syntek-*-agents.md`'). Anything syntek-author-only goes in the bridge.
 - **Never put a token inside `_…_` emphasis.** Prettier rewrites the underscores and the token stops rendering.
 - **Never write a delimiter you do not mean.** A guide that must show one wraps it in `<: raw :>…<: endraw :>`; otherwise rephrase.
 
@@ -63,7 +64,7 @@ Every file under `template/` is rendered (`_templates_suffix: ""`) with the hous
 
 ## 6. House formats (the owner is `DESIGN.md`; this is the checklist)
 
-- **Every directory under `template/` has a `CONTEXT.md` and `CLAUDE.md` pair**, except `build/`, `.claude/rules/`, the inside of each skill folder, each `drafts/` and each `typeset/src/units/.base/` (which carry only `README.md`).
+- **Every directory under `template/` has a `CONTEXT.md` and `CLAUDE.md` pair**, except `build/`, `.claude/rules/`, `.agents/` (a client-discovery folder: a link and a client config, D47), the inside of each skill folder, each `drafts/` and each `typeset/src/units/.base/` (which carry only `README.md`).
 - **Metadata header** on guides, standards, STEPS, CHECKLIST and registers: `**Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>`, then `**Language**: British English (en_GB)`.
 - **Workflow folders** hold `CONTEXT.md`, `CLAUDE.md`, `STEPS.md` and `CHECKLIST.md`, with routing frontmatter (`workflow`, `phase`, `skills`, `model`; no `agent` key). STEPS steps open `> **Skill:** … · **Guide:** …` and end `_Substantive._` or `_Mechanical._`; CHECKLIST items end ` · _opus_` or ` · _sonnet_`.
 - **Guides** follow DESIGN.md Section 4.4 (54–82 lines). **Skills** follow DESIGN.md Section 5, moded skills carry the mode paragraph verbatim, and mode files use the four H2s of D6.
@@ -102,11 +103,20 @@ Never type a line in that block; `--check` fails CI when the block and the files
 
 **7.5 Add a seed.** Add it to DESIGN.md Section 3.1 and to `_skip_if_exists` in `copier.yml`, **anchored with a leading slash** (an unanchored name matches at every depth and would freeze template-owned files of the same name). Ship it empty of entries. A variant seed also needs its `_exclude` line.
 
-**7.6 Add a question.** Add it to DESIGN.md Section 2 and to `copier.yml` in its group: an `UPPER_SNAKE` key, `>-` help written to the person answering, a validator as `<: if bad :>message<: endif :>`, and `when:` with its `DOC_TYPE` test if it is variant-dependent. A default must never open a gate in a variant that hides the question. Then add a row to the questions table in `README.md`.
+**7.6 Add a question.** Add it to DESIGN.md Section 2 and to `copier.yml` in its group: an `UPPER_SNAKE` key, `>-` help written to the person answering, a validator as `<: if bad :>message<: endif :>`, and `when:` with its `DOC_TYPE` (or client) test if it is variant-dependent. A default must never open a gate in a variant that hides the question: Copier validates and renders a hidden question's default, settings value or `--data` value, so its validator and every gate or content block that reads it open with its `when` test (DESIGN.md Section 2). Never test `_copier_operation` in a default, validator or `when`. Then add a row to the questions table in `README.md`.
 
 **7.7 Rename or move a folder.** Do not, if it can hold author work: names and numbers are frozen. If a release must, it ships a version-keyed migration in the same commit (`copier.yml`, under `_migrations`, has the house shape). The same applies when a release changes what a seed must contain.
 
-**7.8 Add a copy-only shared path** (DESIGN.md Section 3.6, D47). Three `copier.yml` lines: an anchored `_skip_if_exists` line, `"<: if _copier_operation == 'update' :>/path<: endif :>"` in `_exclude`, and its gate if it is per-client. Add it to Section 3.6, to `SA_COPY_ONLY` in `.github/scripts/_common.sh` (which `shipped-seeds.sh`, `coexist-test.sh` and `update-test.sh` read), and to the bridge's 'Enabling a client' list. It is spine: it may carry the D47 answers. A new link needs `_preserve_symlinks` (on) and a check that it is a link, never a copy.
+**7.8 Add a copy-only shared path** (DESIGN.md Section 3.6, D47). Three `copier.yml` lines: an anchored `_skip_if_exists` line, `"<: if _copier_operation == 'update' :>/path<: endif :>"` in `_exclude`, and its gate if it is per-client. Add it to Section 3.6, to `SA_COPY_ONLY` in `.github/scripts/_common.sh` (which `shipped-seeds.sh`, `coexist-test.sh` and `update-test.sh` read), and to the bridge's 'Enabling a client' list. It is spine: it may carry the D47 answers, and only those (D48). A new link needs `_preserve_symlinks` (on) and a check that it is a link, never a copy. Then follow 7.9: every copy-only path is family-shared.
+
+**7.9 Change a family-shared file or question (D48).** Edit the source, or the `copier.yml` block between `# BEGIN family-shared questions (D48)` and `# END family-shared questions (D48)` (the seven D47 questions and their comments, nothing else), then regenerate the manifest and check it:
+
+```bash
+bash .github/scripts/family-shared.sh --write
+bash .github/scripts/family-shared.sh
+```
+
+A companion template vendors these bytes, so say in the `CHANGELOG.md` entry that it must refresh them. The permissions script (D49) is one of them: it names no template, and each template ships it under its own name.
 
 ## 8. Before you commit
 

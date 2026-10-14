@@ -1,12 +1,15 @@
-# Codex's project settings (written once by syntek-author; yours from now on).
+# Codex's project settings (written once by a syntek template; yours from now on).
 # Codex loads this file only after you trust the project.
 # Started inside a folder, Codex reads that folder's and its parents' CLAUDE.md where there is
-# no AGENTS.md. It reads them once, at the start: the bridge has every other folder read by hand.
+# no AGENTS.md. It reads them once, at the start: every .claude/syntek-*-agents.md has every
+# other folder read by hand.
 project_doc_fallback_filenames = ['CLAUDE.md']
-<: if CODEX_MODEL :>
-# The substantive tier (.claude/rules/syntek-author/05-model-allocation.md).
+<: if 'codex' in AGENT_CLIENTS and CODEX_MODEL :>
+# The substantive tier (the model-allocation rules in .claude/).
 model = '<%CODEX_MODEL%>'
 <: endif :>
 # MCP servers use Codex's own TOML format ([mcp_servers.<name>]); authenticate locally.
+# To carry .claude/settings.json's ask rules to a server declared here, run any one of the
+# .claude/syntek-*-permissions.py scripts with --write (they are the same script).
 # This file sets no trust level, no permission bypass and no credentials. A local model for
-# Codex is a user-level setting: Codex refuses model_provider in a project file.
+# Codex is a user-level setting: Codex ignores model_provider in a project file (with a warning).

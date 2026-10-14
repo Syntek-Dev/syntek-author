@@ -64,7 +64,7 @@ or it was added by the steps in `.claude/syntek-author-agents.md`.
 <: if 'codex' in AGENT_CLIENTS :>| Codex | <: if CODEX_MODEL :>`<%CODEX_MODEL%>`<: else :>Codex's own default<: endif :> | `config.toml` in `.codex` |
 <: endif :><: if 'gemini-cli' in AGENT_CLIENTS :>| Gemini CLI | <: if GEMINI_MODEL :>`<%GEMINI_MODEL%>`<: else :>Gemini CLI's own default<: endif :> | `settings.json` in `.gemini` |
 <: endif :><: if 'antigravity' in AGENT_CLIENTS :>| Antigravity | chosen in the app | Antigravity |
-<: endif :><: if 'opencode' in AGENT_CLIENTS :>| OpenCode | <: if OPENCODE_PROVIDER != 'hosted' :>`<%OPENCODE_MODEL%>` on <%OPENCODE_PROVIDER%> at <%OPENCODE_BASE_URL%>, <%OPENCODE_CONTEXT%> tokens of context<: elif OPENCODE_MODEL :>`<%OPENCODE_MODEL%>`<: else :>OpenCode's own default<: endif :> | `opencode.json` |
+<: endif :><: if 'opencode' in AGENT_CLIENTS :>| OpenCode | <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] :>`<%OPENCODE_MODEL%>` on <%OPENCODE_PROVIDER%> at <% OPENCODE_BASE_URL.rstrip('/') %>, <%OPENCODE_CONTEXT%> tokens of context<: elif 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER == 'named' :>`<%OPENCODE_MODEL%>`<: else :>your own OpenCode settings<: endif :> | <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER == 'user' :>outside this project<: else :>`opencode.json`<: endif :> |
 <: endif :>
 This table follows the project's answers and is updated with this file. The client files are
 written once and are the owner's: after a change of answer, change the client file to match.

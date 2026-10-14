@@ -27,20 +27,34 @@
 #                         "**/template/.claude/**".
 #
 #                    Codex, Gemini CLI, Antigravity and OpenCode (DESIGN.md D47) read none of
-#                    those settings. They find skills under .agents/skills and read AGENTS.md
-#                    or GEMINI.md, so the root carries its own development entrypoints, an
-#                    .agents link to this development .claude/ (which holds no skills), and a
-#                    .codex/config.toml that disables every product skill by path:
-#                      5. The root .codex/config.toml exists and is valid TOML.
-#                      6. Every skill folder under template/.claude/skills/ is disabled there
+#                    those settings. They find project skills under .agents/skills, and Codex its
+#                    project config, only between the repository root and the folder a session
+#                    starts in, so what isolates every one of them is a session STARTED AT THE
+#                    ROOT, where no .agents exposes a skill. A session started under template/
+#                    loads every product skill through template/.agents, and nothing here can
+#                    stop that: Codex reads [[skills.config]] only from the USER config and -c
+#                    flags, never from a project file, and the parse failure of the unrendered
+#                    template/.codex/config.toml stops only a trusted checkout. So the root's
+#                    .codex/config.toml is a documented snippet for the maintainer's user config,
+#                    not a guard, and the checks say so:
+#                      5. The root .codex/config.toml (the user-config snippet) exists and is
+#                         valid TOML.
+#                      6. The snippet disables every skill folder under template/.claude/skills/
 #                         as [[skills.config]] path = '../template/.claude/skills/<name>/SKILL.md',
-#                         enabled = false. Codex honours that list only from the USER config, so
-#                         the file is the maintainer's snippet; what isolates every client is a
-#                         session started at the root, where .agents (check 8) exposes no skill.
+#                         enabled = false — complete, so a maintainer who copies it misses none.
+#                         It proves nothing about a session; check 9 does the work.
 #                      7. It sets no project_doc_fallback_filenames: a CLAUDE.md fallback would
 #                         load the product's manuals as development instructions.
-#                      8. Root AGENTS.md and GEMINI.md exist, the root .agents is a link to
-#                         exactly .claude, and the root .claude/ holds no skills/ folder.
+#                      8. Root AGENTS.md and GEMINI.md exist; the root has no .agents at all (a
+#                         link there also breaks Codex's Linux sandbox, and a folder would be a
+#                         skill path); and the root .claude/ holds no skills/ folder.
+#                      9. The rule that does the work is written down: "Start every session at
+#                         the repository root" in .claude/CLAUDE.md and in root AGENTS.md.
+#                     10. Optional, when codex is installed: `codex debug prompt-input` at the
+#                         root, with a scratch CODEX_HOME and HOME and no network (unshare -rn),
+#                         lists no skill root inside this repository. Skipped, by name, when
+#                         codex or a network namespace is unavailable; never `codex doctor`,
+#                         which contacts the network.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -49,12 +63,15 @@
 #                    needs a live session (`claude -p` asked to list its skills inside
 #                    template/), which needs credentials CI does not hold; run that probe by hand
 #                    after any Claude Code upgrade that touches skill discovery. The same holds
-#                    for Codex's skill list, Gemini CLI's `/skills list` and OpenCode's skills.
+#                    for Gemini CLI's `/skills list` and OpenCode's skills; Codex's list is
+#                    check 10, where codex is installed. Nor can it stop a session that starts
+#                    under template/: that is the documented rule of check 9.
 #
 # SELF-TEST. --self-test writes a fixture repository at runtime, proves it clean, then applies
 #            one mutation per check and asserts exactly one finding each.
 #
-# Requirements: bash 4+, python3 3.11+ (tomllib). No network.
+# Requirements: bash 4+, python3 3.11+ (tomllib). No network. codex and unshare optional
+#               (check 10).
 #
 # Usage: dev-isolation.sh [--root DIR] [--quiet] [--self-test] [--help]
 #
@@ -99,7 +116,35 @@ SETTINGS="$SA_ROOT/.claude/settings.json"
 SKILLS="$SA_ROOT/template/.claude/skills"
 CODEX="$SA_ROOT/.codex/config.toml"
 EXCLUDES=("**/template/**/CLAUDE.md" "**/template/.claude/**")
+ROOT_RULE="Start every session at the repository root"
+ROOT_RULE_FILES=".claude/CLAUDE.md AGENTS.md"
+CODEX_BIN="${CODEX_BIN:-codex}"
 ON_DISK=0
+NOTES=()
+
+# Check 10's probe: the skill roots `codex debug prompt-input` lists for a session started at
+# $1, one per line, in a scratch CODEX_HOME and HOME with no network. Returns 3 when the probe
+# cannot run (no codex, no network namespace), with the reason on stdout.
+codex_skill_roots() { # $1 = directory to start in
+  local scratch out status=0
+  command -v "$CODEX_BIN" >/dev/null 2>&1 || { echo "codex is not installed"; return 3; }
+  unshare -rn true 2>/dev/null || { echo "no unprivileged network namespace (unshare -rn) to keep codex off the network"; return 3; }
+  scratch="$(sa_mktemp)"; mkdir -p "$scratch/home" "$scratch/tmp"
+  out="$(cd "$1" && CODEX_HOME="$scratch/home" HOME="$scratch/home" TMPDIR="$scratch/tmp" \
+         timeout 120 unshare -rn "$CODEX_BIN" debug prompt-input 2>/dev/null)" || status=$?
+  rm -rf "$scratch"
+  [[ "$status" -eq 0 ]] || { echo "codex debug prompt-input exited $status"; return 3; }
+  printf '%s' "$out" | python3 -c '
+import json, re, sys
+try:
+    text = json.dumps(json.load(sys.stdin))
+except Exception:
+    print("its output is not JSON"); sys.exit(3)
+roots = re.findall(r"`r[0-9]+` = `([^`]+)`", text)
+if not roots:
+    print("it listed no skill root to read"); sys.exit(3)
+print("\n".join(roots))'
+}
 
 # Prints "D<TAB>entry" per deny entry and "X<TAB>pattern" per claudeMdExcludes entry, or
 # "E<TAB>reason" when the file is not valid JSON.
@@ -184,10 +229,31 @@ run_checks() {
   fi
   [[ -f "$SA_ROOT/AGENTS.md" ]] || finding "check 8 — there is no root AGENTS.md — Codex and OpenCode get no development instructions"
   [[ -f "$SA_ROOT/GEMINI.md" ]] || finding "check 8 — there is no root GEMINI.md — Gemini CLI and Antigravity get no development instructions"
-  if [[ ! -L "$SA_ROOT/.agents" || "$(readlink "$SA_ROOT/.agents")" != .claude ]]; then
-    finding "check 8 — the root .agents is not a link to .claude — the other clients' skill path is not the development tree"
+  if [[ -L "$SA_ROOT/.agents" ]]; then
+    finding "check 8 — the root .agents is a link (to $(readlink "$SA_ROOT/.agents")) — it breaks Codex's Linux sandbox and does no isolation work; remove it"
+  elif [[ -e "$SA_ROOT/.agents" ]]; then
+    finding "check 8 — the root has a .agents folder — a skill path at the root, where every development session starts; remove it"
   fi
-  [[ ! -e "$SA_ROOT/.claude/skills" ]] || finding "check 8 — the root .claude/ holds a skills/ folder — .agents would expose it to every client"
+  [[ ! -e "$SA_ROOT/.claude/skills" ]] || finding "check 8 — the root .claude/ holds a skills/ folder — Claude Code would load it in every development session"
+
+  local f
+  for f in $ROOT_RULE_FILES; do
+    grep -qiF "$ROOT_RULE" "$SA_ROOT/$f" 2>/dev/null \
+      || finding "check 9 — $f does not say \"$ROOT_RULE\" — the one rule that keeps product skills out of Codex, Gemini CLI, Antigravity and OpenCode sessions is not written down"
+  done
+
+  local roots status=0 r
+  roots="$(codex_skill_roots "$SA_ROOT")" || status=$?
+  if [[ "$status" -eq 3 ]]; then
+    NOTES+=("check 10 skipped — $roots")
+  else
+    while IFS= read -r r; do
+      [[ -z "$r" ]] && continue
+      [[ "$r" == "$SA_ROOT"/* || "$r" == "$SA_ROOT" ]] \
+        && finding "check 10 — a Codex session started at the root loads skills from ${r#"$SA_ROOT"/} — product skills reach development sessions"
+    done <<< "$roots"
+  fi
+  return 0
 }
 
 self_test() {
@@ -198,8 +264,20 @@ self_test() {
   trap "rm -rf '$tmp'" RETURN
   SA_ROOT="$tmp"; SETTINGS="$tmp/.claude/settings.json"; SKILLS="$tmp/template/.claude/skills"
   CODEX="$tmp/.codex/config.toml"
-  mkdir -p "$tmp/.claude" "$tmp/.codex" "$SKILLS/draft-section" "$SKILLS/grill-me"
-  printf '# dev\n' > "$tmp/AGENTS.md"; printf '# dev\n' > "$tmp/GEMINI.md"; ln -s .claude "$tmp/.agents"
+  mkdir -p "$tmp/.claude" "$tmp/.codex" "$SKILLS/draft-section" "$SKILLS/grill-me" "$tmp/bin"
+  printf '# dev\n\nStart every session at the repository root, never inside template/.\n' > "$tmp/AGENTS.md"
+  printf '# dev\n' > "$tmp/GEMINI.md"
+  printf '# CLAUDE.md\n\n**Start every session at the repository root.**\n' > "$tmp/.claude/CLAUDE.md"
+  # A stand-in for codex (check 10): it lists the system skill root, and a product skill root
+  # when STUB_LEAK is set. The real one is probed on the real root, where it is installed.
+  cat > "$tmp/bin/codex" <<'STUB'
+#!/usr/bin/env bash
+roots='- `r0` = `'"$CODEX_HOME"'/skills/.system`'
+[ -n "${STUB_LEAK:-}" ] && roots="$roots"'\n- `r1` = `'"$PWD"'/template/.claude/skills`'
+printf '[{"type": "message", "content": [{"text": "### Skill roots\\n%s"}]}]\n' "$roots"
+STUB
+  chmod +x "$tmp/bin/codex"
+  local real_codex="$CODEX_BIN"; CODEX_BIN="$tmp/bin/codex"; export STUB_LEAK=""
   write_codex() { # $1 = skill to leave enabled, $2 = extra TOML
     { printf '%s\n' "$2"
       for s in draft-section grill-me; do
@@ -235,8 +313,20 @@ self_test() {
   write_codex "" ""
   rm "$tmp/GEMINI.md";                                                probe "check 8 fires without a development GEMINI.md" "check 8 — there is no root GEMINI.md"
   printf '# dev\n' > "$tmp/GEMINI.md"
-  rm "$tmp/.agents"; ln -s template/.claude "$tmp/.agents";          probe "check 8 fires when .agents points at the product" "check 8 — the root .agents"
-  rm "$tmp/.agents"; ln -s .claude "$tmp/.agents"
+  ln -s .claude "$tmp/.agents";                                      probe "check 8 fires on a root .agents link" "check 8 — the root .agents is a link"
+  rm "$tmp/.agents"; mkdir -p "$tmp/.agents";                         probe "check 8 fires on a root .agents folder" "check 8 — the root has a .agents folder"
+  rmdir "$tmp/.agents"
+  printf '# dev\n' > "$tmp/AGENTS.md";                                 probe "check 9 fires when AGENTS.md drops the start-at-the-root rule" "check 9 — AGENTS.md"
+  printf '# dev\n\nStart every session at the repository root, never inside template/.\n' > "$tmp/AGENTS.md"
+  printf '# dev\n' > "$tmp/.claude/CLAUDE.md";                         probe "check 9 fires when the manual drops the start-at-the-root rule" "check 9 — .claude/CLAUDE.md"
+  printf '# CLAUDE.md\n\n**Start every session at the repository root.**\n' > "$tmp/.claude/CLAUDE.md"
+  if unshare -rn true 2>/dev/null; then
+    STUB_LEAK=1;                                                      probe "check 10 fires when Codex lists a product skill root" "check 10 — a Codex session started at the root loads skills from template/.claude/skills"
+    STUB_LEAK=""
+  else
+    log "  - check 10's probe skipped: no unprivileged network namespace (unshare -rn) here"
+  fi
+  CODEX_BIN="$real_codex"
 
   SA_ROOT="$real_root"; SETTINGS="$SA_ROOT/.claude/settings.json"; SKILLS="$SA_ROOT/template/.claude/skills"
   CODEX="$SA_ROOT/.codex/config.toml"
@@ -251,8 +341,9 @@ fi
 
 bold "▸ $SCRIPT_NAME"
 run_checks
+for n in "${NOTES[@]}"; do log "  - $n"; done
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
-  bold "✓ $ON_DISK template skill(s) on disk, every catalogued skill denied, both CLAUDE.md exclusions present; every skill disabled for Codex; development entrypoints and .agents in place."
+  bold "✓ $ON_DISK template skill(s) on disk, every catalogued skill denied, both CLAUDE.md exclusions present; the Codex user-config snippet complete; development entrypoints in place, no root .agents, and the start-at-the-root rule written down."
   exit 0
 fi
 bold "✗ ${#FINDINGS[@]} finding(s):"
@@ -260,5 +351,6 @@ print_findings
 log ""
 log "  Add Skill(<name>) to permissions.deny in the ROOT .claude/settings.json (never the one"
 log "  under template/, which ships), and a [[skills.config]] entry (path .../<name>/SKILL.md,"
-log "  enabled = false) to the root .codex/config.toml."
+log "  enabled = false) to the root .codex/config.toml, the snippet for the user config. Start"
+log "  every session at the repository root; never add a root .agents."
 exit 1

@@ -78,17 +78,46 @@
 #                  Copy-only agent files (DESIGN.md D47, Section 3.6), in every DOC_TYPE: the
 #                  author edits AGENTS.md and deletes GEMINI.md and .codex/config.toml; the
 #                  template changes AGENTS.md, opencode.json and the bridge; the update answers
-#                  OPENCODE_MODEL anew.
+#                  OPENCODE_PROVIDER named and OPENCODE_MODEL anew.
 #                   24. The author's edit to AGENTS.md survives, and the template's change to it
 #                       never arrives: an update never renders a copy-only file.
 #                   25. The deleted GEMINI.md and .codex/config.toml stay deleted.
-#                   26. .agents is still a link to exactly .claude.
+#                   26. .agents is still a real folder, and .agents/skills still a link to
+#                       exactly ../.claude/skills (never a copy, and never a link at .agents,
+#                       which breaks Codex's Linux sandbox).
 #                   27. The template's change to .claude/syntek-author-agents.md (the bridge,
 #                       template-owned) arrives.
 #                   28. The new OPENCODE_MODEL answer reaches the model table in rules 05, and
 #                       opencode.json is byte for byte what the copy wrote.
 #                   29. Books: a project generated at v0.1.0, before D47, gains none of the
 #                       copy-only files from the upgrade: they arrive by a copy only.
+#                   30. A fresh copy with the defaults records all four clients in
+#                       AGENT_CLIENTS (codex, gemini-cli, antigravity, opencode).
+#
+#                  The update that first asks AGENT_CLIENTS (D47, Trap 1), in every DOC_TYPE: a
+#                  project copied at the last release before D47 (v0.3.0) is updated to the
+#                  working tree with --defaults, as a scripted update is.
+#                   31. The update succeeds and records `AGENT_CLIENTS: []`: the default reads
+#                       _external_data.prev._commit, so an existing project records no client
+#                       whose files it never received.
+#                   32. Rules 05 has no Section 4 (no other coding agent is named).
+#                   33. The bridge .claude/syntek-author-agents.md is present: it always ships.
+#                   34. No client file was created (every copy-only path, .agents, .codex/ and
+#                       .gemini/).
+#
+#                  An emptied client list (once per run, on the first DOC_TYPE): a project copied
+#                  with all four clients is updated with --data 'AGENT_CLIENTS=[]', and a clone
+#                  of it with opencode removed.
+#                   35. The update succeeds and deletes no file.
+#                   36. The bridge is still present, and AGENTS.md and GEMINI.md are byte for
+#                       byte what the copy wrote.
+#                   37. Only rules 01, rules 05 and the answers file changed.
+#                   38. Removing one client (opencode) drops exactly its row from rules 05 and
+#                       changes nothing else but the answers file.
+#                   39. A copy over a project that recorded `AGENT_CLIENTS: [codex]`, with
+#                       --defaults, no AGENT_CLIENTS in the data and no -a (as adopt.sh prints
+#                       it), keeps `[codex]`; with a value no longer a choice added to the
+#                       record (`cursor`), it keeps only `[codex]` instead of failing.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -96,7 +125,8 @@
 #
 #                  Numbers are stable identifiers. Append, never renumber.
 #
-#                  What it CANNOT check: an upgrade from any release but v0.1.0, or a migration
+#                  What it CANNOT check: an upgrade from any release but v0.1.0 (and v0.3.0 for
+#                  checks 31–34), or a migration
 #                  the update does not reach (a later release's script needs its own flow here,
 #                  written with the release that moves the folder: DESIGN.md D26, D44).
 #
@@ -106,10 +136,12 @@
 #            releases — v0.1.0 with the six old family folders and an audience and a reader
 #            test in .claude/CLAUDE.md Section 1, v0.2.0 with the families, the 00-project.md seed and
 #            the real migrations/v0.2.0-business-families.sh and v0.2.0-project-settings.sh —
-#            and both upgrades run for real.
+#            and both upgrades run for real. For checks 31–34 the fixture's v0.1.0, which
+#            predates its agent questions, stands in for v0.3.0.
 #
-# Requirements: bash 4+, git, rsync, uvx (or COPIER_CMD), and the v0.1.0 tag in the template
-#               repository (CI checks out with fetch-depth 0). Network on the first uvx run only.
+# Requirements: bash 4+, git, rsync, uvx (or COPIER_CMD), and the v0.1.0 and v0.3.0 tags in
+#               the template repository (CI checks out with fetch-depth 0). Network on the
+#               first uvx run only.
 #
 # Usage: update-test.sh [--root DIR] [--doc-type T[,T…]] [--quiet] [--self-test] [--help]
 #        --doc-type defaults to theology,fiction,business.
@@ -158,7 +190,9 @@ MEMORY_MARK="Update-test entry"
 STYLE_MARK="Update-test: an author's own style rule."
 TEMPLATE_MARK="<!-- update-test: a template change -->"
 AGENTS_MARK="Update-test: the author's own agent instruction."
-NEW_MODEL="update-test-model"
+# A model the owner names (OPENCODE_PROVIDER=named), so the answer reaches rules 05: under the
+# default provider, user, OPENCODE_MODEL is hidden and rules 05 names the user's own settings.
+NEW_MODEL="update-test/update-test-model"
 DOCTYPE_REFUSAL="DOC_TYPE cannot change on update"
 MESSAGE_MARK="Before you answer: turning an option off deletes"
 # What the warning must name: each option as `KEY=false`, and the family list by its key.
@@ -168,7 +202,13 @@ MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLAN
 DOC=""; PROJ=""; COPY_STATUS=0; UPDATE_STATUS=0; AUTHOR_FILE=""; AUTHOR_SUM=""; TARGET_REL=""
 UPDATE_LOG=""; SWITCH_STATUS=0; SWITCH_LOG=""; SWITCH_DIRTY=""; SWITCH_RECORDED=""
 DELETED=()
-CO_RAN=false; OPENCODE_SUM=""
+CO_RAN=false; OPENCODE_SUM=""; FRESH_CLIENTS=""
+ALL_CLIENTS="codex,gemini-cli,antigravity,opencode"
+RULES05=".claude/rules/syntek-author/05-model-allocation.md"
+RULES01=".claude/rules/syntek-author/01-layout-and-routing.md"
+BRIDGE=".claude/syntek-author-agents.md"
+# Every path a client brings: the copy-only files, the folders that hold them, and .agents.
+CLIENT_PATHS="$SA_COPY_ONLY .agents .codex .gemini"
 
 other_doc() { # the variant a DOC_TYPE change is attempted to
   case "$1" in theology) echo fiction ;; fiction) echo business ;; *) echo theology ;; esac
@@ -194,6 +234,7 @@ run_flow() { # $1 = template repo, $2 = DOC_TYPE, $3 = work dir — fills the st
   [[ "$COPY_STATUS" -eq 0 ]] || return 0
   [[ -d "$PROJ/.git" ]] || sa_git "$PROJ" init -q
   sa_git "$PROJ" add -A && sa_git "$PROJ" commit -q -m 'generated' >>"$log" 2>&1
+  FRESH_CLIENTS="$(answer_list AGENT_CLIENTS "$PROJ/$SA_ANSWERS_FILE" | paste -sd, -)"
 
   # The author at work.
   printf -- '- **01/01/2027** — **%s.** An author decision that must survive every update.\n' "$MEMORY_MARK" >> "$PROJ/.claude/MEMORY.md"
@@ -231,7 +272,10 @@ run_flow() { # $1 = template repo, $2 = DOC_TYPE, $3 = work dir — fills the st
   sa_git "$tpl" add -A && sa_git "$tpl" commit -q -m 'a template change' >>"$log" 2>&1
 
   local -a co_data=()
-  $CO_RAN && co_data=(--data "OPENCODE_MODEL=$NEW_MODEL")
+  if $CO_RAN; then
+    co_data=(--data "OPENCODE_MODEL=$NEW_MODEL")
+    grep -q '^OPENCODE_PROVIDER:' "$tpl/copier.yml" && co_data+=(--data "OPENCODE_PROVIDER=named")
+  fi
   sa_update "$PROJ" "${co_data[@]}" >"$UPDATE_LOG" 2>&1 || UPDATE_STATUS=$?
   cat "$UPDATE_LOG" >>"$log"
 
@@ -300,8 +344,11 @@ brief_value() { # $1 = 00-project.md, $2 = label → the value of that bullet un
     }' "$1" 2>/dev/null
 }
 
-# The real repository as a template with history: its tags (v0.1.0) and the working tree
-# committed on top, tagged with VERSION, so Copier sees a release to upgrade to.
+# The real repository as a template with history: its tags (v0.1.0, v0.3.0) and the working
+# tree committed on top, tagged with VERSION, so Copier sees a release to upgrade to. When
+# VERSION is already a release tag (unreleased work on top of it), that tag stays where the
+# release put it: Copier reads the untagged commit as a later version (v0.3.0-1-g…), and the
+# Trap 1 flow can still copy the real release.
 tagged_template() { # $1 = template repository, $2 = dest
   local src="$1" dest="$2" ver
   git -C "$src" rev-parse -q --verify "refs/tags/$MIGRATION_FROM" >/dev/null 2>&1 \
@@ -312,7 +359,9 @@ tagged_template() { # $1 = template repository, $2 = dest
   sa_git "$dest" add -A && sa_git "$dest" commit -q --allow-empty -m 'update-test: the working tree' || die "could not commit the working tree"
   ver="v$(tr -d '[:space:]' < "$dest/VERSION" 2>/dev/null)"
   [[ "$ver" != v ]] || die "no VERSION in $src"
-  sa_git "$dest" tag -f "$ver" >/dev/null
+  if ! git -C "$dest" rev-parse -q --verify "refs/tags/$ver" >/dev/null 2>&1; then
+    sa_git "$dest" tag "$ver" >/dev/null
+  fi
 }
 
 run_migration_flow() { # $1 = template repository WITH the two tags, $2 = work dir
@@ -448,7 +497,7 @@ set_checks() {
   got="$(brief_value "$SET_PROJ/$SETTINGS_FILE" "Reader test")"
   [[ "$got" == "$READER_FRESH" ]] \
     || finding "check 22 — [$SET_DOC] $SETTINGS_FILE ## Brief gives the reader test as '${got:-nothing}', not the one the author answered during the update ($READER_FRESH)"
-  for found in $SA_COPY_ONLY .codex .gemini; do
+  for found in $CLIENT_PATHS; do
     [[ -e "$SET_PROJ/$found" || -L "$SET_PROJ/$found" ]] \
       && finding "check 29 — [$SET_DOC] the upgrade from $MIGRATION_FROM created the copy-only $found — an update must never add one"
   done
@@ -456,6 +505,152 @@ set_checks() {
      || ! grep -F '.claude/CLAUDE.md:' "$SET_LOG" 2>/dev/null | grep -qF "$READER_HAND"; then
     finding "check 23 — [$SET_DOC] the settings migration did not report the older reader test in .claude/CLAUDE.md ('$READER_HAND') as a conflict with its file:line"
   fi
+}
+
+# ── The update that first asks AGENT_CLIENTS (D47 Trap 1, checks 31–34) ──────
+
+TRAP_FROM="v0.3.0"
+TRAP_RAN=false
+TRAP_DOC=""; TRAP_PROJ=""; TRAP_COPY_STATUS=0; TRAP_UPDATE_STATUS=0; TRAP_RECORDED=""
+
+run_trap_flow() { # $1 = template repository WITH the tag, $2 = work dir, $3 = DOC_TYPE
+  local tpl="$1" w="$2" log="$2/trap-flow.log"
+  TRAP_RAN=true; TRAP_DOC="$3"; TRAP_PROJ="$w/trap-proj"; TRAP_COPY_STATUS=0; TRAP_UPDATE_STATUS=0
+  TRAP_RECORDED=""
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref="$TRAP_FROM" \
+    --data "PROJECT_NAME=$SA_RENDER_NAME" --data "PROJECT_DESCRIPTION=$SA_RENDER_DESCRIPTION" \
+    --data "AUTHOR_NAME=$SA_RENDER_AUTHOR" --data "DATE=$SA_RENDER_DATE" --data "DOC_TYPE=$TRAP_DOC" \
+    "$tpl" "$TRAP_PROJ" </dev/null >>"$log" 2>&1 || TRAP_COPY_STATUS=$?
+  [[ "$TRAP_COPY_STATUS" -eq 0 ]] || return 0
+  [[ -d "$TRAP_PROJ/.git" ]] || sa_git "$TRAP_PROJ" init -q
+  sa_git "$TRAP_PROJ" add -A && sa_git "$TRAP_PROJ" commit -q -m "generated at $TRAP_FROM" >>"$log" 2>&1
+  # A scripted update: --defaults, no AGENT_CLIENTS given (sa_update passes --defaults).
+  sa_update "$TRAP_PROJ" >>"$log" 2>&1 || TRAP_UPDATE_STATUS=$?
+  TRAP_RECORDED="$(grep -E '^AGENT_CLIENTS:' "$TRAP_PROJ/$SA_ANSWERS_FILE" 2>/dev/null | head -1)"
+}
+
+trap_checks() {
+  local p
+  if [[ "$TRAP_COPY_STATUS" -ne 0 ]]; then
+    finding "check 31 — [$TRAP_DOC] the project did not render at $TRAP_FROM (exit $TRAP_COPY_STATUS)"
+    return 0
+  fi
+  if [[ "$TRAP_UPDATE_STATUS" -ne 0 ]]; then
+    finding "check 31 — [$TRAP_DOC] copier update --defaults from $TRAP_FROM failed (exit $TRAP_UPDATE_STATUS)"
+  elif [[ "$TRAP_RECORDED" != 'AGENT_CLIENTS: []' ]]; then
+    finding "check 31 — [$TRAP_DOC] the update from $TRAP_FROM recorded '${TRAP_RECORDED:-no AGENT_CLIENTS}', not 'AGENT_CLIENTS: []' — an existing project would record clients whose files it never received"
+  fi
+  grep -qE '^## 4\.' "$TRAP_PROJ/$RULES05" 2>/dev/null \
+    && finding "check 32 — [$TRAP_DOC] after the update from $TRAP_FROM, $RULES05 has a Section 4 — it names coding agents the project never chose"
+  [[ -f "$TRAP_PROJ/$BRIDGE" ]] \
+    || finding "check 33 — [$TRAP_DOC] after the update from $TRAP_FROM, the bridge $BRIDGE is missing — it always ships"
+  for p in $CLIENT_PATHS; do
+    [[ -e "$TRAP_PROJ/$p" || -L "$TRAP_PROJ/$p" ]] \
+      && finding "check 34 — [$TRAP_DOC] the update from $TRAP_FROM created $p — an update never adds a client's file"
+  done
+  return 0
+}
+
+# ── An emptied client list, and one client removed (checks 35–39) ─────────────
+
+CL_RAN=false
+CL_DOC=""; CL_PROJ=""; CL_ONE=""; CL_COPY_STATUS=0; CL_UPDATE_STATUS=0; CL_ONE_STATUS=0
+CL_PORCELAIN=""; CL_ONE_PORCELAIN=""; CL_ONE_DIFF=""
+CL_RE_STATUS=0; CL_RE_RECORDED=""; CL_RE_BAD_STATUS=0; CL_RE_BAD_RECORDED=""
+declare -A CL_SUMS=()
+
+run_clients_flow() { # $1 = template repository, $2 = work dir, $3 = DOC_TYPE
+  local src="$1" w="$2" tpl="$2/cl-tpl" log="$2/cl-flow.log" f
+  CL_RAN=true; CL_DOC="$3"; CL_PROJ="$w/cl-proj"; CL_ONE="$w/cl-one"
+  CL_COPY_STATUS=0; CL_UPDATE_STATUS=0; CL_ONE_STATUS=0; CL_PORCELAIN=""; CL_ONE_PORCELAIN=""; CL_ONE_DIFF=""
+  CL_SUMS=()
+  sa_snapshot "$src" "$tpl" >>"$log" 2>&1 || die "could not snapshot $src"
+  sa_render "$tpl" "$CL_PROJ" "$CL_DOC" --data "AGENT_CLIENTS=[$ALL_CLIENTS]" >>"$log" 2>&1 || CL_COPY_STATUS=$?
+  [[ "$CL_COPY_STATUS" -eq 0 ]] || return 0
+  [[ -d "$CL_PROJ/.git" ]] || sa_git "$CL_PROJ" init -q
+  sa_git "$CL_PROJ" add -A && sa_git "$CL_PROJ" commit -q -m 'generated with every client' >>"$log" 2>&1
+  for f in AGENTS.md GEMINI.md; do
+    [[ -f "$CL_PROJ/$f" ]] && CL_SUMS["$f"]="$(sum_of "$CL_PROJ/$f")"
+  done
+  git clone -q "$CL_PROJ" "$CL_ONE" >>"$log" 2>&1 || die "could not clone $CL_PROJ"
+
+  sa_update "$CL_PROJ" --data 'AGENT_CLIENTS=[]' >>"$log" 2>&1 || CL_UPDATE_STATUS=$?
+  CL_PORCELAIN="$(git -C "$CL_PROJ" status --porcelain 2>/dev/null)"
+
+  sa_update "$CL_ONE" --data 'AGENT_CLIENTS=[codex,gemini-cli,antigravity]' >>"$log" 2>&1 || CL_ONE_STATUS=$?
+  CL_ONE_PORCELAIN="$(git -C "$CL_ONE" status --porcelain 2>/dev/null)"
+  CL_ONE_DIFF="$(git -C "$CL_ONE" diff -U0 -- "$RULES05" 2>/dev/null | grep -E '^[-+][^-+]' || true)"
+
+  # Check 39: a copy over a project keeps its recorded clients (re-adoption).
+  local re="$w/cl-recopy"
+  CL_RE_STATUS=0; CL_RE_RECORDED=""; CL_RE_BAD_STATUS=0; CL_RE_BAD_RECORDED=""
+  sa_render "$tpl" "$re" "$CL_DOC" --data 'AGENT_CLIENTS=[codex]' >>"$log" 2>&1 || CL_RE_STATUS=$?
+  [[ "$CL_RE_STATUS" -eq 0 ]] || return 0
+  sa_render "$tpl" "$re" "$CL_DOC" --overwrite >>"$log" 2>&1 || CL_RE_STATUS=$?
+  CL_RE_RECORDED="$(answer_list AGENT_CLIENTS "$re/$SA_ANSWERS_FILE" | paste -sd, -)"
+  sed -i '/^AGENT_CLIENTS:/a - cursor' "$re/$SA_ANSWERS_FILE"
+  sa_render "$tpl" "$re" "$CL_DOC" --overwrite >>"$log" 2>&1 || CL_RE_BAD_STATUS=$?
+  CL_RE_BAD_RECORDED="$(answer_list AGENT_CLIENTS "$re/$SA_ANSWERS_FILE" | paste -sd, -)"
+}
+
+clients_checks() {
+  local line path f want
+  if [[ "$CL_COPY_STATUS" -ne 0 ]]; then
+    finding "check 35 — [$CL_DOC] the project with every client did not render (exit $CL_COPY_STATUS)"
+    return 0
+  fi
+  [[ "$CL_UPDATE_STATUS" -eq 0 ]] || finding "check 35 — [$CL_DOC] copier update --data 'AGENT_CLIENTS=[]' failed (exit $CL_UPDATE_STATUS)"
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    path="${line:3}"
+    case "${line:0:2}" in
+      *D*) finding "check 35 — [$CL_DOC] emptying AGENT_CLIENTS deleted $path — an update never removes a client's file" ;;
+    esac
+  done <<< "$CL_PORCELAIN"
+  [[ -f "$CL_PROJ/$BRIDGE" ]] || finding "check 36 — [$CL_DOC] emptying AGENT_CLIENTS removed the bridge $BRIDGE — it always ships"
+  for f in AGENTS.md GEMINI.md; do
+    want="${CL_SUMS[$f]:-}"
+    if [[ -z "$want" ]]; then finding "check 36 — [$CL_DOC] the copy with every client wrote no $f to compare"
+    elif [[ ! -f "$CL_PROJ/$f" || "$(sum_of "$CL_PROJ/$f")" != "$want" ]]; then
+      finding "check 36 — [$CL_DOC] emptying AGENT_CLIENTS changed $f — a copy-only entrypoint is the author's once written"
+    fi
+  done
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    path="${line:3}"
+    [[ "${line:0:2}" == *D* ]] && continue   # check 35's
+    case "$path" in
+      "$RULES01"|"$RULES05"|"$SA_ANSWERS_FILE") ;;
+      *) finding "check 37 — [$CL_DOC] emptying AGENT_CLIENTS changed $path — only rules 01, rules 05 and the answers file may change" ;;
+    esac
+  done <<< "$CL_PORCELAIN"
+  if [[ "$CL_ONE_STATUS" -ne 0 ]]; then
+    finding "check 38 — [$CL_DOC] copier update removing opencode from AGENT_CLIENTS failed (exit $CL_ONE_STATUS)"
+    return 0
+  fi
+  if [[ "$CL_ONE_DIFF" != '-| OpenCode |'* || "$(printf '%s\n' "$CL_ONE_DIFF" | grep -c .)" -ne 1 ]]; then
+    finding "check 38 — [$CL_DOC] removing opencode did not drop exactly its row from $RULES05 (changed lines: $(printf '%s' "$CL_ONE_DIFF" | tr '\n' ' ' | cut -c1-160))"
+  fi
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    path="${line:3}"
+    case "$path" in
+      "$RULES05"|"$SA_ANSWERS_FILE") ;;
+      *) finding "check 38 — [$CL_DOC] removing opencode changed $path — only its rules 05 row and the answers file may change" ;;
+    esac
+  done <<< "$CL_ONE_PORCELAIN"
+  if [[ "$CL_RE_STATUS" -ne 0 ]]; then
+    finding "check 39 — [$CL_DOC] a copy over a project that recorded [codex] failed (exit $CL_RE_STATUS)"
+  elif [[ "$CL_RE_RECORDED" != "codex" ]]; then
+    finding "check 39 — [$CL_DOC] a copy over a project that recorded [codex] recorded [${CL_RE_RECORDED}] — re-adoption must keep the recorded clients"
+  fi
+  if [[ "$CL_RE_BAD_STATUS" -ne 0 ]]; then
+    finding "check 39 — [$CL_DOC] a copy over a record holding a value no longer a choice failed (exit $CL_RE_BAD_STATUS)"
+  elif [[ "$CL_RE_BAD_RECORDED" != "codex" ]]; then
+    finding "check 39 — [$CL_DOC] a copy over a record of [codex, cursor] recorded [${CL_RE_BAD_RECORDED}], not [codex]"
+  fi
+  return 0
 }
 
 # A two-release fixture for the self-test: v0.1.0 with the six old family folders and an
@@ -473,12 +668,24 @@ mig_fixture() { # $1 = dest
   # Section 1 (a seed), with the reader test's note as v0.1.0 wrote it.
   printf '# CLAUDE.md — <%%PROJECT_NAME%%>\n\n## 1. Project\n\n- **Audience:** <%%AUDIENCE%%>\n- **Reader test** (every `comprehension` pass reads as this person): <%%READER_TEST%%>\n\n## 3. Project-specific rules\n' > "$t/template/.claude/CLAUDE.md"
   printf 'AUDIENCE:\n  type: str\n  default: invented general readers\nREADER_TEST:\n  type: str\n  default: an invented reader at the end of a working day\n' >> "$t/copier.yml"
-  # v0.1.0 predates D47: no agent entrypoints, link or client settings. The fixture's later
-  # release ships them, so check 29 proves an update across it never adds one.
+  # v0.1.0 predates D47: no agent question, entrypoint, link, client setting or bridge, and a
+  # rules 05 with no Section 4. The fixture's later release ships them, so check 29 proves an
+  # update across it never adds a client's file, and checks 31–34 (Trap 1) that the update
+  # which first asks AGENT_CLIENTS records none.
   mkdir -p "$t.held"
-  (cd "$t/template" && mv AGENTS.md GEMINI.md .agents .codex opencode.json "$t.held/")
+  (cd "$t/template" && mv AGENTS.md GEMINI.md .agents .codex opencode.json .claude/syntek-author-agents.md \
+     .claude/rules/syntek-author/05-model-allocation.md "$t.held/")
+  printf '# 05 — model allocation\n\n## 1. The two tiers\n' > "$t/template/$RULES05"
+  awk '/^# BEGIN fixture agent questions/ { on = 1 } !on { print } /^# END fixture agent questions/ { on = 0 }' \
+    "$t/copier.yml" > "$t.copier-v010"
+  awk '/^# BEGIN fixture agent questions/ { on = 1 } on { print } /^# END fixture agent questions/ { on = 0 }' \
+    "$t/copier.yml" > "$t.agent-questions"
+  cp "$t.copier-v010" "$t/copier.yml"
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture v0.1.0' && sa_git "$t" tag v0.1.0
-  (cd "$t.held" && mv AGENTS.md GEMINI.md .agents .codex opencode.json "$t/template/") && rmdir "$t.held"
+  (cd "$t.held" && mv AGENTS.md GEMINI.md .agents .codex opencode.json "$t/template/" \
+     && mv syntek-author-agents.md "$t/template/.claude/" \
+     && mv 05-model-allocation.md "$t/template/.claude/rules/syntek-author/") && rmdir "$t.held"
+  cat "$t.agent-questions" >> "$t/copier.yml"; rm -f "$t.copier-v010" "$t.agent-questions"
   sed -i 's#/library/src/proposals/drafts/example-proposal<#/library/src/business/drafts/example-proposal<#' "$t/copier.yml"
   mkdir -p "$t/template/library/src/business/drafts"
   mv "$t/template/library/src/proposals/drafts/example-proposal" "$t/template/library/src/business/drafts/"
@@ -513,6 +720,8 @@ run_checks() {
   $FLOW_RAN && flow_checks
   $MIG_RAN && mig_checks
   $SET_RAN && set_checks
+  $TRAP_RAN && trap_checks
+  $CL_RAN && clients_checks
   return 0
 }
 
@@ -560,8 +769,11 @@ flow_checks() {
     for e in GEMINI.md .codex/config.toml; do
       [[ -e "$PROJ/$e" ]] && finding "check 25 — [$DOC] the deleted copy-only $e came back on update"
     done
-    [[ -L "$PROJ/.agents" && "$(readlink "$PROJ/.agents")" == .claude ]] \
-      || finding "check 26 — [$DOC] .agents is no longer a link to .claude after the update"
+    if [[ -L "$PROJ/.agents" || ! -d "$PROJ/.agents" ]]; then
+      finding "check 26 — [$DOC] .agents is no longer a real folder after the update"
+    elif [[ ! -L "$PROJ/.agents/skills" || "$(readlink "$PROJ/.agents/skills")" != "$SA_AGENTS_LINK_TARGET" ]]; then
+      finding "check 26 — [$DOC] .agents/skills is no longer a link to $SA_AGENTS_LINK_TARGET after the update"
+    fi
     grep -qF "$TEMPLATE_MARK" "$PROJ/.claude/syntek-author-agents.md" 2>/dev/null \
       || finding "check 27 — [$DOC] the bridge .claude/syntek-author-agents.md did not take the template's change"
     grep -qF "$NEW_MODEL" "$PROJ/.claude/rules/syntek-author/05-model-allocation.md" 2>/dev/null \
@@ -569,6 +781,8 @@ flow_checks() {
     [[ "$(sha1sum < "$PROJ/opencode.json" 2>/dev/null)" == "$OPENCODE_SUM" ]] \
       || finding "check 28 — [$DOC] the update changed the copy-only opencode.json"
   fi
+  [[ "$FRESH_CLIENTS" == "$ALL_CLIENTS" ]] \
+    || finding "check 30 — [$DOC] a fresh copy with the defaults recorded AGENT_CLIENTS '${FRESH_CLIENTS:-none}', not $ALL_CLIENTS"
   if ! grep -qF "$MESSAGE_MARK" "$UPDATE_LOG" 2>/dev/null; then
     finding "check 12 — [$DOC] copier update printed no option-off warning (_message_before_update)"
   else
@@ -614,11 +828,17 @@ self_test() {
   cp "$PROJ/AGENTS.md" "$tmp/h"; printf '%s\n' "$TEMPLATE_MARK" >> "$PROJ/AGENTS.md"
   probe "check 24 fires when the update renders AGENTS.md" "check 24 — [theology] the update rendered"; cp "$tmp/h" "$PROJ/AGENTS.md"
   printf 'x\n' > "$PROJ/GEMINI.md"; probe "check 25 fires when a deleted entrypoint comes back" "check 25 — [theology] the deleted copy-only GEMINI.md"; rm -f "$PROJ/GEMINI.md"
-  rm "$PROJ/.agents"; mkdir "$PROJ/.agents"; probe "check 26 fires when .agents is no longer the link" "check 26"; rmdir "$PROJ/.agents"; ln -s .claude "$PROJ/.agents"
+  rm "$PROJ/.agents/skills"; mkdir "$PROJ/.agents/skills"
+  probe "check 26 fires when .agents/skills is a copy, not the link" "check 26 — [theology] .agents/skills"
+  rmdir "$PROJ/.agents/skills"; ln -s "$SA_AGENTS_LINK_TARGET" "$PROJ/.agents/skills"
+  mv "$PROJ/.agents" "$tmp/agents-held"; ln -s .claude "$PROJ/.agents"
+  probe "check 26 fires when .agents is a link" "check 26 — [theology] .agents is no longer a real folder"
+  rm "$PROJ/.agents"; mv "$tmp/agents-held" "$PROJ/.agents"
   cp "$PROJ/.claude/syntek-author-agents.md" "$tmp/h"; grep -vF "$TEMPLATE_MARK" "$tmp/h" > "$PROJ/.claude/syntek-author-agents.md"
   probe "check 27 fires when the bridge misses the template's change" "check 27"; cp "$tmp/h" "$PROJ/.claude/syntek-author-agents.md"
   cp "$PROJ/opencode.json" "$tmp/h"; printf ' \n' >> "$PROJ/opencode.json"
   probe "check 28 fires when the update changes opencode.json" "check 28 — [theology] the update changed"; cp "$tmp/h" "$PROJ/opencode.json"
+  FRESH_CLIENTS="codex,opencode"; probe "check 30 fires when a fresh copy records fewer clients" "check 30"; FRESH_CLIENTS="$ALL_CLIENTS"
 
   # Checks 13–18: a real upgrade between the fixture's two tagged releases.
   FLOW_RAN=false
@@ -665,6 +885,45 @@ self_test() {
   printf 'x\n' > "$SET_PROJ/AGENTS.md"
   probe "check 29 fires when an upgrade adds a copy-only file" "check 29 — [theology] the upgrade from v0.1.0 created the copy-only AGENTS.md"; rm -f "$SET_PROJ/AGENTS.md"
   SET_RAN=false
+
+  # Checks 31–34: the update that first asks AGENT_CLIENTS. The fixture's v0.1.0 has no agent
+  # question, so it stands in for the real v0.3.0.
+  mkdir -p "$tmp/trap"; TRAP_FROM="v0.1.0"; run_trap_flow "$tmp/mig-tpl" "$tmp/trap" theology
+  st_baseline "an update of a project copied before the agent questions, with --defaults"
+  TRAP_COPY_STATUS=1; probe "check 31 fires when the project does not render at the old release" "check 31 — [theology] the project did not render"; TRAP_COPY_STATUS=0
+  TRAP_UPDATE_STATUS=1; probe "check 31 fires when the update fails" "check 31 — [theology] copier update --defaults"; TRAP_UPDATE_STATUS=0
+  TRAP_RECORDED="AGENT_CLIENTS:"; probe "check 31 fires when the update records clients" "check 31 — [theology] the update from v0.1.0 recorded"; TRAP_RECORDED='AGENT_CLIENTS: []'
+  cp "$TRAP_PROJ/$RULES05" "$tmp/h"; printf '\n## 4. Other coding agents\n' >> "$TRAP_PROJ/$RULES05"
+  probe "check 32 fires when rules 05 gains a Section 4" "check 32"; cp "$tmp/h" "$TRAP_PROJ/$RULES05"
+  mv "$TRAP_PROJ/$BRIDGE" "$tmp/h"; probe "check 33 fires when the bridge is missing" "check 33"; mv "$tmp/h" "$TRAP_PROJ/$BRIDGE"
+  mkdir "$TRAP_PROJ/.codex"; probe "check 34 fires when the update creates a client folder" "check 34 — [theology] the update from v0.1.0 created .codex"; rmdir "$TRAP_PROJ/.codex"
+  TRAP_RAN=false; TRAP_FROM="v0.3.0"
+
+  # Checks 35–39: an emptied client list, one client removed, and a copy over a recorded project, on the fixture.
+  mkdir -p "$tmp/cl"; run_clients_flow "$tmp/fixture" "$tmp/cl" theology
+  st_baseline "an update emptying AGENT_CLIENTS, and one removing opencode"
+  CL_UPDATE_STATUS=1; probe "check 35 fires when the update fails" "check 35 — [theology] copier update"; CL_UPDATE_STATUS=0
+  local held_porcelain="$CL_PORCELAIN"
+  CL_PORCELAIN="$held_porcelain"$'\n'" D .codex/config.toml"
+  probe "check 35 fires when the update deletes a client's file" "check 35 — [theology] emptying AGENT_CLIENTS deleted .codex/config.toml"
+  CL_PORCELAIN="$held_porcelain"$'\n'" M README.md"
+  probe "check 37 fires when another file changes" "check 37 — [theology] emptying AGENT_CLIENTS changed README.md"
+  CL_PORCELAIN="$held_porcelain"
+  cp "$CL_PROJ/AGENTS.md" "$tmp/h"; printf 'x\n' >> "$CL_PROJ/AGENTS.md"
+  probe "check 36 fires when an entrypoint changed" "check 36 — [theology] emptying AGENT_CLIENTS changed AGENTS.md"; cp "$tmp/h" "$CL_PROJ/AGENTS.md"
+  mv "$CL_PROJ/$BRIDGE" "$tmp/h"; probe "check 36 fires when the bridge is gone" "check 36 — [theology] emptying AGENT_CLIENTS removed the bridge"; mv "$tmp/h" "$CL_PROJ/$BRIDGE"
+  local held_diff="$CL_ONE_DIFF"
+  CL_ONE_DIFF="$held_diff"$'\n''-| Codex | x |'
+  probe "check 38 fires when another row goes too" "check 38 — [theology] removing opencode did not drop exactly its row"
+  CL_ONE_DIFF="$held_diff"
+  held_porcelain="$CL_ONE_PORCELAIN"; CL_ONE_PORCELAIN="$held_porcelain"$'\n'" M GEMINI.md"
+  probe "check 38 fires when removing one client changes another file" "check 38 — [theology] removing opencode changed GEMINI.md"
+  CL_ONE_PORCELAIN="$held_porcelain"
+  CL_RE_STATUS=1; probe "check 39 fires when the copy over a recorded project fails" "check 39 — [theology] a copy over a project that recorded [codex] failed"; CL_RE_STATUS=0
+  CL_RE_RECORDED=""; probe "check 39 fires when a copy resets the recorded clients" "check 39 — [theology] a copy over a project that recorded [codex] recorded []"; CL_RE_RECORDED="codex"
+  CL_RE_BAD_STATUS=1; probe "check 39 fires when a stale recorded value breaks the copy" "check 39 — [theology] a copy over a record holding a value no longer a choice failed"; CL_RE_BAD_STATUS=0
+  CL_RE_BAD_RECORDED="codex,cursor"; probe "check 39 fires when a stale value survives" "check 39 — [theology] a copy over a record of [codex, cursor] recorded [codex,cursor]"; CL_RE_BAD_RECORDED="codex"
+  CL_RAN=false
   st_finish "an update that keeps its promises from one that breaks them"
 }
 
@@ -687,12 +946,21 @@ tagged_once() {
 }
 trap 'if [[ -n "$TAGGED_DIR" ]]; then rm -rf "$TAGGED_DIR"; fi' EXIT
 
+FIRST_DOC="${DOC_TYPES%%,*}"
 for doc in ${DOC_TYPES//,/ }; do
   case "$doc" in theology|fiction|business) ;; *) die "unknown DOC_TYPE: $doc" ;; esac
   work="$(sa_mktemp)"
-  MIG_RAN=false; SET_RAN=false
+  MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false
   run_flow "$SA_ROOT" "$doc" "$work"
   tagged_once
+  git -C "$TAGGED" rev-parse -q --verify "refs/tags/$TRAP_FROM" >/dev/null 2>&1 \
+    || die "$SA_ROOT has no $TRAP_FROM tag — Trap 1 cannot be proven (git fetch --tags; CI needs fetch-depth: 0)"
+  run_trap_flow "$TAGGED" "$work" "$doc"
+  cat "$work/trap-flow.log" >> "$work/flow.log" 2>/dev/null || true
+  if [[ "$doc" == "$FIRST_DOC" ]]; then
+    run_clients_flow "$SA_ROOT" "$work" "$doc"
+    cat "$work/cl-flow.log" >> "$work/flow.log" 2>/dev/null || true
+  fi
   if [[ "$doc" == business ]]; then
     run_migration_flow "$TAGGED" "$work"
     cat "$work/mig-flow.log" >> "$work/flow.log" 2>/dev/null || true
@@ -703,8 +971,10 @@ for doc in ${DOC_TYPES//,/ }; do
   run_checks
   if [[ ${#FINDINGS[@]} -eq 0 ]]; then
     log "  ✓ $doc — edits kept, example still gone, voice-notes.md recreated, author unit untouched, $TARGET_REL updated; DOC_TYPE change refused untouched; option-off warning printed"
-    $CO_RAN && log "  ✓ $doc — copy-only agent files: AGENTS.md edit kept and never re-rendered, deleted entrypoints stay deleted, .agents still the link, the bridge updated, a new model answer in rules 05 only"
+    $CO_RAN && log "  ✓ $doc — copy-only agent files: AGENTS.md edit kept and never re-rendered, deleted entrypoints stay deleted, .agents a real folder with its skills link, the bridge updated, a new model answer in rules 05 only"
     $MIG_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: every author file moved to its family byte for byte, the collision kept and named, a second run a no-op, msp-scp honoured"
+    $TRAP_RAN && log "  ✓ $doc — update from $TRAP_FROM with --defaults: AGENT_CLIENTS recorded empty, no Section 4 in rules 05, the bridge present, no client file created"
+    $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     rm -rf "$work"
   else

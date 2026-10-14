@@ -9,9 +9,9 @@
 > whichever folder you are about to work in — in that order — before editing anything. The
 > template's rules in `.claude/rules/syntek-author/` load automatically with this file, and so
 > does this project's settings file, `.claude/rules/syntek-author/00-project.md`.
-<: if AGENT_CLIENTS | length > 0 :>> Codex, Gemini CLI, Antigravity and OpenCode load none of them by themselves: they start
+> Codex, Gemini CLI, Antigravity and OpenCode load none of them by themselves: they start
 > from `.claude/syntek-author-agents.md`.
-<: endif :>
+
 ---
 
 ## 1. Project

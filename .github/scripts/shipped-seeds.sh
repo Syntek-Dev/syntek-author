@@ -66,16 +66,27 @@
 #                         else in it is a project's build shipped to every project.
 #
 #                     18. Every copy-only shared path of DESIGN.md Section 3.6 (D47: the other
-#                         coding agents' entrypoints, the .agents link, their settings) has its
-#                         anchored _skip_if_exists line, its _exclude line gated
-#                         "_copier_operation == 'update'", and a file (or, for .agents, a
+#                         coding agents' entrypoints, the .agents/skills link, Antigravity's
+#                         .agents/mcp_config.json, the client settings) has its anchored
+#                         _skip_if_exists line, its _exclude line gated
+#                         "_copier_operation == 'update'", and a file (or, for .agents/skills, a
 #                         link) under template/. Without the skip a copy overwrites the author's
 #                         file; without the exclusion an update re-renders it, or brings back
 #                         one the author deleted.
+#                     19. Every folder that holds copy-only paths (.agents, .codex, .gemini) has
+#                         an _exclude line of its own gated on the update. Copier 9.17.1 creates
+#                         an EMPTY folder on an update that crosses the release introducing it,
+#                         even when every path inside is excluded.
+#                     20. The .agents layout (D47, P1 of the follow-up): template/.agents is a
+#                         real folder, never a link (a linked .agents breaks Codex's Linux
+#                         sandbox); template/.agents/skills is a link to exactly
+#                         ../.claude/skills, never a copy; template/.agents/mcp_config.json is
+#                         byte for byte {"mcpServers": {}} as syntek-media 0.4.2 ships it (23
+#                         bytes); and the retired template/.claude/mcp_config.json is gone.
 #
-#                    Checks 1–4 and 18 read copier.yml and template/ (static, once). Checks 5–17 read
-#                    every tree given — template/ by default, or renders — and skip a seed the
-#                    tree does not ship.
+#                    Checks 1–4 and 18–20 read copier.yml and template/ (static, once). Checks
+#                    5–17 read every tree given — template/ by default, or renders — and skip a
+#                    seed the tree does not ship.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -224,6 +235,29 @@ static_checks() {
     [[ -n "${on_update[$s]:-}" ]] || finding "check 18 — the copy-only $s has no _exclude line gated on the update — an update re-renders it, or brings back a deleted one"
     [[ -e "$TPL/$s" || -L "$TPL/$s" ]] || finding "check 18 — the copy-only $s is not under template/"
   done
+
+  # ── 19. The folders that hold copy-only paths ───────────────────────────────
+  for s in $SA_COPY_ONLY_DIRS; do
+    [[ -d "$TPL/$s" ]] || continue
+    [[ -n "${on_update[$s]:-}" ]] || finding "check 19 — the folder $s/ has no _exclude line gated on the update — an update across the release that adds it creates an empty $s/ in every project"
+  done
+
+  # ── 20. The .agents layout ──────────────────────────────────────────────────
+  if [[ -L "$TPL/.agents" ]]; then
+    finding "check 20 — template/.agents is a link (to $(readlink "$TPL/.agents")) — it must be a real folder; a linked .agents breaks Codex's Linux sandbox"
+  elif [[ -d "$TPL/.agents" ]]; then
+    if [[ ! -L "$TPL/.agents/skills" ]]; then
+      finding "check 20 — template/.agents/skills is not a link — it must link to $SA_AGENTS_LINK_TARGET, never copy the skills"
+    elif [[ "$(readlink "$TPL/.agents/skills")" != "$SA_AGENTS_LINK_TARGET" ]]; then
+      finding "check 20 — template/.agents/skills links to $(readlink "$TPL/.agents/skills"), not $SA_AGENTS_LINK_TARGET"
+    fi
+    if [[ -f "$TPL/.agents/mcp_config.json" && "$(cat "$TPL/.agents/mcp_config.json"; printf x)" != "${SA_AGENTS_MCP}x" ]]; then
+      finding "check 20 — template/.agents/mcp_config.json is not byte for byte the 23-byte {\"mcpServers\": {}} syntek-media ships"
+    fi
+  fi
+  [[ -e "$TPL/.claude/mcp_config.json" ]] \
+    && finding "check 20 — template/.claude/mcp_config.json is retired (Antigravity's file is .agents/mcp_config.json) and must not ship"
+  return 0
 }
 
 json_check() { # $1 = mode (mcp|settings), $2 = file → prints one problem per line
@@ -440,17 +474,18 @@ write_fixture() { # $1 = repo root
   {
     printf '_exclude:\n  - .git\n'
     for s in $SA_EXAMPLES; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_EXAMPLE_GATE" "$s"; done
-    for s in $SA_COPY_ONLY; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
+    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf '_skip_if_exists:\n'
     for s in $SA_SEEDS $SA_COPY_ONLY; do printf '  - /%s\n' "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$r/copier.yml"
   for s in $SA_SEEDS; do mkdir -p "$(dirname "$t/$s")"; printf '# %s\n' "${s##*/}" > "$t/$s"; done
   for s in $SA_COPY_ONLY; do
-    [[ "$s" == .agents ]] && continue
+    [[ "$s" == .agents/skills ]] && continue
     mkdir -p "$(dirname "$t/$s")"; printf '{}\n' > "$t/$s"
   done
-  ln -s .claude "$t/.agents"
+  ln -s "$SA_AGENTS_LINK_TARGET" "$t/.agents/skills"
+  printf '%s' "$SA_AGENTS_MCP" > "$t/.agents/mcp_config.json"
   for s in $REGISTER_SEEDS; do
     printf '# %s\n\n%s\n\n## Register\n\n| Name | Notes |\n|---|---|\n| _No entries yet._ | |\n' "${s##*/}" "$banner" > "$t/$s"
   done
@@ -541,7 +576,22 @@ self_test() {
   cp "$tmp/c" "$COPIER"
   grep -vF "'update' :>/GEMINI.md<" "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
   probe "check 18 fires when a copy-only path loses its update exclusion" "check 18 — the copy-only GEMINI.md has no _exclude line"
+  cp "$tmp/c" "$COPIER"
+  grep -vF "'update' :>/.agents<" "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
+  probe "check 19 fires when a copy-only folder loses its update exclusion" "check 19 — the folder .agents/"
   cp "$tmp/c" "$COPIER"; SA_SETS_FOR=""
+  mv "$t/.agents" "$t/.agents-real"; ln -s .agents-real "$t/.agents"
+  probe "check 20 fires when .agents is a link" "check 20 — template/.agents is a link"
+  rm "$t/.agents"; mv "$t/.agents-real" "$t/.agents"
+  rm "$t/.agents/skills"; mkdir "$t/.agents/skills"; printf 'x\n' > "$t/.agents/skills/CONTEXT.md"
+  probe "check 20 fires when .agents/skills is a copy" "check 20 — template/.agents/skills is not a link"
+  rm -rf "$t/.agents/skills"; ln -s "$SA_AGENTS_LINK_TARGET" "$t/.agents/skills"
+  printf '{"mcpServers": {}}\n' > "$t/.agents/mcp_config.json"
+  probe "check 20 fires when Antigravity's MCP file differs from syntek-media's bytes" "check 20 — template/.agents/mcp_config.json"
+  printf '%s' "$SA_AGENTS_MCP" > "$t/.agents/mcp_config.json"
+  printf '%s' "$SA_AGENTS_MCP" > "$t/.claude/mcp_config.json"
+  probe "check 20 fires when the retired .claude/mcp_config.json ships" "check 20 — template/.claude/mcp_config.json is retired"
+  rm -f "$t/.claude/mcp_config.json"
   mv "$t/planning/src/units/example-proposal.md" "$tmp/h"
   probe "check 4 fires when an example is missing" "check 4"
   mv "$tmp/h" "$t/planning/src/units/example-proposal.md"

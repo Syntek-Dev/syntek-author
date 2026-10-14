@@ -15,7 +15,7 @@
 #                   runtime (its own answers file, its own rules file, its own skill, and the
 #                   D17 root files as seeds), changes both templates, updates both, and checks.
 #
-#                   Eight checks:
+#                   Ten checks:
 #                     1. The second template applies over the project without --overwrite —
 #                        nothing it ships collides with what is there.
 #                     2. Both answers files exist, under different names.
@@ -26,17 +26,33 @@
 #                        seed is never shipped by the second template, and the reverse.
 #                     7. No conflict is left behind (no *.rej file, no conflict marker).
 #                     8. The copy-only agent files syntek-author wrote (DESIGN.md D47, Section
-#                        3.6: AGENTS.md, GEMINI.md, .codex/, .gemini/, opencode.json,
-#                        .claude/mcp_config.json and the .agents link) are byte for byte what it
-#                        wrote, and .agents still links to .claude, after the second template's
-#                        copy and both updates. The dummy ships the same paths copy-only, as
-#                        syntek-media does (its D73), with its own bridge beside syntek-author's.
+#                        3.6: AGENTS.md, GEMINI.md, .codex/, .gemini/, opencode.json, the
+#                        .agents/skills link and .agents/mcp_config.json) are byte for byte what
+#                        it wrote, and .agents/skills still links to ../.claude/skills, after
+#                        the second template's copy and both updates. The dummy ships the same
+#                        paths copy-only, with its own bridge beside syntek-author's. That
+#                        follows syntek-media: its D73 makes AGENTS.md, GEMINI.md, .agents and
+#                        the .codex/ files copy-only, and its 0.4.2 (D76) replaces the .agents
+#                        link with the real .agents/ folder holding the skills link and
+#                        mcp_config.json; media does not yet ship .gemini/ or opencode.json.
+#                     9. The other order, as a project that took syntek-media 0.4.2 first: the
+#                        dummy's real .agents/ (skills link, 23-byte mcp_config.json) is there
+#                        before syntek-author's copy, which then succeeds with no --exclude and
+#                        leaves .agents a real folder, .agents/skills the link to
+#                        ../.claude/skills, mcp_config.json the same 23 bytes, and both bridges.
+#                    10. The family-shared contract (DESIGN.md D48), in that media-first
+#                        project: the dummy vendors every token-free source family-shared.json
+#                        lists, as a sibling template would, so each such file in the project
+#                        (the permissions script under both templates' names) carries the
+#                        manifest's sha256, and each listed link its target, whichever template
+#                        wrote it. Skipped, by name, when the repository has no
+#                        family-shared.json.
 #
 #                   Numbers are stable identifiers. Append, never renumber.
 #
-#                   What it CANNOT check: the real syntek-media, which does not exist yet. The
-#                   dummy follows Section 9's rules; when syntek-media is written, point this
-#                   test at it.
+#                   What it CANNOT check: the real syntek-media. The dummy follows Section 9's
+#                   rules and media 0.4.2's .agents/ layout; family-shared.sh --sibling compares
+#                   a real syntek-media checkout's vendored sources.
 #
 # SELF-TEST. --self-test runs the whole flow with a fixture syntek-author, proves it clean, then
 #            mutates the result once per check and asserts exactly one finding each.
@@ -92,10 +108,31 @@ B_BRIDGE=".claude/dummy-media-agents.md"
 PROJ=""; A_RULE=""; A_COPY=0; B_COPY=0; A_UPDATE=0; B_UPDATE=0
 A_OWNED=(); A_ALL=(); B_OWNED=(); B_ALL=()
 declare -A A_KEPT=()
+MF=""; MF_B_COPY=0; MF_A_COPY=0; MANIFEST=""; MF_RAN=false
+NOTES=()
 
-# The second template, as DESIGN.md Section 9 requires one to be written.
-build_dummy() { # $1 = dir
-  local b="$1" s
+# The family-shared files a sibling template vendors: every token-free file family-shared.json
+# lists, at its destination path ("<template>" filled with $3), and every listed link. Prints
+# "F<TAB>path<TAB>sha256<TAB>source" and "L<TAB>path<TAB>target" lines.
+manifest_entries() { # $1 = syntek-author repo, $2 = manifest, $3 = template name
+  python3 - "$1" "$2" "$3" <<'PY'
+import hashlib, json, sys
+root, man, name = sys.argv[1], sys.argv[2], sys.argv[3]
+for f in json.load(open(man, encoding="utf-8")).get("files", []):
+    path = f["path"].replace("<template>", name)
+    if f.get("kind") == "symlink":
+        print(f"L\t{path}\t{f['target']}"); continue
+    data = open(f"{root}/{f['source']}", "rb").read()
+    if any(d in data for d in (b"<%", b"<:", b"<~")):
+        continue  # rendered from answers: identical only for identical answers
+    print(f"F\t{path}\t{f['sha256']}\t{f['source']}")
+PY
+}
+
+# The second template, as DESIGN.md Section 9 requires one to be written, with syntek-media
+# 0.4.2's .agents/ layout, vendoring the family-shared sources when $2 has a manifest.
+build_dummy() { # $1 = dir, $2 = the syntek-author repo it vendors from (optional)
+  local b="$1" src="${2:-}" s kind path sum source
   mkdir -p "$b/template/.claude/rules/dummy-media" "$b/template/.claude/skills/dummy-media-clip" "$b/template/media"
   {
     cat <<'EOF'
@@ -115,7 +152,7 @@ _skip_if_exists:
 EOF
     for s in $SHARED_ROOT $SA_COPY_ONLY; do printf '  - /%s\n' "$s"; done
     printf '_preserve_symlinks: true\n_exclude:\n  - .git\n'
-    for s in $SA_COPY_ONLY; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
+    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$b/copier.yml"
   printf '<%% _copier_answers|to_nice_yaml -%%>\n' > "$b/template/$B_ANSWERS"
@@ -124,11 +161,19 @@ EOF
   printf '# CONTEXT.md — media/\n' > "$b/template/media/CONTEXT.md"
   printf '@./CONTEXT.md\n\n# CLAUDE.md — media/\n' > "$b/template/media/CLAUDE.md"
   for s in $SHARED_ROOT $SA_COPY_ONLY; do
-    [[ "$s" == .agents ]] && continue
+    [[ "$s" == .agents/skills ]] && continue
     mkdir -p "$(dirname "$b/template/$s")"; printf '# seeded by dummy-media\n' > "$b/template/$s"
   done
-  ln -s .claude "$b/template/.agents"
+  ln -s "$SA_AGENTS_LINK_TARGET" "$b/template/.agents/skills"
+  printf '%s' "$SA_AGENTS_MCP" > "$b/template/.agents/mcp_config.json"
   printf '# dummy-media bridge\n\nTemplate-owned by dummy-media.\n' > "$b/template/$B_BRIDGE"
+  if [[ -n "$src" && -f "$src/family-shared.json" ]]; then
+    while IFS=$'\t' read -r kind path sum source; do
+      mkdir -p "$(dirname "$b/template/$path")"
+      if [[ "$kind" == L ]]; then rm -rf "${b:?}/template/$path"; ln -s "$sum" "$b/template/$path"
+      else cp "$src/$source" "$b/template/$path"; fi
+    done < <(manifest_entries "$src" "$src/family-shared.json" dummy-media)
+  fi
   sa_git "$b" init -q && sa_git "$b" add -A && sa_git "$b" commit -q -m 'dummy-media'
 }
 
@@ -154,7 +199,7 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
   PROJ="$w/proj"; A_COPY=0; B_COPY=0; A_UPDATE=0; B_UPDATE=0
   A_OWNED=(); A_ALL=(); B_OWNED=(); B_ALL=()
   sa_snapshot "$1" "$a" >>"$log" 2>&1 || die "could not snapshot $1"
-  build_dummy "$b" >>"$log" 2>&1
+  build_dummy "$b" "$a" >>"$log" 2>&1
   [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
 
   sa_render "$a" "$PROJ" theology >>"$log" 2>&1 || A_COPY=$?
@@ -187,6 +232,16 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
   sa_update "$PROJ" >>"$log" 2>&1 || A_UPDATE=$?
   sa_git "$PROJ" add -A && sa_git "$PROJ" commit -q -m 'update syntek-author' >>"$log" 2>&1 || true
   (cd "$PROJ" && "${SA_COPIER[@]}" update --trust --defaults --vcs-ref=HEAD --answers-file "$B_ANSWERS" </dev/null) >>"$log" 2>&1 || B_UPDATE=$?
+
+  # The other order: the dummy (syntek-media 0.4.2's layout) first, then syntek-author, with no
+  # --exclude.
+  MF="$w/media-first"; MF_B_COPY=0; MF_A_COPY=0; MF_RAN=true
+  MANIFEST=""; [[ -f "$a/family-shared.json" ]] && MANIFEST="$a/family-shared.json"
+  "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref=HEAD --data "PROJECT_NAME=$SA_RENDER_NAME" "$b" "$MF" </dev/null >>"$log" 2>&1 || MF_B_COPY=$?
+  [[ -d "$MF/.git" ]] || sa_git "$MF" init -q
+  sa_git "$MF" add -A && sa_git "$MF" commit -q -m 'dummy-media first' >>"$log" 2>&1 || true
+  sa_render "$a" "$MF" theology >>"$log" 2>&1 || MF_A_COPY=$?
+  MF_SRC="$a"
 }
 
 run_checks() {
@@ -226,7 +281,49 @@ run_checks() {
     elif [[ -f "$PROJ/$p" ]]; then now="$(sha256sum < "$PROJ/$p")"; fi
     [[ "$now" == "${A_KEPT[$p]}" ]] || finding "check 8 — the copy-only $p syntek-author wrote did not survive the second template and both updates unchanged"
   done
-  [[ -z "${A_KEPT[.agents]:-}" || "${A_KEPT[.agents]}" == link:.claude ]] || finding "check 8 — syntek-author's .agents links to ${A_KEPT[.agents]#link:}, not .claude"
+  [[ -z "${A_KEPT[.agents/skills]:-}" || "${A_KEPT[.agents/skills]}" == "link:$SA_AGENTS_LINK_TARGET" ]] \
+    || finding "check 8 — syntek-author's .agents/skills links to ${A_KEPT[.agents/skills]#link:}, not $SA_AGENTS_LINK_TARGET"
+  $MF_RAN && media_first_checks
+  return 0
+}
+
+MF_SRC=""
+media_first_checks() {
+  local kind path sum source now
+  if [[ "$MF_B_COPY" -ne 0 ]]; then finding "check 9 — the dummy second template did not render on its own (exit $MF_B_COPY)"; return 0; fi
+  if [[ "$MF_A_COPY" -ne 0 ]]; then
+    finding "check 9 — syntek-author's copy over a project with syntek-media 0.4.2's .agents/ failed (exit $MF_A_COPY) — it must succeed with no --exclude"
+    return 0
+  fi
+  if [[ -L "$MF/.agents" || ! -d "$MF/.agents" ]]; then
+    finding "check 9 — after both copies .agents is not a real folder"
+  elif [[ ! -L "$MF/.agents/skills" || "$(readlink "$MF/.agents/skills")" != "$SA_AGENTS_LINK_TARGET" ]]; then
+    finding "check 9 — after both copies .agents/skills is not the link to $SA_AGENTS_LINK_TARGET"
+  elif [[ "$(cat "$MF/.agents/mcp_config.json" 2>/dev/null; printf x)" != "${SA_AGENTS_MCP}x" ]]; then
+    finding "check 9 — after both copies .agents/mcp_config.json is not the 23 bytes both templates ship"
+  fi
+  [[ -f "$MF/$B_BRIDGE" && -f "$MF/.claude/syntek-author-agents.md" ]] \
+    || finding "check 9 — after both copies the project does not hold both bridges ($B_BRIDGE and .claude/syntek-author-agents.md)"
+
+  if [[ -z "$MANIFEST" ]]; then
+    NOTES+=("check 10 skipped — the repository has no family-shared.json")
+    return 0
+  fi
+  while IFS=$'\t' read -r kind path sum source; do
+    if [[ "$kind" == L ]]; then
+      [[ -L "$MF/$path" && "$(readlink "$MF/$path")" == "$sum" ]] \
+        || finding "check 10 — $path in the media-first project is not the link to $sum family-shared.json lists"
+      continue
+    fi
+    local -a names=("$path")
+    [[ "$path" == *dummy-media* ]] && names+=("${path/dummy-media/syntek-author}")
+    for now in "${names[@]}"; do
+      [[ -f "$MF/$now" ]] || continue
+      [[ "$(sha256sum < "$MF/$now" | cut -d' ' -f1)" == "$sum" ]] \
+        || finding "check 10 — $now in the media-first project does not carry the sha256 family-shared.json lists for $source"
+    done
+  done < <(manifest_entries "$MF_SRC" "$MANIFEST" dummy-media)
+  return 0
 }
 
 self_test() {
@@ -237,8 +334,22 @@ self_test() {
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   sa_fixture_template "$tmp/fixture" >/dev/null
+  # A family-shared manifest for the fixture (check 10): its token-free entrypoint, its link
+  # and its MCP file, as family-shared.sh --write records them.
+  python3 - "$tmp/fixture" <<'PY'
+import hashlib, json, sys
+root = sys.argv[1]
+def f(p):
+    b = open(f"{root}/template/{p}", "rb").read()
+    return {"path": p, "source": f"template/{p}", "kind": "file", "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
+files = [f(".agents/mcp_config.json"),
+         {"path": ".agents/skills", "source": "template/.agents/skills", "kind": "symlink", "target": "../.claude/skills"},
+         f("AGENTS.md")]
+json.dump({"format": 1, "owner": "syntek-author", "release": "unreleased", "files": files, "blocks": []},
+          open(f"{root}/family-shared.json", "w"), indent=2)
+PY
   run_flow "$tmp/fixture" "$tmp"
-  st_baseline "the fixture template sharing a project with a dummy second template"
+  st_baseline "the fixture template sharing a project with a dummy second template, both orders"
 
   B_COPY=1;   probe "check 1 fires when the second template collides" "check 1"; B_COPY=0
   mv "$PROJ/$B_ANSWERS" "$tmp/h"; probe "check 2 fires when an answers file is missing" "check 2"; mv "$tmp/h" "$PROJ/$B_ANSWERS"
@@ -250,6 +361,13 @@ self_test() {
   printf 'x\n' > "$PROJ/CONTEXT.md.rej"; probe "check 7 fires on a rejected hunk" "check 7"; rm -f "$PROJ/CONTEXT.md.rej"
   printf '# yours\n' > "$PROJ/AGENTS.md"; A_KEPT[AGENTS.md]="not-this"
   probe "check 8 fires when a copy-only file was overwritten" "check 8 — the copy-only AGENTS.md"; unset 'A_KEPT[AGENTS.md]'; rm -f "$PROJ/AGENTS.md"
+  MF_A_COPY=1; probe "check 9 fires when the copy over media's .agents/ fails" "check 9 — syntek-author's copy over a project"; MF_A_COPY=0
+  mv "$MF/$B_BRIDGE" "$tmp/h"
+  probe "check 9 fires when a bridge is missing after both copies" "check 9 — after both copies the project does not hold both bridges"
+  mv "$tmp/h" "$MF/$B_BRIDGE"
+  cp "$MF/AGENTS.md" "$tmp/h"; printf 'x\n' >> "$MF/AGENTS.md"
+  probe "check 10 fires when a vendored shared file differs from the manifest" "check 10 — AGENTS.md in the media-first project"
+  cp "$tmp/h" "$MF/AGENTS.md"
   st_finish "templates that coexist from templates that collide"
 }
 
@@ -264,8 +382,10 @@ bold "▸ $SCRIPT_NAME"
 work="$(sa_mktemp)"
 run_flow "$SA_ROOT" "$work"
 run_checks
+for n in "${NOTES[@]}"; do log "  - $n"; done
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   log "  ✓ both templates applied, both updated, ${#A_OWNED[@]} syntek-author-owned file(s) and ${#B_OWNED[@]} second-template-owned file(s) disjoint"
+  log "  ✓ media first: syntek-author's copy over media 0.4.2's .agents/ succeeded with no --exclude; the family-shared files carry the manifest's bytes"
   rm -rf "$work"
   bold "✓ A second template shares the project cleanly."
   exit 0
@@ -274,5 +394,5 @@ bold "✗ ${#FINDINGS[@]} finding(s) (work kept in $work; output in $work/flow.l
 print_findings
 log ""
 log "  DESIGN.md Section 9: own answers file, own rules folder, shared root files seeded in both,"
-log "  agent entrypoints and client settings copy-only in both (D47)."
+log "  agent entrypoints and client settings copy-only in both (D47), family-shared bytes (D48)."
 exit 1

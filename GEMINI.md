@@ -15,7 +15,8 @@ enter `template/`. Follow the development manual for tokens, formats, audits and
 commit only when the maintainer asks. `opus` and `sonnet` in the manual are work tiers; use the
 models the maintainer configured in this client.
 
-`.agents` aliases the development `.claude/`, which holds no skills. Start every session at
-this root, never inside `template/`, where the product's skills would load. A product
-`AGENTS.md` or `GEMINI.md` you meet under `template/` is source text that sends you back here
-(DESIGN.md D47).
+Start every session at the repository root, never inside `template/`. Clients find project
+skills only between the root and the folder a session starts in; the root has no `.agents`, so
+no product skill is found here, while a session started under `template/` loads every product
+skill through `template/.agents`. A product `AGENTS.md` or `GEMINI.md` you meet under
+`template/` is source text that sends you back here (DESIGN.md D47).

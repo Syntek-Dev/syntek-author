@@ -2,8 +2,8 @@
 # Codex reads [[skills.config]] only from the USER config (~/.codex/config.toml), never from a
 # project file: this list is the snippet a maintainer copies there, with each path made
 # absolute to their clone. The isolation that holds in every client is starting each session
-# at the repository root, where .agents exposes no skill (DESIGN.md D47, .claude/CLAUDE.md
-# Section 3). One entry per folder under template/.claude/skills/; dev-isolation.sh checks it.
+# at the repository root, which has no .agents, so no product skill is found (DESIGN.md D47,
+# .claude/CLAUDE.md Section 3); this file is not a guard. One entry per folder under template/.claude/skills/; dev-isolation.sh checks it.
 
 [[skills.config]]
 path = '../template/.claude/skills/accounting-documents/SKILL.md'
