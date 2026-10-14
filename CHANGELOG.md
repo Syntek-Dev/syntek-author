@@ -13,10 +13,15 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+Technical text in a business project is now written in ASD-STE100 Simplified Technical English where it fits, so steps and technical explanations stay short and clear for clients and staff (D46). Books are not affected.
+
 Codex, Gemini CLI, Antigravity and OpenCode can now work in a generated project, reading the same rules, skills and memory as Claude Code, and OpenCode can run on a local model server (D47).
 
 ### Added
 
+- **`library/docs/reference/simplified-technical-english.md`** (business). A guide to the STE rules that do the most work, in the template's own words (Issue 9): one instruction per sentence, in the imperative; the condition first; at most 20 words in a procedural sentence and 25 in a descriptive one; one word for one meaning; technical names allowed and recorded in `terminology.md`. It sets out what counts as technical text (procedures, set-up steps, SOPs, walkthroughs, runbooks, a client guide's steps, technical descriptions and schedules, the instructions in a financial document, the technical part of an email) and what keeps its own register. The STE dictionary is ASD's copyright and is never reproduced; the guide points to the free official copy.
+- **Method rule 11, 'Technical text in Simplified Technical English'** (`standards/method/BUSINESS.md`). An STE rewrite never makes the text longer, and it never reaches persuasive copy, an email's relationship text, operative clauses, policy rules or defined terms, or changes a modal or a figure.
+- **`make lint` reports list steps over 20 words** (business only, report-only, legal documents excluded): a hint for technical text, never a gate. `tooling-smoke.sh` check 38 proves it.
 - **Seven questions (D47, Section 2).** `AGENT_CLIENTS` (multiple choice, labelled 'Codex', 'Gemini CLI', 'Antigravity' and 'OpenCode'; all four by default; Claude Code always ships) chooses the other clients. `CODEX_MODEL` and `GEMINI_MODEL` (blank: the client's own default) set each client's model for substantive work. `OPENCODE_PROVIDER` (`llama-cpp`, `ollama`, `vllm`, `lmstudio`, `openai-compatible`, `hosted`), `OPENCODE_BASE_URL` (the provider's usual loopback port, ending `/v1`), `OPENCODE_MODEL` (`qwen3.6-35b-a3b` for llama.cpp, required for every local provider) and `OPENCODE_CONTEXT` (`262144` for llama.cpp, otherwise `32768`) describe OpenCode's model. Model names are validated as character sets, so no answer can break the file it is written into.
 - **Per-client files, gated on `AGENT_CLIENTS` (Section 3.5).** Root `AGENTS.md` (Codex, OpenCode) and `GEMINI.md` (Gemini CLI, Antigravity), each routing to the bridge; the relative link `.agents -> .claude`, the skill path every one of these clients reads; `.codex/config.toml` with its pair (the `CLAUDE.md` fallback, and `model` when answered); `.gemini/settings.json` with its pair (`model.name` when answered, an empty `mcpServers`); `.claude/mcp_config.json` (Antigravity's workspace MCP file, `{"mcpServers": {}}`); and `opencode.json` (one OpenAI-compatible provider named for the answer, tools on, the answered context, an 8192-token output limit, and edit denies for PDFs, `build/` and the typesetting bases; nothing for `hosted` but the model). No file carries a key, a trust level, a permission bypass or an MCP server.
 - **The bridge, `.claude/syntek-author-agents.md`** (template-owned, shared, updated). It gives the read order no other client loads by itself (Claude's `@` imports, every rules file under `.claude/rules/`, `00-project.md` first, memory and folder pairs; OpenCode reads no `CLAUDE.md` at all), maps skills and tools by capability, names what Claude Code enforces that the others follow by hand (hand off, never compact; the settings file's denies; the author's approval; paid calls), each client's setup, other templates' bridges, and how to enable a client in an existing project.
@@ -27,28 +32,20 @@ Codex, Gemini CLI, Antigravity and OpenCode can now work in a generated project,
 
 ### Changed
 
-- **`adopt/adopt.sh`** adds `--exclude /.agents` to every copy command it prints when the repository has a real `.agents` directory, which Copier cannot write a link over, and reports that agent integration is manual. The directory is never moved.
-- **`DESIGN.md` Section 11** no longer defers `AGENTS.md` and multi-host entry points.
-
-No migration: nothing moves. An update asks `AGENT_CLIENTS` with all four ticked by default; a project that wants none answers `--data 'AGENT_CLIENTS=[]'`. The clients answered gain the bridge and the model table, never their files: a client is enabled by the bridge's steps.
-Technical text in a business project is now written in ASD-STE100 Simplified Technical English where it fits, so steps and technical explanations stay short and clear for clients and staff (D46). Books are not affected.
-
-### Added
-
-- **`library/docs/reference/simplified-technical-english.md`** (business). A guide to the STE rules that do the most work, in the template's own words (Issue 9): one instruction per sentence, in the imperative; the condition first; at most 20 words in a procedural sentence and 25 in a descriptive one; one word for one meaning; technical names allowed and recorded in `terminology.md`. It sets out what counts as technical text (procedures, set-up steps, SOPs, walkthroughs, runbooks, a client guide's steps, technical descriptions and schedules, the instructions in a financial document, the technical part of an email) and what keeps its own register. The STE dictionary is ASD's copyright and is never reproduced; the guide points to the free official copy.
-- **Method rule 11, 'Technical text in Simplified Technical English'** (`standards/method/BUSINESS.md`). An STE rewrite never makes the text longer, and it never reaches persuasive copy, an email's relationship text, operative clauses, policy rules or defined terms, or changes a modal or a figure.
-- **`make lint` reports list steps over 20 words** (business only, report-only, legal documents excluded): a hint for technical text, never a gate. `tooling-smoke.sh` check 38 proves it.
-
-### Changed
-
 - **`tone` reads technical text as a fourth register** beside running copy, microcopy and formal, at gate V6.1. The business, legal, email, MSP-SCP and accounting families, their standards and create workflows, the review workflow, `comprehension`, `obligation-check`, and the business modes of `draft-section`, `improve-section` and `adapt-section` point to the guide for their technical text. `obligation-check` treats an STE rewrite that changes a modal as a changed duty.
 - **The brand voice and voice-notes seeds name three registers** (new projects only; an existing project's seeds are never overwritten, and it gets the rule through method rule 11). `grammar`'s business mode now says 'the registers'.
 - **`04-build-pipeline.md` and `tone` step 4 name the new `make lint` report**; the `tooling-smoke.sh` rows in `README.md` and `.github/scripts/CONTEXT.md` name check 38.
 - **`legal-standards.md` reads 'must' as a condition**, as method rule 7 and `legal-documents` do; it said 'an absolute requirement'.
+- **`adopt/adopt.sh`** adds `--exclude /.agents` to every copy command it prints when the repository has a real `.agents` directory, which Copier cannot write a link over, and reports that agent integration is manual. The directory is never moved.
+- **`DESIGN.md` Section 11** no longer defers `AGENTS.md` and multi-host entry points.
 
 ### Fixed
 
 - **`copier update` in the audits no longer races git's housekeeping.** Copier commits in its own temporary copies, and a background gc started there could still be writing when Copier deleted the copy (`OSError: Directory not empty`, seen in `update-test.sh` on the business render). `_common.sh` now turns automatic gc and maintenance off for every git process the audits start, Copier's included, through git's `GIT_CONFIG_COUNT` environment, as `sa_git` already did for the audits' own repositories.
+
+### Migration
+
+No migration: nothing moves. An update asks `AGENT_CLIENTS` with all four ticked by default; a project that wants none answers `--data 'AGENT_CLIENTS=[]'`. The clients answered gain the bridge and the model table, never their files: a client is enabled by the bridge's steps.
 
 ## [0.3.0] - 04/10/2026
 
