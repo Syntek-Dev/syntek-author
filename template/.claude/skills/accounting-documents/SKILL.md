@@ -155,6 +155,9 @@ section naming the source of the data and every assumption.
 - **Register.** Neutral and factual; third person in reports; terms such as EBITDA or capital
   expenditure defined for a non-financial reader. Brand voice does not reach figures; the
   letterhead does.
+- **Instructions.** Text that tells a reader what to do (how to pay, how to claim an expense, how
+  to use a pricing model or CSV) follows `library/docs/reference/simplified-technical-english.md`;
+  commentary on figures keeps the register above, and no figure changes.
 - **Disclaimer.** A report, forecast or summary prepared for another reader takes the financial
   class's wording, copied unchanged from the disclaimers file `00-project.md` `## Paths` names (or
   `\dnote{AUTHOR TO CONFIRM: …}` until it has one). An invoice or credit note carries none unless

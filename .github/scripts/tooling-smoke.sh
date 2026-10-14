@@ -13,7 +13,7 @@
 #                    silently, and fails on the author's first command. So every render is
 #                    copied to a scratch directory and its targets are run for real.
 #
-#                    Thirty-seven checks, per render:
+#                    Thirty-eight checks, per render:
 #                      1. `make help` succeeds and prints something.
 #                      2. `make flags` succeeds.
 #                      3. `make provenance` succeeds.
@@ -108,6 +108,11 @@
 #                         adopted, has nothing to compare, and that is not an error.
 #                     37. `make compare UNIT=smoke-compare` writes build/compare/smoke-compare.pdf
 #                         (where Pandoc and XeLaTeX exist, and not with --skip-pdf).
+#                     38. Business: `make lint` lists a list step of more than 20 words in a file
+#                         under library/src/business/ under 'List steps over 20 words' (D46),
+#                         and not a short step in the same file, nor the same long step in a file
+#                         under library/src/legal/ where that folder ships: the STE hint leaves
+#                         legal documents aside.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -249,9 +254,10 @@ smoke() { # $1 = a COPY of a render
   smoke_lang_ignored "$d"
   smoke_brand "$d"
   smoke_compare "$d"
-  if [[ -d "$d/library" ]]; then smoke_issue "$d"; smoke_guard "$d"; smoke_classification "$d"
+  if [[ -d "$d/library" ]]; then smoke_issue "$d"; smoke_guard "$d"; smoke_classification "$d"; smoke_ste "$d"
   else
     RES[issue]="skip: no issued documents in a book render"
+    STE=([skip]="skip: no STE report in a book render (D46 is business-only)")
     GRD[skip]="skip: no issued documents in a book render"
     CLS[build]="skip: no house preamble in a book render"
   fi
@@ -648,6 +654,35 @@ smoke_issue() { # $1 = a COPY of a business render
   rm -f -- "${d:?}/${copy:?}" "${d:?}/${pdf:?}" "${d:?}/.smoke-issued.keep"
 }
 
+# D46 (check 38): make lint lists a long list step in business technical text, and leaves a
+# short step and a legal document's steps alone. The long step is 24 words, the short one 3.
+# The report's section is its header line and the indented 'file:line:text' lines below it.
+STE_HEAD="List steps over 20 words"
+STE_LONG="1. Open the supplier portal, select the invoice for this month, check each line against the order, and then press the button to approve it."
+STE_SHORT="2. Close the portal."
+declare -A STE=()
+smoke_ste() { # $1 = a COPY of a business render
+  local d="$1" dir file legal="" s list
+  STE=()
+  if [[ -d "$d/library/src/business" ]]; then dir=library/src/business
+  elif [[ -d "$d/library/src" ]]; then dir=library/src
+  else STE[skip]="skip: no library/src"; return 0; fi
+  [[ -d "$d/.git" ]] || git -C "$d" init -q
+  file="$dir/smoke-ste.md"
+  printf '# Smoke STE check\n\n%s\n%s\n' "$STE_LONG" "$STE_SHORT" > "$d/$file"
+  if [[ -d "$d/library/src/legal" ]]; then
+    legal="library/src/legal/smoke-ste-legal.md"
+    printf '# Smoke STE check\n\n%s\n' "$STE_LONG" > "$d/$legal"
+  else STE[legal]="skip: no library/src/legal"; fi
+  s=0; (cd "$d" && timeout 300 make --no-print-directory lint "${MAKE_EXTRA[@]}") >"$d/.smoke-ste.log" 2>&1 || s=$?
+  STE[status]=$s
+  list="$(awk -v h="$STE_HEAD" 'index($0, h) == 1 { on = 1; next } on && /^  / { print; next } { on = 0 }' "$d/.smoke-ste.log")"
+  STE[long]=false;  grep -qF "  $file:3:" <<<"$list" && STE[long]=true
+  STE[short]=false; grep -qF "  $file:4:" <<<"$list" && STE[short]=true
+  if [[ -n "$legal" ]]; then STE[legal]=false; grep -qF "  $legal:" <<<"$list" && STE[legal]=true; fi
+  rm -f -- "${d:?}/${file:?}" ${legal:+"${d:?}/$legal"}
+}
+
 # Each tooling script's own self-test (check 18), run from the render's root as the author would.
 smoke_selftests() { # $1 = a COPY of a render
   local d="$1" f n s
@@ -858,6 +893,20 @@ run_checks() {
     *) err="$(grep -v '^[[:space:]]*$' "$(dirname "$BUILD_DIR")/.smoke-compare-pdf.log" 2>/dev/null | tail -1 || true)"
        finding "check 37 — [$NAME] make compare UNIT=$CMP_UNIT did not write build/compare/$CMP_UNIT.pdf (${CMP[pdf]}): ${err:0:100}" ;;
   esac
+  case "${STE[skip]:-}" in
+    skip:*) SKIPS+=("STE list steps (${STE[skip]#skip: })") ;;
+    *)
+      if [[ "${STE[status]:-?}" != 0 ]]; then
+        finding "check 38 — [$NAME] make lint failed (exit ${STE[status]:-?}) on a file with list steps — see .smoke-ste.log"
+      else
+        r=""
+        [[ "${STE[long]:-false}" == true ]] || r+=" the 24-word step in library/src/ was not listed;"
+        [[ "${STE[short]:-false}" == false ]] || r+=" the 3-word step was listed;"
+        [[ "${STE[legal]:-false}" != true ]] || r+=" the step in library/src/legal/ was listed;"
+        [[ -z "$r" ]] || finding "check 38 — [$NAME] make lint did not report list steps over 20 words as D46 says:${r%;} — see .smoke-ste.log"
+      fi
+      case "${STE[legal]:-}" in skip:*) SKIPS+=("STE legal exclusion (${STE[legal]#skip: })") ;; esac ;;
+  esac
   for t in "${SELFTESTS[@]}"; do
     [[ "${t#*:}" == 0 ]] && continue
     err="$(grep -v '^[[:space:]]*$' "$(dirname "$BUILD_DIR")/.smoke-selftest-${t%%:*}.log" 2>/dev/null | tail -1 || true)"
@@ -906,6 +955,10 @@ lint:
 	@find . -name .git -prune -o -name '*.md' -print | LC_ALL=C sort | while read -r f; do \
 	  if [ -z "$(LEAK_LINT)" ] && git check-ignore -q "$$f" 2>/dev/null; then continue; fi; \
 	  grep -nH 'organize' "$$f" || true; done
+	@[ ! -d library/src ] || { echo "List steps over 20 words (ASD-STE100; a hint for technical text only):"; \
+	  [ -n "$(STE_BLIND)" ] || find library/src -name '*.md' | LC_ALL=C sort | while read -r f; do \
+	    case "$$f" in library/src/legal/*) [ -n "$(STE_LEGAL)" ] || continue ;; esac; \
+	    awk -v max=$(if $(STE_ALL),2,20) '/^[0-9]+\. / && NF - 1 > max { print "  " FILENAME ":" FNR ":" $$0 }' "$$f"; done; }
 provenance:
 	$(fail)
 lexicon:
@@ -1034,7 +1087,7 @@ self_test() {
   # A business render: the example section is 'converted' by a stub, so no Pandoc is needed.
   TOLATEX=(sed '1,/^---$/d'); fresh_business() {
     MAKE_EXTRA=("$@"); rm -rf "$tmp/run"; write_fixture "$tmp/run"; rm -rf "$tmp/run/manuscript" "$tmp/run/typeset"
-    mkdir -p "$tmp/run/library/src/business/drafts/x" "$tmp/run/tooling/latex"
+    mkdir -p "$tmp/run/library/src/business/drafts/x" "$tmp/run/library/src/legal" "$tmp/run/tooling/latex"
     printf '# A letter\n' > "$tmp/run/library/src/business/a.md"
     printf '%% a document\n%% status: draft\n' > "$tmp/run/library/src/business/a.tex"
     printf -- '---\nsection: scope\n---\n\nThe work covers the handbook.\n' > "$tmp/run/library/src/business/drafts/x/02-scope.md"
@@ -1071,6 +1124,12 @@ self_test() {
   probe "check 32 fires when the default brand seeds still count with BRAND_DIRS set elsewhere" "check 32 — [fixture] make flags did not honour BRAND_DIRS = smoke-brand in tooling/project.mk (D43): the brand seeds' flags"
   fresh_business "NEWBLIND_BRAND=1"
   probe "check 32 fires when the folder BRAND_DIRS names is not read" "check 32 — [fixture] make flags did not honour BRAND_DIRS = smoke-brand in tooling/project.mk (D43): the flag in smoke-brand/"
+  fresh_business "STE_BLIND=1"
+  probe "check 38 fires when make lint does not list a long list step" "check 38 — [fixture] make lint did not report list steps over 20 words as D46 says: the 24-word step"
+  fresh_business "STE_ALL=1"
+  probe "check 38 fires when make lint lists a short list step" "check 38 — [fixture] make lint did not report list steps over 20 words as D46 says: the 3-word step"
+  fresh_business "STE_LEGAL=1"
+  probe "check 38 fires when make lint lists a step in a legal document" "check 38 — [fixture] make lint did not report list steps over 20 words as D46 says: the step in library/src/legal/"
   TOLATEX=(pandoc -f markdown -t latex --lua-filter tooling/pandoc/house.lua)
   MAKE_EXTRA=()
   st_finish "working tooling from broken tooling"

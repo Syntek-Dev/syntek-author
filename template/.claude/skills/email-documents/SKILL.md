@@ -134,6 +134,11 @@ stops a later pass correcting a deliberate choice back to the rule. Be blunt in 
   that reads as a team is a finding; the trading name is a label, never an actor. No em dashes in
   client-facing copy; en dashes only in ranges. Register is set by the reader: peer to peer with a
   specialist, plain with a lay reader.
+- **Technical text in Simplified Technical English.** Set-up steps, a fix or how a system works
+  follow `library/docs/reference/simplified-technical-english.md` (`standards/method/BUSINESS.md`
+  rule 11) where it fits: one instruction per step, the reader's own technical names kept. The
+  greeting, a follow-up's reason for writing and the relationship text keep the voice. A recorded
+  reader need outranks it, and it never makes the email longer.
 - **A recorded reader need** (a format, a length) outranks the house default for that person: it
   lives in the client's `client-emails/<client-slug>/CLAUDE.md`, recorded only on the author's
   instruction, as the preference alone and never with its reason or a diagnosis
@@ -205,6 +210,7 @@ stops a later pass correcting a deliberate choice back to the rule. Be blunt in 
 - [ ] Every commitment described matches its instrument in substance, without a clause number.
 - [ ] No invented name, title, address or entity detail; no other client named.
 - [ ] Any recorded reader need for the recipient honoured.
+- [ ] Technical steps or explanation in Simplified Technical English, no longer; the rest in voice.
 - [ ] The recorded voice; en_GB; DD/MM/YYYY; the house currency; no em dashes.
 - [ ] Hard breaks with two trailing spaces; URLs in angle brackets.
 - [ ] Read beside every other unsent email to the same correspondent.
@@ -229,6 +235,7 @@ stops a later pass correcting a deliberate choice back to the rule. Be blunt in 
 - `library/workflows/12-write-an-email/` — the procedure of record.
 - `.claude/rules/syntek-author/00-project.md` — the project's values and paths.
 - `standards/method/BUSINESS.md`, `standards/risk/BUSINESS.md`.
+- `library/docs/reference/simplified-technical-english.md` — the technical text of an email.
 - `planning/src/document-register.md` — every email registered.
 - `.claude/skills/business-documents/SKILL.md` — the substance of business correspondence, and
   each other family's `<family>-documents` skill for theirs.

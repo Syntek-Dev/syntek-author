@@ -57,8 +57,10 @@ _No entries yet._
 
 <: endif -:>
 <: if DOC_TYPE == 'business' -:>
-Two registers: running copy (full sentences, room to explain, never room to pad) and microcopy
-(labels, subject lines, short notices: terse and action-first). Legal instruments stay formal;
+Registers: running copy (full sentences, room to explain, never room to pad), microcopy
+(labels, subject lines, short notices: terse and action-first) and technical text (steps and
+technical descriptions, in Simplified Technical English where it fits:
+`standards/method/BUSINESS.md` rule 11). Legal instruments stay formal;
 `standards/brand/brand-voice.md` sets how far the brand voice reaches into them.
 
 <: if BUSINESS_VOICE_PERSON == 'singular' -:>

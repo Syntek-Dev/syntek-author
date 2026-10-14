@@ -10,6 +10,10 @@ Figures in these lists (lengths, protocol versions, periods) are recommended def
 client with the reason, checked against current NCSC guidance at the date of drafting; the client
 decides. Every legal basis is verified with `fact-check` before it is cited.
 
+A procedure inside a policy (the change request process, the emergency change procedure, a
+decision path) is written in Simplified Technical English, as `SKILL.md` says; its rules keep
+'must' and 'shall'.
+
 ## Information security policy
 
 1. Purpose and scope

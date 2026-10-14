@@ -34,6 +34,7 @@ model: opus
 
 - [ ] Body drafted through `library/workflows/01-draft-a-section/` (or improved through `library/workflows/03-improve-your-draft/`). · _opus_
 - [ ] Leads with the decision or the ask; nothing cut that was an ask, a caveat, a figure or a commitment. · _opus_
+- [ ] Technical steps or explanation in Simplified Technical English, without adding length; greeting and relationship text in the voice. · _opus_
 - [ ] A follow-up recites no undertaking, counts no time and denies no chasing. · _opus_
 - [ ] Subject settled (50 characters or fewer, 60 at most); file named from it. · _sonnet_
 - [ ] Fixed parts written: frontmatter, title, metadata, internal note, rule, subject, marker pair. · _sonnet_

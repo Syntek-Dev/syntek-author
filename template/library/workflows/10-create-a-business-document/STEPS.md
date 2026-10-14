@@ -81,7 +81,9 @@ For each planned section, in order: `library/workflows/01-draft-a-section/` (or 
 it and `library/workflows/03-improve-your-draft/` follows); the author's notes through
 `library/workflows/02-adapt-a-draft/`; then, on the author's word,
 `library/workflows/04-promote-a-section/`. Hand back after each section. Every price, date and
-service level stays flagged until the author gives it. _Substantive._
+service level stays flagged until the author gives it. Steps and technical passages are drafted in
+ASD-STE100 (`standards/method/BUSINESS.md` rule 11); the welcome and the case keep the voice.
+_Substantive._
 
 ## 8. Review it to final
 

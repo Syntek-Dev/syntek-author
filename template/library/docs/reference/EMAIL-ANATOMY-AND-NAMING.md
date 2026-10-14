@@ -55,6 +55,8 @@ unsent email). Be blunt in it: it is never sent.
 - [ ] The subject is 50 characters or fewer (60 at most), the matter first.
 - [ ] It leads with the decision or the ask; nothing cut that was an ask, a caveat, a figure or a
       commitment.
+- [ ] Technical steps or explanation in Simplified Technical English, no longer than before; the
+      greeting and relationship text in the recorded voice.
 - [ ] A follow-up recites no undertaking, counts no time and denies no chasing.
 - [ ] Named from its subject line and dated; no em dashes; the business's person throughout.
 - [ ] Line breaks and links survive a paste; no placeholder left unflagged.

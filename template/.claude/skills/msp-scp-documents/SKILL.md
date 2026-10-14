@@ -110,6 +110,10 @@ is a client's or the business's own; an HR or staff-conduct policy is a company 
   manager'), and the product lives in the client's own records.
 - **Register.** Formal, authoritative and unambiguous; brand voice does not soften a policy, but
   the letterhead applies.
+- **Procedures in Simplified Technical English.** Runbook and recovery steps, the change and
+  emergency change procedures, incident-phase actions and any set-up steps follow method rule 11
+  and `library/docs/reference/simplified-technical-english.md`. Policy rules keep 'must' and
+  'shall'; defined terms, figures and an agreement's binding text do not change.
 
 ## How to create an msp-scp document
 
@@ -175,6 +179,7 @@ is a client's or the business's own; an HR or staff-conduct policy is a company 
 - [ ] The review-date notice, and any disclaimer the disclaimers file gives the class.
 - [ ] Every required section from the sub-document, in order, or its omission recorded.
 - [ ] Rules in the imperative; roles, never names; every term defined.
+- [ ] Procedure steps in Simplified Technical English; rules keep 'must' and 'shall'.
 - [ ] 'Aligned with', never 'certified to'; every control number verified.
 - [ ] Severity table and response times traced to the agreement (incident plans, SLAs).
 - [ ] The ICO notification duty stated for personal data breaches (incident plans and reports).

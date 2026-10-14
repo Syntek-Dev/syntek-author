@@ -37,7 +37,7 @@ and when it is reviewed. A missing required part is a structural finding, not a 
   them; scope with In scope and Out of scope; deliverables with acceptance criteria; milestones;
   fees and payment schedule; assumptions and dependencies; change control; signature block.
 - **Client guide:** who it is for and what they will be able to do; what they need first; the steps
-  in order; where to get help. Credentials never appear in it: it says where they are kept.
+  in order, in ASD-STE100; where to get help. Credentials never appear: it says where they are kept.
 - **Meeting notes:** Date · Time · Attendees · Place · Subject; numbered agenda items with the notes
   and decisions under each; action items (Action · Owner · Due date).
 - **Business plan:** summary; the business (trading name, legal structure, sector); products and
@@ -61,9 +61,9 @@ and when it is reviewed. A missing required part is a structural finding, not a 
 
 - Every price, date and service level comes from the author; a gap is
   `\dnote{AUTHOR TO CONFIRM: …}`, never an estimate.
-- The voice is the brand voice in the business's person (`00-project.md ## Brief`, and the brand
-  folder `00-project.md ## Paths` names): written to a real reader, three to five sentences a
-  paragraph, no superlative without its number.
+- The voice is the brand voice in the business's person (`00-project.md ## Brief`, the brand folder
+  `00-project.md ## Paths` names), written to a real reader, three to five sentences a paragraph,
+  no superlative without its number; technical text is in ASD-STE100 instead (method rule 11).
 - A terms summary describes the instrument; it never restates or numbers a clause.
 - A client with more than one document of a type adds a subject after the slug in its name.
 - Before `final`: every required part present, the disclaimer where the class carries one, the

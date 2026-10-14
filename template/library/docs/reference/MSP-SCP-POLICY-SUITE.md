@@ -45,6 +45,10 @@ framework's current edition before it is written.
 
 ## The operational documents
 
+Their steps (a runbook's routine tasks and recovery, a change request's implementation and
+rollback) are written in Simplified Technical English
+(`library/docs/reference/simplified-technical-english.md`).
+
 - **Client runbook:** the client and its contacts by role (cited from its `## Facts`); the systems
   in scope; routine tasks and their schedule; how to escalate; where each credential is kept (never
   the credential); recovery steps.

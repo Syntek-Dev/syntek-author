@@ -5,7 +5,7 @@
 
 The method particular to business, legal and client documents, read with `method.md`.
 `clause-consistency` enforces rules 3 and 4; `obligation-check` enforces rules 2 and 7; `tone`
-enforces rules 1, 5 and 10 at line edit; `draft-section` writes to all of them. The parties in
+enforces rules 1, 5, 10 and 11 at line edit; `draft-section` writes to all of them. The parties in
 the examples are invented and named only by their defined terms.
 
 The documents themselves are grouped into the **document families** chosen for this project,
@@ -159,3 +159,23 @@ far as the brand voice's register entry (`brand-voice.md` Section 2) records.
 **Why this rule exists.** Marks are checkable where adjectives about a voice are not: `tone` can
 report a broken mark by location, and a reader who has seen a hundred proposals hears the
 difference at once.
+
+---
+
+## 11. Technical text in Simplified Technical English
+
+**Requirement.** Technical text (a procedure, set-up steps, an SOP, a walkthrough, a runbook, a
+client guide's steps, a technical description of a system or service, a technical schedule, the
+instructions in a financial document, the technical part of an email) is written in ASD-STE100
+Simplified Technical English where it fits, as `library/docs/reference/simplified-technical-english.md`
+sets out: one instruction per sentence, in the imperative; the condition first; one word for one
+meaning. An STE rewrite never makes the text longer. It does not reach persuasive copy, an email's
+relationship text, the operative clauses of an instrument, the rules of a policy or a defined term,
+and it never changes a modal or a figure: there rules 2, 4, 7 and 10 govern.
+
+> **Wrong:** 'You'll then want to go ahead and make sure the backup has been set up properly.'
+>
+> **Right:** 'Make sure that the backup is set up correctly.'
+
+**Why this rule exists.** A reader who follows steps must do the correct thing at the first
+reading, often in a second language; a controlled vocabulary removes the second meaning.

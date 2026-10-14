@@ -111,7 +111,8 @@ A welcome letter is the first, fourth and fifth of these, as a letter.
 5. Support: how to get help, and the hours or service levels the agreement states
 6. Version and review date
 
-A guide never holds a credential: it says where each one is kept.
+A guide never holds a credential: it says where each one is kept. Its steps and its technical
+passages are in ASD-STE100 (House conventions, Technical text).
 
 ### Intake questionnaire
 
@@ -161,9 +162,14 @@ family; otherwise it is written here, as an internal policy.
   headcount); label the scenario (pessimistic, base or optimistic) and show all three when the
   reader is an investor or lender; years read 'Year 1', 'Year 2' unless the author gives dates.
   A document carrying projections takes the financial class's disclaimer.
-- **Voice.** Running copy (proposals, letters, guides, onboarding) follows the brand voice file in
-  the brand folder `00-project.md` `## Paths` names, in the voice `00-project.md` `## Brief`
-  records; a letterhead follows the brand guide there. Never invent a brand value.
+- **Voice.** Running copy (proposals, letters, onboarding, a guide's welcome and framing) follows
+  the brand voice file in the brand folder `00-project.md` `## Paths` names, in the voice
+  `00-project.md` `## Brief` records; a letterhead follows the brand guide there. Never invent a
+  brand value.
+- **Technical text.** The steps of a guide or plan, set-up, a system or service described and a
+  technical schedule are in ASD-STE100 (`standards/method/BUSINESS.md` rule 11,
+  `library/docs/reference/simplified-technical-english.md`): one instruction per step, never longer
+  than the plain draft. Defined terms, figures and commitments keep their wording.
 - **Disclaimer.** The wording for the document's class, copied unchanged from the disclaimers file
   `00-project.md` `## Paths` names; while the class has no wording, `\dnote{AUTHOR TO CONFIRM: …}`
   holds the slot; a waiver is the author's, recorded in the internal note.
@@ -232,6 +238,7 @@ family; otherwise it is written here, as an internal policy.
 - [ ] The class's disclaimer verbatim, or the author's waiver recorded.
 - [ ] No `\fillme`, `[AWAITING USER INPUT]`, `\dnote` or open flag in the document.
 - [ ] en_GB, DD/MM/YYYY, single quotation marks, no em dashes, the recorded voice.
+- [ ] Steps and technical passages in ASD-STE100, no longer than the plain draft.
 - [ ] Register row and review date written.
 
 ## Anti-patterns
@@ -250,6 +257,7 @@ family; otherwise it is written here, as an internal policy.
 ## Cross-references
 
 - `library/docs/reference/business-standards.md` — the family standard.
+- `library/docs/reference/simplified-technical-english.md` — ASD-STE100 for technical text.
 - `library/workflows/10-create-a-business-document/` — the procedure of record.
 - `.claude/rules/syntek-author/00-project.md` — the project's values and paths.
 - `standards/method/BUSINESS.md`, `standards/risk/BUSINESS.md` and
