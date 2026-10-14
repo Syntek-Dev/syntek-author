@@ -34,7 +34,9 @@ loop and the review to `final` and, on the author's word, execution.
   until `fact-check` has confirmed it against the source.
 - **Every negotiable value comes from the author:** fees, caps, notice periods, durations, service
   levels. Never supply one; flag it.
-- **The formal register stays.** Plain-English tone work never touches a clause's meaning.
+- **The formal register stays.** Plain-English tone work never touches a clause's meaning. Only a
+  technical schedule follows `library/docs/reference/simplified-technical-english.md`, and STE
+  never changes its modals or defined terms.
 - **Executed means signed by every party, with the signed copy filed.** Never set it on less.
 - **A sent instrument is never edited.** A counterparty's changes come back as a negotiation copy
   and a new version.

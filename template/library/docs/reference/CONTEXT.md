@@ -1,6 +1,6 @@
 # CONTEXT.md — library/docs/reference/
 
-The template's own guides for the business library: six short answers to the questions every
+The template's own guides for the business library: seven short answers to the questions every
 document raises, from 'how big is a section?' to 'when does a change need a new version?', and one
 standard for each document family this project uses. They are template-owned and updated by
 `copier update`. Project-specific guidance does not live here; it goes in `library/docs/project/`.
@@ -17,6 +17,7 @@ library/docs/reference/
 ├── document-anatomy.md               ← the parts of a business document, in order
 ├── latex-deliverables.md             ← house preamble, section markers, promotion, rendering
 ├── versioning-and-the-register.md    ← vMAJOR.MINOR, new files for new versions, the register
+├── simplified-technical-english.md   ← ASD-STE100 for technical text: scope, the rules, what keeps its register
 <: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>├── legal-standards.md                ← instruments: types, required parts, clauses, names
 <: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>├── email-standards.md                ← correspondence: artefacts, filing, subject lines
 ├── EMAIL-ANATOMY-AND-NAMING.md       ← its sub-document: the four parts, naming, the checklist
@@ -40,6 +41,9 @@ library/docs/reference/
   a Markdown draft on promotion, and rendering twice.
 - `versioning-and-the-register.md` — version numbers, versioned filenames, superseding a
   circulated document, and what the register records.
+- `simplified-technical-english.md` — when technical text (procedures, walkthroughs, technical
+  descriptions and schedules) is written in ASD-STE100, the rules that matter, and what keeps its
+  own register.
 - **The family standards,** `<family>-standards.md`, one for each family in `library/src/`: the
   family's document types, the parts each must carry, its names and its review cycles. A standard
   longer than a guide keeps its detail in a `SCREAMING-CASE.md` sub-document beside it, which it

@@ -112,8 +112,10 @@ only what the author agrees. _Substantive._
 > **Skill:** `tone` · **Guide:** `library/docs/reference/document-anatomy.md`
 
 The house voice and plain English for running copy; the formal register kept for an instrument or
-a policy. A tone pass never changes a figure, a date, a scope boundary or a commitment; anything
-that would is raised with the author instead. _Substantive._
+a policy. Technical text (steps, set-up, SOPs, walkthroughs, technical schedules) is read against
+`library/docs/reference/simplified-technical-english.md` (`standards/method/BUSINESS.md` rule 11)
+and never made longer. A tone pass never changes a figure, a date, a scope boundary or a
+commitment; anything that would is raised with the author instead. _Substantive._
 
 ## 11. Grammar and spelling
 

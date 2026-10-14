@@ -65,7 +65,8 @@ Run `library/workflows/01-draft-a-section/` for the body (or the author writes i
 `library/workflows/03-improve-your-draft/` follows), and the author's notes through
 `library/workflows/02-adapt-a-draft/`. Lead with the decision or the ask; answer what the reader
 would ask anyway; a follow-up recites no undertaking, counts no time and denies no chasing.
-_Substantive._
+Write technical steps and explanation in Simplified Technical English (method rule 11) where it
+fits, never adding length; the greeting and relationship text keep the voice. _Substantive._
 
 ## 6. Settle the subject line and write the file's fixed parts
 

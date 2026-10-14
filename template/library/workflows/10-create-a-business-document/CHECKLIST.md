@@ -41,6 +41,7 @@ model: opus
 - [ ] Each section run through `library/workflows/01-draft-a-section/` (or `library/workflows/03-improve-your-draft/`) and promoted through `library/workflows/04-promote-a-section/` on the author's word. · _opus_
 - [ ] `library/workflows/05-review-a-document/` run in full, with the standard's required parts checked at structure review. · _opus_
 - [ ] Disclaimer present where the class carries one; investment as line items; scope with In and Out. · _opus_
+- [ ] Steps and technical passages in ASD-STE100, no longer than the plain draft; clauses, defined terms and figures unchanged. · _opus_
 
 **Hand-back**
 

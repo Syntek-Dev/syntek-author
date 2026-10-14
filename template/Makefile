@@ -457,7 +457,9 @@ flags: ## list every open flag: AUTHOR TO CONFIRM, VERIFY and FLAG_EXTRA_RE (SCO
 	if [ -n "$(STRICT)" ] && [ "$$total" -gt 0 ]; then exit 1; fi
 
 # lint: one sentence per line in src/ artefacts (reflow a paragraph only when you edit it,
-# never the whole file) and en_US spellings<: if DOC_TYPE == 'business' :>; and no em dash in client-facing copy<: endif :>.
+# never the whole file) and en_US spellings<: if DOC_TYPE == 'business' :>; no em dash in client-facing copy;
+# and list steps over 20 words, the ASD-STE100 limit for a procedural sentence (D46; legal
+# documents aside)<: endif :>.
 # A report, not a gate: STRICT=1 makes it fail on any finding.
 EN_US := colors?|colored|coloring|colorful|favors?|favored|favorites?|favorable|honors?|honored|honorable|behaviors?|behavioral|labors?|labored|neighbors?|neighborhoods?|harbors?|humors?|flavors?|rumors?|centers?|centered|theaters?|fibers?|liters?|calibers?|defense|offense|pretense|catalogs?|grays?|traveled|traveling|travelers?|canceled|canceling|modeled|modeling|labeled|labeling|leveled|leveling|jewelry|aluminum|plow|cozy|skeptic|skeptical|skepticism|fulfill|fulfills|enroll|enrolls|installment
 
@@ -465,7 +467,7 @@ EN_US := colors?|colored|coloring|colorful|favors?|favored|favorites?|favorable|
 # author's prose, keeping line numbers: HTML comments (across lines), the metadata header, a
 # seed's stub banner (its first quoted block, before any '## ' heading, naming a stub), and in
 # a .tex file every command and environment name (\begin{itemize} is not a spelling). Then it
-# prints 'two:', 'us:' or 'dash:' and file:line: for each finding. A list number is no sentence,
+# prints 'two:', 'us:', 'dash:' or 'ste:' and file:line: for each finding. A list number is no sentence,
 # and under a Sources or References heading each line is one reference, not one sentence.
 define LINT_AWK
 FNR == 1 { c = 0; h = 0; b = 0; bd = 0; r = 0; tex = (FILENAME ~ /\.tex$$/) }
@@ -489,23 +491,32 @@ FNR == 1 { c = 0; h = 0; b = 0; bd = 0; r = 0; tex = (FILENAME ~ /\.tex$$/) }
     if (w[i] ~ us || (w[i] ~ ize && w[i] !~ /siz(e|es|ed|ing|er|ers)$$/)) print "us:" where w[i]
   if (dash && (dashin == "" || index(FILENAME, dashin) == 1) && t !~ /^[[:space:]]*[#%]/ \
       && (index(t, "—") || (tex && t ~ /(^|[^-])---([^-]|$$)/))) print "dash:" where $$0
+<: if DOC_TYPE == 'business' -:>
+  if (ste && index(FILENAME, stein) == 1 && index(FILENAME, steout) != 1 \
+      && (t ~ /^[[:space:]]*([0-9]+[.)]|[-*])[[:space:]]/ || (tex && $$0 ~ /^[[:space:]]*\\item/))) {
+    st = t; sub(/^[[:space:]]*([0-9]+[.)]|[-*])[[:space:]]+/, "", st)
+    if (gsub(/[[:alnum:]][[:alnum:]\047’-]*/, "&", st) > 20) print "ste:" where $$0
+  }
+<: endif -:>
 }
 endef
 export LINT_AWK
 LINT_TWO := [^[:space:].][.!?][\047’\042)]*[[:space:]]+[\047‘\042(]*[[:upper:]]
 LINT_IZE := ^[[:alpha:]][[:alpha:]][[:alpha:]]+(iz|yz)(e|es|ed|ing|er|ers|ation|ations)$$
 
-lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE == 'business' :>, and em dashes<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and dense conlang<: endif :> (SCOPE= narrows it)
+lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE == 'business' :>, em dashes and long list steps<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and dense conlang<: endif :> (SCOPE= narrows it)
 	@all=$$($(call SCAN_FIND,$(LINT_IN)) | LC_ALL=C sort); \
 	files=$$(printf '%s\n' "$$all" $(NOT_IGNORED)); \
 	if [ -z "$$files" ]; then echo "lint: nothing to check under $(LINT_IN)"; $(UNREAD_NOTE) exit 0; fi; \
 	total=0; $(REPORT_FN) \
 	found=$$(printf '%s\n' "$$files" | tr '\n' '\000' | xargs -0 awk -v two='$(LINT_TWO)' -v us='^($(EN_US))$$' \
-	  -v ize='$(LINT_IZE)' <: if DOC_TYPE == 'business' :>-v dash=1 -v dashin='$(if $(SCOPE_GIVEN),,$(CONTENT)/src/)' <: endif :>"$$LINT_AWK"); \
+	  -v ize='$(LINT_IZE)' <: if DOC_TYPE == 'business' :>-v dash=1 -v dashin='$(if $(SCOPE_GIVEN),,$(CONTENT)/src/)' \
+	  -v ste=1 -v stein='$(CONTENT)/src/' -v steout='$(CONTENT)/src/legal/' <: endif :>"$$LINT_AWK"); \
 	report "Lines holding more than one sentence" "$$(printf '%s\n' "$$found" | sed -n 's/^two://p')"; \
 	report "en_US spellings" "$$(printf '%s\n' "$$found" | sed -n 's/^us://p')"; \
 <: if DOC_TYPE == 'business' -:>
 	report "Em dashes in client-facing copy (must be none)" "$$(printf '%s\n' "$$found" | sed -n 's/^dash://p')"; \
+	report "List steps over 20 words (ASD-STE100; a hint for technical text only)" "$$(printf '%s\n' "$$found" | sed -n 's/^ste://p')"; \
 <: endif -:>
 <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG -:>
 	prose=$$(printf '%s\n' "$$files" | grep '^$(CONTENT)/src/.*\.md$$' || true); \

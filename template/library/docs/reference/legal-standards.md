@@ -35,7 +35,10 @@ Active · Executed · Superseded · Terminated), Effective date, Owner, Next rev
   `clause~\ref{cl:<slug>}`, never by a typed number.
 - A defined term is bold and in quotation marks where it is defined, capitalised every time after,
   and defined once; definitions come first.
-- 'Shall' for an obligation, 'may' for a permission, 'must' for an absolute requirement.
+- 'Shall' for an obligation, 'may' for a discretion, 'must' for a condition.
+- A technical schedule (security measures, a service description) is written to
+  `library/docs/reference/simplified-technical-english.md`; the clauses that bind keep this
+  register, and an STE rewrite never changes a modal or a defined term.
 - Governing law names the jurisdiction in `00-project.md ## Brief`, unless the author decides
   otherwise for one instrument and records why in its internal note.
 

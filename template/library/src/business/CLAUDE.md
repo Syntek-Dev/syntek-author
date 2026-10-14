@@ -39,6 +39,9 @@ promise the business must be able to keep, and the one record of each client's f
   business's standard terms, flag it for `obligation-check` and the author.
 - **Substantiate or cut.** No superlative without a number; no claim about a competitor or the
   client that the author has not confirmed.
+- **Technical text is in ASD-STE100.** The steps, set-up and system descriptions in a guide or plan
+  follow `library/docs/reference/simplified-technical-english.md`; the welcome and the case keep the
+  voice, and `tone` does not warm up the steps.
 - **State how long an offer stands** (Valid until), and never mark a proposal Accepted without the
   author's word and the client's written acceptance on file.
 - **Revisions after sending are new versions**

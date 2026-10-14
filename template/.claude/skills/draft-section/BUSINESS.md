@@ -55,6 +55,12 @@ facts it may state, and the drafting discipline every commitment needs.
   defines it; choose 'shall', 'may' and 'must' deliberately, and leave no 'will' unbounded; write
   as 'I' or 'we', whichever `00-project.md` `## Brief` gives as the voice person; no em dashes in
   client copy. Never cut an obligation to meet the word target.
+- **Step 6 — also write technical text in Simplified Technical English** from the first draft. A
+  procedure, a technical description, a financial document's instructions or an email's technical
+  part follows ASD-STE100 where it fits (`library/docs/reference/simplified-technical-english.md`,
+  method rule 11).
+  Persuasive copy, an email's relationship lines, operative clauses and policy rules keep their
+  register. STE never changes a modal, a defined term or a figure, and never makes text longer.
 - **Step 6 — also write Markdown the skeleton can carry.** Use only what the conversion table in
   `library/docs/reference/latex-deliverables.md` maps (`##` and `###` headings, emphasis, lists,
   tables); numbered clauses are a numbered list, so `promote-section` can set them in the house

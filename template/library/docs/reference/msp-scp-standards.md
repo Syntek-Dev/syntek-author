@@ -50,6 +50,8 @@ is needed unless the class carries one.
   is filed; every control number and statute carries `VERIFY` until `fact-check` has confirmed it.
 - No credential, network address or secret is written into a runbook or a topology: they say where
   the secret is kept.
+- Runbook steps, recovery steps and change procedures are written in Simplified Technical English
+  (`library/docs/reference/simplified-technical-english.md`); policy rules keep 'must' and 'shall'.
 - A policy becomes Active only once its approval is recorded in the Approvals path
   (`00-project.md` `## Paths`; by default `planning/src/approvals/`).
 

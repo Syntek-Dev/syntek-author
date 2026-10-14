@@ -183,7 +183,9 @@ A termination, breach or other notice, or a payment plan the counterparty signs.
 - **Register.** Formal and precise: 'shall' for an obligation, 'may' for a discretion, 'must' for
   a condition; the party's defined name after first use; UK terms ('solicitor', 'articles of
   association'). Plain English suits terms and policies a consumer reads, never at the cost of
-  precision. Brand voice never softens an instrument.
+  precision. A technical schedule (security measures, a service description) follows
+  `library/docs/reference/simplified-technical-english.md`, but its clauses, defined terms and
+  modals keep this register. Brand voice never softens an instrument.
 - **Statutes.** Cite an Act, regulation or article only once `fact-check` has verified it applies,
   with jurisdiction and date; until then write 'applicable data protection law' or carry `VERIFY`.
   Consumer terms are checked against the Consumer Rights Act 2015 and the Consumer Contracts

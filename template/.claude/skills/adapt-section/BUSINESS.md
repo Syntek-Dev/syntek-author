@@ -34,7 +34,9 @@ template into one client's document, and for bringing an existing document into 
   is never answered by drafting.
 - **Step 5 — also keep the register.** An instrument or a policy stays formal; running copy keeps
   the brand voice (by default `standards/brand/brand-voice.md`); every line keeps the voice person
-  in `00-project.md` `## Brief` ('I' or 'we'), and no em dash enters client copy.
+  in `00-project.md` `## Brief` ('I' or 'we'), and no em dash enters client copy. A revised line
+  in technical text is written in Simplified Technical English
+  (`library/docs/reference/simplified-technical-english.md`); an unflagged line is never converted.
 - **Step 6 — also the holding line is the most conservative wording.** Until the author chooses,
   the draft carries the alternative with the narrowest commitment, and the hand-back says so.
   That wording is the AI's: it goes into the run's `ai` revision with its open row (step 9), so a
@@ -55,7 +57,8 @@ template into one client's document, and for bringing an existing document into 
   memory; each planned section's draft is copied word for word from the reading copy
   (`status: author-draft`, `origin: author`, an internal note naming the source and who wrote
   it), the same text under its entry's `## Author original`; only then do the author's
-  instructions bring it into the house parts, order and terms, each change a revision.
+  instructions bring it into the house parts, order and terms, each change a revision. An ingested
+  procedure is converted to STE only on the author's instruction, and each change is a revision.
 - **Step 8 — also check what must not change.** Compare the revised draft with the version before
   this pass: every figure, date, price, scope boundary, defined term and obligation is unchanged
   unless a numbered note changed it. Any other difference is reverted, or raised with the author.

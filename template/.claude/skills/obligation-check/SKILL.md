@@ -110,6 +110,8 @@ Close with a verdict: **V5.2 pass or fail**, and the count of commitments, new c
 
 - **Tidying an obligation.** Shortening, softening, strengthening or 'clarifying' a commitment is
   the author's decision; a tone or concision pass that touches one has changed the contract.
+- **Changing a modal for Simplified Technical English.** An STE rewrite that turns 'shall' into
+  'must', or a promise into a bare imperative, has changed the duty; report it as a finding.
 - **Filling a gap with a guess.** A missing price, date or limit stays `[AWAITING USER INPUT]` or
   flagged; it is never supplied.
 - **Treating the brief as the instrument.** The brief records what was planned; what binds is the

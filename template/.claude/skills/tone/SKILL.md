@@ -38,8 +38,10 @@ These are the procedure of record — do not restate them at length here.
   the business's own marks and any house mark it sets aside, concision, what a review keeps and
   tidies, the highest-stakes copy.
 - `standards/method/BUSINESS.md` — rules 1 (specificity over superlatives), 2 (shorten the
-  writing, never the obligation), 5 (lead with the point; end with a way forward) and 10 (the
-  marks of running copy).
+  writing, never the obligation), 5 (lead with the point; end with a way forward), 10 (the
+  marks of running copy) and 11 (technical text in Simplified Technical English).
+- `library/docs/reference/simplified-technical-english.md` — the ASD-STE100 rules for technical
+  text, and where they stop.
 - `00-project.md` `## Brief` — the voice person the business writes in;
   `standards/style/voice-notes.md` — the marks learned from the author's own edits.
 - `library/docs/reference/document-anatomy.md` — which families keep the formal register.
@@ -50,9 +52,11 @@ These are the procedure of record — do not restate them at length here.
 
 1. **Fix the scope and map the registers.** Agree with <%AUTHOR_FIRST_NAME%> which document, and
    mark each part with its register: **running copy** (proposals, letters, emails, articles),
-   **microcopy** (subject lines, labels, short notices) or **formal** (the operative text of a
-   contract or policy). Where the brand voice has not yet settled how far it reaches into
-   instruments, treat every instrument as formal throughout and say so.
+   **microcopy** (subject lines, labels, short notices), **technical** (steps, set-up, SOPs,
+   walkthroughs, technical schedules and descriptions, the technical part of an email; method rule
+   11) or **formal** (the operative text of a contract or policy). Where the brand voice has not
+   yet settled how far it reaches into instruments, treat every instrument as formal throughout,
+   its technical schedules excepted, and say so.
    *Complete when:* every part of the document has a register, and any unsettled register decision
    is named.
 
@@ -72,9 +76,10 @@ These are the procedure of record — do not restate them at length here.
 
 4. **Run the mechanical checks.** Run `make lint SCOPE=<the document's path>` for em dashes in
    client-facing copy (there must be none; en dashes in ranges are fine), lines holding two
-   sentences and en_US spellings. Then search the running copy for filler intensifiers ('very',
-   'really', 'truly', 'simply', 'just'), superlatives and buzzwords ('world-class', 'seamless',
-   'unlock', 'leverage', 'solutions'), the wrong person ('we' in a singular voice, 'I' in a plural
+   sentences, en_US spellings and list steps over 20 words (a hint for technical text only).
+   Then search the running copy for filler intensifiers ('very', 'really', 'truly', 'simply',
+   'just'), superlatives and buzzwords ('world-class', 'seamless', 'unlock', 'leverage',
+   'solutions'), the wrong person ('we' in a singular voice, 'I' in a plural
    one), exclamation marks and wrong casing of the trading or product names. A word that is part of
    a defined term is not filler. *Complete when:* each check has a count and every hit a location.
 
@@ -85,9 +90,11 @@ These are the procedure of record — do not restate them at length here.
    the business's own marks in the brand voice's Section 3, where an entry that sets
    a house mark aside wins. Then concision within its boundary (Section 4) and the highest-stakes
    copy (Section 7: claims and guarantees, pricing, errors and apologies, legal-adjacent copy).
-   Read the formal parts only for plain-English slips the formal register allows; the brand voice
-   never softens them. *Complete when:* every part has been read and each broken mark is recorded
-   with its location and the rule or entry it breaks.
+   Read the technical parts against `library/docs/reference/simplified-technical-english.md`: one
+   instruction per sentence, the imperative, one word for one meaning, never longer than it
+   entered. Read the formal parts only for plain-English slips the formal register allows; the
+   brand voice never softens them. *Complete when:* every part has been read and each broken mark
+   is recorded with its location and the rule or entry it breaks.
 
 6. **Report.** Deliver the report below: numbered proposals by location, each with the line, the
    mark it breaks, the proposed change and a one-line reason, recurring items grouped, and the
@@ -128,6 +135,8 @@ Close with a verdict: **V6.1 pass or fail**, with the frozen-list check result.
   changed promise; raise it instead.
 - **Softening an instrument.** Brand voice does not reach into the operative clauses of a contract
   or the rules of a policy.
+- **STE where it does not fit.** Persuasive copy, an email's relationship text and an operative
+  clause keep their register; an STE rewrite that makes a passage longer is declined.
 - **Cutting substance for concision.** A shorter document that has lost a limit, an exclusion or an
   answer the reader needed is not better written.
 - **Rewriting the whole document.** Propose by line; the author's voice survives only if every
