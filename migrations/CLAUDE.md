@@ -20,12 +20,13 @@ Carry what an author wrote across a release that moves the folder it lives in, o
   5. Prove it in `update-test.sh`: render at the previous tag, act as the author (plant files in every old folder, with one collision and one that must not move; or change a value in its old home, and re-answer another during the update itself), update to the snapshot tagged with `VERSION`, and assert each file moved byte for byte and none was lost, or that the new home took the value and kept the fresh answer. Then commit, run the script a second time and assert nothing changes.
   6. End the report with the command that runs the script again (the update's copy of the template is deleted when it ends): `rerun_cmd` in either v0.2.0 script builds it from `_src_path`.
   7. `bash -n` the script, and shellcheck it at warning level, as CI does: `uvx --from shellcheck-py shellcheck -S warning -x migrations/*.sh adopt/*.sh .github/scripts/*.sh template/.claude/hooks/*.sh`.
+- **The outside-link script is the stated exception** (D44, D48). `agents-outside-link.py` is family-shared: change it only with every family template in one release, run `bash .github/scripts/family-shared.sh --write`, and keep it free of template names, decision numbers and delimiters. Its two `_migrations` entries stay first, unversioned, between the D48 markers. It is proved by `update-test.sh` checks 40–43, not by a version-crossing flow.
 - **Definition of done:** an update across the release moves every author file, or carries every value, that has one correct home, leaves and names every other, and a second run changes nothing.
 
 ## Guardrails
 
 - **Always exit 0.** A non-zero exit aborts every later migration and leaves the project half-upgraded. Print what needs a human instead.
-- **Never overwrite, never delete a file.** An existing destination is reported and both files stay. Only a folder its own moves left empty may be removed.
+- **Never overwrite, never delete a file.** An existing destination is reported and both files stay. Only a folder its own moves left empty may be removed. (The outside-link script removes one file, its own held link, and only where an identical `.agents` link already stands.)
 - **Edit only a seed the same release delivered, and only a line that still holds the recorded answer.** Every seed the author already had is reported line by line, never rewritten: what they wrote around the line is theirs.
 - **Act only where exactly one result is correct.** Anything that depends on what the author meant is a report line.
 - **Never move a git-ignored file to a path git would not ignore, and never read one** (D42): ignore rules written for the old path protect credentials and local-only material. Read only what `git ls-files -co --exclude-standard` lists, and suggest only commands that do the same (`git grep`, never `grep -r`).
@@ -34,5 +35,5 @@ Carry what an author wrote across a release that moves the folder it lives in, o
 
 ## Output & naming
 
-- **Hand-written:** `vX.Y.Z-<what>.sh`, executable, one per change that needs one.
+- **Hand-written:** `vX.Y.Z-<what>.sh`, executable, one per change that needs one. The one exception is `agents-outside-link.py`, named without a release because it runs on every update.
 - **Report format:** a `▸` heading; one `moved  <old> -> <new>` or `changed  <setting>: '<old>' -> '<new>'` line per action; then counts, every file left or value not written with its reason, every line still citing an old path or giving old guidance as `file:line` with its replacement, and the re-run command.

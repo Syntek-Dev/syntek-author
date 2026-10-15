@@ -1310,10 +1310,38 @@ UNIT_NOUN:
 # run in declaration order, so a later release's entry goes ABOVE this one only if it must run
 # first; otherwise append.
 #
+# ONE STATED EXCEPTION (DESIGN.md D44, D48): the family-shared pair between the markers below,
+# migrations/agents-outside-link.py, carries no `version:` because it must run on every update,
+# is a Python script named without a release, and removes one file, its own held link, where
+# the update already put an identical .agents link back. Copier checks that no destination
+# resolves outside the project BEFORE it reads _exclude (9.17.1, _main.py:810-812), so an
+# .agents link to a folder outside the project fails every update; hold renames that link to
+# .agents.syntek-held before the render (after Copier's dirty check) and prints the hand fix
+# first, and restore, declared before every other after-stage entry, renames it back. The
+# link's target is never touched, and both stages always exit 0. The pair stays at the TOP of
+# the list. No migration runs on `copier copy`: the copy recipe is in the bridge,
+# .claude/syntek-author-agents.md, and in README.md. update-test.sh checks 40–43 prove it.
+#
 # A `version:` entry runs only when the update crosses that version, which Copier reads from
 # the template's git tags (PEP 440): an update to an untagged HEAD that is still numbered
-# 0.1.x does not run it. update-test.sh tags its snapshot with VERSION to prove the real path.
+# 0.1.x does not run it. An entry with no `version:` runs on every update (Copier 9.17.1,
+# _template.py:429-456). update-test.sh tags its snapshot with VERSION to prove the real path.
+#
+# The lines strictly between the D48 markers below are FAMILY-SHARED: every template of the
+# family carries them byte for byte, so they name no template and no decision number, and
+# family-shared.sh hashes them.
 _migrations:
+# BEGIN family-shared migrations (D48)
+  # Unversioned on purpose, so they run on every update and never on a copy. Where .agents
+  # is a link that resolves outside the project, which Copier refuses to render beneath even
+  # where _exclude names it, hold renames the link to .agents.syntek-held before the render
+  # and restore renames it back after; the link's target is never touched. Both always exit
+  # 0. Keep this pair first: restore must run before every other after-stage migration.
+  - command: python3 "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" hold
+    when: "<% _stage == 'before' %>"
+  - command: python3 "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" restore
+    when: "<% _stage == 'after' %>"
+# END family-shared migrations (D48)
   # v0.2.0 retires v0.1.0's six business family folders for the D39 families. Copier removes
   # the governance files it generated in the old folders and leaves everything an author
   # created there, in folders nothing routes to any more. This moves those files to their D44

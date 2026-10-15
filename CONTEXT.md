@@ -27,6 +27,7 @@ syntek-author/
 │   └── workflows/audit-template.yml   ← CI: every audit and shellcheck, on every push
 ├── migrations/               ← scripts copier update runs when a release moves author work (D44)
 │   ├── CONTEXT.md · CLAUDE.md
+│   ├── agents-outside-link.py        ← every update: an .agents link outside the project held aside and restored (D44's exception; family-shared, D48)
 │   ├── v0.2.0-business-families.sh   ← v0.1.0's business family folders → the D39 families
 │   └── v0.2.0-project-settings.sh    ← every variant: brief values the author changed → 00-project.md ## Brief
 ├── adopt/                    ← adoption scripts and invented example answers
@@ -59,7 +60,7 @@ syntek-author/
 - `family-shared.json` — the D48 manifest: the size and hash of every file, and of the `copier.yml` question block, that companion templates such as `syntek-media` vendor byte for byte. `.github/scripts/family-shared.sh --write` regenerates it; nothing at the root ships.
 - `.claude/` — the development manual. Its settings deny every skill under `template/.claude/skills/` and exclude the template's `CLAUDE.md` files from development sessions, so the product's instructions never steer the people building it.
 - `.github/scripts/` — the audits, each with a `--self-test`; its `CONTEXT.md` lists what each checks. CI runs all of them on every push.
-- `migrations/` — one script per release that moved a folder holding author work, run by `copier update` through `copier.yml`'s `_migrations` when the update crosses that release (D44). Each is idempotent, never overwrites or deletes a file, and always exits `0`.
+- `migrations/` — one script per release that moved a folder holding author work, run by `copier update` through `copier.yml`'s `_migrations` when the update crosses that release (D44). Each is idempotent, never overwrites or deletes a file, and always exits `0`. The one exception, `agents-outside-link.py`, is family-shared (D48) and runs on every update: it holds an `.agents` link that resolves outside the project aside for the render and puts it back.
 - `adopt/` — prepares an existing repository for adoption: a moving `copier copy --overwrite` (**advisory unless `--apply` is given, and it never overwrites**), or an additive `copier copy --skip '*' --skip-tasks` (`--additive`: a report only, D41).
 - `VERSION`, `CHANGELOG.md` — the template's own release state. A generated project starts its own history; nothing here is copied into it.
 
