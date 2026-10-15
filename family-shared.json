@@ -15,9 +15,11 @@
     {"path": ".mcp.json", "source": "template/.mcp.json", "kind": "file", "bytes": 19, "sha256": "372a7f8c1e988f58480012e741582e13bb1c9c2b2611432f365ae132f519cfe5"},
     {"path": "AGENTS.md", "source": "template/AGENTS.md", "kind": "file", "bytes": 614, "sha256": "f64e97b25b14f79c50ca482ae6f5523f4d1badf007e470bd70d9c530c51a5cb0"},
     {"path": "GEMINI.md", "source": "template/GEMINI.md", "kind": "file", "bytes": 614, "sha256": "f9f6a3e640c7488dd1cbfe37fc9cab563679821f541020f162fcd0c41014e618"},
+    {"path": "migrations/agents-outside-link.py", "source": "migrations/agents-outside-link.py", "kind": "file", "scope": "repository", "bytes": 4305, "sha256": "c94cdf0f9bad2c0483bc29819c229b2874107a9afa2a7f3241a32ef9bf3f75eb"},
     {"path": "opencode.json", "source": "template/opencode.json", "kind": "file", "bytes": 1575, "sha256": "b05f459c3aaf7495a429901b29bca0600200fd6945d63508f68ac7fdafb90d81"}
   ],
   "blocks": [
-    {"name": "questions", "source": "copier.yml", "begin": "# BEGIN family-shared questions (D48)", "end": "# END family-shared questions (D48)", "bytes": 8336, "sha256": "f536d4a8e710e860c112c84d420531f243c8de26eea1abd1ed3b278ed3098cae"}
+    {"name": "questions", "source": "copier.yml", "begin": "# BEGIN family-shared questions (D48)", "end": "# END family-shared questions (D48)", "bytes": 8336, "sha256": "f536d4a8e710e860c112c84d420531f243c8de26eea1abd1ed3b278ed3098cae"},
+    {"name": "migrations", "source": "copier.yml", "begin": "# BEGIN family-shared migrations (D48)", "end": "# END family-shared migrations (D48)", "bytes": 712, "sha256": "0cf1d37b029a436a25b1be8045b841b7893759955e8c462ee7090a7d9a795925"}
   ]
 }

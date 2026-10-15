@@ -605,9 +605,10 @@ EOF
 )
 
 # Paths that must never reach a generated project: the template's own state (the family-shared
-# manifest of D48 included), the retired agent and command tiers (DESIGN.md D5), and
-# .claude/mcp_config.json, retired before release for .agents/mcp_config.json (D47).
-SA_NEVER="copier.yml DESIGN.md adopt template .copier-answers.yml family-shared.json .github/scripts .github/workflows/audit-template.yml .claude/agents .claude/commands .claude/mcp_config.json"
+# manifest of D48 and the migrations, its outside-link script included), the retired agent and
+# command tiers (DESIGN.md D5), and .claude/mcp_config.json, retired before release for
+# .agents/mcp_config.json (D47).
+SA_NEVER="copier.yml DESIGN.md adopt template migrations .copier-answers.yml family-shared.json .github/scripts .github/workflows/audit-template.yml .claude/agents .claude/commands .claude/mcp_config.json"
 
 # Seeds (DESIGN.md Section 3.1): the registers and style trio, the proposal package stubs, the
 # business brand files, and the author-filled index pairs (the map index, and the pair of every

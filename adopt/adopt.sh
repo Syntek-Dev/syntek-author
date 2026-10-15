@@ -52,7 +52,9 @@
 #     line would keep .claude/skills/build/ out of git
 #   - template files the copy will REPLACE (when run from a clone that holds template/)
 #   - an .agents that Copier cannot copy over (a real .agents/skills folder, or .agents itself
-#     a link or a file), with the --exclude the printed copy command then carries
+#     a link or a file), with the --exclude the printed copy command then carries; for an
+#     .agents link to a folder outside the repository, the printed copy is wrapped in the two
+#     mv lines that hold the link aside and put it back (never run by this script)
 #
 # Idempotent: a second --apply finds nothing left to move and reports only what still needs
 # the author.
@@ -212,15 +214,45 @@ note() { item report "$1"; NOTES=$((NOTES + 1)); }
 #   - .agents/skills is a real folder or a file (a link would land on it): --exclude /.agents/skills;
 #   - .agents itself is a link or a file, as in the retired `.agents -> .claude` layout:
 #     --exclude /.agents (a copy would otherwise write through the link into .claude/).
+# A third shape fails even with that exclusion: an .agents link that resolves OUTSIDE the
+# repository. Copier refuses every destination beneath it before it reads --exclude, so the
+# link alone is moved aside for the copy and put back after it (DESIGN.md Section 3.6, D48):
+#   mv .agents .agents.syntek-held, the copy with --exclude /.agents, mv .agents.syntek-held .agents
+# The exclusion matters: without it the copy writes a real .agents/ folder, and the second mv
+# would put the link inside it. Updates hold and restore the link themselves (the unversioned
+# migrations/agents-outside-link.py pair); a copy runs no migration.
 # Nothing is ever renamed, moved or removed; the report says what to do by hand, and for the
 # retired link that is to replace it with the real folder before the copy (README.md).
 AGX=""
+AGHOLD=""
+AGBACK=""
+agents_outside() { # 0 when .agents is a link that resolves outside the current directory
+  # Resolved as the migration resolves it (Python's realpath), so a link whose target is
+  # missing, as in a fresh clone without the agent tree beside it, still counts: Copier
+  # resolves the destinations beneath it the same way and refuses them.
+  local root real
+  [ -L .agents ] || return 1
+  root=$(pwd -P)
+  real=$(python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' .agents 2>/dev/null) \
+    || real=$(realpath -m .agents 2>/dev/null) || real=$(readlink -f .agents 2>/dev/null) || return 1
+  case "$real" in "$root" | "$root"/*) return 1 ;; esac
+  return 0
+}
+# A copy command as printed: $1 = the indent of its continuation lines, $2 = the command. Where
+# .agents links outside, the command is wrapped in the two mv lines.
+copy_cmd() {
+  if [ -n "$AGHOLD" ]; then printf '%s\n%s%s\n%s%s' "$AGHOLD" "$1" "$2" "$1" "$AGBACK"
+  else printf '%s' "$2"; fi
+}
 agents_exclude() {
-  AGX=""
+  AGX=""; AGHOLD=""; AGBACK=""
   local mcp=$'{\n  "mcpServers": {}\n}\n'
   if [ -L .agents ] || { [ -e .agents ] && [ ! -d .agents ]; }; then
     AGX=" --exclude /.agents"
-    if [ -L .agents ] && [ "$(readlink .agents)" = .claude ]; then
+    if agents_outside; then
+      AGHOLD="mv .agents .agents.syntek-held"; AGBACK="mv .agents.syntek-held .agents"
+      note ".agents is a link to $(readlink .agents), outside the repository: Copier refuses everything beneath it, even with --exclude. The copy below is wrapped to move the link alone aside and put it back, from the repository root: $AGHOLD, then the copy with --exclude /.agents, then $AGBACK. Its target is never touched. If the copy stops, run $AGBACK before anything else. Later updates hold and restore the link themselves."
+    elif [ -L .agents ] && [ "$(readlink .agents)" = .claude ]; then
       note ".agents is a link to .claude, a retired layout that makes every sandboxed Codex command fail on Linux, and a copy would write through it. Before the copy, with the author, replace it with a real folder (rm .agents; mkdir .agents; ln -s ../.claude/skills .agents/skills; and git mv .claude/mcp_config.json .agents/ if that file exists), then run this report again. Until then the copy below excludes it (--exclude /.agents)."
     else
       note ".agents is not a folder: the copy below excludes it (--exclude /.agents). Keep it; set up the agents folder by hand with the author (.claude/syntek-author-agents.md, 'Enabling a client in an existing project')."
@@ -390,7 +422,7 @@ kept_state() { # $1 = path
 additive_report() {
   local tpl_root render copier log f n m mode dir name e p entries unmentioned kept_n add_n found with
   local ref tag dirty refdesc rule t where ans q step2 step3 ign_n=0 seed_ign=0 risk_n=0 checked=0
-  local st loose=0 dup_n=0 b c own_dir in_git=0
+  local st loose=0 dup_n=0 b c own_dir in_git=0 agx
   local -a args=() rfiles=() held=() added=() ign=() order=() porder=() names=() drafts=() cands=()
   local -A risk=() pdir=() atrisk=() in_head=() in_index=() dup_seen=()
   tpl_root=$(cd "$SCRIPT_DIR/.." && pwd)
@@ -419,7 +451,12 @@ additive_report() {
 
   mapfile -t rfiles < <(cd "$render/p" && find . -name .git -prune -o \( -type f -o -type l \) -print \
     | sed 's#^\./##' | grep -vx '.copier-answers.syntek-author.yml' | LC_ALL=C sort)
+  # Paths the printed copy excludes under .agents (agents_exclude, run in a subshell here so
+  # its notes print once, in their place below) are neither added nor kept: the copy never
+  # writes there, and a linked .agents would otherwise be counted through its link.
+  agx=$(agents_exclude >/dev/null; printf '%s' "$AGX")
   for f in "${rfiles[@]}"; do
+    case "$agx|$f" in " --exclude /.agents|.agents/"* | " --exclude /.agents/skills|.agents/skills") continue ;; esac
     if [ -e "$f" ] || [ -L "$f" ]; then held+=("$f"); else added+=("$f"); fi
   done
   kept_n=${#held[@]}; add_n=${#added[@]}
@@ -760,18 +797,18 @@ additive_report() {
   if [ -n "$tag" ] && [ -z "$dirty" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact. This clone is
        clean at the tag $tag, so that published release is the same tree:
-         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=$tag gh:Syntek-Dev/syntek-author .
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=$tag gh:Syntek-Dev/syntek-author .")
        (Or this clone: $q in place of gh:…, and --vcs-ref=HEAD.)"
   elif [ -n "$ref" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact:
-         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=HEAD $q .
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=HEAD $q .")
        Copier records that ABSOLUTE path for every later update.${dirty:+ This clone has uncommitted
        changes, which Copier copies too: commit them first, so the version it records is one
        this clone holds.} For a published release of gh:Syntek-Dev/syntek-author instead, check
        this clone out at that release's tag and run this report again."
   else
     step3="    3. Copy from the folder this report previewed, or it is not exact:
-         uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false $q .
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false $q .")
        It is not a git clone, so Copier records no version and no update can follow: prefer a
        clone of gh:Syntek-Dev/syntek-author at a release tag, and run this report from it."
   fi
@@ -1145,7 +1182,7 @@ cat <<EOF
   Next:
     1. Review with \`git add -A && git diff --cached -M\`, then commit on this branch.
     2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml
-    3. uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .
+    3. $(copy_cmd "       " "uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .")
        (From a local clone: its ABSOLUTE path in place of gh:…, plus --vcs-ref=HEAD. Copier
        records the path for every later update, and a relative one breaks them all.)
     4. Review git diff: recover project text the copy replaced into docs/project/,

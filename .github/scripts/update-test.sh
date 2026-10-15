@@ -119,6 +119,28 @@
 #                       it), keeps `[codex]`; with a value no longer a choice added to the
 #                       record (`cursor`), it keeps only `[codex]` instead of failing.
 #
+#                  An .agents link to a folder OUTSIDE the project (once per run, on the first
+#                  DOC_TYPE; DESIGN.md D48, Section 3.6). Copier refuses every destination
+#                  beneath such a link before it reads _exclude, so the unversioned, family-shared
+#                  migrations/agents-outside-link.py pair holds the link aside before the render
+#                  and restores it after. A project copied with the real .agents/ has it replaced
+#                  by a link to the author's own agent tree beside the project, and the template
+#                  changes a rule.
+#                   40. The update succeeds; .agents is the same link again, no
+#                       .agents.syntek-held is left, Git sees no change to either, the restore
+#                       is printed, and every file in the folder the link points to is byte for
+#                       byte as it was after every run below.
+#                   41. A second update, with nothing new in the template, exits 0 and changes
+#                       nothing.
+#                   42. A stranded hold is fixed: an update that stops between the stages (a
+#                       refused DOC_TYPE change, in a clone) leaves the link held as
+#                       .agents.syntek-held and prints the hand fix 'mv .agents.syntek-held
+#                       .agents'; run as printed, the fix leaves the clone's work tree clean
+#                       and the link's target unchanged; and so does the script's own restore
+#                       after a hold left by hand.
+#                   43. The control: a real .agents/ folder whose skills link points outside the
+#                       project updates with exit 0, the link untouched.
+#
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
 #                  and never a finding: only exit statuses and files are judged.
@@ -137,7 +159,9 @@
 #            test in .claude/CLAUDE.md Section 1, v0.2.0 with the families, the 00-project.md seed and
 #            the real migrations/v0.2.0-business-families.sh and v0.2.0-project-settings.sh —
 #            and both upgrades run for real. For checks 31–34 the fixture's v0.1.0, which
-#            predates its agent questions, stands in for v0.3.0.
+#            predates its agent questions, stands in for v0.3.0. For checks 40–43 the fixture
+#            is given the real migrations/agents-outside-link.py and the real family-shared
+#            migrations block of copier.yml, and every update runs for real.
 #
 # Requirements: bash 4+, git, rsync, uvx (or COPIER_CMD), and the v0.1.0 and v0.3.0 tags in
 #               the template repository (CI checks out with fetch-depth 0). Network on the
@@ -653,6 +677,140 @@ clients_checks() {
   return 0
 }
 
+# ── An .agents link to a folder outside the project (D48, checks 40–43) ───────
+
+OL_HELD=".agents.syntek-held"
+OL_FIX="mv $OL_HELD .agents"
+OL_MIG_BEGIN="# BEGIN family-shared migrations (D48)"
+OL_MIG_END="# END family-shared migrations (D48)"
+OL_RAN=false
+OL_DOC=""; OL_PROJ=""; OL_LOG=""; OL_COPY_STATUS=0; OL_STATUS=0; OL_TARGET=""; OL_AFTER_TARGET=""
+OL_HELD_LEFT=false; OL_DIRTY=""; OL_AGAIN_STATUS=0; OL_AGAIN_DIRTY=""; OL_SUMS_BEFORE=""; OL_SUMS_AFTER=""
+OL_STRAND_LOG=""; OL_STRAND_STATUS=0; OL_STRAND_HELD=false; OL_STRAND_DIRTY=""; OL_STRAND_TARGET=""
+OL_RESTORE_DIRTY=""; OL_RESTORE_TARGET=""; OL_CTL_STATUS=0; OL_CTL_TARGET=""; OL_CTL_AFTER=""
+
+ol_sums() { # $1 = dir → every path under it, with its checksum (a link: its target)
+  (cd "$1" && find . -print0 | LC_ALL=C sort -z | while IFS= read -r -d '' f; do
+    if [[ -L "$f" ]]; then printf '%s -> %s\n' "$f" "$(readlink "$f")"
+    elif [[ -f "$f" ]]; then printf '%s %s\n' "$f" "$(sum_of "$f")"
+    else printf '%s/\n' "$f"; fi
+  done) 2>/dev/null
+}
+
+run_outside_flow() { # $1 = template repository (with the outside-link pair), $2 = work dir, $3 = DOC_TYPE
+  local src="$1" w="$2" tpl="$2/ol-tpl" log="$2/ol-flow.log" out="$2/outside-agents"
+  local clone="$2/ol-strand" ctl="$2/ol-control"
+  OL_RAN=true; OL_DOC="$3"; OL_PROJ="$w/ol-proj"; OL_LOG="$w/ol-update.log"; OL_STRAND_LOG="$w/ol-strand.log"
+  OL_COPY_STATUS=0; OL_STATUS=0; OL_HELD_LEFT=false; OL_DIRTY=""; OL_AGAIN_STATUS=0; OL_AGAIN_DIRTY=""
+  OL_STRAND_STATUS=0; OL_STRAND_HELD=false; OL_STRAND_DIRTY=""; OL_STRAND_TARGET=""
+  OL_RESTORE_DIRTY=""; OL_RESTORE_TARGET=""; OL_CTL_STATUS=0; OL_CTL_TARGET=""; OL_CTL_AFTER=""
+  : > "$OL_LOG"; : > "$OL_STRAND_LOG"
+  sa_snapshot "$src" "$tpl" >>"$log" 2>&1 || die "could not snapshot $src"
+  rm -rf "$out"; mkdir -p "$out/skills"
+  printf "The author's own agent tree, outside the project.\n" > "$out/note.md"
+  OL_SUMS_BEFORE="$(ol_sums "$out")"
+
+  sa_render "$tpl" "$OL_PROJ" "$OL_DOC" >>"$log" 2>&1 || OL_COPY_STATUS=$?
+  [[ "$OL_COPY_STATUS" -eq 0 ]] || return 0
+  [[ -d "$OL_PROJ/.git" ]] || sa_git "$OL_PROJ" init -q
+  rm -rf "${OL_PROJ:?}/.agents"; ln -s ../outside-agents "$OL_PROJ/.agents"
+  sa_git "$OL_PROJ" add -A && sa_git "$OL_PROJ" commit -q -m 'generated; .agents links to my own agent tree' >>"$log" 2>&1
+  OL_TARGET="$(readlink "$OL_PROJ/.agents")"
+  printf '\n%s\n' "$TEMPLATE_MARK" >> "$tpl/template/$RULES01"
+  sa_git "$tpl" add -A && sa_git "$tpl" commit -q -m 'a template change' >>"$log" 2>&1
+
+  # 40: the update.
+  sa_update "$OL_PROJ" >"$OL_LOG" 2>&1 || OL_STATUS=$?
+  cat "$OL_LOG" >>"$log"
+  OL_AFTER_TARGET="$(readlink "$OL_PROJ/.agents" 2>/dev/null || printf 'not a link')"
+  if [[ -e "$OL_PROJ/$OL_HELD" || -L "$OL_PROJ/$OL_HELD" ]]; then OL_HELD_LEFT=true; fi
+  OL_DIRTY="$(git -C "$OL_PROJ" status --porcelain -- .agents "$OL_HELD" 2>/dev/null | paste -sd' ' -)"
+  sa_git "$OL_PROJ" add -A && sa_git "$OL_PROJ" commit -q -m 'updated' >>"$log" 2>&1 || true
+
+  # 41: a second update, with nothing new in the template.
+  sa_update "$OL_PROJ" >>"$log" 2>&1 || OL_AGAIN_STATUS=$?
+  OL_AGAIN_DIRTY="$(git -C "$OL_PROJ" status --porcelain 2>/dev/null)"
+
+  # 42: an update that stops between the stages, in a clone, then the printed fix; then a hold
+  # left by hand, put back by the script's own restore.
+  git clone -q "$OL_PROJ" "$clone" >>"$log" 2>&1 || die "could not clone $OL_PROJ"
+  sa_update "$clone" --data "DOC_TYPE=$(other_doc "$OL_DOC")" >"$OL_STRAND_LOG" 2>&1 || OL_STRAND_STATUS=$?
+  cat "$OL_STRAND_LOG" >>"$log"
+  if [[ -L "$clone/$OL_HELD" && ! -L "$clone/.agents" && ! -e "$clone/.agents" ]]; then OL_STRAND_HELD=true; fi
+  if $OL_STRAND_HELD; then (cd "$clone" && $OL_FIX) >>"$log" 2>&1 || true; fi
+  OL_STRAND_DIRTY="$(git -C "$clone" status --porcelain 2>/dev/null | paste -sd' ' -)"
+  OL_STRAND_TARGET="$(readlink "$clone/.agents" 2>/dev/null || printf 'not a link')"
+  (cd "$clone" && python3 "$tpl/migrations/agents-outside-link.py" hold && python3 "$tpl/migrations/agents-outside-link.py" restore) >>"$log" 2>&1 || true
+  OL_RESTORE_DIRTY="$(git -C "$clone" status --porcelain 2>/dev/null | paste -sd' ' -)"
+  OL_RESTORE_TARGET="$(readlink "$clone/.agents" 2>/dev/null || printf 'not a link')"
+
+  # 43: the control, a real .agents/ whose skills link leaves the project.
+  sa_render "$tpl" "$ctl" "$OL_DOC" >>"$log" 2>&1 || OL_CTL_STATUS=$?
+  if [[ "$OL_CTL_STATUS" -eq 0 ]]; then
+    [[ -d "$ctl/.git" ]] || sa_git "$ctl" init -q
+    rm -rf "${ctl:?}/.agents/skills"; ln -s ../../outside-agents/skills "$ctl/.agents/skills"
+    sa_git "$ctl" add -A && sa_git "$ctl" commit -q -m 'generated; .agents/skills links outside' >>"$log" 2>&1
+    OL_CTL_TARGET="$(readlink "$ctl/.agents/skills")"
+    sa_update "$ctl" >>"$log" 2>&1 || OL_CTL_STATUS=$?
+    OL_CTL_AFTER="$(readlink "$ctl/.agents/skills" 2>/dev/null || printf 'not a link')"
+  fi
+  OL_SUMS_AFTER="$(ol_sums "$out")"
+}
+
+outside_checks() {
+  local L="[$OL_DOC]"
+  if [[ "$OL_COPY_STATUS" -ne 0 ]]; then
+    finding "check 40 — $L the project did not render (exit $OL_COPY_STATUS)"
+    return 0
+  fi
+  if [[ "$OL_STATUS" -ne 0 ]]; then
+    finding "check 40 — $L copier update with .agents linked outside the project failed (exit $OL_STATUS) — see $OL_LOG"
+  else
+    [[ "$OL_AFTER_TARGET" == "$OL_TARGET" ]] \
+      || finding "check 40 — $L the outside .agents link was not restored unchanged: it is '$OL_AFTER_TARGET', it was '$OL_TARGET'"
+    $OL_HELD_LEFT && finding "check 40 — $L the update left $OL_HELD behind"
+    [[ -z "$OL_DIRTY" ]] || finding "check 40 — $L Git sees the outside link changed after the update: $OL_DIRTY"
+    grep -qF "restored .agents -> $OL_TARGET" "$OL_LOG" 2>/dev/null \
+      || finding "check 40 — $L the update did not print the outside link's restore — see $OL_LOG"
+  fi
+  [[ "$OL_SUMS_AFTER" == "$OL_SUMS_BEFORE" ]] \
+    || finding "check 40 — $L an update wrote into the folder outside the project that .agents links to"
+  if [[ "$OL_AGAIN_STATUS" -ne 0 || -n "$OL_AGAIN_DIRTY" ]]; then
+    finding "check 41 — $L a second update over the outside link was not a no-op (exit $OL_AGAIN_STATUS; $(printf '%s\n' "$OL_AGAIN_DIRTY" | grep -c . || true) path(s) changed)"
+  fi
+  if [[ "$OL_STRAND_STATUS" -eq 0 ]]; then
+    finding "check 42 — $L the update meant to stop between the stages (a changed DOC_TYPE) was accepted, so no stranded hold was tested"
+  elif ! $OL_STRAND_HELD; then
+    finding "check 42 — $L the update that stopped did not leave the link held as $OL_HELD (exit $OL_STRAND_STATUS) — see $OL_STRAND_LOG"
+  elif ! grep -qF "$OL_FIX" "$OL_STRAND_LOG" 2>/dev/null; then
+    finding "check 42 — $L the update that stopped with the link held did not print the hand fix '$OL_FIX'"
+  elif [[ -n "$OL_STRAND_DIRTY" || "$OL_STRAND_TARGET" != "$OL_TARGET" ]]; then
+    finding "check 42 — $L the printed hand fix did not restore the project (status '$OL_STRAND_DIRTY'; .agents -> '$OL_STRAND_TARGET')"
+  fi
+  if [[ -n "$OL_RESTORE_DIRTY" || "$OL_RESTORE_TARGET" != "$OL_TARGET" ]]; then
+    finding "check 42 — $L the script's restore did not put back a held link (status '$OL_RESTORE_DIRTY'; .agents -> '$OL_RESTORE_TARGET')"
+  fi
+  if [[ "$OL_CTL_STATUS" -ne 0 ]]; then
+    finding "check 43 — $L a real .agents/ whose skills link points outside the project did not update (exit $OL_CTL_STATUS)"
+  elif [[ "$OL_CTL_AFTER" != "$OL_CTL_TARGET" ]]; then
+    finding "check 43 — $L the update changed the outside .agents/skills link: it is '$OL_CTL_AFTER', it was '$OL_CTL_TARGET'"
+  fi
+  return 0
+}
+
+# The fixture with the real outside-link script and the real family-shared migrations block.
+outside_fixture() { # $1 = dest
+  local t="$1"
+  sa_fixture_template "$t" >/dev/null
+  mkdir -p "$t/migrations"
+  cp "$SA_ROOT/migrations/agents-outside-link.py" "$t/migrations/" || die "no migrations/agents-outside-link.py in $SA_ROOT"
+  { printf '_migrations:\n'
+    awk -v b="$OL_MIG_BEGIN" -v e="$OL_MIG_END" '$0 == b { on = 1 } on { print } $0 == e { on = 0 }' "$SA_ROOT/copier.yml"
+  } >> "$t/copier.yml"
+  grep -qF "$OL_MIG_END" "$t/copier.yml" || die "no family-shared migrations block in $SA_ROOT/copier.yml"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the outside-link pair'
+}
+
 # A two-release fixture for the self-test: v0.1.0 with the six old family folders and an
 # audience in .claude/CLAUDE.md Section 1, v0.2.0 with the D39 families, the 00-project.md seed
 # and the real migration scripts, each tagged.
@@ -722,6 +880,7 @@ run_checks() {
   $SET_RAN && set_checks
   $TRAP_RAN && trap_checks
   $CL_RAN && clients_checks
+  $OL_RAN && outside_checks
   return 0
 }
 
@@ -924,6 +1083,32 @@ self_test() {
   CL_RE_BAD_STATUS=1; probe "check 39 fires when a stale recorded value breaks the copy" "check 39 — [theology] a copy over a record holding a value no longer a choice failed"; CL_RE_BAD_STATUS=0
   CL_RE_BAD_RECORDED="codex,cursor"; probe "check 39 fires when a stale value survives" "check 39 — [theology] a copy over a record of [codex, cursor] recorded [codex,cursor]"; CL_RE_BAD_RECORDED="codex"
   CL_RAN=false
+
+  # Checks 40–43: an .agents link outside the project, on the fixture with the real pair.
+  outside_fixture "$tmp/ol-fixture"
+  mkdir -p "$tmp/ol"; run_outside_flow "$tmp/ol-fixture" "$tmp/ol" theology
+  st_baseline "updates of a project whose .agents links outside it, a stranded hold and the control"
+  OL_COPY_STATUS=1; probe "check 40 fires when the project does not render" "check 40 — [theology] the project did not render"; OL_COPY_STATUS=0
+  OL_STATUS=1; probe "check 40 fires when the update fails" "check 40 — [theology] copier update with .agents linked outside"; OL_STATUS=0
+  OL_AFTER_TARGET="not a link"; probe "check 40 fires when the link is not restored" "check 40 — [theology] the outside .agents link was not restored"; OL_AFTER_TARGET="$OL_TARGET"
+  OL_HELD_LEFT=true; probe "check 40 fires when the held link is left" "check 40 — [theology] the update left"; OL_HELD_LEFT=false
+  OL_DIRTY="T .agents"; probe "check 40 fires when Git sees the link changed" "check 40 — [theology] Git sees"; OL_DIRTY=""
+  cp "$OL_LOG" "$tmp/h"; grep -vF "restored .agents" "$tmp/h" > "$OL_LOG" || true
+  probe "check 40 fires when the restore is not printed" "check 40 — [theology] the update did not print"; cp "$tmp/h" "$OL_LOG"
+  local ol_sums="$OL_SUMS_AFTER"; OL_SUMS_AFTER="$ol_sums"$'\n'"./mcp_config.json x"
+  probe "check 40 fires on a write into the outside folder" "check 40 — [theology] an update wrote into the folder outside"; OL_SUMS_AFTER="$ol_sums"
+  OL_AGAIN_DIRTY=" M $RULES01"; probe "check 41 fires when a second update changes a file" "check 41"; OL_AGAIN_DIRTY=""
+  OL_AGAIN_STATUS=1; probe "check 41 fires when a second update fails" "check 41"; OL_AGAIN_STATUS=0
+  local ol_strand="$OL_STRAND_STATUS"
+  OL_STRAND_STATUS=0; probe "check 42 fires when the stopping update is accepted" "check 42 — [theology] the update meant to stop"; OL_STRAND_STATUS="$ol_strand"
+  OL_STRAND_HELD=false; probe "check 42 fires when the stopped update left no hold" "check 42 — [theology] the update that stopped did not leave"; OL_STRAND_HELD=true
+  cp "$OL_STRAND_LOG" "$tmp/h"; grep -vF "$OL_FIX" "$tmp/h" > "$OL_STRAND_LOG" || true
+  probe "check 42 fires when the hand fix is not printed" "check 42 — [theology] the update that stopped with the link held"; cp "$tmp/h" "$OL_STRAND_LOG"
+  OL_STRAND_TARGET="not a link"; probe "check 42 fires when the hand fix does not restore the link" "check 42 — [theology] the printed hand fix"; OL_STRAND_TARGET="$OL_TARGET"
+  OL_RESTORE_DIRTY="?? $OL_HELD"; probe "check 42 fires when the script's restore leaves the hold" "check 42 — [theology] the script's restore"; OL_RESTORE_DIRTY=""
+  OL_CTL_STATUS=1; probe "check 43 fires when the control does not update" "check 43"; OL_CTL_STATUS=0
+  OL_CTL_AFTER="not a link"; probe "check 43 fires when the control's skills link changes" "check 43 — [theology] the update changed"; OL_CTL_AFTER="$OL_CTL_TARGET"
+  OL_RAN=false
   st_finish "an update that keeps its promises from one that breaks them"
 }
 
@@ -950,7 +1135,7 @@ FIRST_DOC="${DOC_TYPES%%,*}"
 for doc in ${DOC_TYPES//,/ }; do
   case "$doc" in theology|fiction|business) ;; *) die "unknown DOC_TYPE: $doc" ;; esac
   work="$(sa_mktemp)"
-  MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false
+  MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false; OL_RAN=false
   run_flow "$SA_ROOT" "$doc" "$work"
   tagged_once
   git -C "$TAGGED" rev-parse -q --verify "refs/tags/$TRAP_FROM" >/dev/null 2>&1 \
@@ -960,6 +1145,8 @@ for doc in ${DOC_TYPES//,/ }; do
   if [[ "$doc" == "$FIRST_DOC" ]]; then
     run_clients_flow "$SA_ROOT" "$work" "$doc"
     cat "$work/cl-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_outside_flow "$SA_ROOT" "$work" "$doc"
+    cat "$work/ol-flow.log" >> "$work/flow.log" 2>/dev/null || true
   fi
   if [[ "$doc" == business ]]; then
     run_migration_flow "$TAGGED" "$work"
@@ -974,6 +1161,7 @@ for doc in ${DOC_TYPES//,/ }; do
     $CO_RAN && log "  ✓ $doc — copy-only agent files: AGENTS.md edit kept and never re-rendered, deleted entrypoints stay deleted, .agents a real folder with its skills link, the bridge updated, a new model answer in rules 05 only"
     $MIG_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: every author file moved to its family byte for byte, the collision kept and named, a second run a no-op, msp-scp honoured"
     $TRAP_RAN && log "  ✓ $doc — update from $TRAP_FROM with --defaults: AGENT_CLIENTS recorded empty, no Section 4 in rules 05, the bridge present, no client file created"
+    $OL_RAN && log "  ✓ $doc — .agents linked outside the project: held and restored by the update with its target untouched, a second update a no-op, a stranded hold fixed by the printed mv and by restore, a real .agents/ with an outside skills link updated"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     rm -rf "$work"

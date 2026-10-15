@@ -35,7 +35,14 @@
 #                 an earlier copy left is kept as the library's: the report is the author's only
 #                 warning of each.
 #
-#                 Twenty-four checks:
+#                 Then an anonymised book whose .agents is a link to a folder outside it (the
+#                 author's own agent tree beside the repository). Copier refuses every
+#                 destination beneath such a link before it reads --exclude, and no migration
+#                 runs on a copy, so adopt/theology.sh must print the copy wrapped in the two
+#                 mv lines that hold the link aside and put it back, and following that plan
+#                 must adopt the repository with the link and its target untouched.
+#
+#                 Twenty-seven checks:
 #                   1. The copy succeeds.
 #                   2. .claude/MEMORY.md is byte-for-byte untouched.
 #                   3. Every other existing seed is untouched: .claude/CLAUDE.md,
@@ -82,6 +89,15 @@
 #                      committed'), so a leftover is never kept as the library's own unseen.
 #                  24. Business: the report marked the kept seed the library's .gitignore hides
 #                      'kept, ignored'.
+#                  25. Outside link: adopt/theology.sh printed the copy as the plan
+#                      'mv .agents .agents.syntek-held', the copy with --exclude /.agents, then
+#                      'mv .agents.syntek-held .agents', and left the link as it was.
+#                  26. Outside link: following that plan, the copy succeeds, .agents is the
+#                      same link again, no .agents.syntek-held is left, and every file in the
+#                      folder it points to is byte for byte as it was.
+#                  27. Outside link with a missing target (a clone without the agent tree
+#                      beside it): adopt/theology.sh printed the same three-line plan, since
+#                      Copier refuses the destinations beneath a dangling outside link too.
 #
 #                 Numbers are stable identifiers. Append, never renumber.
 #
@@ -163,6 +179,14 @@ LEFTOVER_FILE=".claude/rules/syntek-author/01-layout-and-routing.md"
 LEFTOVER_NOTE="$LEFTOVER_FILE (kept, untracked"
 COMMITTED_NOTE="$FAMILY_FILE (kept, committed)"
 IGNORED_KEPT_NOTE=".mcp.json (kept, ignored"
+# The outside-link flow's state (checks 25–27).
+OUT_RAN=false; OUT_PROJ=""; OUT_REPORT=""; OUT_TARGET=""; OUT_ADVISED_TARGET=""; OUT_COPY_STATUS=0
+OUT_AFTER_TARGET=""; OUT_HELD_LEFT=false; OUT_SUMS_BEFORE=""; OUT_SUMS_AFTER=""
+OUT_HELD=".agents.syntek-held"
+OUT_PLAN_HOLD="3. mv .agents $OUT_HELD"
+OUT_PLAN_COPY="uvx copier copy --trust --overwrite --exclude /.agents "
+OUT_PLAN_BACK="mv $OUT_HELD .agents"
+OUT_DANGLING_REPORT=""
 
 # An anonymised repository in the shape of a hand-built theology book. Every name is invented.
 build_existing() { # $1 = dir
@@ -293,10 +317,73 @@ run_business() { # $1 = template repo, $2 = work dir — fills the business stat
   BIZ_CHANGED="$(tree_sums "$BIZ_PROJ" | diff "$2/business.before" - | grep '^[<>]' || true)"
 }
 
+# An .agents link to a folder outside the repository (D48, Section 3.6): the advisory report,
+# then the copy exactly as it prints it — the link held aside, the copy, the link put back.
+run_outside() { # $1 = template repo, $2 = work dir (holding the snapshot run_flow made) — fills the outside state
+  local tpl="$2/tpl" log="$2/outside.log" out="$2/outside-agents"
+  OUT_RAN=true; OUT_PROJ="$2/outproj"; OUT_REPORT="$2/outside-report.log"; OUT_COPY_STATUS=0; OUT_HELD_LEFT=false
+  : > "$OUT_REPORT"
+  build_existing "$OUT_PROJ" >>"$log" 2>&1
+  rm -rf "$out"; mkdir -p "$out/skills"
+  printf "The author's own agent tree, outside the repository.\n" > "$out/note.md"
+  OUT_SUMS_BEFORE="$(tree_sums "$out")"
+  ln -s ../outside-agents "$OUT_PROJ/.agents"
+  sa_git "$OUT_PROJ" add -A && sa_git "$OUT_PROJ" commit -q -m 'our own agent tree, linked' >>"$log" 2>&1
+  OUT_TARGET="$(readlink "$OUT_PROJ/.agents")"
+  if [[ -f "$tpl/adopt/theology.sh" ]]; then
+    bash "$tpl/adopt/theology.sh" "$OUT_PROJ" >"$OUT_REPORT" 2>&1 || true
+    cat "$OUT_REPORT" >>"$log"
+  fi
+  OUT_ADVISED_TARGET="$(readlink "$OUT_PROJ/.agents" 2>/dev/null || printf 'not a link')"
+  # The plan as printed. The second mv runs whatever the copy did, as the report says.
+  mv "$OUT_PROJ/.agents" "$OUT_PROJ/$OUT_HELD"
+  sa_render "$tpl" "$OUT_PROJ" theology --overwrite --exclude /.agents --data SEED_EXAMPLES=false >>"$log" 2>&1 || OUT_COPY_STATUS=$?
+  mv "$OUT_PROJ/$OUT_HELD" "$OUT_PROJ/.agents" >>"$log" 2>&1 || true
+  OUT_AFTER_TARGET="$(readlink "$OUT_PROJ/.agents" 2>/dev/null || printf 'not a link')"
+  if [[ -e "$OUT_PROJ/$OUT_HELD" || -L "$OUT_PROJ/$OUT_HELD" ]]; then OUT_HELD_LEFT=true; fi
+  OUT_SUMS_AFTER="$(tree_sums "$out")"
+  # The same repository in a clone without the agent tree: the link's target does not exist.
+  OUT_DANGLING_REPORT="$2/outside-dangling-report.log"; : > "$OUT_DANGLING_REPORT"
+  build_existing "$2/outdangling" >>"$log" 2>&1
+  ln -s ../gone/agents "$2/outdangling/.agents"
+  sa_git "$2/outdangling" add -A && sa_git "$2/outdangling" commit -q -m 'a dangling agent link' >>"$log" 2>&1
+  if [[ -f "$tpl/adopt/theology.sh" ]]; then
+    bash "$tpl/adopt/theology.sh" "$2/outdangling" >"$OUT_DANGLING_REPORT" 2>&1 || true
+    cat "$OUT_DANGLING_REPORT" >>"$log"
+  fi
+}
+
+outside_checks() {
+  local line
+  for line in "$OUT_PLAN_HOLD" "$OUT_PLAN_COPY" "$OUT_PLAN_BACK"; do
+    grep -qF -- "$line" "$OUT_REPORT" 2>/dev/null \
+      || finding "check 25 — the report on an .agents link outside the repository did not print '$line' — the copy fails on the link without the plan"
+  done
+  [[ "$OUT_ADVISED_TARGET" == "$OUT_TARGET" ]] \
+    || finding "check 25 — the advisory report changed the outside .agents link (it is '$OUT_ADVISED_TARGET', it was '$OUT_TARGET')"
+  if [[ "$OUT_COPY_STATUS" -ne 0 ]]; then
+    finding "check 26 — the copy with the outside .agents link held aside failed (exit $OUT_COPY_STATUS)"
+  else
+    [[ "$OUT_AFTER_TARGET" == "$OUT_TARGET" ]] \
+      || finding "check 26 — after the plan .agents is '$OUT_AFTER_TARGET', not the link to '$OUT_TARGET' it was"
+    $OUT_HELD_LEFT && finding "check 26 — the plan left $OUT_HELD behind"
+  fi
+  [[ "$OUT_SUMS_AFTER" == "$OUT_SUMS_BEFORE" ]] \
+    || finding "check 26 — the adoption wrote into the folder outside the repository that .agents links to"
+  local missing=""
+  for line in "$OUT_PLAN_HOLD" "$OUT_PLAN_COPY" "$OUT_PLAN_BACK"; do
+    grep -qF -- "$line" "$OUT_DANGLING_REPORT" 2>/dev/null || missing="${missing:+$missing, }'$line'"
+  done
+  [[ -z "$missing" ]] \
+    || finding "check 27 — the report on an .agents link to a missing folder outside the repository did not print $missing — the copy fails on the link without the plan"
+  return 0
+}
+
 run_checks() {
   FINDINGS=()
   $ADD_RAN && additive_checks
   $BIZ_RAN && business_checks
+  $OUT_RAN && outside_checks
   [[ -n "$PROJ" ]] || return 0
   local f e now n
   if [[ "$COPY_STATUS" -ne 0 ]]; then
@@ -485,6 +572,23 @@ self_test() {
   cp "$BIZ_REPORT" "$tmp/h"; grep -vF "$IGNORED_KEPT_NOTE" "$tmp/h" > "$BIZ_REPORT" || true
   probe "check 24 fires when the ignored kept seed is not marked ignored" "check 24"; cp "$tmp/h" "$BIZ_REPORT"
   BIZ_RAN=false
+
+  run_outside "$tmp/fixture" "$tmp"
+  st_baseline "an adoption over an .agents link outside the repository, by the printed plan"
+  local held_line
+  for held_line in "$OUT_PLAN_HOLD" "$OUT_PLAN_COPY" "$OUT_PLAN_BACK"; do
+    cp "$OUT_REPORT" "$tmp/h"; grep -vF -- "$held_line" "$tmp/h" > "$OUT_REPORT" || true
+    probe "check 25 fires when the plan misses '$held_line'" "check 25 — the report on an .agents link"; cp "$tmp/h" "$OUT_REPORT"
+  done
+  OUT_ADVISED_TARGET="not a link"; probe "check 25 fires when the report moves the link" "check 25 — the advisory report changed"; OUT_ADVISED_TARGET="$OUT_TARGET"
+  OUT_COPY_STATUS=1; probe "check 26 fires when the copy fails" "check 26 — the copy with the outside"; OUT_COPY_STATUS=0
+  OUT_AFTER_TARGET="not a link"; probe "check 26 fires when the link is not put back" "check 26 — after the plan"; OUT_AFTER_TARGET="$OUT_TARGET"
+  OUT_HELD_LEFT=true; probe "check 26 fires when the held link is left" "check 26 — the plan left"; OUT_HELD_LEFT=false
+  local held_sums="$OUT_SUMS_AFTER"; OUT_SUMS_AFTER="$held_sums"$'\n'"x  ./mcp_config.json"
+  probe "check 26 fires on a write into the outside folder" "check 26 — the adoption wrote"; OUT_SUMS_AFTER="$held_sums"
+  cp "$OUT_DANGLING_REPORT" "$tmp/h"; grep -vF -- "$OUT_PLAN_HOLD" "$tmp/h" > "$OUT_DANGLING_REPORT" || true
+  probe "check 27 fires when the plan is missing for a dangling outside link" "check 27 — the report on an .agents link to a missing folder"; cp "$tmp/h" "$OUT_DANGLING_REPORT"
+  OUT_RAN=false
   st_finish "an adoption that leaves the author's work alone from one that does not"
 }
 
@@ -500,6 +604,7 @@ work="$(sa_mktemp)"
 run_flow "$SA_ROOT" "$work"
 run_additive "$SA_ROOT" "$work"
 run_business "$SA_ROOT" "$work"
+run_outside "$SA_ROOT" "$work"
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   log "  ✓ ${#BEFORE[@]} author file(s) byte-identical after adoption; no example added; answers written"
@@ -509,6 +614,7 @@ if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   if $ADD_BUILD_IGNORED; then log "  additive: the report named the build skill the kept .gitignore hides, with its rule"
   else log "  (check 15 not exercised: the copy added no build skill that the kept .gitignore hides)"; fi
   log "  business: the additive report wrote nothing, and named the kept file at a family path, the kept Drive workflow, the drafts a workflow would sync, the added signpost, the same-named standard with its redirect, and each kept file as committed, untracked or ignored"
+  log "  outside link: the report printed the hold, the copy with --exclude /.agents and the restore; following it adopted the repository with the link and its target untouched; a link to a missing outside folder got the same plan"
   rm -rf "$work"
   bold "✓ Adoption leaves every piece of the author's work as it was."
   exit 0

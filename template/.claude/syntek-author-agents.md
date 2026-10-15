@@ -46,6 +46,14 @@ provenance, the two flags and never fabricating; nothing in a client's settings 
   (`core.symlinks` off). Turn on symbolic links (Developer Mode, then
   `git config core.symlinks true` and `git checkout -- .agents/skills`), or recreate the link
   by hand. Never replace it with a copy of the skills.
+- **An `.agents` link to a folder outside the project.** Copier refuses to render anything
+  beneath it, `--exclude` included, so the link alone is moved aside and put back; its target is
+  never touched. Every update does this itself: it renames the link to `.agents.syntek-held`
+  before the render and back afterwards. If an update stops before it ends (a refused answer,
+  Ctrl-C at a question), the link stays held and the next update refuses the changed tree: run
+  `mv .agents.syntek-held .agents` from the project root, then update again. A copy runs no
+  migration, so before a `copier copy` run `mv .agents .agents.syntek-held`, copy with
+  `--exclude /.agents`, then run `mv .agents.syntek-held .agents`.
 - Where a file says to run a skill (`the handoff skill`, `Skill(draft-section)`), use this
   client's skill mechanism with the same name; if it has none, read the `SKILL.md` and follow it.
   A skill marked to run as a background or forked agent runs inline where the client has none.
@@ -151,7 +159,8 @@ a client later:
    `mcp_config.json` from `.claude` into it. A real `skills` folder in `.agents`, or a link to
    anywhere else, stays as it is: integrate its skills by hand with the author. A `copier copy`
    over a real `skills` folder needs `--exclude /.agents/skills`; a `skills` link of any target
-   is skipped.
+   is skipped. An `.agents` link to a folder outside the project stays a link: hold it aside for
+   the copy as the Skills section says.
 5. Where an `AGENTS.md` or `GEMINI.md` already exists, add an agreed line telling the client to
    read every `.claude/syntek-*-agents.md` present. Then run
    `python3 .claude/syntek-author-permissions.py --check`, and `--write` if the author agrees.

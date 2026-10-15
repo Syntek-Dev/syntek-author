@@ -111,14 +111,18 @@ declare -A A_KEPT=()
 MF=""; MF_B_COPY=0; MF_A_COPY=0; MANIFEST=""; MF_RAN=false
 NOTES=()
 
-# The family-shared files a sibling template vendors: every token-free file family-shared.json
-# lists, at its destination path ("<template>" filled with $3), and every listed link. Prints
+# The family-shared files a sibling template vendors into its template/: every token-free file
+# family-shared.json lists with the project scope, at its destination path ("<template>" filled
+# with $3), and every listed link. A "repository" entry sits at the template repository's root
+# and never reaches a project. Prints
 # "F<TAB>path<TAB>sha256<TAB>source" and "L<TAB>path<TAB>target" lines.
 manifest_entries() { # $1 = syntek-author repo, $2 = manifest, $3 = template name
   python3 - "$1" "$2" "$3" <<'PY'
 import hashlib, json, sys
 root, man, name = sys.argv[1], sys.argv[2], sys.argv[3]
 for f in json.load(open(man, encoding="utf-8")).get("files", []):
+    if f.get("scope", "project") != "project":
+        continue  # a template-repository file (the migration script): never in a project
     path = f["path"].replace("<template>", name)
     if f.get("kind") == "symlink":
         print(f"L\t{path}\t{f['target']}"); continue
