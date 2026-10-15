@@ -190,6 +190,10 @@ path = '../template/.claude/skills/teach/SKILL.md'
 enabled = false
 
 [[skills.config]]
+path = '../template/.claude/skills/to-questionnaire/SKILL.md'
+enabled = false
+
+[[skills.config]]
 path = '../template/.claude/skills/tone/SKILL.md'
 enabled = false
 

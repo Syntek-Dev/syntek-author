@@ -55,7 +55,7 @@ task turns on its subject.
 | `.claude/rules/syntek-author/04-build-pipeline.md` | the build and its `make` targets<: if DOC_TYPE != 'business' :>, from the quick proof to the printed book<: else :>, issuing<: endif :>, and the build settings in `tooling/project.mk` |
 | `.claude/rules/syntek-author/05-model-allocation.md` | which model does which work |
 | `.claude/rules/syntek-author/06-global-rules.md` | locale, route not restate, never self-edit, never overwrite, proofreading, what Git ignores |
-| `.claude/rules/syntek-author/07-session-boundaries.md` | hand off, never compact |
+| `.claude/rules/syntek-author/07-session-boundaries.md` | hand off, never compact, and the context-window thresholds (50% advise, 75% hand off) |
 | `.claude/rules/syntek-author/08-naming-and-memory.md` | naming patterns, and what goes in `.claude/MEMORY.md` |
 
 **The eight numbered files from `01-` on are template-owned: never edit them.** `copier update`

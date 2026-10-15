@@ -8,11 +8,12 @@
 # A hook runs a shell command. It CANNOT invoke a skill, write a handoff or stop the session;
 # only the model can. So this script's job is narrow: stop silent auto-compaction and surface a
 # loud, actionable reminder to hand off instead. The rule it enforces, and the reasons for it,
-# live in .claude/rules/syntek-author/07-session-boundaries.md; the procedure is the handoff
-# skill (.claude/skills/handoff/SKILL.md).
+# live in the session-boundaries rule (07-session-boundaries.md in the project's rules under
+# .claude/rules/); the procedure is the handoff skill (.claude/skills/handoff/SKILL.md).
+# context-threshold-handoff.sh warns earlier, while the window still has room for a handoff.
 #
 #   $1 = auto    → auto-compaction fired: BLOCK it (exit 2) and remind. Never compact silently.
-#   $1 = manual  → the author ran /compact deliberately: WARN only (exit 0); never block a choice.
+#   $1 = manual  → /compact was run deliberately: WARN only (exit 0); never block a choice.
 #
 # Exit codes: 2 = compaction blocked (auto) · 0 = compaction allowed with a warning (manual)
 set -uo pipefail
@@ -23,15 +24,15 @@ remind() {
   cat >&2 <<'MSG'
 STOP: compaction intercepted. Do not compact this session; hand off instead.
 
-House rule: .claude/rules/syntek-author/07-session-boundaries.md (hand off, never compact).
-  1. Record any durable knowledge in its real home FIRST: .claude/MEMORY.md (through the
-     memory gate), the unit brief in planning/src/units/, or the folder CONTEXT.md / CLAUDE.md.
-  2. Invoke the `handoff` skill and write the handoff in the handoffs folder, in the filename
-     form .claude/rules/syntek-author/00-project.md ## Paths names (by default
-     handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md), including the part its mode file says this
-     project must never drop.
+House rule: the session-boundaries rule in the project's rules (.claude/rules/): hand off,
+never compact.
+  1. Record any durable knowledge in its real home FIRST: .claude/MEMORY.md (through its gate),
+     the brief of the work in hand, or the folder's CONTEXT.md / CLAUDE.md.
+  2. Invoke the `handoff` skill. It writes the handoff in the folder and filename form the
+     project's rules give (by default handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md), including
+     the part its mode files say this project must never drop.
   3. Print the handoff path and STOP the turn.
-  4. <%AUTHOR_FIRST_NAME%> runs /clear and resumes from the handoff file in a fresh context window.
+  4. The author or owner runs /clear and resumes from the handoff in a fresh context window.
 MSG
 }
 

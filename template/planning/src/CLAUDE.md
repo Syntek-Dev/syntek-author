@@ -26,6 +26,7 @@ the same picture of the work.
 | `approvals/` (or the Approvals path in `00-project.md` `## Paths`) | by hand, every field confirmed | `planning/workflows/07-record-an-approval/` |
 | `document-register.md`, `precedence.md` | by hand, or `promote-section` | `planning/workflows/08-update-the-register/` |
 <: endif :>| `maps/` | `wayfinder` | the skill's CHART and RESOLVE steps |
+| `questionnaires/` | `to-questionnaire`, on the author's word only | the skill's steps |
 | `reviews/` | `structure-review` | `planning/workflows/09-review-the-whole-work/` |
 
 - **Model:** **Opus** for any plan or judgement; the mechanical tier for adding a row the author
@@ -52,5 +53,6 @@ the same picture of the work.
 
 - **Hand-written (with the author):** the outline, briefs and the doc type's plans and
   registers.
-- **Written by skills:** maps (`MAP-<TOPIC>.md`) and reviews (`REVIEW-<scope>-DD-MM-YYYY.md`).
+- **Written by skills:** maps (`MAP-<TOPIC>.md`), questionnaires
+  (`QUESTIONNAIRE-<SLUG>-DD-MM-YYYY.md`) and reviews (`REVIEW-<scope>-DD-MM-YYYY.md`).
 - Files kebab-case; dates DD/MM/YYYY in prose and DD-MM-YYYY in filenames.

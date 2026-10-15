@@ -39,14 +39,28 @@ another path for the same role, a skill uses that one, and where a skill names a
 <: elif DOC_TYPE == 'fiction' :>**The mode file in this project is `FICTION.md`.**
 <: else :>**The mode file in this project is `BUSINESS.md`.**
 <: endif :>A moded skill's `SKILL.md` is the same in every doc type; the domain lives in the one mode file
-that ships beside it. Every moded `SKILL.md` carries this paragraph before step 1:
+that ships beside it. Every moded `SKILL.md` that this template alone ships carries this paragraph
+before step 1:
 
 > **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain (paths, unit, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the author.
+
+Every **family-shared** skill (Section 8) carries the neutral form instead, because another
+Syntek template in the same project may ship mode files of its own beside it. `grill-me` and
+`wait-what` carry it too, and this template ships no mode file beside them; with none there, the
+paragraph has nothing to read:
+
+> **Mode.** Before step 1, read the mode files beside this one (the upper-case `.md` files in this folder) that the project's rules route the work at hand to; where they name none, read every one. A mode file owns the domain (paths, the unit of work, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the owner.
+
+This is the routing that paragraph means. In a project another Syntek template also built, a
+family-shared skill's folder can hold that template's mode files too, under other upper-case
+names. They are that template's: apply one only to work in the layers that template's rules
+route. For work in this template's layers, read this template's mode file (above), which holds
+the domain; where the two disagree, say so to the author rather than choosing silently.
 
 Every mode file has the same four sections, so the split can be checked: `## Paths and unit`,
 `## Additions to the steps` (keyed by step number), `## Domain rules` and `## Examples`.
 
-**A mode file applies only when its `SKILL.md` carries the Mode paragraph above.** A project's
+**A mode file applies only when its `SKILL.md` carries one of the Mode paragraphs above.** A project's
 own skill kept under a template skill's name (an adopted project,
 `.claude/rules/syntek-author/01-layout-and-routing.md` Section 9) does not carry it, so the mode
 file beside it is ignored: its steps are keyed to a procedure that is not there, and the
@@ -79,17 +93,19 @@ project's `SKILL.md` is the whole skill.
 | Skill | What it does | Mode |
 |---|---|---|
 | `grilling` | The engine: an interview in frontier rounds (every unblocked question in one message, each with a recommended answer) that sharpens a brief, argument, plot or document before any prose is drafted. Loaded by `grill-me` and `grill-with-docs`; "grill me on …" is `grill-me` | moded |
-| `grill-me` | Stateless grilling: interview only, records nothing | none |
+| `grill-me` | Stateless grilling: interview only, records nothing | neutral; no mode file |
 | `grill-with-docs` | Grilling that records each decision as it resolves, to an existing artefact or `MEMORY.md` through the gate. **The design-work default** | moded |
-| `wayfinder` | Charts work too big for one sitting into a decision map in `planning/src/maps/`, resolved across sessions | moded |
+| `wayfinder` | Charts work too big for one sitting into a decision map in `planning/src/maps/`, resolved across sessions in batches ordered by what they unblock; hands task nodes off, never does them | moded |
 | `research` | Delegated primary-source search and question-led notes in `research/src/notes/`; `fact-check` calls it | moded |
 | `prototype` | A throwaway spike in a `drafts/` folder answering one question about the writing, deleted once answered | moded |
-| `handoff` | Writes a handoff to `handoffs/` and stops; run instead of compacting (`.claude/rules/syntek-author/07-session-boundaries.md`) | moded |
+| `handoff` | Writes a handoff to `handoffs/` and stops; run instead of compacting, and when either session hook fires (`.claude/rules/syntek-author/07-session-boundaries.md`) | moded |
+| `to-questionnaire` | Turns a decision only someone outside the session can answer into a questionnaire in `planning/src/questionnaires/`, records the block, and resolves the decision when the answers return; runs only on the author's word (a grilling pass or a decision map may propose it, never run it unasked), and never sends anything | moded |
 | `teach` | A practice workspace under `learning/`; the project is read-only during a lesson | moded |
-| `wait-what` | Re-pitches a reply that did not land, in plain language, with the context it assumed | none |
+| `wait-what` | Re-pitches a reply that did not land, in plain language, with the context it assumed | neutral; no mode file |
 
-They compose: `grilling` is the engine `grill-me` and `grill-with-docs` wrap, and `wayfinder`
-sends each map node to the skill that can resolve it.
+They compose: `grilling` is the engine `grill-me` and `grill-with-docs` wrap, `wayfinder`
+sends each map node to the skill that can resolve it, and `to-questionnaire` takes the decisions
+the author cannot answer alone. Seven of them are family-shared (Section 8).
 
 ---
 
@@ -158,8 +174,56 @@ questions (`README.md`, "Updating from the template").
 - **A project-specific change to how a skill behaves** is written in `00-project.md`
   `## Overrides` (naming the skill and step it replaces), or as a project rule where its
   `## Paths` says. Editing the skill itself is undone, or turned into a conflict, by the next
-  update.
+  update; editing a family-shared `SKILL.md` (Section 8) freezes it instead, and every later
+  update reports it as not updated because it was changed, with the commands to compare it and
+  to take the template's copy.
 - **A skill of the author's own** goes in a new folder whose name collides with no skill in this
   file. Its frontmatter `name` equals the folder name. It belongs to the author, and Copier never
   touches it. A project that adopted the template may also keep its own skill under a template
   skill's name; that folder is the project's, and Section 2 says how its mode file is treated.
+
+---
+
+## 8. Family-shared skills, and the paths they reach through these rules
+
+Seven working-practice skills are **family-shared**: `grill-me`, `grill-with-docs`, `grilling`,
+`handoff`, `wait-what`, `wayfinder` and `to-questionnaire`. Their `SKILL.md` is byte for byte the
+one every Syntek template ships, so a project with two templates holds one copy. It is written by
+the first copy, refreshed by each update while you have not changed it, and written by the update
+of the release that introduces one where you never had it (one you deleted stays deleted); their
+mode files stay this template's own. A family-shared `SKILL.md` names no path only one template
+ships: it names a **role**, and this table gives the role its path in this project. Where
+`00-project.md` `## Paths` gives one of the other roles below another path, that row wins; its
+`Project rules` row is where your own extra rules live, and adds to this folder, never replaces it.
+
+| Role, as the shared skills name it | Path in this project |
+|---|---|
+| The project's rules (this rules folder; not the `Project rules` row of `00-project.md`) | `.claude/rules/syntek-author/`, with `00-project.md` first |
+| Mode files | <: if DOC_TYPE == 'theology' :>`THEOLOGY.md`<: elif DOC_TYPE == 'fiction' :>`FICTION.md`<: else :>`BUSINESS.md`<: endif :> beside the `SKILL.md` (Section 2; another template's mode files beside it apply only to its work) |
+| Skill rosters | this file |
+| Global rules (never self-edit; design opens with grilling; internal notes; confidentiality) | `06-global-rules.md` Sections 3, 8, 9 and 10 |
+| Authorship rules (the author decides; the AI recommends) | `03-authorship.md` Section 1 |
+| Memory rules (where a decision lives; the memory gate; the entry form) | `08-naming-and-memory.md` Sections 2 to 4 |
+| Session-boundaries rule | `07-session-boundaries.md` |
+| Memory headings (`Decisions`, `Facts`, `Feedback`, `Status`, `Open questions`, `Sensitivities`) | `00-project.md` `## Memory headings` |
+| Handoffs folder and filename | `00-project.md` `## Paths` (by default `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`) |
+| A piece of the work (what one brief covers) | a unit: <: if DOC_TYPE == 'business' :>one document in a family folder of `library/src/`<: else :>one chapter, `manuscript/src/NN-kebab-title/`<: endif :>, as the mode file's `## Paths and unit` says |
+| Brief, briefs folder, and the brief guide | `planning/src/units/<unit>.md`; `planning/src/units/`; `planning/docs/reference/unit-briefs.md` (the settled-positions slot: the mode file names it; the draft-notes slot: `## Draft notes`, in the brief guide) |
+| Plan files | the mode file names them<: if DOC_TYPE == 'theology' :> (the argument maps in `planning/src/arguments/`)<: elif DOC_TYPE == 'fiction' :> (`planning/src/causality.md`, `planning/src/continuity.md`, `planning/src/timeline.md` and `planning/src/arcs/`)<: else :> (`planning/src/document-register.md`, `planning/src/review-schedule.md` and `planning/src/precedence.md`)<: endif :> |
+| Outline | `planning/src/outline.md` |
+| Planning procedure | `planning/workflows/01-plan-a-unit/` (reading and questioning: steps 3 to 7; the brief and its first gate, V1: step 8; recording: step 9) |
+| Whole-work review procedure | `planning/workflows/09-review-the-whole-work/` (step 6) |
+| Reviews folder | `planning/src/reviews/` |
+| Decision-maps folder, and its index | `00-project.md` `## Paths` (by default `planning/src/maps/`, indexed in its `CONTEXT.md`) |
+| Decision-map guide | `planning/docs/reference/decision-maps.md` |
+| Questionnaires folder | `planning/src/questionnaires/`, each `QUESTIONNAIRE-<SLUG>-DD-MM-YYYY.md` |
+| Method standard | `standards/method/method.md` (Sections 1 and 8) |
+| Terminology file | `standards/style/terminology.md` |
+| Voice guide | `standards/style/voice-notes.md`<: if DOC_TYPE == 'business' :>, with the brand folder's `brand-voice.md`<: endif :> |
+| Evidence folder | `research/src/evidence/` |
+| Research notes folder | `00-project.md` `## Paths` (by default `research/src/notes/`) |
+| Record of provenance (where each passage came from) | the ledger, `standards/style/ledger/` (`00-project.md` `## Paths`): one entry per section (`03-authorship.md` Section 8) |
+| Record of permissions and approvals | <: if DOC_TYPE == 'fiction' :>the permissions register, `research/src/permissions.md` (a permission to quote); there are no approval records<: elif DOC_TYPE == 'business' :>`planning/src/approvals/` for an approval, as `00-project.md` `## Paths` names each record; a permission has none, and waits under the `Open questions` heading of `MEMORY.md` until it is granted<: else :>none: a permission waits under the `Open questions` heading of `MEMORY.md` until it is granted<: endif :> |
+| Open-flags check | `make flags`, with any extra marker `tooling/project.mk` adds |
+| Fact-checking, research, prototyping and teaching skills | `fact-check`, `research`, `prototype`, `teach` (Section 4) |
+| Learning workspace | `learning/<topic>/`, written by `teach` |

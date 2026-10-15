@@ -12,9 +12,9 @@ kept here.
 .claude/skills/
 ├── CONTEXT.md            ← this file
 ├── CLAUDE.md             ← operating rules for this folder
-└── <skill>/              ← one folder per skill, named as the skill (template-owned)
+└── <skill>/              ← one folder per skill, named as the skill (template-owned; see below)
     ├── SKILL.md          ← the procedure: frontmatter, steps, anti-patterns, cross-references
-    ├── THEOLOGY.md | FICTION.md | BUSINESS.md   ← the one mode file, for a moded skill
+    ├── THEOLOGY.md | FICTION.md | BUSINESS.md   ← this template's one mode file, for a moded skill
     └── <SUB-DOCUMENT>.md ← optional, behind SKILL.md when a skill outgrows 300 lines
 ```
 
@@ -23,10 +23,19 @@ kept here.
 - **Template skills** — every folder listed in `.claude/rules/syntek-author/02-skills.md`. They
   are template-owned: `copier update` replaces them, and the inside of a skill folder carries no
   `CONTEXT.md` or `CLAUDE.md`, because a skill is its own manual.
+- **Family-shared skills** — seven of them (`grill-me`, `grill-with-docs`, `grilling`, `handoff`,
+  `wait-what`, `wayfinder`, `to-questionnaire`) have a `SKILL.md` that every Syntek template ships
+  byte for byte, so a project with two templates keeps one copy. Each update refreshes it while
+  it is unchanged; once it is edited, the update leaves it alone and reports it, with the commands
+  to compare it and to take the template's copy. It names folders by role, and
+  `.claude/rules/syntek-author/02-skills.md` Section 8 gives each role its path here. All seven
+  carry the neutral Mode paragraph; `grill-me` and `wait-what` ship no mode file of this template.
 - **Mode files** — a moded skill's `SKILL.md` is the same in every kind of project; the domain
-  (paths, the unit, extra reads, domain rules, examples) lives in the single mode file that ships
-  beside it. A mode file applies only beside a `SKILL.md` that carries the Mode paragraph: where
-  the project keeps its own skill under a template skill's name, that skill ignores the mode file.
+  (paths, the unit, extra reads, domain rules, examples) lives in the mode file that ships beside
+  it (one per template, beside a family-shared skill: another template's mode files there apply
+  only to that template's work, `.claude/rules/syntek-author/02-skills.md` Section 2). A mode file
+  applies only beside a `SKILL.md` that carries a Mode paragraph: where the project keeps its own
+  skill under a template skill's name, that skill ignores the mode file.
 - **The author's own skills** — any folder whose name is not in the roster. They belong to the
   project, and Copier never touches them.
 - **Project values** — no skill holds a project's settings. Each reads them, by heading, from
