@@ -384,6 +384,34 @@ _exclude:
   - "<: if _copier_operation == 'update' :>/.codex<: endif :>"
   - "<: if _copier_operation == 'update' :>/.gemini<: endif :>"
   #
+  # ── Shared working practice (DESIGN.md D51, Section 3.6): copy-only, then refreshed ──
+  #
+  # The seven working-practice skills, the two session hooks with the .claude/hooks/ pair, and
+  # the handoffs/ pair ship byte for byte from every family template (family-shared.json lists
+  # them). Each is
+  # copy-only here, as in the sibling template: an update never renders, merges or deletes
+  # it, so neither template's update can put conflict markers in, or delete, the copy the
+  # other one wrote. migrations/family-update.py (D52), the last _migrations entry, keeps them
+  # current instead: it replaces a file only where its bytes equal a render this project
+  # recorded, adds one new in this version, and reports an edited one. FILE-level lines,
+  # never the folder: each skill folder also holds this template's own mode files, which
+  # stay template-owned. A line here is never removed once released: retire a file by
+  # dropping its source and keeping both lines: Copier deletes a path its old render held
+  # and its new one does not, whichever template wrote it.
+  - "<: if _copier_operation == 'update' :>/.claude/skills/grill-me/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/grill-with-docs/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/grilling/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/handoff/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/to-questionnaire/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/wait-what/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/skills/wayfinder/SKILL.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/hooks/pre-compact-handoff.sh<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/hooks/context-threshold-handoff.sh<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/hooks/CONTEXT.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/.claude/hooks/CLAUDE.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/handoffs/CONTEXT.md<: endif :>"
+  - "<: if _copier_operation == 'update' :>/handoffs/CLAUDE.md<: endif :>"
+  #
   # ── Seed-once examples (DESIGN.md Section 3.2): copy only, and they stay deleted ──
   #
   # Rendered on `copy` when SEED_EXAMPLES is true, and never again. The difference from
@@ -490,6 +518,9 @@ _exclude:
   - "<: if DOC_TYPE != 'theology' :>/.claude/skills/teach/THEOLOGY.md<: endif :>"
   - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/teach/FICTION.md<: endif :>"
   - "<: if DOC_TYPE != 'business' :>/.claude/skills/teach/BUSINESS.md<: endif :>"
+  - "<: if DOC_TYPE != 'theology' :>/.claude/skills/to-questionnaire/THEOLOGY.md<: endif :>"
+  - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/to-questionnaire/FICTION.md<: endif :>"
+  - "<: if DOC_TYPE != 'business' :>/.claude/skills/to-questionnaire/BUSINESS.md<: endif :>"
   - "<: if DOC_TYPE != 'theology' :>/.claude/skills/typeset/THEOLOGY.md<: endif :>"
   - "<: if DOC_TYPE != 'fiction' :>/.claude/skills/typeset/FICTION.md<: endif :>"
   - "<: if DOC_TYPE != 'theology' :>/.claude/skills/wayfinder/THEOLOGY.md<: endif :>"
@@ -564,8 +595,6 @@ _skip_if_exists:
   - /.claude/settings.json
   - /.claude/skills/CONTEXT.md
   - /.claude/skills/CLAUDE.md
-  - /.claude/hooks/CONTEXT.md
-  - /.claude/hooks/CLAUDE.md
   # ── Copy-only shared (DESIGN.md D47, Section 3.6): also excluded on update above ──
   - /AGENTS.md
   - /GEMINI.md
@@ -578,6 +607,20 @@ _skip_if_exists:
   - /.gemini/CONTEXT.md
   - /.gemini/CLAUDE.md
   - /opencode.json
+  # ── Shared working practice (DESIGN.md D51): also excluded on update above ──
+  - /.claude/skills/grill-me/SKILL.md
+  - /.claude/skills/grill-with-docs/SKILL.md
+  - /.claude/skills/grilling/SKILL.md
+  - /.claude/skills/handoff/SKILL.md
+  - /.claude/skills/to-questionnaire/SKILL.md
+  - /.claude/skills/wait-what/SKILL.md
+  - /.claude/skills/wayfinder/SKILL.md
+  - /.claude/hooks/pre-compact-handoff.sh
+  - /.claude/hooks/context-threshold-handoff.sh
+  - /.claude/hooks/CONTEXT.md
+  - /.claude/hooks/CLAUDE.md
+  - /handoffs/CONTEXT.md
+  - /handoffs/CLAUDE.md
   # ── The style trio and the provenance table ──
   - /standards/style/style-sheet.md
   - /standards/style/voice-notes.md
@@ -1337,9 +1380,9 @@ _migrations:
   # where _exclude names it, hold renames the link to .agents.syntek-held before the render
   # and restore renames it back after; the link's target is never touched. Both always exit
   # 0. Keep this pair first: restore must run before every other after-stage migration.
-  - command: python3 "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" hold
+  - command: '"<% _copier_python %>" "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" hold'
     when: "<% _stage == 'before' %>"
-  - command: python3 "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" restore
+  - command: '"<% _copier_python %>" "<% _copier_conf.src_path %>/migrations/agents-outside-link.py" restore'
     when: "<% _stage == 'after' %>"
 # END family-shared migrations (D48)
   # v0.2.0 retires v0.1.0's six business family folders for the D39 families. Copier removes
@@ -1368,6 +1411,17 @@ _migrations:
   - version: v0.2.0
     command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-project-settings.sh"
     when: "<% _stage == 'after' %>"
+  # The update report (DESIGN.md D52) and the shared-file refresh (D51), unversioned and LAST,
+  # so it runs after every other migration on every update and sees what they left. The
+  # lines strictly between its markers are family-shared like the block above, and
+  # family-shared.sh checks they close _migrations. Its copy-time twin is the last _tasks entry.
+# BEGIN family-shared update (D48)
+  # Unversioned and last, so it runs after every other migration on every update. It reports
+  # each file this update did not deliver, refreshes the shared files the owner had not
+  # changed, and records the render in refs/<template>/ inside .git. Always exits 0.
+  - command: '"<% _copier_python %>" "<% _copier_conf.src_path %>/migrations/family-update.py" update --src "<% _copier_conf.src_path %>" --to <% _copier_conf.vcs_ref_hash %> --answers "<% _copier_conf.answers_file %>"'
+    when: "<% _stage == 'after' %>"
+# END family-shared update (D48)
 
 # ── Before an update ─────────────────────────────────────────────────────────
 #
@@ -1444,15 +1498,31 @@ _message_before_update: |
   unattributed; an author-drafted one as its final alone) and says the rest were not
   recorded. Nothing is migrated: no file moves, and an older entry is never backfilled.
 
+# ── After an update (DESIGN.md D52) ─────────────────────────────────────────
+#
+# The update report is printed by the last _migrations entry. Copier runs no migration when it
+# cannot read a version on either side (Copier 9.17.1, _template.py:396), and then nothing
+# reports what the update kept back: this says so, after every update.
+_message_after_update: |
+
+  If no '▸ syntek-author update report' line appears above, Copier ran no migration (it could
+  not read a template version): run git status, and look for .rej files and conflict markers.
+  The report again, after any update that printed it:
+    git log -1 --format=%B syntek-author/template
+  Its records live in .git under refs/syntek-author/: git push leaves them behind, but
+  git push --mirror publishes them, and syntek-author/yours keeps your HEAD at this update
+  reachable. Before rewriting history to remove a secret, delete both with git update-ref -d.
+
 # ── Post-generation ──────────────────────────────────────────────────────────
 
 _tasks:
   # ORDER MATTERS IN THIS LIST: Copier runs _tasks top to bottom, on `copy` AND on `update`.
   # A task that must not touch a live project carries an explicit
   # `when: "<% _copier_operation == 'copy' %>"`; the absence of one means it runs on every
-  # update. Both shapes are used below. Every task is non-fatal by construction, because a
-  # failing task aborts the whole generation — or the whole update — after the files are
-  # already written.
+  # update. Every task below is copy only: an update changes files only through the merge and
+  # the migrations, which report what they did (D52). Every task is non-fatal by construction,
+  # because a failing task aborts the whole generation — or the whole update — after the files
+  # are already written.
   #
   # There are no `mv` seed tasks (cross-check Section 6.6). Seeds are _skip_if_exists, which
   # is adoption-safe; an `mv` onto an existing file clobbers it.
@@ -1463,10 +1533,13 @@ _tasks:
   - command: "[ -d .git ] || git init --initial-branch=main"
     when: "<% _copier_operation == 'copy' %>"
 
-  # 2. The hook must be executable or Claude Code cannot run it, and a git checkout of the
-  #    template does not always carry the bit. Ungated and idempotent; it never fails, so an
-  #    update in a project whose author removed the hook still completes.
+  # 2. The hooks must be executable, and a git checkout of the template does not always carry
+  #    the bit. Copy only (DESIGN.md D51): the hooks are copy-only shared files, so an update
+  #    never renders them and must not change their mode either; migrations/family-update.py
+  #    sets the recorded mode (755) on a hook it writes or refreshes, and leaves every other
+  #    file's mode alone. It never fails, so a copy into a project without hooks completes.
   - command: "chmod +x .claude/hooks/*.sh 2>/dev/null || true"
+    when: "<% _copier_operation == 'copy' %>"
 
   # 3. Build the references database from schema.sql and seed-refs.sql, on copy only and only
   #    where the pipeline ships. `make init` already refuses to replace an existing database;
@@ -1477,3 +1550,13 @@ _tasks:
       [ ! -f tooling/references.db ] && make init
       || echo 'References database not built here (it needs sqlite3 and make, and never replaces an existing tooling/references.db) — run `make init` when ready.'
     when: "<% _copier_operation == 'copy' and INCLUDE_REFERENCES %>"
+
+  # 4. LAST: record this project's render of the version just copied (DESIGN.md D52), so the
+  #    first update reports from a recorded render instead of rendering the old version
+  #    again, and refresh any shared file (D51) that equals a render recorded before (a copy
+  #    over a project that already took a template). It writes refs/syntek-author/template
+  #    inside .git, needs the repository task 1 made, and always exits 0. A copy with
+  #    --skip-tasks (the additive adoption, D41) records nothing; the first update then
+  #    renders the old version itself. Family-shared: the sibling template's task is the same.
+  - command: '"<% _copier_python %>" "<% _copier_conf.src_path %>/migrations/family-update.py" baseline --src "<% _copier_conf.src_path %>" --to <% _copier_conf.vcs_ref_hash %> --answers "<% _copier_conf.answers_file %>"'
+    when: "<% _copier_operation == 'copy' %>"
