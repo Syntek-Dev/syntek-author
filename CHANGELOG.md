@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Changed
+
+- Development only, nothing ships: the root `.claude/settings.json` now carries the house development settings matched to syntek-base's (read-only allow list, `.env` and unused-tool denies except `SendMessage`, the top-level session keys), keeping every dev-isolation deny and `claudeMdExcludes`; syntek-base's hooks are not taken.
+
 ## [0.4.0] - 15/10/2026
 
 Technical text in a business project is now written in ASD-STE100 Simplified Technical English where it fits, so steps and technical explanations stay short and clear for clients and staff (D46). Books are not affected.
