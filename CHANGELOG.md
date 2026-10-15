@@ -1,6 +1,6 @@
 # Changelog
 
-**Last Updated**: 15/10/2026 **Version**: 0.3.0 **Maintained By**: Syntek Studio
+**Last Updated**: 15/10/2026 **Version**: 0.4.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 All notable changes to syntek-author are documented here.
@@ -12,6 +12,8 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 ---
 
 ## [Unreleased]
+
+## [0.4.0] - 15/10/2026
 
 Technical text in a business project is now written in ASD-STE100 Simplified Technical English where it fits, so steps and technical explanations stay short and clear for clients and staff (D46). Books are not affected.
 

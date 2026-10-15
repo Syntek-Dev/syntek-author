@@ -13,7 +13,7 @@ syntek-author/
 ├── README.md                 ← the user guide: generating, the questions, the settings files, updating, adopting, audits
 ├── DESIGN.md                 ← the build contract; where any file disagrees with it, DESIGN.md wins
 ├── copier.yml                ← questions, gated _exclude, _skip_if_exists, _tasks, _migrations
-├── VERSION                   ← the template's release number (0.3.0)
+├── VERSION                   ← the template's release number (0.4.0)
 ├── CHANGELOG.md              ← the template's history, Keep a Changelog
 ├── family-shared.json        ← the D48 manifest: source bytes of the files and copier.yml blocks shared with companion templates
 ├── .gitignore                ← the repository's own ignore rules (never shipped): /handoffs/
