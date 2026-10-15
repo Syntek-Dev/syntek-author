@@ -258,6 +258,7 @@ wayfinder           always    TFB
 research            always    TFB
 grill-me            always    -
 wait-what           always    -
+to-questionnaire    always    TFB
 argument-audit      theology  -
 category-check      theology  -
 tradition-check     theology  -
@@ -293,6 +294,12 @@ EOF
 # Standards folders that carry a mode file (DESIGN.md Section 4.2).
 SA_MODED_STANDARDS="method risk verification"
 SA_MODE_FILES="THEOLOGY.md FICTION.md BUSINESS.md"
+# A companion template's mode files beside a family-shared skill (D51): syntek-media ships
+# MEDIA-<KIND>.md (MEDIA-BUSINESS.md, MEDIA-FICTION.md, MEDIA-NONFICTION.md) in the same seven
+# folders. An audit accepts a name of this shape beside a shared SKILL.md in a project, and
+# fails one anywhere under template/: this template's mode files never take the sibling's prefix.
+SA_SIBLING_MODE_RE='^MEDIA-[A-Z0-9-]+\.md$'
+is_sibling_mode() { [[ "${1##*/}" =~ $SA_SIBLING_MODE_RE ]]; } # a basename or a path
 
 mode_for_doc() { # theology → THEOLOGY.md
   case "$1" in theology) echo THEOLOGY.md ;; fiction) echo FICTION.md ;; business) echo BUSINESS.md ;; esac
@@ -328,6 +335,7 @@ always             f  .claude/settings.json
 always             f  .claude/hooks/CONTEXT.md
 always             f  .claude/hooks/CLAUDE.md
 always             f  .claude/hooks/pre-compact-handoff.sh
+always             f  .claude/hooks/context-threshold-handoff.sh
 always             f  .claude/skills/CONTEXT.md
 always             f  .claude/skills/CLAUDE.md
 always             f  .claude/rules/syntek-author/01-layout-and-routing.md
@@ -425,6 +433,7 @@ always             f  planning/src/outline.md
 always             d  planning/src/units
 always             d  planning/src/maps
 always             d  planning/src/reviews
+always             d  planning/src/questionnaires
 always             d  planning/workflows/01-plan-a-unit
 always             d  planning/workflows/09-review-the-whole-work
 always             f  planning/docs/reference/unit-briefs.md
@@ -617,7 +626,7 @@ SA_INDEX_SEED_LAYERS="manuscript library planning research proposal world typese
 SA_INDEX_SEEDS="planning/src/maps/CONTEXT.md$(for l in $SA_INDEX_SEED_LAYERS; do for d in docs/project workflows/local; do printf ' %s/%s/CONTEXT.md %s/%s/CLAUDE.md' "$l" "$d" "$l" "$d"; done; done)"
 SA_BRAND_SEEDS="standards/brand/brand-voice.md standards/brand/brand-guide.md"
 SA_PROPOSAL_STUBS="proposal/src/book-proposal/01-overview-and-hook.md proposal/src/book-proposal/02-why-now.md proposal/src/book-proposal/03-audience.md proposal/src/book-proposal/04-comparable-titles.md proposal/src/book-proposal/05-chapter-outline.md proposal/src/book-proposal/06-about-the-author.md proposal/src/book-proposal/07-endorsements-and-reach.md proposal/src/book-proposal/08-sample-chapters.md proposal/src/query-letter.md proposal/src/synopsis-short.md proposal/src/synopsis-long.md proposal/src/comp-titles.md"
-SA_SEEDS=".claude/rules/syntek-author/00-project.md tooling/project.mk README.md CONTEXT.md .gitignore .mcp.json .claude/CLAUDE.md .claude/CONTEXT.md .claude/MEMORY.md .claude/settings.json .claude/skills/CONTEXT.md .claude/skills/CLAUDE.md .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md standards/style/style-sheet.md standards/style/voice-notes.md standards/style/terminology.md standards/style/ledger/provenance.md planning/src/outline.md planning/src/causality.md planning/src/timeline.md planning/src/continuity.md world/src/names-register.md planning/src/document-register.md planning/src/review-schedule.md planning/src/precedence.md standards/brand/disclaimers.md tooling/seed-refs.sql research/src/permissions.md proposal/src/endorsements/tracker.md proposal/src/submissions/tracker.md proposal/src/sample/sample-index.md world/src/history/eras.md typeset/src/page-design.md typeset/src/book.tex $SA_PROPOSAL_STUBS $SA_BRAND_SEEDS $SA_INDEX_SEEDS"
+SA_SEEDS=".claude/rules/syntek-author/00-project.md tooling/project.mk README.md CONTEXT.md .gitignore .mcp.json .claude/CLAUDE.md .claude/CONTEXT.md .claude/MEMORY.md .claude/settings.json .claude/skills/CONTEXT.md .claude/skills/CLAUDE.md standards/style/style-sheet.md standards/style/voice-notes.md standards/style/terminology.md standards/style/ledger/provenance.md planning/src/outline.md planning/src/causality.md planning/src/timeline.md planning/src/continuity.md world/src/names-register.md planning/src/document-register.md planning/src/review-schedule.md planning/src/precedence.md standards/brand/disclaimers.md tooling/seed-refs.sql research/src/permissions.md proposal/src/endorsements/tracker.md proposal/src/submissions/tracker.md proposal/src/sample/sample-index.md world/src/history/eras.md typeset/src/page-design.md typeset/src/book.tex $SA_PROPOSAL_STUBS $SA_BRAND_SEEDS $SA_INDEX_SEEDS"
 
 # Seed-once examples (DESIGN.md Section 3.2).
 SA_EXAMPLES="manuscript/src/01-example-chapter planning/src/units/01-example-chapter.md planning/src/arguments/01-example-chapter.md library/src/business/drafts/example-proposal planning/src/units/example-proposal.md standards/style/ledger/01-example-chapter--the-turn.md standards/style/ledger/01-example-chapter--opening.md standards/style/ledger/example-proposal--scope.md world/src/languages/example-proto world/src/languages/example-tongue research/src/setting/example-model-classical-latin.md research/src/setting/example-model-old-spanish.md research/src/setting/example-model-ogham.md world/src/peoples/example-people.md world/src/cultures/example-culture.md"
@@ -628,6 +637,16 @@ SA_EXAMPLE_GATE="_copier_operation == 'update' or not SEED_EXAMPLES"
 # a copy, never by an update: each needs an anchored _skip_if_exists line AND an _exclude line
 # gated on the update. .agents itself is a real folder, never a link and never copy-only.
 SA_COPY_ONLY="AGENTS.md GEMINI.md .agents/skills .agents/mcp_config.json .codex/config.toml .codex/CONTEXT.md .codex/CLAUDE.md .gemini/settings.json .gemini/CONTEXT.md .gemini/CLAUDE.md opencode.json"
+# The shared working practice (DESIGN.md D51, Section 3.6): the seven working-practice SKILL.md
+# files, the two session hooks (mode 755) with the .claude/hooks/ pair, and the handoffs/ pair
+# (both pairs neutral and token-free, so neither copy order collides), copy-only in every
+# family template and kept current by migrations/family-update.py (D52), which refreshes only what
+# migrations/family-refresh.json lists. Each needs an anchored _skip_if_exists line and an
+# _exclude line gated on the update, file by file (never the folder: the skill folders also
+# hold this template's own mode files). Kept apart from SA_COPY_ONLY, which update-test.sh
+# reads as "a client's files": these ship to every project, whatever AGENT_CLIENTS says.
+SA_SHARED_PRACTICE=".claude/skills/grill-me/SKILL.md .claude/skills/grill-with-docs/SKILL.md .claude/skills/grilling/SKILL.md .claude/skills/handoff/SKILL.md .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md .claude/skills/wayfinder/SKILL.md .claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md handoffs/CONTEXT.md handoffs/CLAUDE.md"
+SA_SHARED_HOOKS=".claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh"
 # The folders that hold copy-only paths. Each needs an _exclude line of its own gated on the
 # update: Copier 9.17.1 creates an EMPTY folder on an update that crosses the release which
 # introduced it, even when every path inside it is excluded.
@@ -647,7 +666,7 @@ SA_COPIER_VARS="_copier_operation _copier_answers _copier_conf"
 
 # Author-owned, pair-only folders (DESIGN.md Section 3.3). Globs are bash patterns on
 # tree-relative directory paths.
-SA_PAIR_ONLY_GLOBS="*/docs/project */workflows/local docs/project workflows/local standards/style/samples standards/style/ledger planning/src/units planning/src/maps planning/src/reviews planning/src/arguments planning/src/arcs planning/src/quests planning/src/approvals world/src/* research/src/* handoffs learning assets"
+SA_PAIR_ONLY_GLOBS="*/docs/project */workflows/local docs/project workflows/local standards/style/samples standards/style/ledger planning/src/units planning/src/maps planning/src/reviews planning/src/questionnaires planning/src/arguments planning/src/arcs planning/src/quests planning/src/approvals world/src/* research/src/* handoffs learning assets"
 
 # ── Spine and gate sets, built from the catalogue and copier.yml together ────
 
@@ -1103,4 +1122,54 @@ EOF
 EOF
   cd - >/dev/null || return 1
   sa_git "$t" init -q && sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture template'
+}
+
+# ── The update report on a fixture (DESIGN.md D51, D52) ──────────────────────
+#
+# Gives a template repository (the fixture above, or a dummy sibling) the real
+# migrations/family-update.py, the real family-shared update block of copier.yml (last in
+# _migrations) and the real baseline task (last in _tasks, after a git init), plus a
+# family-refresh.json of its own: $2 is the template's name, $3 the shared paths it refreshes.
+# Each shared path gets its anchored _skip_if_exists line and its _exclude line gated on the
+# update; a shared path the template does not hold yet is written token-free (a hook, 755).
+# Commits nothing: the caller commits and tags.
+SA_UPD_BEGIN='# BEGIN family-shared update (D48)'
+SA_UPD_END='# END family-shared update (D48)'
+sa_add_update() { # $1 = template repo, $2 = template name, $3 = shared paths (space-separated)
+  local t="$1" name="$2" paths="$3" p
+  mkdir -p "$t/migrations"
+  cp "$SA_ROOT/migrations/family-update.py" "$t/migrations/family-update.py" || return 1
+  grep -qF "$SA_UPD_END" "$SA_ROOT/copier.yml" || return 1
+  for p in $paths; do
+    [[ -e "$t/template/$p" ]] && continue
+    mkdir -p "$(dirname "$t/template/$p")"
+    case "$p" in
+      *.sh) printf '#!/usr/bin/env bash\n# A shared hook, revision 1.\nexit 0\n' > "$t/template/$p"; chmod +x "$t/template/$p" ;;
+      *)    printf -- '---\nname: %s\ndescription: A shared skill.\n---\n\n# Skill: %s\n\nRevision 1.\n' "$(basename "$(dirname "$p")")" "$(basename "$(dirname "$p")")" > "$t/template/$p" ;;
+    esac
+  done
+  python3 - "$t/copier.yml" "$paths" <<'PY'
+import sys
+path, paths = sys.argv[1], sys.argv[2].split()
+lines = open(path, encoding="utf-8").read().split("\n")
+def after(key, new):
+    i = lines.index(key)
+    lines[i + 1:i + 1] = new
+after("_exclude:", [f"  - \"<: if _copier_operation == 'update' :>/{p}<: endif :>\"" for p in paths])
+after("_skip_if_exists:", [f"  - /{p}" for p in paths])
+open(path, "w", encoding="utf-8").write("\n".join(lines))
+PY
+  { printf '_migrations:\n'
+    awk -v b="$SA_UPD_BEGIN" -v e="$SA_UPD_END" '$0 == b { on = 1 } on { print } $0 == e { on = 0 }' "$SA_ROOT/copier.yml"
+    printf '_tasks:\n  - command: "[ -d .git ] || git init --initial-branch=main"\n    when: "<%% _copier_operation == %s %%>"\n' "'copy'"
+    grep -A1 -F 'migrations/family-update.py" baseline' "$SA_ROOT/copier.yml"
+  } >> "$t/copier.yml"
+  python3 - "$t/migrations/family-refresh.json" "$name" "$paths" <<'PY'
+import json, sys
+json.dump({"format": 1, "template": sys.argv[2], "refresh": sys.argv[3].split(),
+           "settings": {"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command",
+               "command": "bash -c 'exec bash .claude/hooks/context-threshold-handoff.sh'", "timeout": 10}]}]},
+                        "permissions": {"deny": [], "ask": []}}},
+          open(sys.argv[1], "w", encoding="utf-8"), indent=2)
+PY
 }
