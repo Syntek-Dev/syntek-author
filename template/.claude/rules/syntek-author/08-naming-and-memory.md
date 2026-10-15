@@ -41,6 +41,7 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 | `SCREAMING-SNAKE-CASE.md` | CONTEXT.md, STEPS.md | structural files, and sub-documents behind a thin index |
 | `HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` | HANDOFF-OPENING-SECTIONS-03-10-2026.md | a session handoff, in `handoffs/` (default) |
 | `MAP-<TOPIC>.md` | MAP-PART-TWO.md | a decision map, in `planning/src/maps/` (default) |
+| `QUESTIONNAIRE-<SLUG>-DD-MM-YYYY.md` | QUESTIONNAIRE-FORD-CROSSING-14-11-2026.md | a questionnaire for someone outside the session, in `planning/src/questionnaires/`; its returned copy adds `-RETURNED` |
 | `REVIEW-<scope>-DD-MM-YYYY.md` | REVIEW-whole-work-03-10-2026.md | a structural review (advice only), in `planning/src/reviews/` |
 | `SPIKE-<slug>.md` | drafts/SPIKE-second-person.md | a throwaway prototype, deleted once answered |
 | `learning/<kebab-topic>/` | learning/dialogue-punctuation/ | a learning topic: `MISSION.md`, `RESOURCES.md`, `PROGRESS.md`, `LESSONS/` |

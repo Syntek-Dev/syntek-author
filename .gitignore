@@ -1,0 +1,8 @@
+# The template repository's own ignore rules. Nothing here ships (_subdirectory: template);
+# a generated project's ignore file is template/.gitignore, a seed, never edited from here.
+
+# Development handoffs and working notes: maintainer state, kept out of the repository's history.
+/handoffs/
+
+# Python bytecode from running the migration scripts and their self-tests.
+__pycache__/

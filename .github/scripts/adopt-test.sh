@@ -42,11 +42,12 @@
 #                 mv lines that hold the link aside and put it back, and following that plan
 #                 must adopt the repository with the link and its target untouched.
 #
-#                 Twenty-seven checks:
+#                 Thirty checks:
 #                   1. The copy succeeds.
 #                   2. .claude/MEMORY.md is byte-for-byte untouched.
 #                   3. Every other existing seed is untouched: .claude/CLAUDE.md,
-#                      .claude/settings.json, README.md, .gitignore.
+#                      .claude/settings.json, README.md, .gitignore (settings.json may gain
+#                      the template's own entries, add-only: check 30).
 #                   4. Every file under manuscript/src/ that existed is untouched.
 #                   5. Every file under standards/style/ that existed is untouched.
 #                   6. No seed-once example was added.
@@ -98,6 +99,23 @@
 #                  27. Outside link with a missing target (a clone without the agent tree
 #                      beside it): adopt/theology.sh printed the same three-line plan, since
 #                      Copier refuses the destinations beneath a dangling outside link too.
+#                  28. Additive: where the template's migrations/family-refresh.json lists
+#                      .claude/skills/grilling/SKILL.md (a shared working-practice skill,
+#                      DESIGN.md D51), the report named the repository's own grilling SKILL.md
+#                      as kept at a shared path, never merged or replaced on update.
+#                  29. Additive: the report's closing steps said that --skip-tasks skips the
+#                      copy-time record the update report compares against (D41, D52).
+#                  30. Moving: the kept .claude/settings.json changed only by the add-only merge
+#                      of the template's migrations/family-refresh.json settings (D17, D51):
+#                      every key, value and list item it held is still there in its order,
+#                      everything added is an entry of that file (a top-level value, such as
+#                      "autoCompactEnabled": false, only where the author's file had the key
+#                      not at all, and then with exactly the listed value), each hook command
+#                      the file lists is wired exactly once, and each top-level value it lists
+#                      is there, judged whether or not the file changed, so a hook never wired
+#                      fails as surely as one wired twice. The author's fixture settings.json
+#                      holds no autoCompactEnabled, so the copy must add it.
+#                      (Check 3 covers its bytes when there is no refresh file.)
 #
 #                 Numbers are stable identifiers. Append, never renumber.
 #
@@ -165,6 +183,10 @@ ADD_RAN=false; ADD_PROJ=""; ADD_STATUS=0; ADD_REPORT=""; ADD_CHANGED=""; ADD_BUI
 INERT_NOTE="grilling/THEOLOGY.md is written beside your own SKILL.md and stays inert"
 EXTEND_NOTE="extend      .claude/skills/CONTEXT.md"
 IGNORE_NOTE=".claude/skills/build/SKILL.md — .gitignore:1:build/: never committed, and deleted by the next copier update"
+# Checks 28–29 (D51, D52): the kept shared skill, and the copy-time record --skip-tasks skips.
+ADD_SHARED_LISTED=false; ADD_REPORTED=false
+SHARED_NOTE=".claude/skills/grilling/SKILL.md sits at a shared skill's path"
+BASELINE_NOTE="skips the copy-time task that records the template's render"
 # The business additive report's state (checks 17–24).
 BIZ_RAN=false; BIZ_PROJ=""; BIZ_STATUS=0; BIZ_REPORT=""; BIZ_CHANGED=""
 FAMILY_NOTE="unticking msp-scp in BUSINESS_FAMILIES later deletes these files of yours:"
@@ -205,7 +227,8 @@ build_existing() { # $1 = dir
 
 - **14/03/2026** — **Chapter two leads with the parable.** The history waits until chapter three.
 EOF
-  printf '{\n  "model": "opus",\n  "autoCompactEnabled": false\n}\n' > "$p/.claude/settings.json"
+  # The author's own settings.json holds no autoCompactEnabled: the copy adds the template's (check 30).
+  printf '{\n  "model": "opus"\n}\n' > "$p/.claude/settings.json"
   printf '# The Lantern Road\n\nA book in progress, by an invented author.\n' > "$p/README.md"
   printf 'build/\n.claude/settings.local.json\n' > "$p/.gitignore"
   printf '# Voice and tone\n\nShort sentences. Questions the reader is already asking.\n' > "$p/standards/style/voice-and-tone.md"
@@ -261,6 +284,7 @@ protected() { # the files whose bytes must not change, as they stand before the 
 run_flow() { # $1 = template repo, $2 = work dir — fills the state
   local tpl="$2/tpl" log="$2/flow.log" script f
   PROJ="$2/proj"; COPY_STATUS=0; ADOPT_STATUS=skipped; ADOPT_REPORT="$2/adopt.log"; BUILD_IGNORED=false; BEFORE=()
+  SETTINGS_BEFORE="$2/settings.before.json"; REFRESH_JSON="$1/migrations/family-refresh.json"
   : > "$ADOPT_REPORT"
   sa_snapshot "$1" "$tpl" >>"$log" 2>&1 || die "could not snapshot $1"
   build_existing "$PROJ" >>"$log" 2>&1
@@ -272,6 +296,7 @@ run_flow() { # $1 = template repo, $2 = work dir — fills the state
     sa_git "$PROJ" add -A && sa_git "$PROJ" commit -q -m 'adopt: safe moves' >>"$log" 2>&1 || true
   fi
   while IFS= read -r f; do BEFORE["$f"]="$(sha1sum < "$PROJ/$f")"; done < <(protected)
+  cp "$PROJ/.claude/settings.json" "$SETTINGS_BEFORE"
   sa_render "$tpl" "$PROJ" theology --overwrite --data SEED_EXAMPLES=false >>"$log" 2>&1 || COPY_STATUS=$?
   if sa_git "$PROJ" check-ignore -q .claude/skills/build/SKILL.md 2>/dev/null; then BUILD_IGNORED=true; fi
 }
@@ -287,10 +312,13 @@ run_additive() { # $1 = template repo, $2 = work dir — fills the additive stat
   printf -- '---\nname: grilling\ndescription: The repository'\''s own questioning skill.\n---\n\n# Grilling, our way\n' > "$ADD_PROJ/.claude/skills/grilling/SKILL.md"
   printf '# CONTEXT.md — .claude/skills/\n\n- `grilling/` — our questioning skill\n' > "$ADD_PROJ/.claude/skills/CONTEXT.md"
   sa_git "$ADD_PROJ" add -A && sa_git "$ADD_PROJ" commit -q -m 'our own skill' >>"$log" 2>&1
+  ADD_SHARED_LISTED=false; ADD_REPORTED=false
   if [[ -f "$tpl/adopt/theology.sh" ]]; then
+    ADD_REPORTED=true
     bash "$tpl/adopt/theology.sh" --additive "$ADD_PROJ" >"$ADD_REPORT" 2>&1 || true
     cat "$ADD_REPORT" >>"$log"
   fi
+  grep -qF '.claude/skills/grilling/SKILL.md"' "$tpl/migrations/family-refresh.json" 2>/dev/null && ADD_SHARED_LISTED=true
   sa_render "$tpl" "$ADD_PROJ" theology --skip '*' --skip-tasks --data SEED_EXAMPLES=false >>"$log" 2>&1 || ADD_STATUS=$?
   ADD_CHANGED="$(git -C "$ADD_PROJ" status --porcelain 2>/dev/null | grep -v '^??' || true)"
   if [[ -f "$ADD_PROJ/.claude/skills/build/SKILL.md" ]] \
@@ -379,6 +407,70 @@ outside_checks() {
   return 0
 }
 
+# The add-only settings merge (D17, D51): $1 the file before, $2 after, $3 family-refresh.json.
+# Prints the first departure and fails; silent and 0 when $2 is $1 plus refresh entries only.
+settings_add_only() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import json, sys
+try:
+    b, a = (json.load(open(f, encoding="utf-8-sig")) for f in sys.argv[1:3])
+except ValueError as e:
+    print("it no longer parses as JSON (%s)" % e); sys.exit(1)
+ref = json.load(open(sys.argv[3], encoding="utf-8")).get("settings", {})
+def within(x, r):  # x is made only of what r holds
+    if isinstance(x, dict):
+        return isinstance(r, dict) and all(k in r and within(v, r[k]) for k, v in x.items())
+    if isinstance(x, list):
+        return isinstance(r, list) and all(any(within(i, j) for j in r) for i in x)
+    return json.dumps(x) == json.dumps(r)  # false is never 0
+def keeps(b, a, r, path):  # a keeps b, in order; whatever a adds is within r
+    if isinstance(b, dict):
+        if not isinstance(a, dict):
+            return "%s is no longer an object" % path
+        ka = [k for k in a if k in b]
+        if ka != list(b):
+            return "%s lost a key or changed their order" % path
+        for k in a:
+            if k in b:
+                e = keeps(b[k], a[k], r.get(k) if isinstance(r, dict) else None, path + "." + k)
+                if e: return e
+            elif r is None or not isinstance(r, dict) or k not in r or not within(a[k], r[k]):
+                return "%s.%s was added and is not a template entry" % (path, k)
+        return None
+    if isinstance(b, list):
+        if not isinstance(a, list):
+            return "%s is no longer a list" % path
+        i = 0
+        for item in a:
+            if i < len(b) and item == b[i]:
+                i += 1
+            elif i < len(b) and isinstance(item, dict) and isinstance(b[i], dict) \
+                    and not keeps(b[i], item, _pick(b[i], r), path + "[]"):
+                i += 1
+            elif r is None or not any(within(item, j) for j in r):
+                return "%s gained an item that is not a template entry" % path
+        return None if i == len(b) else "%s lost an item or changed their order" % path
+    return None if a == b else "%s changed its value" % path
+def _pick(x, r):
+    for j in (r or []):
+        if isinstance(j, dict) and all(j.get(k) == v for k, v in x.items() if not isinstance(v, (list, dict))):
+            return j
+    return None
+e = keeps(b, a, ref, "settings")
+if e:
+    print(e); sys.exit(1)
+cmds = [h.get("command") for g in sum(ref.get("hooks", {}).values(), []) for h in g.get("hooks", [])]
+have = [h.get("command") for g in sum(a.get("hooks", {}).values(), []) for h in g.get("hooks", [])]
+for c in cmds:
+    if have.count(c) != 1:
+        print("a hook of the template is wired %d times, not once: %s" % (have.count(c), c)); sys.exit(1)
+# A top-level value the refresh file lists (autoCompactEnabled) is added where the author had none.
+for k, v in ref.items():
+    if k not in ("hooks", "permissions") and isinstance(v, (bool, int, float, str)) and k not in b and k not in a:
+        print("settings.%s, which the refresh file lists, was not added to a file that had none" % k); sys.exit(1)
+PY
+}
+
 run_checks() {
   FINDINGS=()
   $ADD_RAN && additive_checks
@@ -392,6 +484,13 @@ run_checks() {
   fi
   for f in "${!BEFORE[@]}"; do
     now="$( [[ -f "$PROJ/$f" ]] && sha1sum < "$PROJ/$f" || echo gone)"
+    # The kept settings.json is judged whether or not it changed: a hook the refresh file lists
+    # and the adoption never wired is a finding too ('wired 0 times').
+    if [[ "$f" == .claude/settings.json && -f "$REFRESH_JSON" && -f "$PROJ/$f" ]]; then
+      e="$(settings_add_only "$SETTINGS_BEFORE" "$PROJ/$f" "$REFRESH_JSON")" \
+        || finding "check 30 — adoption changed the author's .claude/settings.json beyond adding the template's entries: $e"
+      continue
+    fi
     [[ "$now" == "${BEFORE[$f]}" ]] && continue
     case "$f" in
       .claude/MEMORY.md) n=2 ;;
@@ -431,6 +530,12 @@ additive_checks() {
     || finding "check 13 — the additive report did not name .claude/skills/grilling/THEOLOGY.md as inert beside the repository's own SKILL.md"
   grep -qF "$EXTEND_NOTE" "$ADD_REPORT" 2>/dev/null \
     || finding "check 14 — the additive report did not name the kept .claude/skills/CONTEXT.md as an index to extend"
+  if $ADD_SHARED_LISTED && ! grep -qF "$SHARED_NOTE" "$ADD_REPORT" 2>/dev/null; then
+    finding "check 28 — the additive report did not name the repository's own grilling SKILL.md as kept at a shared skill's path (D51): the author would expect an update to merge it"
+  fi
+  if $ADD_REPORTED && ! grep -qF "$BASELINE_NOTE" "$ADD_REPORT" 2>/dev/null; then
+    finding "check 29 — the additive report did not say that --skip-tasks skips the copy-time record the update report compares against (D41, D52)"
+  fi
   if $ADD_BUILD_IGNORED && ! grep -qF "$IGNORE_NOTE" "$ADD_REPORT" 2>/dev/null; then
     finding "check 15 — the kept .gitignore hides the .claude/skills/build/SKILL.md the copy added, and the additive report did not name it with its rule — it is never committed, and the next copier update deletes it"
   fi
@@ -532,6 +637,53 @@ self_test() {
   mv "$PROJ/$SA_ANSWERS_FILE" "$tmp/h"; probe "check 7 fires when no answers file is written" "check 7"; mv "$tmp/h" "$PROJ/$SA_ANSWERS_FILE"
   mv "$PROJ/.claude/rules" "$tmp/h"; probe "check 8 fires when no template-owned file arrives" "check 8"; mv "$tmp/h" "$PROJ/.claude/rules"
   ADOPT_STATUS=1; probe "check 9 fires when the adoption script fails" "check 9"; ADOPT_STATUS=0
+  # Check 30: the add-only settings merge, against a refresh file of the real shape.
+  local held_refresh="$REFRESH_JSON"; REFRESH_JSON="$tmp/family-refresh.json"
+  printf '%s\n' '{"format": 1, "template": "fixture", "refresh": [], "settings": {"autoCompactEnabled": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"], "ask": []}}}' > "$REFRESH_JSON"
+  cp "$PROJ/.claude/settings.json" "$tmp/s"
+  python3 - "$SETTINGS_BEFORE" "$PROJ/.claude/settings.json" '{"autoCompactEnabled": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"]}}' <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d.update(json.loads(sys.argv[3]))
+open(sys.argv[2], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe_clean "check 30 accepts the template's entries added to the kept settings.json"
+  sed -i 's/"opus"/"sonnet"/' "$PROJ/.claude/settings.json"
+  probe "check 30 fires when a value the author set changes" "check 30 — adoption changed the author's .claude/settings.json beyond"
+  sed -i 's/"sonnet"/"opus"/; s/"AskUserQuestion"/"AskUserQuestion", "Bash(rm:*)"/' "$PROJ/.claude/settings.json"
+  probe "check 30 fires when an entry not in the refresh file is added" "check 30 — adoption changed the author's .claude/settings.json beyond"
+  sed -i 's/, "Bash(rm:\*)"//; s/"AskUserQuestion"\]/"AskUserQuestion"]/' "$PROJ/.claude/settings.json"
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["hooks"]["UserPromptSubmit"] *= 2
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe "check 30 fires when a template hook is wired twice" "check 30 — adoption changed the author's .claude/settings.json beyond"
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["hooks"]["UserPromptSubmit"] = d["hooks"]["UserPromptSubmit"][:1]; d["autoCompactEnabled"] = 0
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe "check 30 fires when a top-level value is added with another value" "check 30 — adoption changed the author's .claude/settings.json beyond adding the template's entries: settings.autoCompactEnabled was added"
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); del d["autoCompactEnabled"]
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe "check 30 fires when the top-level value is not added" "settings.autoCompactEnabled, which the refresh file lists, was not added"
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["autoCompactEnabled"] = False; d["hooks"]["UserPromptSubmit"] *= 2
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); del d["model"]
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe "check 30 fires when a key the author had is removed" "check 30 — adoption changed the author's .claude/settings.json beyond"
+  cp "$SETTINGS_BEFORE" "$PROJ/.claude/settings.json"
+  probe "check 30 fires when the adoption wired no hook (the file unchanged)" "wired 0 times"
+  cp "$tmp/s" "$PROJ/.claude/settings.json"; REFRESH_JSON="$held_refresh"
   cp "$ADOPT_REPORT" "$tmp/h"; grep -vF "$BUILD_NOTE" "$tmp/h" > "$ADOPT_REPORT" || true
   probe "check 10 fires when the report misses the unanchored build/ line" "check 10"; cp "$tmp/h" "$ADOPT_REPORT"
 
@@ -549,6 +701,14 @@ self_test() {
   probe "check 15 fires when the ignored build skill is not named" "check 15"; cp "$tmp/h" "$ADD_REPORT"
   cp "$ADD_REPORT" "$tmp/h"; grep -vF "$BUILD_NOTE" "$tmp/h" > "$ADD_REPORT" || true
   probe "check 16 fires when the unanchored build/ line is not named" "check 16"; cp "$tmp/h" "$ADD_REPORT"
+  if $ADD_SHARED_LISTED; then
+    cp "$ADD_REPORT" "$tmp/h"; grep -vF "$SHARED_NOTE" "$tmp/h" > "$ADD_REPORT" || true
+    probe "check 28 fires when the kept shared skill is not named" "check 28"; cp "$tmp/h" "$ADD_REPORT"
+  fi
+  if $ADD_REPORTED; then
+    cp "$ADD_REPORT" "$tmp/h"; grep -vF "$BASELINE_NOTE" "$tmp/h" > "$ADD_REPORT" || true
+    probe "check 29 fires when the copy-time record note is missing" "check 29"; cp "$tmp/h" "$ADD_REPORT"
+  fi
   ADD_RAN=false
 
   run_business "$tmp/fixture" "$tmp"

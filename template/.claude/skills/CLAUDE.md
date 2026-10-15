@@ -28,7 +28,8 @@ keep improving them.
 ## Guardrails
 
 - **Never edit a template skill.** The next `copier update` overwrites the edit or turns it into a
-  conflict, and a skill changed mid-task to fit the task is a skill nobody can trust.
+  conflict (or, for a family-shared `SKILL.md`, freezes it until you take the template's copy
+  again), and a skill changed mid-task to fit the task is a skill nobody can trust.
 - **Never self-edit.** No skill rewrites a skill, a standard, a rules file or a `CLAUDE.md` without
   the author's explicit instruction (`.claude/rules/syntek-author/06-global-rules.md` Section 3).
 - **Never recreate a skill that does not ship here.** Its absence is deliberate for this kind of

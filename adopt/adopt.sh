@@ -13,6 +13,8 @@
 #   beside the repository's own, and `.claude/rules/syntek-author/00-project.md` tells the
 #   template where this repository keeps things. For a repository with established
 #   conventions — its own skills, governance, numbering — that should not be reorganised.
+#   --skip-tasks also skips the copy-time task that records the render for the update report
+#   (D52), so the first update renders the old version itself; the report says so.
 #
 # A copy can do two things safely: write files that are missing, and replace files the
 # template owns. It cannot MOVE anything. An existing repository keeps its author work where its own
@@ -650,6 +652,13 @@ additive_report() {
     else
       item inert ".claude/skills/$name/$mode is written beside your own SKILL.md and stays inert: a mode file applies only when its SKILL.md carries the Mode paragraph (D41). Delete it if you prefer"
     fi
+    # A shared working-practice SKILL.md (D51) is copy-only and refreshed only where it equals a
+    # render this project recorded, so the repository's own file there is never replaced. The
+    # list is read from the template's own refresh data, never typed here.
+    if [ -f "$tpl_root/migrations/family-refresh.json" ] &&
+       grep -qF -e "\"$f\"" -e "\"/$f\"" "$tpl_root/migrations/family-refresh.json"; then
+      item kept "$f sits at a shared skill's path: no update merges or replaces it, and each update report lists it under 'NOT UPDATED because you had changed them' when the template changes that skill (D51)"
+    fi
   done
   [ "$found" -eq 1 ] || item clean "no skill of yours shares a name with a template skill"
 
@@ -820,6 +829,9 @@ $step2
 $step3
        --skip '*' keeps every file that exists; --skip-tasks leaves your repository as it is,
        so run chmod +x .claude/hooks/*.sh yourself (and make init, with the references kit).
+       --skip-tasks also skips the copy-time task that records the template's render for the
+       update report (D52), so your first copier update renders the old version itself, once,
+       to build its report: a few seconds slower, nothing else.
     4. Fill in .claude/rules/syntek-author/00-project.md, with each redirect named above
        under ## Overrides, then run this report again and extend the index files it names.
     5. git status shows only additions: review, then commit, including
@@ -1107,9 +1119,15 @@ elif [ "$found" -eq 0 ]; then
 fi
 lacks() { note "$1 lacks $2 — compare it with the template's seed"; }
 if [ -f .claude/settings.json ]; then
-  grep -Eq '"autoCompactEnabled"[[:space:]]*:[[:space:]]*false' .claude/settings.json || lacks .claude/settings.json '"autoCompactEnabled": false (hand off, never compact)'
+  if ! grep -Eq '"autoCompactEnabled"[[:space:]]*:' .claude/settings.json; then
+    note ".claude/settings.json lacks \"autoCompactEnabled\": false (hand off, never compact): the moving copy, or your first copier update after an additive one, adds it"
+  elif ! grep -Eq '"autoCompactEnabled"[[:space:]]*:[[:space:]]*false' .claude/settings.json; then
+    note ".claude/settings.json sets autoCompactEnabled to another value than false: it is kept and reported, never changed; the handoff hooks assume false, so set it to false to use them"
+  fi
   grep -q 'PreCompact' .claude/settings.json || lacks .claude/settings.json 'the PreCompact hook'
+  grep -q 'context-threshold-handoff' .claude/settings.json || lacks .claude/settings.json 'the UserPromptSubmit hand-off hook'
   grep -q 'AskUserQuestion' .claude/settings.json || lacks .claude/settings.json 'the AskUserQuestion deny'
+  note ".claude/settings.json is kept, and gains only the hook entries and deny and ask rules the template lists and \"autoCompactEnabled\": false where the key is absent (D51): the moving copy adds the missing ones into your file's own text; the additive copy (--skip-tasks) adds none, and your first copier update does. Nothing is removed or changed: a rule you allow, or an autoCompactEnabled value you set, is reported, never changed"
   if grep -Eq '"(enabledPlugins|effortLevel)"' .claude/settings.json; then
     note ".claude/settings.json holds owner-specific keys (plugins, effort level): they belong in your user settings, not the project's"
   fi

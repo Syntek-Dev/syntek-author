@@ -13,7 +13,7 @@
 #                    nothing else (Section 3.3), because anything else in them is the template
 #                    writing into the author's space.
 #
-#                    Eighteen checks:
+#                    Twenty-two checks:
 #                      1. Every DESIGN.md seed is listed in copier.yml's _skip_if_exists.
 #                      2. Every _skip_if_exists entry names a file under template/.
 #                      3. Every seed-once example has its copy-only _exclude line, gated
@@ -67,7 +67,8 @@
 #
 #                     18. Every copy-only shared path of DESIGN.md Section 3.6 (D47: the other
 #                         coding agents' entrypoints, the .agents/skills link, Antigravity's
-#                         .agents/mcp_config.json, the client settings) has its anchored
+#                         .agents/mcp_config.json, the client settings; D51: the shared skills,
+#                         hooks and handoffs pair) has its anchored
 #                         _skip_if_exists line, its _exclude line gated
 #                         "_copier_operation == 'update'", and a file (or, for .agents/skills, a
 #                         link) under template/. Without the skip a copy overwrites the author's
@@ -84,9 +85,28 @@
 #                         byte for byte {"mcpServers": {}} as syntek-media 0.4.2 ships it (23
 #                         bytes); and the retired template/.claude/mcp_config.json is gone.
 #
-#                    Checks 1–4 and 18–20 read copier.yml and template/ (static, once). Checks
-#                    5–17 read every tree given — template/ by default, or renders — and skip a
-#                    seed the tree does not ship.
+#                     21. The shared working practice (D51): every shared skill, hook and
+#                         handoffs file (check 18 holds each to its copy-only lines) is listed in
+#                         migrations/family-refresh.json, which lists nothing else; each hook is
+#                         executable under template/ (Copier compares the bit, so a copy over the
+#                         sibling's 755 copy would conflict); and no _skip_if_exists or
+#                         update-gated _exclude line names a folder above one of them, which
+#                         would freeze or hide this template's own mode files beside it.
+#                     22. In a render, .claude/settings.json wires every hook entry
+#                         migrations/family-refresh.json lists (the context-threshold hook on
+#                         UserPromptSubmit, the PreCompact handoff for auto and manual): the
+#                         refresh adds an entry to an existing project only where the new
+#                         render's settings.json holds it, so a seed without it never wires it.
+#                         And, in the template, the seed template/.claude/settings.json holds
+#                         every permissions.deny and permissions.ask rule that file lists (a
+#                         variant-gated rule still appears in the seed's source), and every
+#                         top-level value it lists ("autoCompactEnabled": false) with the same
+#                         value, for the same reason: an entry listed in family-refresh.json
+#                         alone is never offered.
+#
+#                    Checks 1–4, 18–21 read copier.yml and template/ (static, once). Checks
+#                    5–17 and 22 read every tree given — template/ by default, or renders — and
+#                    skip a seed the tree does not ship.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -157,6 +177,7 @@ PROJECT_SEED=".claude/rules/syntek-author/00-project.md"
 PROJECT_H2S=("Brief" "Paths" "Memory headings" "Workflow aliases" "Overrides")
 PROJECT_EMPTY_H2S=("Workflow aliases" "Overrides")
 PROJECT_MK="tooling/project.mk"
+REFRESH_DATA="migrations/family-refresh.json"
 PROJECT_MK_KEYS="BRAND_DIRS LOGO_DIRS DOCX_CONVERTER FLAG_EXTRA_RE ISSUE_STATUSES MAINFONT SANSFONT MONOFONT"
 
 # Block delimiters removed, fenced code and HTML comments dropped: what an entry would look like.
@@ -230,7 +251,7 @@ static_checks() {
   while IFS=$'\t' read -r cond path; do
     [[ "$(norm_expr "$cond")" == "$SA_COPY_ONLY_GATE" ]] && on_update["$path"]=1
   done < <(exclude_gates "$COPIER")
-  for s in $SA_COPY_ONLY; do
+  for s in $SA_COPY_ONLY $SA_SHARED_PRACTICE; do
     [[ -n "${skip[$s]:-}" ]] || finding "check 18 — the copy-only $s is not in _skip_if_exists — a copy over a project overwrites the author's file"
     [[ -n "${on_update[$s]:-}" ]] || finding "check 18 — the copy-only $s has no _exclude line gated on the update — an update re-renders it, or brings back a deleted one"
     [[ -e "$TPL/$s" || -L "$TPL/$s" ]] || finding "check 18 — the copy-only $s is not under template/"
@@ -257,7 +278,72 @@ static_checks() {
   fi
   [[ -e "$TPL/.claude/mcp_config.json" ]] \
     && finding "check 20 — template/.claude/mcp_config.json is retired (Antigravity's file is .agents/mcp_config.json) and must not ship"
+
+  # ── 21. The shared working practice (D51) ───────────────────────────────────
+  local listed d
+  listed="$(python3 -c 'import json,sys; print(" ".join(sorted(json.load(open(sys.argv[1])).get("refresh") or [])))' "$SA_ROOT/$REFRESH_DATA" 2>/dev/null || printf '?')"
+  [[ "$listed" == "$(printf '%s\n' $SA_SHARED_PRACTICE | LC_ALL=C sort | paste -sd' ' -)" ]] \
+    || finding "check 21 — $REFRESH_DATA does not refresh exactly the shared working practice (it lists: ${listed:-nothing}) — a file it leaves out is never refreshed"
+  for s in $SA_SHARED_HOOKS; do
+    [[ ! -f "$TPL/$s" || -x "$TPL/$s" ]] || finding "check 21 — template/$s is not executable (mode 755) — a copy over the sibling's copy would see a conflict"
+  done
+  for s in $SA_SHARED_PRACTICE; do
+    d="${s%/*}"
+    while [[ "$d" == */* || -n "$d" ]]; do
+      if [[ -n "${skip[$d]:-}" || -n "${on_update[$d]:-}" ]]; then
+        finding "check 21 — copier.yml names the folder $d copy-only — the shared lines are file-level, so $s's folder keeps its template-owned files"
+      fi
+      [[ "$d" == */* ]] && d="${d%/*}" || d=""
+    done
+  done
+  # ── 22 (template). The seed holds every rule the refresh lists ──────────────
+  while IFS= read -r line; do finding "check 22 — $line"; done \
+    < <(rules_missing "$TPL/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA")
   return 0
+}
+
+# The permission rules and top-level values of family-refresh.json the seed settings.json source
+# does not hold (check 22): the refresh offers an entry only where the new render's
+# settings.json holds it (a top-level value, with the same value).
+rules_missing() { # $1 = template/.claude/settings.json (source), $2 = family-refresh.json
+  python3 - "$1" "$2" <<'PY'
+import json, re, sys
+try:
+    text = open(sys.argv[1], encoding="utf-8").read()
+    settings = json.load(open(sys.argv[2], encoding="utf-8")).get("settings") or {}
+    perms = settings.get("permissions") or {}
+except Exception:
+    sys.exit(0)  # check 21 reports a refresh file that is missing or does not parse
+for key, value in settings.items():
+    if key in ("hooks", "permissions") or not isinstance(value, (bool, int, float, str)):
+        continue
+    if not re.search(r"^  %s:\s*%s,?$" % (re.escape(json.dumps(key)), re.escape(json.dumps(value))), text, re.M):
+        print(f"template/.claude/settings.json does not hold the top-level {json.dumps(key)}: {json.dumps(value)} that migrations/family-refresh.json lists — the refresh offers a value only where the new render's settings.json holds it, so it is never added")
+for kind in ("deny", "ask"):
+    for rule in perms.get(kind) or []:
+        if json.dumps(rule) not in text:
+            print(f"template/.claude/settings.json does not hold the {kind} rule {rule} that migrations/family-refresh.json lists — the refresh offers a rule only where the new render's settings.json holds it, so it is never added")
+PY
+}
+
+# The hook entries of family-refresh.json a render's settings.json does not wire (check 22).
+hooks_missing() { # $1 = settings.json, $2 = family-refresh.json
+  python3 - "$1" "$2" <<'PY'
+import json, re, sys
+try:
+    data = json.load(open(sys.argv[1], encoding="utf-8"))
+    want = (json.load(open(sys.argv[2], encoding="utf-8")).get("settings") or {}).get("hooks") or {}
+except Exception:
+    sys.exit(0)  # check 12 reports a settings file that does not parse; check 21 a missing list
+script = re.compile(r"\.claude/hooks/[A-Za-z0-9._-]+")
+def names(e):
+    return {n for h in (e.get("hooks") or []) for n in script.findall(str(h.get("command", "")))}
+for event, entries in want.items():
+    have = [e for e in ((data.get("hooks") or {}).get(event) or []) if isinstance(e, dict)]
+    for e in entries:
+        if not any(x.get("matcher", "") == e.get("matcher", "") and names(e) <= names(x) for x in have):
+            print(f"does not wire the {event} hook{' for ' + e['matcher'] if e.get('matcher') else ''} running {', '.join(sorted(names(e)))}")
+PY
 }
 
 json_check() { # $1 = mode (mcp|settings), $2 = file → prints one problem per line
@@ -448,6 +534,11 @@ tree_checks() { # on TREE
     while IFS= read -r line; do finding "check 12 — .claude/settings.json $line"; done < <(json_check settings "$f")
   fi
 
+  # ── 22. settings.json wires every hook the refresh would add ───────────────
+  if [[ -f "$f" ]] && ! grep -q '<:' "$f" && [[ -f "$SA_ROOT/$REFRESH_DATA" ]]; then
+    while IFS= read -r line; do finding "check 22 — .claude/settings.json $line"; done < <(hooks_missing "$f" "$SA_ROOT/$REFRESH_DATA")
+  fi
+
   # ── 13. settings.json: the gated permissions, in a render ───────────────────
   if [[ -f "$f" ]] && ! grep -q '<:' "$f" && load_answers "$TREE/$SA_ANSWERS_FILE"; then
     local -a want=()
@@ -474,16 +565,27 @@ write_fixture() { # $1 = repo root
   {
     printf '_exclude:\n  - .git\n'
     for s in $SA_EXAMPLES; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_EXAMPLE_GATE" "$s"; done
-    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
+    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS $SA_SHARED_PRACTICE; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf '_skip_if_exists:\n'
-    for s in $SA_SEEDS $SA_COPY_ONLY; do printf '  - /%s\n' "$s"; done
+    for s in $SA_SEEDS $SA_COPY_ONLY $SA_SHARED_PRACTICE; do printf '  - /%s\n' "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$r/copier.yml"
   for s in $SA_SEEDS; do mkdir -p "$(dirname "$t/$s")"; printf '# %s\n' "${s##*/}" > "$t/$s"; done
-  for s in $SA_COPY_ONLY; do
+  for s in $SA_COPY_ONLY $SA_SHARED_PRACTICE; do
     [[ "$s" == .agents/skills ]] && continue
     mkdir -p "$(dirname "$t/$s")"; printf '{}\n' > "$t/$s"
   done
+  for s in $SA_SHARED_HOOKS; do chmod +x "$t/$s"; done
+  mkdir -p "$r/migrations"
+  python3 - "$r/$REFRESH_DATA" "$SA_SHARED_PRACTICE" <<'JSON'
+import json, sys
+hook = lambda name, arg="": [{"type": "command", "command": f"bash .claude/hooks/{name}{arg}"}]
+json.dump({"format": 1, "template": "syntek-author", "refresh": sys.argv[2].split(),
+           "settings": {"hooks": {"UserPromptSubmit": [{"hooks": hook("context-threshold-handoff.sh")}],
+                                  "PreCompact": [{"matcher": "auto", "hooks": hook("pre-compact-handoff.sh", " auto")},
+                                                 {"matcher": "manual", "hooks": hook("pre-compact-handoff.sh", " manual")}]},
+                        "permissions": {"deny": [], "ask": []}}}, open(sys.argv[1], "w"), indent=2)
+JSON
   ln -s "$SA_AGENTS_LINK_TARGET" "$t/.agents/skills"
   printf '%s' "$SA_AGENTS_MCP" > "$t/.agents/mcp_config.json"
   for s in $REGISTER_SEEDS; do
@@ -538,7 +640,9 @@ EOF
 {
   "model": "opus",
   "autoCompactEnabled": false,
-  "hooks": {"PreCompact": [{"matcher": "auto", "hooks": []}, {"matcher": "manual", "hooks": []}]},
+  "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/context-threshold-handoff.sh"}]}],
+            "PreCompact": [{"matcher": "auto", "hooks": [{"type": "command", "command": "bash .claude/hooks/pre-compact-handoff.sh auto"}]},
+                           {"matcher": "manual", "hooks": [{"type": "command", "command": "bash .claude/hooks/pre-compact-handoff.sh manual"}]}]},
   "permissions": {"deny": ["AskUserQuestion", "Edit(**/*.pdf)", "Edit(build/**)"], "allow": ["Bash(make *)"]}
 }
 EOF
@@ -592,6 +696,27 @@ self_test() {
   printf '%s' "$SA_AGENTS_MCP" > "$t/.claude/mcp_config.json"
   probe "check 20 fires when the retired .claude/mcp_config.json ships" "check 20 — template/.claude/mcp_config.json is retired"
   rm -f "$t/.claude/mcp_config.json"
+  cp "$COPIER" "$tmp/c"; grep -vxF '  - /.claude/skills/wayfinder/SKILL.md' "$tmp/c" > "$COPIER"; SA_SETS_FOR=""
+  probe "check 18 fires when a shared skill loses its skip line" "check 18 — the copy-only .claude/skills/wayfinder/SKILL.md is not in _skip_if_exists"
+  cp "$tmp/c" "$COPIER"; SA_SETS_FOR=""
+  chmod -x "$t/.claude/hooks/context-threshold-handoff.sh"
+  probe "check 21 fires on a shared hook that is not executable" "check 21 — template/.claude/hooks/context-threshold-handoff.sh is not executable"
+  chmod +x "$t/.claude/hooks/context-threshold-handoff.sh"
+  sed -i 's#^_skip_if_exists:$#&\n  - /.claude/skills/handoff#' "$COPIER"; SA_SETS_FOR=""
+  probe "check 21 fires on a folder-level copy-only line" "check 21 — copier.yml names the folder .claude/skills/handoff copy-only"
+  cp "$tmp/c" "$COPIER"; SA_SETS_FOR=""; cp "$SA_ROOT/$REFRESH_DATA" "$tmp/rd"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["refresh"].remove("handoffs/CLAUDE.md"); json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 21 fires when family-refresh.json leaves a shared file out" "check 21 — $REFRESH_DATA does not refresh exactly"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"; cp "$t/.claude/settings.json" "$tmp/h"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["hooks"]["UserPromptSubmit"]; json.dump(d,open(sys.argv[1],"w"))' "$t/.claude/settings.json"
+  probe "check 22 fires when the seed settings do not wire the threshold hook" "check 22 — .claude/settings.json does not wire the UserPromptSubmit hook running .claude/hooks/context-threshold-handoff.sh"
+  cp "$tmp/h" "$t/.claude/settings.json"; cp "$SA_ROOT/$REFRESH_DATA" "$tmp/rd"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["permissions"]["deny"].append("Bash(git push --force *)"); json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 22 fires when family-refresh.json lists a rule the seed does not hold" "check 22 — template/.claude/settings.json does not hold the deny rule Bash(git push --force *)"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["autoCompactEnabled"]=True; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 22 fires when family-refresh.json lists a top-level value the seed does not hold" "check 22 — template/.claude/settings.json does not hold the top-level \"autoCompactEnabled\": true"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
   mv "$t/planning/src/units/example-proposal.md" "$tmp/h"
   probe "check 4 fires when an example is missing" "check 4"
   mv "$tmp/h" "$t/planning/src/units/example-proposal.md"

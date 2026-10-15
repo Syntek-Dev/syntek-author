@@ -141,6 +141,63 @@
 #                   43. The control: a real .agents/ folder whose skills link points outside the
 #                       project updates with exit 0, the link untouched.
 #
+#                  The update report and the shared-file refresh (DESIGN.md D51, D52), once per
+#                  run, on a fixture of three tagged releases carrying the real
+#                  migrations/family-update.py, its _migrations block and its baseline task: a
+#                  project copied at v0.1.0, worked on (one file per report section), updated to
+#                  v0.2.0 and then to v0.3.0, inline and (in a copy) with --conflict rej.
+#                   44. The update succeeds and prints the report, and each planted file is in
+#                       its exact section: a conflict, a retired file the owner edited, an
+#                       edited seed and an edited shared skill, an unedited seed changed twice
+#                       (written once, on both updates), a new copy-only path where the owner
+#                       had a file, a deleted example, a new example.
+#                   45. With --conflict rej the conflict is reported as a rejected hunk.
+#                   46. The unedited shared skill is refreshed and the new one arrives; the
+#                       edited one is untouched; settings.json gains the threshold hook once,
+#                       beside the owner's allow rule.
+#                   47. Beyond the update's own changes (a copy updated with
+#                       SYNTEK_UPDATE_REPORT=off), only those shared files and settings.json
+#                       changed.
+#                   48. Every printed command runs offline, each in a fresh copy.
+#                   49. A hand rerun of the update stage at the same versions changes nothing
+#                       (files and refs); a second update with nothing new is one quiet line.
+#                   50. The opt-out, a missing copier and a missing old version each print one
+#                       line and exit 0 (hand runs in fresh clones, which hold no record).
+#
+#                  The real template across D51, from the v0.3.0 tag (every DOC_TYPE) and from
+#                  main before D51, b4669a5 (the first DOC_TYPE), to the working tree: a shared
+#                  skill (grill-me) edited first.
+#                   51. The update prints its report, and every other file family-refresh.json
+#                       lists is byte for byte the template's (refreshed or arrived), the hooks
+#                       executable.
+#                   52. The edited skill is untouched and listed under 'NOT UPDATED because you
+#                       had changed them'.
+#                   53. settings.json wires the context-threshold hook exactly once and keeps
+#                       everything it held (add-only).
+#                   54. A second update is a quiet no-op: exit 0, a clean tree, one report line.
+#
+#                  settings.json over the owner's own (D51), once per run, on the same fixture
+#                  given a fourth release: three projects, each holding the owner's own
+#                  settings.json (four-space indentation, permissions before model, an allow
+#                  rule) before the copy at v0.3.0.
+#                   55. A copy over it wires the template's threshold hook exactly once (the
+#                       copy-time baseline), and adds the top-level "autoCompactEnabled": false
+#                       family-refresh.json lists once, keeping the owner's indentation, key
+#                       order and allow rule; the update to v0.4.0 leaves both there exactly
+#                       once. A fifth project whose own settings.json holds autoCompactEnabled
+#                       true keeps it through the copy and the update, and the copy alone
+#                       prints the one line saying the handoff hooks assume false.
+#                   56. A hook the copy wired and the owner then removed is not re-added by
+#                       the next update: once removed after a commit, and once before any
+#                       commit, so only the record lists it as offered.
+#                   57. A copy with --skip-tasks records nothing; the first update adds the
+#                       hook the owner's committed settings.json never held, exactly once.
+#                   58. A second update is a no-op: settings.json byte for byte, a clean tree.
+#                   59. The render record names no path of this machine: no tree of
+#                       refs/syntek-author/template's chain holds a .copier-answers.* file, and
+#                       no blob or message holds the template's or the project's absolute path,
+#                       Copier's temporary clone (copier._vcs.clone) or an _src_path line.
+#
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
 #                  and never a finding: only exit statuses and files are judged.
@@ -873,6 +930,461 @@ EOF
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture v0.2.0' && sa_git "$t" tag v0.2.0
 }
 
+# ── The update report and the shared-file refresh (D51, D52, checks 44–54) ───
+
+RP_RAN=false; SH_RAN=false
+RP_SHARED=".claude/skills/wait-what/SKILL.md .claude/skills/grill-me/SKILL.md .claude/hooks/context-threshold-handoff.sh"
+RP_ARRIVES=".claude/skills/to-questionnaire/SKILL.md"
+RP_HOOK_CMD="bash -c 'exec bash .claude/hooks/context-threshold-handoff.sh'"
+SHARED_EDIT=".claude/skills/grill-me/SKILL.md"
+SHARED_MARK="Update-test: the author's own line in a shared skill."
+PRE_D51_REF="b4669a5"   # main before D51 and D52: the commit this work branched from
+RP_HEAD="▸ syntek-author update report"
+# Where each planted file of the report fixture must be listed (checks 44 and 45).
+RP_WANT=$(cat <<'EOF'
+.claude/rules/syntek-author/01-layout-and-routing.md	CONFLICT
+notes/retired.md	DELETED by this update although you had changed them
+.gitignore	NOT UPDATED because you had changed them
+.claude/skills/grill-me/SKILL.md	NOT UPDATED because you had changed them
+README.md	NOT UPDATED because files of this kind are written once
+notes/shared.md	NOT UPDATED because it is new in this version
+planning/src/units/01-example-chapter.md	NOT RESTORED because you had deleted them
+planning/src/units/02-example-chapter.md	NOT ADDED
+EOF
+)
+
+# The report's sections, from the last report in a log: "section<TAB>path" per entry.
+report_sections() { # $1 = log
+  python3 - "$1" <<'PY'
+import re, sys
+lines = open(sys.argv[1], encoding="utf-8", errors="replace").read().splitlines()
+starts = [i for i, l in enumerate(lines) if re.match(r"▸ \S+ update report", l)]
+cur = None
+for l in (lines[starts[-1]:] if starts else []):
+    if re.match(r"  [A-Z]{2}", l):
+        cur = l.strip()
+    elif re.match(r"    \S", l) and cur and not l.strip().startswith("…"):
+        print(cur + "\t" + l.strip())
+    elif l and not l.startswith((" ", "▸")):
+        break
+PY
+}
+
+# Runs every git command a report printed, each in a fresh copy of the project, offline.
+# Prints one line per command that failed, then "COUNT n".
+report_commands() { # $1 = log, $2 = project
+  python3 - "$1" "$2" <<'PY'
+import os, re, shlex, shutil, subprocess, sys, tempfile
+log, proj = sys.argv[1:]
+lines = open(log, encoding="utf-8", errors="replace").read().splitlines()
+cmds = [l.split(":", 1)[1].strip() for l in lines if re.match(r"\s+(compare|take|see|restore|yours):\s+git ", l)]
+cmds += [l.strip() for l in lines if re.match(r"\s+git (log|diff) ", l) and "<path>" not in l]
+env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_PAGER="cat", GIT_ALLOW_PROTOCOL="file")
+for c in dict.fromkeys(cmds):
+    with tempfile.TemporaryDirectory() as t:
+        trial = os.path.join(t, "p")
+        shutil.copytree(proj, trial, symlinks=True)
+        r = subprocess.run(shlex.split(c), cwd=trial, capture_output=True, text=True, env=env)
+        if r.returncode:
+            print(f"{c} (exit {r.returncode}: {r.stderr.strip()[:80]})")
+print(f"COUNT {len(cmds)}")
+PY
+}
+
+# A file of the template at a ref, written to $3 (absent: returns 1).
+tpl_file() { # $1 = template repo, $2 = ref, $3 = path under template/, $4 = dest
+  git -C "$1" cat-file -e "$2:template/$3" 2>/dev/null && git -C "$1" show "$2:template/$3" > "$4"
+}
+
+# Three tagged releases of the fixture with the real update script: each section of the
+# report gets one planted file (RP_WANT), and the shared set gets a refresh, an owner edit and
+# an arrival.
+report_fixture() { # $1 = dest
+  local t="$1"
+  sa_fixture_template "$t" >/dev/null
+  sa_add_update "$t" syntek-author "$RP_SHARED $RP_ARRIVES" || die "could not give the fixture the update script"
+  rm -rf "${t:?}/template/.claude/skills/to-questionnaire"
+  mkdir -p "$t/template/notes"
+  printf '# Retired notes\n\nTemplate-owned; release 1.\n' > "$t/template/notes/retired.md"
+  printf '# CONTEXT.md — notes/\n' > "$t/template/notes/CONTEXT.md"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 1' && sa_git "$t" tag v0.1.0
+  printf '\nRelease 2.\n' >> "$t/template/README.md"
+  printf '\nRevision 2.\n' >> "$t/template/.claude/skills/wait-what/SKILL.md"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 2' && sa_git "$t" tag v0.2.0
+  printf '\nRelease 3.\n' >> "$t/template/README.md"
+  printf '\nRevision 3.\n' >> "$t/template/.claude/skills/wait-what/SKILL.md"
+  printf '\nRevision 3.\n' >> "$t/template/.claude/skills/grill-me/SKILL.md"
+  sed -i 's/^Template-owned; updated by copier update\.$/Template-owned; changed in release 3./' "$t/template/$RULES01"
+  rm "$t/template/notes/retired.md"
+  printf '*.log\n' >> "$t/template/.gitignore"
+  printf '\nRelease 3.\n' >> "$t/template/planning/src/units/01-example-chapter.md"
+  printf '# A second example brief\n' > "$t/template/planning/src/units/02-example-chapter.md"
+  printf '# Shared notes\n\nCopy-only; release 3.\n' > "$t/template/notes/shared.md"
+  mkdir -p "$t/template/.claude/skills/to-questionnaire"
+  printf -- '---\nname: to-questionnaire\ndescription: A shared skill.\n---\n\n# Skill: to-questionnaire\n' > "$t/template/$RP_ARRIVES"
+  python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" <<'PY'
+import json, sys
+json.dump({"model": "opus", "autoCompactEnabled": False,
+           "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}]}},
+          open(sys.argv[1], "w"), indent=2)
+# Release 3 also offers the top-level autoCompactEnabled, as the real family-refresh.json does.
+d = json.load(open(sys.argv[3], encoding="utf-8"))
+d["settings"] = {"autoCompactEnabled": False, **d["settings"]}
+json.dump(d, open(sys.argv[3], "w", encoding="utf-8"), indent=2)
+PY
+  python3 - "$t/copier.yml" <<'PY'
+import sys
+p = sys.argv[1]
+lines = open(p, encoding="utf-8").read().split("\n")
+i = lines.index("_exclude:")
+lines[i + 1:i + 1] = ["  - \"<: if _copier_operation == 'update' or not SEED_EXAMPLES :>/planning/src/units/02-example-chapter.md<: endif :>\"",
+                      "  - \"<: if _copier_operation == 'update' :>/notes/shared.md<: endif :>\""]
+i = lines.index("_skip_if_exists:")
+lines[i + 1:i + 1] = ["  - /notes/shared.md"]
+open(p, "w", encoding="utf-8").write("\n".join(lines))
+PY
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 3' && sa_git "$t" tag v0.3.0
+  printf '\nRelease 4.\n' >> "$t/template/$RULES01"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 4' && sa_git "$t" tag v0.4.0
+}
+
+rp_copy() { # $1 = template, $2 = ref, $3 = dest, $4 = DOC_TYPE, then extra copier arguments
+  local src="$1" ref="$2" dest="$3" doc="$4"; shift 4
+  "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref="$ref" \
+    --data "PROJECT_NAME=$SA_RENDER_NAME" --data "PROJECT_DESCRIPTION=$SA_RENDER_DESCRIPTION" \
+    --data "AUTHOR_NAME=$SA_RENDER_AUTHOR" --data "DATE=$SA_RENDER_DATE" --data "DOC_TYPE=$doc" \
+    "$@" "$src" "$dest" </dev/null
+}
+rp_update() { # $1 = project, $2 = ref, then extra copier arguments
+  local p="$1" ref="$2"; shift 2
+  (cd "$p" && "${SA_COPIER[@]}" update --trust --defaults --vcs-ref="$ref" --answers-file "$SA_ANSWERS_FILE" "$@" </dev/null)
+}
+rp_hand() { # $1 = project, then environment assignments: one hand run of the update stage
+  local p="$1"; shift
+  (cd "$p" && env SYNTEK_UPDATE_COPIER="${SA_COPIER[*]}" VERSION_FROM=v0.2.0 "$@" \
+     python3 "$RP_TPL/migrations/family-update.py" update --src "$RP_TPL" --to "$RP_TO" --answers "$SA_ANSWERS_FILE")
+}
+
+RP_TPL=""; RP_TO=""; RP_PROJ=""; RP_LOG=""; RP_REJ_LOG=""; RP_STATUS=0; RP_REJ_STATUS=0; RP_COPY=0
+RP_BEYOND=""; RP_CMD_FAILS=""; RP_CMD_COUNT=0; RP_RERUN_CHANGED=""; RP_AGAIN_STATUS=0; RP_AGAIN_DIRTY=""; RP_AGAIN_LOG=""
+RP_ONE_LINE=()
+run_report_flow() { # $1 = work dir — the fixture flow, the same in the real run and the self-test
+  local w="$1/rp" log="$1/rp-flow.log" p off rej before after k out
+  RP_RAN=true; RP_TPL="$w/tpl"; RP_PROJ="$w/proj"; RP_LOG="$w/update.log"; RP_REJ_LOG="$w/rej.log"; RP_AGAIN_LOG="$w/again.log"
+  RP_STATUS=0; RP_REJ_STATUS=0; RP_COPY=0; RP_AGAIN_STATUS=0; RP_ONE_LINE=()
+  mkdir -p "$w"; : > "$RP_LOG"; : > "$RP_REJ_LOG"; : > "$RP_AGAIN_LOG"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  report_fixture "$RP_TPL"
+  RP_TO="$(git -C "$RP_TPL" rev-parse v0.3.0)"
+  rp_copy "$RP_TPL" v0.1.0 "$RP_PROJ" theology >>"$log" 2>&1 || RP_COPY=$?
+  [[ "$RP_COPY" -eq 0 ]] || return 0
+  p="$RP_PROJ"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied at v0.1.0' >>"$log" 2>&1
+  # The author at work: one file for each section of the report.
+  printf 'mine/\n' >> "$p/.gitignore"
+  printf '\n%s\n' "$SHARED_MARK" >> "$p/$SHARED_EDIT"
+  sed -i 's/^Template-owned; updated by copier update\.$/Template-owned; my own wording./' "$p/$RULES01"
+  printf 'An edit the author made.\n' >> "$p/notes/retired.md"
+  rm -f "$p/planning/src/units/01-example-chapter.md"
+  printf '# My own shared notes\n' > "$p/notes/shared.md"
+  printf '{\n  "model": "opus",\n  "permissions": {\n    "allow": ["Bash(make *)"]\n  }\n}\n' > "$p/.claude/settings.json"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'the author at work' >>"$log" 2>&1
+  rp_update "$p" v0.2.0 >>"$log" 2>&1 || RP_STATUS=$?
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated to v0.2.0' >>"$log" 2>&1 || true
+  rej="$w/proj-rej"; off="$w/proj-off"
+  cp -a "$p" "$rej"; cp -a "$p" "$off"
+  rp_update "$p" v0.3.0 >"$RP_LOG" 2>&1 || RP_STATUS=$?
+  rp_update "$rej" v0.3.0 --conflict rej >"$RP_REJ_LOG" 2>&1 || RP_REJ_STATUS=$?
+  (export SYNTEK_UPDATE_REPORT=off; rp_update "$off" v0.3.0) >>"$log" 2>&1 || true
+  cat "$RP_LOG" "$RP_REJ_LOG" >>"$log"
+  # 47: what the report changed beyond the update itself (the opt-out renders and refreshes nothing).
+  RP_BEYOND="$(comm -23 <(git -C "$p" status --porcelain -uall | cut -c4- | LC_ALL=C sort) \
+                        <(git -C "$off" status --porcelain -uall | cut -c4- | LC_ALL=C sort) | paste -sd' ' -)"
+  # 48: every printed command, offline.
+  out="$(report_commands "$RP_LOG" "$p")"
+  RP_CMD_COUNT="$(sed -n 's/^COUNT //p' <<< "$out")"; RP_CMD_FAILS="$(grep -v '^COUNT ' <<< "$out" || true)"
+  # 49: a hand rerun at the same versions changes nothing; then a second update is quiet.
+  before="$(git -C "$p" status --porcelain; git -C "$p" for-each-ref)"
+  rp_hand "$p" >>"$log" 2>&1 || true
+  after="$(git -C "$p" status --porcelain; git -C "$p" for-each-ref)"
+  [[ "$before" == "$after" ]] && RP_RERUN_CHANGED="" || RP_RERUN_CHANGED="$(diff <(echo "$before") <(echo "$after") | grep '^[<>]' | head -3 | paste -sd' ' -)"
+  sa_git "$p" checkout -q syntek-author/template -- "$RULES01" >>"$log" 2>&1 || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated to v0.3.0' >>"$log" 2>&1 || true
+  rp_update "$p" v0.3.0 >"$RP_AGAIN_LOG" 2>&1 || RP_AGAIN_STATUS=$?
+  RP_AGAIN_DIRTY="$(git -C "$p" status --porcelain)"
+  # 50: the limits, each a hand run in a fresh clone (no record): one line, exit 0.
+  for k in off no-copier no-old-version; do
+    git clone -q "$p" "$w/clone-$k" >>"$log" 2>&1
+    case "$k" in
+      off)            out="$(rp_hand "$w/clone-$k" SYNTEK_UPDATE_REPORT=off 2>&1)" ;;
+      no-copier)      out="$(cd "$w/clone-$k" && SYNTEK_UPDATE_COPIER=/nonexistent/copier VERSION_FROM=v0.2.0 python3 "$RP_TPL/migrations/family-update.py" update --src "$RP_TPL" --to "$RP_TO" --answers "$SA_ANSWERS_FILE" 2>&1)" ;;
+      no-old-version) out="$(rp_hand "$w/clone-$k" VERSION_FROM=v9.9.9 2>&1)" ;;
+    esac
+    RP_ONE_LINE+=("$k"$'\t'"$?"$'\t'"$(printf '%s\n' "$out" | grep -c . || true)"$'\t'"$(printf '%s' "$out" | head -1)")
+  done
+}
+
+report_checks() {
+  local L="[report fixture]" path sec got line k rc n first
+  if [[ "$RP_COPY" -ne 0 ]]; then finding "check 44 — $L the fixture did not copy at v0.1.0 (exit $RP_COPY)"; return 0; fi
+  if [[ "$RP_STATUS" -ne 0 ]] || ! grep -qF "$RP_HEAD" "$RP_LOG"; then
+    finding "check 44 — $L the update to v0.3.0 failed (exit $RP_STATUS) or printed no update report — see $RP_LOG"
+  else
+    got="$(report_sections "$RP_LOG")"
+    while IFS=$'\t' read -r path sec; do
+      [[ -z "$path" ]] && continue
+      line="$(awk -F'\t' -v p="$path" '$2 == p { print $1; exit }' <<< "$got")"
+      [[ "$line" == "$sec"* ]] || finding "check 44 — $L $path is listed under '${line:-nothing}', not '$sec'"
+    done <<< "$RP_WANT"
+  fi
+  if [[ "$RP_REJ_STATUS" -ne 0 ]] || ! report_sections "$RP_REJ_LOG" | grep -q "^REJECTED HUNKS.*"$'\t'"$RULES01\$"; then
+    finding "check 45 — $L with --conflict rej, $RULES01 is not listed under REJECTED HUNKS (exit $RP_REJ_STATUS) — see $RP_REJ_LOG"
+  fi
+  for path in .claude/skills/wait-what/SKILL.md "$RP_ARRIVES"; do
+    cmp -s "$RP_PROJ/$path" <(git -C "$RP_TPL" show "v0.3.0:template/$path") \
+      || finding "check 46 — $L the shared $path is not the v0.3.0 version: an unedited shared file is refreshed, a new one arrives"
+  done
+  grep -qF "$SHARED_MARK" "$RP_PROJ/$SHARED_EDIT" && ! grep -q 'Revision 3' "$RP_PROJ/$SHARED_EDIT" \
+    || finding "check 46 — $L the owner's edit to the shared $SHARED_EDIT did not survive untouched"
+  python3 - "$RP_PROJ/.claude/settings.json" <<'PY' || finding "check 46 — $L .claude/settings.json did not gain the threshold hook exactly once beside the owner's allow rule"
+import json, sys
+d = json.load(open(sys.argv[1]))
+ups = [h for e in d.get("hooks", {}).get("UserPromptSubmit", []) for h in e.get("hooks", [])]
+sys.exit(0 if len(ups) == 1 and "context-threshold-handoff.sh" in ups[0]["command"] and d["permissions"]["allow"] == ["Bash(make *)"] else 1)
+PY
+  [[ "$RP_BEYOND" == "$(printf '%s\n' .claude/settings.json .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md | LC_ALL=C sort | paste -sd' ' -)" ]] \
+    || finding "check 47 — $L beyond the update's own changes, the report changed '${RP_BEYOND:-nothing}' — only the refreshed and added shared files and settings.json may change"
+  [[ -z "$RP_CMD_FAILS" && "${RP_CMD_COUNT:-0}" -ge 12 ]] \
+    || finding "check 48 — $L a printed command failed offline, or too few were printed (${RP_CMD_COUNT:-0}): ${RP_CMD_FAILS:-none failed}"
+  [[ -z "$RP_RERUN_CHANGED" ]] || finding "check 49 — $L a second run of the update stage at the same versions changed something: $RP_RERUN_CHANGED"
+  n="$(grep -c "^$RP_HEAD" "$RP_AGAIN_LOG" || true)"
+  if [[ "$RP_AGAIN_STATUS" -ne 0 || -n "$RP_AGAIN_DIRTY" || "$n" -ne 1 ]] || grep -qE '^  (NOT|CONFLICT|DELETED|REJECTED)' "$RP_AGAIN_LOG"; then
+    finding "check 49 — $L a second update with nothing new was not a quiet no-op (exit $RP_AGAIN_STATUS; $(printf '%s\n' "$RP_AGAIN_DIRTY" | grep -c . || true) path(s) changed; $n report line(s))"
+  fi
+  for line in "${RP_ONE_LINE[@]}"; do
+    IFS=$'\t' read -r k rc n first <<< "$line"
+    [[ "$rc" -eq 0 && "$n" -eq 1 ]] || finding "check 50 — $L $k: the update stage printed $n line(s) and exited $rc, not one line and 0 ('$first')"
+  done
+  return 0
+}
+
+# An update of a real project across D51 (checks 51–54): copied at $4, a shared skill edited,
+# updated to $5, then updated again with nothing new.
+SH_LABEL=""; SH_TPL=""; SH_TO=""; SH_PROJ=""; SH_LOG=""; SH_LOG2=""; SH_COPY=0; SH_UPDATE=0; SH_AGAIN=0
+SH_DIRTY=""; SH_EDIT_SUM=""; SH_SETTINGS_BEFORE=""
+run_shared_flow() { # $1 = template, $2 = work dir, $3 = DOC_TYPE, $4 = from ref, $5 = to ref, $6 = label
+  local w="$2/sh-$6" log="$2/sh-$6.log"
+  SH_RAN=true; SH_LABEL="$6 [$3]"; SH_TPL="$1"; SH_TO="$5"; SH_PROJ="$w/proj"; SH_LOG="$w/update.log"; SH_LOG2="$w/again.log"
+  SH_COPY=0; SH_UPDATE=0; SH_AGAIN=0; SH_DIRTY=""; SH_SETTINGS_BEFORE="$w/settings.before"
+  mkdir -p "$w"; : > "$SH_LOG"; : > "$SH_LOG2"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  rp_copy "$1" "$4" "$SH_PROJ" "$3" >>"$log" 2>&1 || SH_COPY=$?
+  [[ "$SH_COPY" -eq 0 ]] || return 0
+  [[ -d "$SH_PROJ/.git" ]] || sa_git "$SH_PROJ" init -q
+  sa_git "$SH_PROJ" add -A && sa_git "$SH_PROJ" commit -q -m "copied at $4" >>"$log" 2>&1
+  printf '\n%s\n' "$SHARED_MARK" >> "$SH_PROJ/$SHARED_EDIT"
+  SH_EDIT_SUM="$(sum_of "$SH_PROJ/$SHARED_EDIT")"
+  cp "$SH_PROJ/.claude/settings.json" "$SH_SETTINGS_BEFORE"
+  sa_git "$SH_PROJ" add -A && sa_git "$SH_PROJ" commit -q -m 'a shared skill edited' >>"$log" 2>&1
+  rp_update "$SH_PROJ" "$5" >"$SH_LOG" 2>&1 || SH_UPDATE=$?
+  cat "$SH_LOG" >>"$log"
+  sa_git "$SH_PROJ" add -A && sa_git "$SH_PROJ" commit -q -m "updated to $5" >>"$log" 2>&1 || true
+  rp_update "$SH_PROJ" "$5" >"$SH_LOG2" 2>&1 || SH_AGAIN=$?
+  cat "$SH_LOG2" >>"$log"
+  SH_DIRTY="$(git -C "$SH_PROJ" status --porcelain)"
+}
+
+shared_checks() {
+  local L="[$SH_LABEL]" p n tmpf
+  if [[ "$SH_COPY" -ne 0 ]]; then finding "check 51 — $L the project did not copy (exit $SH_COPY)"; return 0; fi
+  if [[ "$SH_UPDATE" -ne 0 ]] || ! grep -qF "$RP_HEAD" "$SH_LOG"; then
+    finding "check 51 — $L the update failed (exit $SH_UPDATE) or printed no update report — see $SH_LOG"; return 0
+  fi
+  tmpf="$(dirname "$SH_LOG")/expected"
+  for p in $(git -C "$SH_TPL" show "$SH_TO:migrations/family-refresh.json" 2>/dev/null | python3 -c 'import json,sys; print(" ".join(json.load(sys.stdin)["refresh"]))'); do
+    [[ "$p" == "$SHARED_EDIT" ]] && continue
+    tpl_file "$SH_TPL" "$SH_TO" "$p" "$tmpf" || continue
+    cmp -s "$SH_PROJ/$p" "$tmpf" \
+      || finding "check 51 — $L the shared $p is not the template's version after the update (unedited: it is refreshed, or it arrives)"
+    [[ "$p" != *.sh || -x "$SH_PROJ/$p" ]] || finding "check 51 — $L the shared hook $p is not executable after the update"
+  done
+  [[ "$(sum_of "$SH_PROJ/$SHARED_EDIT" 2>/dev/null)" == "$SH_EDIT_SUM" ]] \
+    || finding "check 52 — $L the owner's edit to the shared $SHARED_EDIT was overwritten or merged"
+  n="$(report_sections "$SH_LOG" | awk -F'\t' -v p="$SHARED_EDIT" '$2 == p { print $1; exit }')"
+  [[ "$n" == "NOT UPDATED because you had changed them"* ]] \
+    || finding "check 52 — $L the edited $SHARED_EDIT is listed under '${n:-nothing}', not 'NOT UPDATED because you had changed them'"
+  python3 - "$SH_SETTINGS_BEFORE" "$SH_PROJ/.claude/settings.json" <<'PY' || finding "check 53 — $L .claude/settings.json did not gain the context-threshold hook exactly once, add-only"
+import json, sys
+before, after = (json.load(open(f)) for f in sys.argv[1:])
+def within(a, b):
+    if isinstance(a, dict):
+        return isinstance(b, dict) and all(k in b and within(v, b[k]) for k, v in a.items())
+    if isinstance(a, list):
+        return isinstance(b, list) and all(any(within(x, y) for y in b) for x in a)
+    return a == b
+ups = [h for e in after.get("hooks", {}).get("UserPromptSubmit", []) for h in e.get("hooks", [])
+       if "context-threshold-handoff.sh" in h.get("command", "")]
+sys.exit(0 if len(ups) == 1 and within(before, after) else 1)
+PY
+  n="$(grep -c "^$RP_HEAD" "$SH_LOG2" || true)"
+  if [[ "$SH_AGAIN" -ne 0 || -n "$SH_DIRTY" || "$n" -ne 1 ]] || grep -qE '^  (NOT|CONFLICT|DELETED|REJECTED)' "$SH_LOG2"; then
+    finding "check 54 — $L a second update was not a quiet no-op (exit $SH_AGAIN; $(printf '%s\n' "$SH_DIRTY" | grep -c . || true) path(s) changed; $n report line(s))"
+  fi
+  return 0
+}
+
+# ── settings.json across a copy over the owner's own, a removal and a copy without tasks
+#    (D51, checks 55–59) ────────────────────────────────────────────────────────────────
+
+SM_RAN=false
+SM_HOOK="context-threshold-handoff.sh"
+sm_existing() { # the owner's settings.json before the copy: four spaces, permissions first
+  cat <<'EOF'
+{
+    "permissions": {
+        "allow": [
+            "Bash(make *)"
+        ]
+    },
+    "model": "opus"
+}
+EOF
+}
+# Judges a settings.json: prints "ok", or what is wrong. $2 = how many threshold hooks it must
+# wire (0 or 1); $3 = the autoCompactEnabled it must hold, written once (default false); the
+# owner's four-space indentation, key order and allow rule must hold.
+sm_judge() { # $1 = settings.json, $2 = hooks wanted, $3 = autoCompactEnabled wanted (false|true)
+  python3 - "$1" "$2" "$SM_HOOK" "${3:-false}" <<'PY'
+import json, re, sys
+path, want, hook, compact = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+try:
+    text = open(path, encoding="utf-8").read()
+    d = json.loads(text)
+except (OSError, ValueError) as e:
+    print(f"unreadable ({e})"); sys.exit(0)
+n = sum(1 for e in (d.get("hooks") or {}).get("UserPromptSubmit") or [] for h in e.get("hooks") or []
+        if hook in h.get("command", ""))
+bad = []
+if n != want: bad.append(f"the threshold hook wired {n} time(s), not {want}")
+k = len(re.findall(r'"autoCompactEnabled"\s*:', text))
+if k != 1 or json.dumps(d.get("autoCompactEnabled")) != compact:
+    bad.append(f"autoCompactEnabled written {k} time(s), {json.dumps(d.get('autoCompactEnabled'))}, not {compact} once")
+if list(d)[:2] != ["permissions", "model"]: bad.append(f"the owner's key order changed ({list(d)})")
+if (d.get("permissions") or {}).get("allow") != ["Bash(make *)"]: bad.append("the owner's allow rule changed")
+if any("\t" in l or len(re.match(r" *", l).group(0)) % 4 for l in text.splitlines()): bad.append("the owner's four-space indentation was not kept")
+print("; ".join(bad) or "ok")
+PY
+}
+# The paths of this machine in a project's render record: an answers file in any recorded tree
+# (the rendered one names Copier's temporary clone in _src_path), or a blob or message naming
+# $2, $3, a temporary clone or an _src_path line.
+sm_abs() { # $1 = project, $2 = template path, $3 = project path
+  local revs rev
+  revs="$(git -C "$1" rev-list refs/syntek-author/template 2>/dev/null)" || { echo "no record"; return 0; }
+  { for rev in $revs; do
+      git -C "$1" ls-tree -r --name-only "$rev" | grep -E '(^|/)\.copier-answers\.' | sed "s/^/answers file in $rev: /" || true
+    done
+    # shellcheck disable=SC2086  # one argument per commit
+    git -C "$1" grep -l -F -e "$2" -e "$3" -e 'copier._vcs.clone' -e '_src_path:' $revs 2>/dev/null || true
+    git -C "$1" log --format=%B refs/syntek-author/template | grep -F -e "$2" -e "$3" -e 'copier._vcs.clone' -e '_src_path:' || true
+  } | head -3 | paste -sd' ' -
+}
+
+SM_COPY=(); SM_UPD=(); SM_A_COPIED=""; SM_A_UPDATED=""; SM_A_AGAIN_DIRTY=""; SM_A_SAME=true
+SM_B_UPDATED=""; SM_B2_UPDATED=""; SM_C_RECORD=""; SM_C_UPDATED=""; SM_ABS=""
+SM_T_COPIED=""; SM_T_UPDATED=""; SM_T_LINES=""
+# The one line a copy prints for an owner's autoCompactEnabled other than false.
+SM_KEPT='kept your "autoCompactEnabled": true in .claude/settings.json: the handoff hooks assume false; set it to false in .claude/settings.json to use them.'
+run_sm_flow() { # $1 = the report fixture template (tags v0.3.0 and v0.4.0), $2 = work dir
+  local w="$2/sm" log="$2/sm-flow.log" p k before
+  SM_RAN=true; SM_COPY=(0 0 0 0 0); SM_UPD=(0 0 0 0 0 0); SM_A_SAME=true; SM_ABS=""
+  mkdir -p "$w"
+  for k in a b b2 c t; do
+    p="$w/$k"; mkdir -p "$p/.claude"; sm_existing > "$p/.claude/settings.json"
+    [[ "$k" == t ]] && sed -i 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": true/' "$p/.claude/settings.json"
+    { sa_git "$p" init -q && sa_git "$p" add -A && sa_git "$p" commit -q -m "the owner's own settings"; } >>"$log" 2>&1
+  done
+  # a: a copy over the owner's settings.json, an update, a second update.
+  p="$w/a"
+  rp_copy "$1" v0.3.0 "$p" theology >>"$log" 2>&1 || SM_COPY[0]=$?
+  SM_A_COPIED="$(sm_judge "$p/.claude/settings.json" 1)"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings' >>"$log" 2>&1 || true
+  rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[0]=$?
+  SM_A_UPDATED="$(sm_judge "$p/.claude/settings.json" 1)"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated to v0.4.0' >>"$log" 2>&1 || true
+  before="$(sha1sum < "$p/.claude/settings.json")"
+  rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[1]=$?
+  [[ "$(sha1sum < "$p/.claude/settings.json")" == "$before" ]] || SM_A_SAME=false
+  SM_A_AGAIN_DIRTY="$(git -C "$p" status --porcelain)"
+  SM_ABS="$(sm_abs "$p" "$1" "$p")"
+  # b: the copy wires the hook, the owner removes it, the next update leaves it removed.
+  p="$w/b"
+  rp_copy "$1" v0.3.0 "$p" theology >>"$log" 2>&1 || SM_COPY[1]=$?
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings' >>"$log" 2>&1 || true
+  python3 - "$p/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+d.pop("hooks", None)
+open(sys.argv[1], "w").write(json.dumps(d, indent=4) + "\n")
+PY
+  sa_git "$p" commit -q -am 'I do not want the threshold hook' >>"$log" 2>&1 || true
+  rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[2]=$?
+  SM_B_UPDATED="$(sm_judge "$p/.claude/settings.json" 0)"
+  # b2: as b, but the hook is removed before the copy is committed, so no commit ever held it
+  # and only the render record knows it was offered.
+  p="$w/b2"
+  rp_copy "$1" v0.3.0 "$p" theology >>"$log" 2>&1 || SM_COPY[3]=$?
+  python3 - "$p/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+d.pop("hooks", None)
+open(sys.argv[1], "w").write(json.dumps(d, indent=4) + "\n")
+PY
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, without the hook' >>"$log" 2>&1 || true
+  rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[4]=$?
+  SM_B2_UPDATED="$(sm_judge "$p/.claude/settings.json" 0)"
+  # c: a copy without tasks (no record); the first update adds the hook it never held.
+  p="$w/c"
+  rp_copy "$1" v0.3.0 "$p" theology --skip-tasks >>"$log" 2>&1 || SM_COPY[2]=$?
+  SM_C_RECORD="$(git -C "$p" rev-parse -q --verify refs/syntek-author/template 2>/dev/null || true)"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, no tasks' >>"$log" 2>&1 || true
+  rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[3]=$?
+  SM_C_UPDATED="$(sm_judge "$p/.claude/settings.json" 1)"
+  # t: the owner set autoCompactEnabled true; the copy keeps it and says so once, the update
+  # says nothing more.
+  p="$w/t"
+  rp_copy "$1" v0.3.0 "$p" theology >"$w/t-copy.log" 2>&1 || SM_COPY[4]=$?
+  SM_T_COPIED="$(sm_judge "$p/.claude/settings.json" 1 true)"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, compaction on' >>"$log" 2>&1 || true
+  rp_update "$p" v0.4.0 >"$w/t-update.log" 2>&1 || SM_UPD[5]=$?
+  SM_T_UPDATED="$(sm_judge "$p/.claude/settings.json" 1 true)"
+  SM_T_LINES="$(grep -cF "$SM_KEPT" "$w/t-copy.log" || true) $(grep -cF "$SM_KEPT" "$w/t-update.log" || true)"
+  cat "$w/t-copy.log" "$w/t-update.log" >>"$log"
+}
+
+sm_checks() {
+  local L="[settings fixture]"
+  if [[ "${SM_COPY[*]}" != "0 0 0 0 0" || "${SM_UPD[*]}" != "0 0 0 0 0 0" ]]; then
+    finding "check 55 — $L a copy over the owner's settings.json or an update failed (copies: ${SM_COPY[*]}; updates: ${SM_UPD[*]})"
+    return 0
+  fi
+  [[ "$SM_A_COPIED" == ok ]] || finding "check 55 — $L after a copy over the owner's settings.json: $SM_A_COPIED"
+  [[ "$SM_A_UPDATED" == ok ]] || finding "check 55 — $L after the update that followed the copy: $SM_A_UPDATED"
+  [[ "$SM_B_UPDATED" == ok ]] || finding "check 56 — $L after the owner removed the hook the copy had wired, the update: $SM_B_UPDATED"
+  [[ "$SM_B2_UPDATED" == ok ]] || finding "check 56 — $L after the owner removed the hook before any commit (only the record knew it), the update: $SM_B2_UPDATED"
+  [[ -z "$SM_C_RECORD" ]] || finding "check 57 — $L a copy with --skip-tasks recorded a render, so the no-record case was not tested"
+  [[ "$SM_C_UPDATED" == ok ]] || finding "check 57 — $L a copy without tasks, then an update: $SM_C_UPDATED"
+  [[ "$SM_T_COPIED" == ok ]] || finding "check 55 — $L after a copy over the owner's autoCompactEnabled true: $SM_T_COPIED"
+  [[ "$SM_T_UPDATED" == ok ]] || finding "check 55 — $L after the update that followed the copy over autoCompactEnabled true: $SM_T_UPDATED"
+  [[ "$SM_T_LINES" == "1 0" ]] \
+    || finding "check 55 — $L the owner's autoCompactEnabled true was not reported exactly once, by the copy alone (copy, update: $SM_T_LINES)"
+  if ! $SM_A_SAME || [[ -n "$SM_A_AGAIN_DIRTY" ]]; then
+    finding "check 58 — $L a second update was not a no-op ($($SM_A_SAME && echo 'settings.json kept' || echo 'settings.json rewritten'); $(printf '%s\n' "$SM_A_AGAIN_DIRTY" | grep -c . || true) path(s) changed)"
+  fi
+  [[ -z "$SM_ABS" ]] || finding "check 59 — $L the render record names a path of this machine: $SM_ABS"
+  return 0
+}
+
 run_checks() {
   FINDINGS=()
   $FLOW_RAN && flow_checks
@@ -881,6 +1393,9 @@ run_checks() {
   $TRAP_RAN && trap_checks
   $CL_RAN && clients_checks
   $OL_RAN && outside_checks
+  $RP_RAN && report_checks
+  $SH_RAN && shared_checks
+  $SM_RAN && sm_checks
   return 0
 }
 
@@ -1109,6 +1624,81 @@ self_test() {
   OL_CTL_STATUS=1; probe "check 43 fires when the control does not update" "check 43"; OL_CTL_STATUS=0
   OL_CTL_AFTER="not a link"; probe "check 43 fires when the control's skills link changes" "check 43 — [theology] the update changed"; OL_CTL_AFTER="$OL_CTL_TARGET"
   OL_RAN=false
+
+  # Checks 44–50: the update report on its own three-release fixture, the same flow as the real run.
+  mkdir -p "$tmp/rp"; run_report_flow "$tmp/rp"
+  st_baseline "the update report on its fixture: every section, the refresh, the commands, the rerun, the limits"
+  RP_STATUS=1; probe "check 44 fires when the update fails" "check 44 — [report fixture] the update to v0.3.0 failed"; RP_STATUS=0
+  cp "$RP_LOG" "$tmp/h"; grep -vx '    \.gitignore' "$tmp/h" > "$RP_LOG"
+  probe "check 44 fires when a file is not in its section" "check 44 — [report fixture] .gitignore is listed under 'nothing'"; cp "$tmp/h" "$RP_LOG"
+  cp "$RP_REJ_LOG" "$tmp/h"; grep -v '^  REJECTED' "$tmp/h" > "$RP_REJ_LOG"
+  probe "check 45 fires when the rejected hunk is not reported" "check 45"; cp "$tmp/h" "$RP_REJ_LOG"
+  cp "$RP_PROJ/.claude/skills/wait-what/SKILL.md" "$tmp/h"; printf 'stale\n' >> "$RP_PROJ/.claude/skills/wait-what/SKILL.md"
+  probe "check 46 fires when an unedited shared file is not refreshed" "check 46 — [report fixture] the shared .claude/skills/wait-what/SKILL.md"
+  cp "$tmp/h" "$RP_PROJ/.claude/skills/wait-what/SKILL.md"
+  local rp_beyond="$RP_BEYOND"; RP_BEYOND="$RP_BEYOND README.md"
+  probe "check 47 fires when the report changes another file" "check 47"; RP_BEYOND="$rp_beyond"
+  RP_CMD_FAILS="git show x (exit 128)"; probe "check 48 fires when a printed command fails" "check 48"; RP_CMD_FAILS=""
+  RP_RERUN_CHANGED="> refs/x"; probe "check 49 fires when a rerun changes something" "check 49 — [report fixture] a second run"; RP_RERUN_CHANGED=""
+  RP_AGAIN_DIRTY=" M README.md"; probe "check 49 fires when a second update changes a file" "check 49 — [report fixture] a second update"; RP_AGAIN_DIRTY=""
+  local rp_one="${RP_ONE_LINE[0]}"; RP_ONE_LINE[0]=$'off\t0\t2\tx'
+  probe "check 50 fires when the opt-out prints more than one line" "check 50 — [report fixture] off"; RP_ONE_LINE[0]="$rp_one"
+  RP_RAN=false
+
+  # Checks 51–54: an update across the shared set, on the same fixture (v0.1.0 to v0.3.0).
+  run_shared_flow "$RP_TPL" "$tmp" theology v0.1.0 v0.3.0 fixture
+  st_baseline "an update of the fixture across its shared set"
+  SH_UPDATE=1; probe "check 51 fires when the update fails" "check 51 — [fixture [theology]] the update failed"; SH_UPDATE=0
+  cp "$SH_PROJ/$RP_ARRIVES" "$tmp/h"; rm "$SH_PROJ/$RP_ARRIVES"
+  probe "check 51 fires when a new shared file does not arrive" "check 51 — [fixture [theology]] the shared $RP_ARRIVES"; cp "$tmp/h" "$SH_PROJ/$RP_ARRIVES"
+  cp "$SH_PROJ/$SHARED_EDIT" "$tmp/h"; printf 'merged\n' >> "$SH_PROJ/$SHARED_EDIT"
+  probe "check 52 fires when the owner's edit is overwritten" "check 52 — [fixture [theology]] the owner's edit"; cp "$tmp/h" "$SH_PROJ/$SHARED_EDIT"
+  cp "$SH_LOG" "$tmp/h"; grep -vxF "    $SHARED_EDIT" "$tmp/h" > "$SH_LOG"
+  probe "check 52 fires when the edited file is not reported" "check 52 — [fixture [theology]] the edited"; cp "$tmp/h" "$SH_LOG"
+  cp "$SH_PROJ/.claude/settings.json" "$tmp/h"; printf '{"model": "opus"}\n' > "$SH_PROJ/.claude/settings.json"
+  probe "check 53 fires when the threshold hook is not wired" "check 53"; cp "$tmp/h" "$SH_PROJ/.claude/settings.json"
+  SH_DIRTY=" M README.md"; probe "check 54 fires when a second update changes a file" "check 54"; SH_DIRTY=""
+  SH_RAN=false
+
+  # Checks 55–59: settings.json copied over the owner's own, on the same fixture (v0.3.0 to v0.4.0).
+  run_sm_flow "$RP_TPL" "$tmp"
+  st_baseline "settings.json across a copy over the owner's own, a removal and a copy without tasks"
+  SM_UPD[0]=1; probe "check 55 fires when an update fails" "check 55 — [settings fixture] a copy over"; SM_UPD[0]=0
+  SM_A_COPIED="the threshold hook wired 0 time(s), not 1"
+  probe "check 55 fires when a copy over the owner's settings.json does not wire the hook" "check 55 — [settings fixture] after a copy"; SM_A_COPIED=ok
+  SM_T_COPIED='autoCompactEnabled written 1 time(s), false, not true once'
+  probe "check 55 fires when a copy overwrites the owner's autoCompactEnabled" "check 55 — [settings fixture] after a copy over the owner's autoCompactEnabled true"; SM_T_COPIED=ok
+  SM_T_LINES="1 1"; probe "check 55 fires when the kept value is reported again by the update" "check 55 — [settings fixture] the owner's autoCompactEnabled true was not reported exactly once"; SM_T_LINES="1 0"
+  # sm_judge itself: the key absent, written twice, or with another value.
+  local sj=""
+  sm_existing > "$tmp/sj.json"
+  [[ "$(sm_judge "$tmp/sj.json" 0)" == *"autoCompactEnabled written 0 time(s)"* ]] || sj+=" absent"
+  sed 's/^    "model": "opus"$/    "autoCompactEnabled": false,\n    "autoCompactEnabled": false,\n    "model": "opus"/' "$tmp/sj.json" > "$tmp/sj2.json"
+  [[ "$(sm_judge "$tmp/sj2.json" 0)" == *"autoCompactEnabled written 2 time(s)"* ]] || sj+=" twice"
+  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false/' "$tmp/sj.json" > "$tmp/sj3.json"
+  [[ "$(sm_judge "$tmp/sj3.json" 0)" == ok && "$(sm_judge "$tmp/sj3.json" 0 true)" == *"not true once"* ]] || sj+=" value"
+  [[ -z "$sj" ]] || { printf '\033[31m  ✗ sm_judge misjudges autoCompactEnabled:%s\033[0m\n' "$sj" >&2; exit 2; }
+  SM_A_UPDATED="the threshold hook wired 2 time(s), not 1"
+  probe "check 55 fires when the update wires the hook twice" "check 55 — [settings fixture] after the update"; SM_A_UPDATED=ok
+  SM_B_UPDATED="the threshold hook wired 1 time(s), not 0"
+  probe "check 56 fires when a removed hook is re-added" "check 56"; SM_B_UPDATED=ok
+  SM_B2_UPDATED="the threshold hook wired 1 time(s), not 0"
+  probe "check 56 fires when the record is not read" "check 56 — [settings fixture] after the owner removed the hook before any commit"; SM_B2_UPDATED=ok
+  SM_C_UPDATED="the threshold hook wired 0 time(s), not 1"
+  probe "check 57 fires when a project without a record never gets the hook" "check 57 — [settings fixture] a copy without tasks"; SM_C_UPDATED=ok
+  SM_C_RECORD="0123abc"; probe "check 57 fires when the no-record case had a record" "check 57 — [settings fixture] a copy with --skip-tasks"; SM_C_RECORD=""
+  SM_A_SAME=false; probe "check 58 fires when a second update rewrites settings.json" "check 58"; SM_A_SAME=true
+  SM_ABS="/tmp/x/tpl"; probe "check 59 fires when the record names a path" "check 59"; SM_ABS=""
+  # sm_abs itself: a record whose tree holds a rendered answers file naming Copier's clone.
+  mkdir -p "$tmp/abs-probe/r"
+  printf '_src_path: /tmp/x/copier._vcs.clone.abc\n' > "$tmp/abs-probe/r/.copier-answers.x.yml"
+  { sa_git "$tmp/abs-probe" init -q
+    sa_git "$tmp/abs-probe" add -A
+    sa_git "$tmp/abs-probe" commit -q -m 'a record'
+    sa_git "$tmp/abs-probe" update-ref refs/syntek-author/template HEAD; } >/dev/null 2>&1
+  SM_ABS="$(sm_abs "$tmp/abs-probe" /nowhere/tpl /nowhere/proj)"
+  probe "check 59 finds a recorded answers file naming Copier's temporary clone" "check 59"; SM_ABS=""
+  SM_RAN=false
   st_finish "an update that keeps its promises from one that breaks them"
 }
 
@@ -1135,18 +1725,24 @@ FIRST_DOC="${DOC_TYPES%%,*}"
 for doc in ${DOC_TYPES//,/ }; do
   case "$doc" in theology|fiction|business) ;; *) die "unknown DOC_TYPE: $doc" ;; esac
   work="$(sa_mktemp)"
-  MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false; OL_RAN=false
+  MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false; OL_RAN=false; RP_RAN=false; SH_RAN=false; SM_RAN=false
   run_flow "$SA_ROOT" "$doc" "$work"
   tagged_once
   git -C "$TAGGED" rev-parse -q --verify "refs/tags/$TRAP_FROM" >/dev/null 2>&1 \
     || die "$SA_ROOT has no $TRAP_FROM tag — Trap 1 cannot be proven (git fetch --tags; CI needs fetch-depth: 0)"
   run_trap_flow "$TAGGED" "$work" "$doc"
   cat "$work/trap-flow.log" >> "$work/flow.log" 2>/dev/null || true
+  run_shared_flow "$TAGGED" "$work" "$doc" "$TRAP_FROM" HEAD "$TRAP_FROM"
+  cat "$work/sh-$TRAP_FROM.log" >> "$work/flow.log" 2>/dev/null || true
   if [[ "$doc" == "$FIRST_DOC" ]]; then
     run_clients_flow "$SA_ROOT" "$work" "$doc"
     cat "$work/cl-flow.log" >> "$work/flow.log" 2>/dev/null || true
     run_outside_flow "$SA_ROOT" "$work" "$doc"
     cat "$work/ol-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_report_flow "$work"
+    cat "$work/rp-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_sm_flow "$RP_TPL" "$work"
+    cat "$work/sm-flow.log" >> "$work/flow.log" 2>/dev/null || true
   fi
   if [[ "$doc" == business ]]; then
     run_migration_flow "$TAGGED" "$work"
@@ -1156,12 +1752,24 @@ for doc in ${DOC_TYPES//,/ }; do
     cat "$work/set-flow.log" >> "$work/flow.log" 2>/dev/null || true
   fi
   run_checks
+  if [[ "$doc" == "$FIRST_DOC" ]]; then
+    # The same promises from main before D51 (once per run): its shared skills were
+    # template-owned and tokenised, and nothing recorded a render.
+    git -C "$TAGGED" rev-parse -q --verify "$PRE_D51_REF^{commit}" >/dev/null 2>&1 \
+      || die "$SA_ROOT has no commit $PRE_D51_REF — the update from before D51 cannot be proven (CI needs fetch-depth: 0)"
+    run_shared_flow "$TAGGED" "$work" "$doc" "$PRE_D51_REF" HEAD pre-D51
+    cat "$work/sh-pre-D51.log" >> "$work/flow.log" 2>/dev/null || true
+    shared_checks
+  fi
   if [[ ${#FINDINGS[@]} -eq 0 ]]; then
     log "  ✓ $doc — edits kept, example still gone, voice-notes.md recreated, author unit untouched, $TARGET_REL updated; DOC_TYPE change refused untouched; option-off warning printed"
     $CO_RAN && log "  ✓ $doc — copy-only agent files: AGENTS.md edit kept and never re-rendered, deleted entrypoints stay deleted, .agents a real folder with its skills link, the bridge updated, a new model answer in rules 05 only"
     $MIG_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: every author file moved to its family byte for byte, the collision kept and named, a second run a no-op, msp-scp honoured"
     $TRAP_RAN && log "  ✓ $doc — update from $TRAP_FROM with --defaults: AGENT_CLIENTS recorded empty, no Section 4 in rules 05, the bridge present, no client file created"
     $OL_RAN && log "  ✓ $doc — .agents linked outside the project: held and restored by the update with its target untouched, a second update a no-op, a stranded hold fixed by the printed mv and by restore, a real .agents/ with an outside skills link updated"
+    $RP_RAN && log "  ✓ $doc — the update report: every section on its fixture (inline and rej), the refresh and the owner's edit, settings add-only, every printed command run offline, a rerun and a second update quiet, the opt-out and the limits one line each"
+    $SH_RAN && log "  ✓ $doc — updates from $TRAP_FROM and from $PRE_D51_REF: unedited shared files refreshed or added, the edited one kept and reported, the threshold hook wired once, add-only, a second update quiet"
+    $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds autoCompactEnabled false once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     rm -rf "$work"

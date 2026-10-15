@@ -11,7 +11,7 @@
 #                        the contract once; this script holds every skill to it, and holds each
 #                        mode file to the four headings that let the procedure find its additions.
 #
-#                        Nineteen checks:
+#                        Twenty-one checks:
 #                          1. The skill folder has a SKILL.md.
 #                          2. Frontmatter opens on line 1 with --- and is closed.
 #                          3. `name` equals the folder name.
@@ -27,18 +27,32 @@
 #                         11. Every step ends with a "Complete when:" (and there is a step).
 #                         12. `## Anti-patterns`.
 #                         13. `## Cross-references` is the last H2.
-#                         14. A moded skill carries the mode paragraph verbatim, before step 1.
+#                         14. A moded skill carries the mode paragraph verbatim, before step 1;
+#                             every family-shared skill carries the neutral one, moded or not
+#                             (grill-me and wait-what ship no mode file, DESIGN.md Section 5.2).
 #                         15. A mode file's H2s are exactly: Paths and unit · Additions to the
 #                             steps · Domain rules · Examples.
 #                         16. The mode files match DESIGN.md: in template/, every mode a moded
 #                             skill names and no other; in a render, exactly one; an unmoded skill
-#                             carries none.
+#                             carries none of this template's (a companion's MEDIA-*.md beside an
+#                             unmoded shared skill in a project is check 21's).
 #                         17. SKILL.md plus its longest mode file stays within 300 lines.
 #                         18. No .claude/agents/ or .claude/commands/ folder exists.
 #                         19. The skill is one DESIGN.md Section 5 names.
+#                         20. A family-shared SKILL.md (D51) holds no Copier delimiter.
+#                         21. Mode-file names (D51): under template/, no skill folder holds a
+#                             file named with the companion template's prefix (MEDIA-*.md); in
+#                             any tree, a family-shared skill's folder holds only SKILL.md, this
+#                             template's mode files and, outside template/, the companion's
+#                             MEDIA-*.md (the neutral Mode paragraph reads every upper-case .md
+#                             there, so anything else would be read as a mode).
 #
 #                        Run on template/ (the default) the H1 and locale line must carry the
-#                        literal PROJECT_NAME and TIMEZONE tokens; on a render, any value.
+#                        literal PROJECT_NAME and TIMEZONE tokens; on a render, any value. The
+#                        seven family-shared SKILL.md files (DESIGN.md Section 5, D51) are token-
+#                        free everywhere: H1 '# Skill: <Name>', locale line 'Locale: en_GB ·
+#                        dates DD/MM/YYYY.', and the neutral Mode paragraph in checks 8, 9 and 14.
+#                        Both Mode paragraphs are read from DESIGN.md Section 5, never copied here.
 #
 #                        Numbers are stable identifiers. Append, never renumber.
 #
@@ -46,7 +60,8 @@
 #                        or that a mode file's domain rules agree with its standard. Those are a
 #                        reviewer's; this proves the shape that lets a reviewer find them.
 #
-# SELF-TEST. --self-test writes a conformant moded skill and an unmoded one at runtime, proves
+# SELF-TEST. --self-test writes a conformant moded skill and an unmoded one at runtime (the
+#            unmoded one family-shared, so it carries the neutral Mode paragraph), proves
 #            them clean, then applies one mutation per check and asserts exactly one finding.
 #
 # Requirements: bash 4+, awk, grep, sed. No network.
@@ -99,7 +114,25 @@ SOURCE=true
 SKILLS_SEEN=0
 GOVERNING='## Governing procedures (route here — do not restate at length)'
 MODE_H2='Paths and unit|Additions to the steps|Domain rules|Examples'
-MODE_PARA='**Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain (paths, unit, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the author.'
+# The two Mode paragraphs (check 14) have one source: DESIGN.md Section 5, which quotes each as a
+# '> **Mode.** …' blockquote before Section 5.1, the doc-type paragraph first and the neutral one
+# for the family-shared skills (D51) second. Read here, so a change to either is made once, in
+# DESIGN.md, and every SKILL.md is then held to the new text.
+design_mode_paras() { # $1 = DESIGN.md; prints each paragraph on one line, in order
+  awk '
+    /^## 5\. / { on = 1; next }
+    on && /^(## |### 5\.1)/ { on = 0 }
+    !on { next }
+    /^>/ { l = $0; sub(/^> ?/, "", l); buf = (buf == "" ? l : buf " " l); next }
+    buf != "" { if (buf ~ /^\*\*Mode\.\*\* /) print buf; buf = "" }
+    END { if (buf ~ /^\*\*Mode\.\*\* /) print buf }' "$1"
+}
+MODE_PARA="" SHARED_MODE_PARA=""
+if [[ -f "$SA_ROOT/DESIGN.md" ]]; then
+  { IFS= read -r MODE_PARA || true; IFS= read -r SHARED_MODE_PARA || true; } < <(design_mode_paras "$SA_ROOT/DESIGN.md")
+fi
+[[ "$MODE_PARA" == '**Mode.** '* && "$SHARED_MODE_PARA" == '**Mode.** '* ]] \
+  || die "DESIGN.md Section 5 at $SA_ROOT does not quote the two Mode paragraphs ('> **Mode.** …', the doc-type one, then the neutral one)"
 ALLOWED_KEYS=" name description context agent background model metadata "
 FORK_AGENTS=" Explore Plan general-purpose "
 declare -A CAT_GATE=() CAT_MODES=()
@@ -141,8 +174,10 @@ steps_of() {
     END { close_step() }'
 }
 
-mode_para_line() { # line number where the verbatim mode paragraph starts, or nothing
-  awk -v want="$MODE_PARA" '
+is_shared() { [[ " $SA_SHARED_PRACTICE " == *" .claude/skills/$1/SKILL.md "* ]]; } # D51
+
+mode_para_line() { # $1 = file, $2 = the paragraph; line number where it starts verbatim, or nothing
+  awk -v want="$2" '
     function flush() { if (buf != "") { gsub(/[ \t]+/, " ", buf); sub(/^ /, "", buf); sub(/ $/, "", buf); if (buf == want) { print start; found = 1; exit } } buf = "" }
     /^[ \t]*>?[ \t]*$/ { flush(); next }
     { l = $0; sub(/^[ \t]*> ?/, "", l); if (buf == "") start = NR; buf = buf " " l }
@@ -180,7 +215,11 @@ check_skill() { # $1 = folder name
   fi
 
   # ── 8–13. Body ──────────────────────────────────────────────────────────────
-  if $SOURCE; then
+  if is_shared "$s"; then
+    grep -qE '^# Skill: [^(<]+$' "$f" || finding "check 8 — $s/SKILL.md is family-shared (D51) and has no H1 '# Skill: <Name>' (no project name)"
+    grep -qxF 'Locale: en_GB · dates DD/MM/YYYY.' "$f" || finding "check 9 — $s/SKILL.md is family-shared (D51) and has no locale line 'Locale: en_GB · dates DD/MM/YYYY.'"
+    ! grep -qE '<%|<:|<~' "$f" || finding "check 20 — $s/SKILL.md is family-shared (D51) but holds a Copier delimiter"
+  elif $SOURCE; then
     grep -qE '^# Skill: .+ \(<%PROJECT_NAME%>\)$' "$f" || finding "check 8 — $s/SKILL.md has no H1 '# Skill: <Name> (<%PROJECT_NAME%>)'"
     grep -qE 'Locale:.*en_GB.*<%TIMEZONE%>.*DD/MM/YYYY' "$f" || finding "check 9 — $s/SKILL.md has no locale line (en_GB · <%TIMEZONE%> · dates DD/MM/YYYY)"
   else
@@ -204,9 +243,11 @@ check_skill() { # $1 = folder name
   modes="${CAT_MODES[$s]:--}"
   have=()
   for mode in $SA_MODE_FILES; do [[ -f "$dir/$mode" ]] && have+=("$mode"); done
-  if [[ "$modes" != - || ${#have[@]} -gt 0 ]]; then
-    para="$(mode_para_line "$f")"
-    if [[ -z "$para" ]]; then finding "check 14 — $s/SKILL.md is moded but does not carry the mode paragraph verbatim (DESIGN.md Section 5)"
+  # Every family-shared skill carries the neutral paragraph, with or without a mode file of this
+  # template beside it (D51; DESIGN.md Section 5.2): a companion may ship its own there.
+  if is_shared "$s" || [[ "$modes" != - || ${#have[@]} -gt 0 ]]; then
+    if is_shared "$s"; then para="$(mode_para_line "$f" "$SHARED_MODE_PARA")"; else para="$(mode_para_line "$f" "$MODE_PARA")"; fi
+    if [[ -z "$para" ]]; then finding "check 14 — $s/SKILL.md $(is_shared "$s" && echo 'is family-shared but does not carry the neutral' || echo 'is moded but does not carry the') mode paragraph verbatim (DESIGN.md Section 5)"
     elif [[ -n "$first_step" && "$para" -gt "$first_step" ]]; then finding "check 14 — $s/SKILL.md carries the mode paragraph after step 1"; fi
   fi
   longest=0
@@ -226,6 +267,18 @@ check_skill() { # $1 = folder name
   fi
   total=$(( $(wc -l < "$f") + longest ))
   [[ "$total" -le 300 ]] || finding "check 17 — $s/SKILL.md plus its longest mode file is $total lines; the cap is 300"
+
+  # ── 21. Mode-file names (D51) ───────────────────────────────────────────────
+  local x b
+  for x in "$dir"/*; do
+    [[ -f "$x" ]] || continue
+    b="${x##*/}"
+    if $SOURCE && is_sibling_mode "$b"; then
+      finding "check 21 — $s/$b takes the companion template's mode-file prefix (MEDIA-*); this template's mode files are $SA_MODE_FILES"
+    elif is_shared "$s" && [[ "$b" != SKILL.md && " $SA_MODE_FILES " != *" $b "* ]] && ! is_sibling_mode "$b"; then
+      finding "check 21 — $s/$b sits beside a family-shared SKILL.md, whose neutral Mode paragraph reads every upper-case .md there as a mode file"
+    fi
+  done
 }
 
 run_checks() {
@@ -247,13 +300,18 @@ write_skill() { # $1 = dir, $2 = name, $3 = moded (true|false)
   mkdir -p "$d"
   {
     printf -- '---\nname: %s\ndescription: >-\n  Do one job well, on the author'"'"'s word. Use when asked to %s. Not for proofreading\n  (`spelling`).\n---\n\n' "$s" "$s"
-    printf '# Skill: %s (<%%PROJECT_NAME%%>)\n\nLocale: en_GB · <%%TIMEZONE%%> · dates DD/MM/YYYY.\n\n' "$s"
+    if is_shared "$s"; then
+      printf '# Skill: %s\n\nLocale: en_GB · dates DD/MM/YYYY.\n\n' "$s"
+    else
+      printf '# Skill: %s (<%%PROJECT_NAME%%>)\n\nLocale: en_GB · <%%TIMEZONE%%> · dates DD/MM/YYYY.\n\n' "$s"
+    fi
     printf '%s\n\n- `.claude/rules/syntek-author/03-authorship.md`\n\n' "$GOVERNING"
-    if [[ "$3" == true ]]; then
-      printf '> **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of\n'
-      printf '> `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain\n'
-      printf '> (paths, unit, extra reads, domain rules, examples); this file owns the procedure. Where they\n'
-      printf '> disagree, the procedure wins and the disagreement is reported to the author.\n\n'
+    # Each paragraph as DESIGN.md gives it, wrapped across blockquote lines as a SKILL.md wraps it.
+    # A family-shared skill carries the neutral one even with no mode file beside it.
+    if is_shared "$s"; then
+      fold -s -w 96 <<< "$SHARED_MODE_PARA" | sed 's/ *$//; s/^/> /'; printf '\n'
+    elif [[ "$3" == true ]]; then
+      fold -s -w 96 <<< "$MODE_PARA" | sed 's/ *$//; s/^/> /'; printf '\n'
     fi
     printf '## Steps\n\n1. **Read the brief.** Read it. *Complete when:* it is read.\n'
     printf '2. **Do the work.** Do it. *Complete when:* it is done.\n\n'
@@ -267,16 +325,17 @@ write_skill() { # $1 = dir, $2 = name, $3 = moded (true|false)
 }
 
 self_test() {
-  local tmp sk ds gm
+  local tmp sk ds gm wf
   bold "▸ $SCRIPT_NAME --self-test"; log ""
   tmp="$(sa_mktemp)"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   TREE="$tmp/template"; SOURCE=true
-  sk="$TREE/.claude/skills"; ds="$sk/draft-section"; gm="$sk/grill-me"
+  sk="$TREE/.claude/skills"; ds="$sk/draft-section"; gm="$sk/grill-me"; wf="$sk/wayfinder"
   write_skill "$ds" draft-section true
   write_skill "$gm" grill-me false
-  st_baseline "a moded and an unmoded skill, both conformant"
+  write_skill "$wf" wayfinder true
+  st_baseline "a moded skill, and an unmoded and a moded family-shared skill (D51), all conformant"
 
   # Shapes the checks must not flag: a block description read once (not twice, which doubled
   # its length), and a fenced block above the mode paragraph (line numbers must still agree).
@@ -295,14 +354,20 @@ self_test() {
   sed -i 's/Not for proofreading/For proofreading/' "$gm/SKILL.md"; probe "check 5 fires on a description with no boundary" "check 5"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i 's/^name: grill-me/name: grill-me\neffort: high/' "$gm/SKILL.md"; probe "check 6 fires on a key the template does not admit" "check 6"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i 's/^name: grill-me/name: grill-me\ncontext: fork\nbackground: false/' "$gm/SKILL.md"; probe "check 7 fires on a fork with no agent" "check 7"; cp "$tmp/h" "$gm/SKILL.md"
-  sed -i 's/^# Skill: grill-me .*/# grill-me/' "$gm/SKILL.md"; probe "check 8 fires on the wrong H1" "check 8"; cp "$tmp/h" "$gm/SKILL.md"
+  sed -i 's/^# Skill: grill-me.*/# grill-me/' "$gm/SKILL.md"; probe "check 8 fires on the wrong H1" "check 8"; cp "$tmp/h" "$gm/SKILL.md"
+  sed -i 's/^# Skill: grill-me$/# Skill: grill-me (Invented Book)/' "$gm/SKILL.md"; probe "check 8 fires on a project name in a shared skill's H1" "check 8"; cp "$tmp/h" "$gm/SKILL.md"
+  sed -i 's/^Locale: en_GB · dates/Locale: en_GB · Europe\/London · dates/' "$gm/SKILL.md"; probe "check 9 fires on a time zone in a shared skill's locale line" "check 9"; cp "$tmp/h" "$gm/SKILL.md"
+  sed -i 's/Read it\. \*Complete/Read it, <%AUTHOR_FIRST_NAME%>. *Complete/' "$gm/SKILL.md"; probe "check 20 fires on a token in a shared skill" "check 20"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i '/^Locale:/d' "$gm/SKILL.md";                         probe "check 9 fires on a missing locale line" "check 9"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i 's/^## Governing procedures.*/## Governing procedures/' "$gm/SKILL.md"; probe "check 10 fires on a shortened governing heading" "check 10"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i 's/Do it\. \*Complete when:\* it is done\./Do it./' "$gm/SKILL.md"; probe "check 11 fires on a step with no Complete when" "check 11"; cp "$tmp/h" "$gm/SKILL.md"
   sed -i 's/^## Anti-patterns/## Pitfalls/' "$gm/SKILL.md";   probe "check 12 fires on a missing Anti-patterns" "check 12"; cp "$tmp/h" "$gm/SKILL.md"
   printf '\n## Notes\n\nA trailing section.\n' >> "$gm/SKILL.md"; probe "check 13 fires when Cross-references is not last" "check 13"; cp "$tmp/h" "$gm/SKILL.md"
   cp "$ds/SKILL.md" "$tmp/h"
-  sed -i 's/^> disagree, the procedure wins/> disagree, the mode wins/' "$ds/SKILL.md"; probe "check 14 fires on an edited mode paragraph" "check 14"; cp "$tmp/h" "$ds/SKILL.md"
+  sed -i 's/the procedure wins/the mode wins/' "$ds/SKILL.md"; probe "check 14 fires on an edited mode paragraph" "check 14"; cp "$tmp/h" "$ds/SKILL.md"
+  cp "$wf/SKILL.md" "$tmp/h"
+  awk -v para="$(sed -n '/^> \*\*Mode\./,/^$/p' "$ds/SKILL.md")" '/^> \*\*Mode\./ { print para; skip = 1; next } skip && /^$/ { skip = 0; next } skip { next } { print }' "$tmp/h" > "$wf/SKILL.md"
+  probe "check 14 fires on the doc-type mode paragraph in a moded shared skill" "check 14"; cp "$tmp/h" "$wf/SKILL.md"
   cp "$ds/FICTION.md" "$tmp/h"
   sed -i 's/^## Domain rules/## Rules/' "$ds/FICTION.md";     probe "check 15 fires on a renamed mode H2" "check 15"; cp "$tmp/h" "$ds/FICTION.md"
   mv "$ds/BUSINESS.md" "$tmp/h";                               probe "check 16 fires on a missing mode file" "check 16"; mv "$tmp/h" "$ds/BUSINESS.md"
@@ -310,6 +375,28 @@ self_test() {
   seq 1 290 | sed 's/^/- cross-reference /' >> "$ds/SKILL.md"; probe "check 17 fires when a skill and its mode pass 300 lines" "check 17"; cp "$tmp/h" "$ds/SKILL.md"
   mkdir -p "$TREE/.claude/agents";                             probe "check 18 fires on an agents folder" "check 18"; rmdir "$TREE/.claude/agents"
   write_skill "$sk/invented-skill" invented-skill false;       probe "check 19 fires on a skill DESIGN.md does not name" "check 19"; rm -rf "$sk/invented-skill"
+  cp "$wf/SKILL.md" "$tmp/h"
+  sed -i 's/the procedure wins/the mode wins/' "$wf/SKILL.md"; probe "check 14 fires on an edited neutral mode paragraph" "check 14"; cp "$tmp/h" "$wf/SKILL.md"
+  cp "$gm/SKILL.md" "$tmp/h"
+  sed -i '/^> \*\*Mode\./,/^$/d' "$gm/SKILL.md";              probe "check 14 fires on an unmoded shared skill with no neutral mode paragraph" "check 14 — grill-me/SKILL.md is family-shared"; cp "$tmp/h" "$gm/SKILL.md"
+  cp "$ds/FICTION.md" "$gm/FICTION.md";                        probe "check 16 fires on this template's mode file beside an unmoded shared skill" "check 16 — grill-me is unmoded"; rm "$gm/FICTION.md"
+
+  # Mode-file names (check 21, D51): the companion's MEDIA-*.md never ships from template/, and
+  # is accepted beside a shared skill in a project; nothing else may sit there.
+  printf '# x\n' > "$wf/MEDIA-FICTION.md";                     probe "check 21 fires on a MEDIA-* mode file beside a shared skill under template/" "check 21 — wayfinder/MEDIA-FICTION.md takes"
+  mv "$wf/MEDIA-FICTION.md" "$ds/MEDIA-BUSINESS.md";           probe "check 21 fires on a MEDIA-* file beside a template-owned skill under template/" "check 21 — draft-section/MEDIA-BUSINESS.md takes"
+  rm "$ds/MEDIA-BUSINESS.md"
+  printf '# x\n' > "$wf/NOTES.md";                             probe "check 21 fires on another upper-case file beside a shared skill" "check 21 — wayfinder/NOTES.md sits beside"
+  rm "$wf/NOTES.md"
+  # The same tree read as a project: one mode file per moded skill, as a render ships it.
+  SOURCE=false
+  rm "$ds/FICTION.md" "$ds/BUSINESS.md" "$wf/FICTION.md" "$wf/BUSINESS.md"
+  probe_clean "a project with one mode file per moded skill is clean"
+  printf '# x\n' > "$wf/MEDIA-FICTION.md"; printf '# x\n' > "$wf/MEDIA-NONFICTION.md"; printf '# x\n' > "$gm/MEDIA-BUSINESS.md"
+  probe_clean "a project accepts the companion's MEDIA-*.md beside the shared skills (moded and unmoded)"
+  printf '# x\n' > "$wf/NOTES.md";                             probe "check 21 fires on another file beside a shared skill in a project" "check 21 — wayfinder/NOTES.md sits beside"
+  rm "$wf/NOTES.md"
+  SOURCE=true
 
   st_finish "conformant skills from broken ones"
 }

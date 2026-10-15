@@ -36,7 +36,7 @@ and why). The `wayfinder` skill owns the exact format.
 | research | Looking it up — `research` or `fact-check`; never asked of the author |
 | prototype | A rough, throwaway passage that raises fidelity — `prototype` |
 | grilling | One `grill-with-docs` sitting with the author |
-| task | Manual unblocking work the author or a session does |
+| task | Manual unblocking work handed off, never done by the map: to the project's record of permissions and approvals where its rules name one (`.claude/rules/syntek-author/02-skills.md`), to the `Open questions` heading of `.claude/MEMORY.md`, or to a questionnaire through `to-questionnaire`; it stays on the frontier until its result is back |
 
 ## Where a settled node goes
 
@@ -49,6 +49,8 @@ the link, not the answer; a decision living only on a map will be argued again.
 
 - One map per body of work, registered in the index table in `planning/src/maps/CONTEXT.md`.
 - Never resolve during a chart session: charting draws the frontier and settles nothing.
+- Order batches by what unblocks the most downstream nodes; split a batch past what one sitting
+  can hold honestly.
 - Never draft prose from a map session. A map spawns work; it does not do it.
 - Close a map when its Frontier and Fog of war are both empty, and leave it as the record.
 - A decision map is a route to deciding the work; a structural plan describes the work itself.

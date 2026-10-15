@@ -71,6 +71,13 @@ jobs:
           done
           exit $status
 
+      # The one Python script whose classes, refresh and printed commands no audit renders a
+      # project to judge alone (DESIGN.md D52): its own self-test builds scratch projects with
+      # git and proves each class, the refresh and the settings additions.
+      - name: Prove the update report script
+        if: always()
+        run: python3 migrations/family-update.py --self-test
+
       # Every shell script this repository runs or ships: the migrations copier update runs in an
       # author's project, the adoption scripts, these audits, and the template's hooks. Warning
       # level and up fails; style and info notes do not. shellcheck-py pins the version (the

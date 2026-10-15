@@ -22,9 +22,11 @@ where settled nodes go.
 - **Step 6 — also wire the blocking order documents always follow:** the entity is verified
   before an instrument names it; the master agreement before the schedules under it; the price
   before the proposal; the proposal before the statement of work; who signs before what they sign.
-- **Step 11 — also** treat a task node resting on someone else (a signature, a client's
-  confirmation, a figure from the author) as staying on the frontier until it is done, and flag
-  it in the folder's `CONTEXT.md` if it blocks sending.
+- **Step 11 — also** hand a task node resting on someone else (a signature, a client's
+  confirmation, a figure from the author) to the `Open questions` heading of `.claude/MEMORY.md`,
+  or, for a client's answers, to the intake questionnaire `business-documents` owns, and flag it in
+  the folder's `CONTEXT.md` if it blocks sending; it stays on the frontier until its result is
+  back.
 
 ## Domain rules
 

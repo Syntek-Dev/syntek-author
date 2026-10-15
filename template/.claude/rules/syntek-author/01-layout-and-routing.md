@@ -17,7 +17,7 @@ than restating it.
 | Layer | Kind | Purpose |
 |---|---|---|
 | `.claude/` | config | The manual (`CLAUDE.md`), these rules with the project's settings (`00-project.md`), `MEMORY.md`, settings, hooks and skills |
-| `planning/` | production | The plan of the work: the outline, one brief per <%UNIT_NOUN%>, decision maps, reviews (advice only) |
+| `planning/` | production | The plan of the work: the outline, one brief per <%UNIT_NOUN%>, decision maps, questionnaires, reviews (advice only) |
 | `research/` | production | The evidence base: sources, verified evidence entries, question-led notes |
 <: if DOC_TYPE != 'business' :>| `manuscript/` | production | The book itself: one folder per chapter, each holding its promoted prose and a `drafts/` folder |
 <: endif :><: if DOC_TYPE == 'business' :>| `library/` | production | The documents themselves, by family: templates, client documents and drafts |
@@ -159,17 +159,18 @@ before the template arrived may carry one; obey it there. Section drafts and uni
 
 | Class | What `copier update` does | Files |
 |---|---|---|
-| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**`, `.claude/hooks/*.sh`, `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
+| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**` (except the seven family-shared `SKILL.md` files), `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
 | **Seed-if-missing** | creates the file only if it is absent, then never touches it | listed below |
 | **Seed-once example** | ships at generation only; once deleted, stays deleted | the worked example, when one was generated |
 | **Copy-only** | never touches, adds or recreates | the other coding agents' entrypoints, `.agents` and their settings, where generated or added by hand (`.claude/syntek-author-agents.md` lists them) |
-| **Author-owned** | never touches | everything you write: `src/` content, the guides in `docs/project/`, the procedures in `workflows/local/`, and what you put in `handoffs/`, `learning/` and `assets/` (their `CONTEXT.md` and `CLAUDE.md` are template-owned) |
+| **Copy-only, family-shared** | never renders or merges; replaces one you have not changed, writes one new in its release that you never had (one you deleted stays deleted), keeps and reports one you edited | the working-practice files: seven skills' `SKILL.md`, both `.claude/hooks/*.sh` with the `.claude/hooks/` pair, and the `handoffs/` pair (`02-skills.md` Section 8) |
+| **Author-owned** | never touches | everything you write: `src/` content, the guides in `docs/project/`, the procedures in `workflows/local/`, and what you put in `handoffs/`, `learning/` and `assets/` (their `CONTEXT.md` and `CLAUDE.md` are template-owned, the `handoffs/` pair family-shared) |
 
 **Seeds** (yours from the moment they exist; deleting one brings back the empty seed on the next
 update; turning its option off deletes it): `.claude/rules/syntek-author/00-project.md` (this
 project's settings), `tooling/project.mk` (its build settings), `README.md`, `CONTEXT.md`,
 `.gitignore`, `.mcp.json`, `.claude/CLAUDE.md`, `.claude/CONTEXT.md`, `.claude/MEMORY.md`,
-`.claude/settings.json`, the `.claude/skills/` and `.claude/hooks/` pairs,
+`.claude/settings.json`, the `.claude/skills/` pair,
 `standards/style/style-sheet.md`, `standards/style/voice-notes.md`, `standards/style/terminology.md`,
 `standards/style/ledger/provenance.md`, `planning/src/outline.md`, the map index
 `planning/src/maps/CONTEXT.md`, the `CONTEXT.md` and `CLAUDE.md` of every layer's `docs/project/`

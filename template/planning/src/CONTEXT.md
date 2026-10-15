@@ -24,6 +24,7 @@ planning/src/
 <: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING :>├── quests/                 ← one plan per quest
 <: endif :><: if DOC_TYPE == 'business' :>├── approvals/              ← one record per approval event
 <: endif :>├── maps/                   ← decision maps, written by `wayfinder`
+├── questionnaires/         ← questionnaires for someone outside the session, by `to-questionnaire`
 └── reviews/                ← review reports, advice only, written by `structure-review`
 ```
 
@@ -45,6 +46,9 @@ planning/src/
   default Approvals path; `00-project.md` `## Paths` may name another.
 <: endif :>- `maps/` — decision maps for bodies of work too big for one sitting, indexed in
   `maps/CONTEXT.md` (a seed: yours once generated, and `wayfinder` appends its rows).
+- `questionnaires/` — a decision only someone outside the session can answer, written as a
+  questionnaire the author sends, and the copy that comes back. The decision itself is recorded
+  in its real home when the answers return.
 - `reviews/` — review reports, **advice only**; a decision exists only once the author dates it
   in `.claude/MEMORY.md`.
 

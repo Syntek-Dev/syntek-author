@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "template": "syntek-author",
+  "refresh": [
+    ".claude/hooks/CLAUDE.md",
+    ".claude/hooks/CONTEXT.md",
+    ".claude/hooks/context-threshold-handoff.sh",
+    ".claude/hooks/pre-compact-handoff.sh",
+    ".claude/skills/grill-me/SKILL.md",
+    ".claude/skills/grill-with-docs/SKILL.md",
+    ".claude/skills/grilling/SKILL.md",
+    ".claude/skills/handoff/SKILL.md",
+    ".claude/skills/to-questionnaire/SKILL.md",
+    ".claude/skills/wait-what/SKILL.md",
+    ".claude/skills/wayfinder/SKILL.md",
+    "handoffs/CLAUDE.md",
+    "handoffs/CONTEXT.md"
+  ],
+  "settings": {
+    "autoCompactEnabled": false,
+    "hooks": {
+      "PreCompact": [
+        {
+          "matcher": "auto",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" auto'",
+              "timeout": 10
+            }
+          ]
+        },
+        {
+          "matcher": "manual",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" manual'",
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/context-threshold-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/context-threshold-handoff.sh\"'",
+              "timeout": 10
+            }
+          ]
+        }
+      ]
+    },
+    "permissions": {
+      "deny": [
+        "AskUserQuestion",
+        "Edit(**/*.pdf)",
+        "Edit(build/**)",
+        "Edit(typeset/src/units/.base/**)"
+      ],
+      "ask": []
+    }
+  }
+}

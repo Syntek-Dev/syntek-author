@@ -7,7 +7,9 @@
 #              set), the renders (shipped variants, byte identity, references, pairs, seeds,
 #              skills, tooling), and their own scratch projects (update, adoption, coexistence).
 #              Rendering is the expensive part, so it happens once, and every per-tree audit
-#              reads the same twenty-two renders.
+#              reads the same twenty-two renders. The self-tests also run the --self-test of
+#              migrations/family-update.py (DESIGN.md D52), the one Python script whose
+#              classes, refresh and printed commands no audit renders a project to judge alone.
 #
 #              Discipline, from SB: every script's --self-test runs FIRST, because a detector
 #              nobody has seen fail is a detector nobody knows works (rule 38); failures
@@ -45,6 +47,7 @@ SCRIPT_NAME="run-all.sh"
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SCRIPTS="$SA_SCRIPTS_DIR"
+UPDATE_PY="$SA_ROOT/migrations/family-update.py"
 OUT=""
 KEEP=false
 SELF_TESTS=true
@@ -81,7 +84,7 @@ while [[ $# -gt 0 ]]; do
     --skip-integration) INTEGRATION=false; shift ;;
     --require-pandoc)   SMOKE_ARGS+=(--require-pandoc); shift ;;
     --skip-pdf)         SMOKE_ARGS+=(--skip-pdf); shift ;;
-    --root)             [[ $# -gt 1 ]] || die "--root needs a value"; SA_ROOT="$(cd "$2" && pwd)" || die "no such directory: $2"; shift 2 ;;
+    --root)             [[ $# -gt 1 ]] || die "--root needs a value"; SA_ROOT="$(cd "$2" && pwd)" || die "no such directory: $2"; UPDATE_PY="$SA_ROOT/migrations/family-update.py"; shift 2 ;;
     --quiet|-q)         QUIET=true; shift ;;
     --self-test)        SELF_TEST=true; shift ;;
     --help|-h)          usage; exit 0 ;;
@@ -129,6 +132,7 @@ run_checks() {
   if $SELF_TESTS; then
     section "Self-tests"
     for s in "${ALL_SCRIPTS[@]}"; do step "$s --self-test" bash "$SCRIPTS/$s.sh" --self-test; done
+    step "family-update.py --self-test" python3 "$UPDATE_PY" --self-test
   fi
 
   section "The template source"
@@ -203,23 +207,25 @@ fi
 exit 0
 EOF
   done
+  printf 'import os, sys\nsys.exit(1 if os.environ.get("STUB_FAIL") == "family-update:self:1" else 0)\n' > "$d/family-update.py"
 }
 
 self_test() {
-  local tmp real_scripts="$SCRIPTS"
+  local tmp real_scripts="$SCRIPTS" real_py="$UPDATE_PY"
   bold "▸ $SCRIPT_NAME --self-test"; log ""
   tmp="$(sa_mktemp)"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   write_stubs "$tmp/stubs"
-  SCRIPTS="$tmp/stubs"; OUT="$tmp/out"; STEP_SINK="$tmp/sink"
+  SCRIPTS="$tmp/stubs"; UPDATE_PY="$tmp/stubs/family-update.py"; OUT="$tmp/out"; STEP_SINK="$tmp/sink"
   export STUB_FAIL=""
   st_baseline "a run of stubs that all pass"
   STUB_FAIL="scrub:run:1";         probe "check 1 fires when an audit reports findings" "check 1 — scrub reported findings"
   STUB_FAIL="byte-identity:run:2"; probe "check 2 fires when an audit cannot run" "check 2 — byte-identity (renders) could not run"
   STUB_FAIL="line-cap:self:1";     probe "check 3 fires when a self-test stops separating" "check 3 — line-cap --self-test"
+  STUB_FAIL="family-update:self:1"; probe "check 3 fires when the update script's self-test fails" "check 3 — family-update.py --self-test"
   STUB_FAIL=""
-  SCRIPTS="$real_scripts"; OUT=""; STEP_SINK=""
+  SCRIPTS="$real_scripts"; UPDATE_PY="$real_py"; OUT=""; STEP_SINK=""
   st_finish "a run that reports every failure from one that hides them"
 }
 

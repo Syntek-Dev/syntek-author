@@ -1,6 +1,6 @@
 # CLAUDE.md — syntek-author (template development)
 
-**Last Updated**: 14/10/2026 **Version**: 0.3.0 **Maintained By**: Syntek Studio
+**Last Updated**: 15/10/2026 **Version**: 0.4.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB) **Timezone**: Europe/London
 
 @../CONTEXT.md
@@ -29,7 +29,7 @@
 
 Claude Code loads a nested `.claude/skills/` the first time a session reads a file beneath it, and nested `CLAUDE.md` files on demand. Without isolation, opening `template/` would load the product's skills and manuals into this session, where they would fire on description match and steer template development as if it were a book.
 
-- **Layer 1 — `.claude/settings.json` denies `Skill(<name>)` for every skill under `template/.claude/skills/`.** An unqualified deny also blocks the nested `template:<name>` form.
+- **Layer 1 — `.claude/settings.json` denies `Skill(<name>)` for every skill under `template/.claude/skills/`.** An unqualified deny also blocks the nested `template:<name>` form. A `Skill(<name>)` deny matches by name, so in this repository it also blocks a personal `~/.claude/skills/<name>` of the same name, which is intended: a personal skill with a product name must not steer template development either.
 - **Layer 2 — `claudeMdExcludes`** keeps `template/**/CLAUDE.md` and everything under `template/.claude/` out of this session's memory.
 - **Never invoke a template skill.** Claude Code may list the product's skills as available, scoped to `template/`, from the start of a session or once it reads a file there, under their plain names ('from template/.claude/skills') or as `template:<name>`. A listing is expected; the `Skill(<name>)` deny must still refuse them. Never invoke one. If one ever runs, or a template skill has no deny line, the deny list has a gap: stop and report it.
 - **Adding a skill to the template means adding its deny line and its `.codex/config.toml` entry.** That is a change to this repository's permission settings, so it is the maintainer's to make or approve; propose the exact lines.
