@@ -1,6 +1,6 @@
 # CLAUDE.md — syntek-author (template development)
 
-**Last Updated**: 15/10/2026 **Version**: 0.4.0 **Maintained By**: Syntek Studio
+**Last Updated**: 16/10/2026 **Version**: 0.4.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB) **Timezone**: Europe/London
 
 @../CONTEXT.md
@@ -32,6 +32,7 @@ Claude Code loads a nested `.claude/skills/` the first time a session reads a fi
 - **Layer 1 — `.claude/settings.json` denies `Skill(<name>)` for every skill under `template/.claude/skills/`.** An unqualified deny also blocks the nested `template:<name>` form. A `Skill(<name>)` deny matches by name, so in this repository it also blocks a personal `~/.claude/skills/<name>` of the same name, which is intended: a personal skill with a product name must not steer template development either.
 - **Layer 2 — `claudeMdExcludes`** keeps `template/**/CLAUDE.md` and everything under `template/.claude/` out of this session's memory.
 - **Never invoke a template skill.** Claude Code may list the product's skills as available, scoped to `template/`, from the start of a session or once it reads a file there, under their plain names ('from template/.claude/skills') or as `template:<name>`. A listing is expected; the `Skill(<name>)` deny must still refuse them. Never invoke one. If one ever runs, or a template skill has no deny line, the deny list has a gap: stop and report it.
+- **code-review-graph (development only).** The root `.mcp.json` runs `code-review-graph` for this repository in Claude Code (its graph in `/.code-review-graph/`, git-ignored); `embed_graph_tool` is denied and its two writing tools ask. The root `.codex/config.toml` stays the user-config snippet and declares no server: a server copied into the user config would start in every repository. **Never run `code-review-graph install`, `init` or `uninstall` here**: they rewrite the root `.mcp.json`, `AGENTS.md`, `GEMINI.md` and settings, add skills under `.claude/skills/` (which check 8 refuses), a git hook and user configuration. `dev-isolation.sh` checks 11–14 prove the entry, the rules, the ignore line and the absence of install artefacts. The product's two servers are `template/` text, never this session's.
 - **Adding a skill to the template means adding its deny line and its `.codex/config.toml` entry.** That is a change to this repository's permission settings, so it is the maintainer's to make or approve; propose the exact lines.
 - **Codex, Gemini CLI, Antigravity and OpenCode (D47):** root `AGENTS.md` and `GEMINI.md` route to this manual. **Start every session at the repository root, never inside `template/`.** Every client finds project skills, and Codex its project config, only between the root and the working directory; the root has no `.agents`, so a session started there finds no product skill, while one started under `template/` loads them all through `template/.agents`. Codex honours `[[skills.config]]` only from the user config and `-c` flags, never from a project file, so the root `.codex/config.toml` (every product skill's `SKILL.md` disabled, no `CLAUDE.md` fallback) is a snippet to copy there, not a guard; neither is the parse failure of the unrendered `template/.codex/config.toml`, which stops only a trusted checkout. Never add a root `.agents`: a link there also breaks Codex's Linux sandbox. Gemini CLI, Antigravity and OpenCode may still load `template/AGENTS.md` or `template/GEMINI.md` when they read files there; those files send a session in the `template/` folder of a Copier development repository to its root `AGENTS.md`.
 - `.github/scripts/dev-isolation.sh` proves the Claude layers, the root's lack of a `.agents` and that this start-at-the-root rule is written here and in root `AGENTS.md`, on every push.
@@ -51,7 +52,7 @@ Every file under `template/` is rendered (`_templates_suffix: ""`) with the hous
 - **Variant tokens and `<: if :>` blocks appear only in the spine set** (DESIGN.md Section 2): the root spine (`.claude/CLAUDE.md`, `.claude/rules/syntek-author/*.md`, root `CONTEXT.md`, `README.md`, `Makefile`, `tooling/defaults.yaml`, `.claude/settings.json`); every seed, seed-once example and copy-only shared file (D47); and **index files**. Variant tokens are `DOC_TYPE`, `CONTENT_LAYER`, `UNIT_NOUN`, `FICTION_GENRE`, every `INCLUDE_*`, `AUDIENCE`, `READER_TEST` and every other variant answer.
 - **An index file** is a `CONTEXT.md` or `CLAUDE.md` whose folder holds gated children. It wraps each gated row, tree line or cross-reference in `<: if GATE :>…<: endif :>`, where `GATE` is the exact string of DESIGN.md Section 3.5 — the same string `copier.yml` negates for that path — so no shipped file names a path that is absent from its variant.
 - **Every other shipped file is shared and byte-identical** in every variant that ships it. Put a variant difference in a gated file or a mode file, never in a conditional. A shared file says "the content layer (see `.claude/rules/syntek-author/01-layout-and-routing.md`)"; the mode file names the path. `byte-identity.sh` enforces this.
-- **Family-shared files (D48) carry only the seven D47 keys.** `AGENTS.md`, `GEMINI.md`, `.agents/`, the `.codex/` and `.gemini/` files, `opencode.json`, `.mcp.json` and `.claude/syntek-author-permissions.py` are byte-identical in every family template: no identity, locale, `DOC_TYPE` or `INCLUDE_*` token, and no path only this template ships (say 'every `.claude/syntek-*-agents.md`'). Anything syntek-author-only goes in the bridge.
+- **Family-shared files (D48) carry only the seven D47 keys.** `AGENTS.md`, `GEMINI.md`, `.agents/`, the `.codex/` and `.gemini/` files, `opencode.json`, `.mcp.json`, `.claude/syntek-author-permissions.py` and the data-root resolver `.claude/syntek-author-dataroot.py` are byte-identical in every family template: no identity, locale, `DOC_TYPE` or `INCLUDE_*` token, and no path only this template ships (say 'every `.claude/syntek-*-agents.md`'). Anything syntek-author-only goes in the bridge. The `copier.yml` questions block is wider than the files: it holds fifteen keys (the seven D47 questions, the seven data-root questions and `DATA_PROVIDER`), and its delimiters may also read `_external_data`, `_folder_name` and Copier's `UNSET`.
 - **Never put a token inside `_…_` emphasis.** Prettier rewrites the underscores and the token stops rendering.
 - **Never write a delimiter you do not mean.** A guide that must show one wraps it in `<: raw :>…<: endraw :>`; otherwise rephrase.
 
@@ -109,7 +110,7 @@ Never type a line in that block; `--check` fails CI when the block and the files
 
 **7.8 Add a copy-only shared path** (DESIGN.md Section 3.6, D47). Three `copier.yml` lines: an anchored `_skip_if_exists` line, `"<: if _copier_operation == 'update' :>/path<: endif :>"` in `_exclude`, and its gate if it is per-client. Add it to Section 3.6, to `SA_COPY_ONLY` in `.github/scripts/_common.sh` (which `shipped-seeds.sh`, `coexist-test.sh` and `update-test.sh` read), and to the bridge's 'Enabling a client' list. It is spine: it may carry the D47 answers, and only those (D48). A new link needs `_preserve_symlinks` (on) and a check that it is a link, never a copy. Then follow 7.9: every copy-only path is family-shared.
 
-**7.9 Change a family-shared file or question (D48).** Edit the source, or the `copier.yml` block between `# BEGIN family-shared questions (D48)` and `# END family-shared questions (D48)` (the seven D47 questions and their comments, nothing else), then regenerate the manifest and check it:
+**7.9 Change a family-shared file or question (D48).** Edit the source, or the `copier.yml` block between `# BEGIN family-shared questions (D48)` and `# END family-shared questions (D48)` (the fifteen shared questions, that is the seven D47 questions, the seven data-root questions and `DATA_PROVIDER`, with their comments, nothing else), or the fourth block, the text of rules 06 Section 13 strictly between `<!-- BEGIN family-shared rules: web and code tools -->` and `<!-- END family-shared rules: web and code tools -->` (`rules-web-tools`; the numbered heading above the markers stays this template's own), then regenerate the manifest and check it:
 
 ```bash
 bash .github/scripts/family-shared.sh --write
@@ -123,10 +124,10 @@ A companion template vendors these bytes, so say in the `CHANGELOG.md` entry tha
 - **Run the audits.** All of them, or at least those your change touches:
 
   ```bash
-  for s in .github/scripts/*.sh; do bash "$s" || echo "FAILED: $s"; done
+  for s in .github/scripts/*.sh; do env -u SYNTEK_DATA_ROOT bash "$s" || echo "FAILED: $s"; done
   ```
 
-  `generate-all.sh` renders every variant and profile from a copy of the working tree; `shipped-variants.sh <tree>` checks one rendered tree. A change to `copier.yml`, a gate or a seed is not done until a render proves it.
+  Audits never see your data root: `_common.sh` unsets `SYNTEK_DATA_ROOT`, and a case that needs a root makes a temporary one. `generate-all.sh` renders every variant and profile from a copy of the working tree; `shipped-variants.sh <tree>` checks one rendered tree. A change to `copier.yml`, a gate or a seed is not done until a render proves it.
 - **Never commit rendered output.** Renders go to a temporary directory and stay there.
 - **Commit only when the maintainer asks**, on a branch, with a `CHANGELOG.md` entry.
 

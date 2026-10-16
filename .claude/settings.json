@@ -1,8 +1,5 @@
 {
-  "claudeMdExcludes": [
-    "**/template/**/CLAUDE.md",
-    "**/template/.claude/**"
-  ],
+  "claudeMdExcludes": ["**/template/**/CLAUDE.md", "**/template/.claude/**"],
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -143,6 +140,7 @@
       "Skill(approach-a-reader)",
       "Skill(sensitivity-pass)",
       "Skill(typeset)",
+      "mcp__code-review-graph__embed_graph_tool",
       "Read(**/.env)",
       "Read(**/.env.dev)",
       "Read(**/.env.test)",
@@ -179,6 +177,10 @@
       "CronCreate",
       "CronDelete",
       "CronList"
+    ],
+    "ask": [
+      "mcp__code-review-graph__apply_refactor_tool",
+      "mcp__code-review-graph__generate_wiki_tool"
     ]
   },
   "model": "opus",

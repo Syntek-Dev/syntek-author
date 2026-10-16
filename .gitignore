@@ -6,3 +6,6 @@
 
 # Python bytecode from running the migration scripts and their self-tests.
 __pycache__/
+
+# code-review-graph's local SQLite graph of this repository (.mcp.json); development only.
+/.code-review-graph/
