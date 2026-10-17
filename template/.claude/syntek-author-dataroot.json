@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "folders": [
+    {"path": "library/src", "kind": "docs"},
+    {"path": "research/src"},
+    {"path": "proposal/src"},
+    {"path": "assets", "warn_over_kib": 1024},
+    {"path": "world/src"}
+  ]
+}
