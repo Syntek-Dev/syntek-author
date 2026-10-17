@@ -1,0 +1,79 @@
+# .gitignore — library/src/
+#
+# Template-owned; copier update keeps it current, and it ships only while the project keeps
+# its binary records under the data root (DATA_STORE external). Leaving that store deletes it.
+# No inline comments in this file: Git reads a # after a pattern as part of the pattern.
+
+# ----------------------------------------------------------------------------
+# Binary records, filed under the data root
+# ----------------------------------------------------------------------------
+# Scans, signed and received copies, issued PDFs and Word copies, images, audio and video
+# live under the machine's data root, at this same path, each listed with its checksum in
+# external.toml beside this file: file one with make files-add, never with git add. Every
+# extension the data-root tool counts as a binary is ignored here, in any letter case. An
+# ignore rule never untracks a file: a binary already in Git stays there until the owner
+# moves it (make files-plan).
+
+# Documents
+*.[pP][dD][fF]
+*.[dD][oO][cC]
+*.[dD][oO][cC][xX]
+*.[xX][lL][sS]
+*.[xX][lL][sS][xX]
+*.[pP][pP][tT]
+*.[pP][pP][tT][xX]
+*.[oO][dD][tT]
+*.[oO][dD][sS]
+*.[oO][dD][pP]
+*.[zZ][iI][pP]
+*.7[zZ]
+*.[tT][aA][rR]
+*.[gG][zZ]
+*.[eE][mM][lL]
+*.[mM][sS][gG]
+
+# Photos
+*.[pP][nN][gG]
+*.[jJ][pP][gG]
+*.[jJ][pP][eE][gG]
+*.[tT][iI][fF]
+*.[tT][iI][fF][fF]
+*.[hH][eE][iI][cC]
+*.[wW][eE][bB][pP]
+*.[gG][iI][fF]
+*.[pP][sS][dD]
+*.[bB][mM][pP]
+*.[dD][nN][gG]
+*.[eE][xX][rR]
+
+# Audio
+*.[mM][pP]3
+*.[wW][aA][vV]
+*.[fF][lL][aA][cC]
+*.[mM]4[aA]
+*.[oO][gG][gG]
+*.[aA][aA][cC]
+*.[aA][iI][fF]
+*.[aA][iI][fF][fF]
+*.[oO][pP][uU][sS]
+*.[pP][cC][mM]
+
+# Video
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[mM][kK][vV]
+*.[wW][eE][bB][mM]
+*.[mM][xX][fF]
+*.[mM]4[vV]
+*.[mM][tT][sS]
+*.[mM]2[tT][sS]
+*.[aA][vV][iI]
+*.[bB][rR][aA][wW]
+*.[rR]3[dD]
+
+# The data-root tool's temporary copy while it files a file
+*.syntek-tmp
+
+# Never ignored: the manifest that lists what is filed, and the folder's README
+!external.toml
+!README.md

@@ -71,7 +71,8 @@ Render and read it through `library/workflows/06-build-a-proof/`. Put the number
 tax line, the due date and every open `\fillme` to the author explicitly, and write in their
 answers. Before issue, `make flags SCOPE=<path>.tex` lists nothing, and no `\fillme`, `\dnote` or
 redline mark remains; only then, on the author's confirmation, set the leading status to `final`
-and make the issue copy with `make pdf FILE=<path>.tex ISSUE=1`. _Mechanical._
+and make the issue copy with `make pdf FILE=<path>.tex ISSUE=1`, which keeps it where the project's
+store says (`.claude/rules/syntek-author/09-data-root.md`). _Mechanical._
 
 ## 7. Report route: plan and write it
 

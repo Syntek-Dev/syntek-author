@@ -39,8 +39,9 @@ author only wants to see a proof (`library/workflows/06-build-a-proof/`).
 - **At the end of the line edit, before the issue proof:** a register row at Status `Draft` and,
   where the document has a review cycle, a review-schedule row; the `DOC-NNN` in the Document
   Control block and the brief.
-- **At `final`:** the issue PDF beside the `.tex`; the author's dated word in `.claude/MEMORY.md`
-  `## Status`; an approval record when the document is approved or executed.
+- **At `final`:** the issue PDF, beside the `.tex` or filed under the data root as the project's
+  store says; the author's dated word in `.claude/MEMORY.md` `## Status`; an approval record when
+  the document is approved or executed.
 
 ## The order that matters most
 

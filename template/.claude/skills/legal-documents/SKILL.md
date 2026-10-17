@@ -251,10 +251,10 @@ A termination, breach or other notice, or a payment plan the counterparty signs.
    `planning/workflows/08-update-the-register/`, its review date in
    `planning/src/review-schedule.md` and its listing in its folder's `CONTEXT.md`. Issue only on
    the author's word: `make pdf FILE=<path>.tex ISSUE=1` refuses to overwrite an issued PDF. Signing
-   and serving are the author's acts; the signed copy is filed beside the `.tex` as the standard
-   names it and recorded through `planning/workflows/07-record-an-approval/`, and only then is the
-   instrument Executed. *Complete when:* the register and schedule rows are written and the author
-   has the hand-back.
+   and serving are the author's acts; the signed copy is filed as the standard names and files it
+   in each store, and recorded through `planning/workflows/07-record-an-approval/`; only then is
+   the instrument Executed. *Complete when:* the register and schedule rows are written and the
+   author has the hand-back.
 
 ## Pre-issue checklist
 

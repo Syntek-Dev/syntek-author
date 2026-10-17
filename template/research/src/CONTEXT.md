@@ -12,7 +12,8 @@ mistakes.
 research/src/
 ├── CONTEXT.md              ← this file: the routing table
 ├── CLAUDE.md               ← operating rules for the material
-├── evidence/               ← one entry per checked claim, with its verdict
+<: if DATA_STORE == 'external' :>├── .gitignore              ← keeps binary copies out of Git: they are filed under the data root
+<: endif :>├── evidence/               ← one entry per checked claim, with its verdict
 ├── notes/                  ← one question-led note per question
 <: if DOC_TYPE == 'theology' :>├── contested-readings/     ← one map per passage read more than one way
 <: endif :><: if DOC_TYPE == 'fiction' :>├── permissions.md          ← seed: register of quotations, epigraphs and lyrics needing clearance
@@ -43,7 +44,10 @@ A single work can feed two folders: split the note rather than duplicating it.
 - **Keyed as written.** Where the project keeps the citation database, each source is keyed with
   the add-reference skill in the same pass as its note.
 - **Nothing here is prose for the reader.** The on-voice writing happens in the content layer.
-
+<: if DATA_STORE == 'external' :>- **Binary copies** (a source's PDF, a scan, a recording) are git-ignored here by `.gitignore`
+  and filed under the data root with `make files-add`, each with a row in `external.toml`; a note
+  names one as `ext:<path>`, and `make files-status` lists any that is neither in Git nor filed.
+<: endif :>
 ## Cross-references
 
 - `research/docs/reference/ingesting-sources.md` — routing and reading, at more length.

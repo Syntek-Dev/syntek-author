@@ -93,8 +93,8 @@ every part `MSP-SCP-POLICY-SUITE.md` lists for the report. Fill each from the re
 supplies: no figure, time or cause invented. Render and read it through
 `library/workflows/06-build-a-proof/`. Before issue, `make flags SCOPE=<path>.tex` lists nothing,
 and no `\fillme`, `\dnote` or redline mark remains; only then, on the author's confirmation, set
-its status to `final` and make the issue copy with `make pdf FILE=<path>.tex ISSUE=1`.
-_Mechanical._
+its status to `final` and make the issue copy with `make pdf FILE=<path>.tex ISSUE=1`, which keeps
+it where the project's store says (`.claude/rules/syntek-author/09-data-root.md`). _Mechanical._
 
 ## 9. Hand back
 

@@ -19,13 +19,14 @@ it or bring it into the house form through the loop.
 - **Model:** follow the checklist tags: the mechanical tier files, converts and splits; **Opus**
   checks the reading copy against the original and does every adaptation.
 - **Concrete steps:** follow `STEPS.md` in order and tick `CHECKLIST.md` as you go.
-- **Definition of done:** the original sits unchanged in its family; its reading copy sits beside
-  it with every loss noted; a record is registered, or a working source has a brief and section
-  drafts ready for the loop.
+- **Definition of done:** the original sits unchanged in its family, committed or filed under the
+  data root as the project's store says; its reading copy sits beside it with every loss noted; a
+  record is registered, or a working source has a brief and section drafts ready for the loop.
 
 ## Guardrails
 
-- **The original is never edited, re-saved or re-exported.** It is the record of what exists.
+- **The original is never edited, re-saved or re-exported.** It is the record of what exists,
+  and a copy filed under the data root is read there, never changed.
 - **Every loss is written down.** A reading copy that dropped a table or a clause number says so at
   its top; never repair a loss from memory.
 - **Never retype a document from an image of it.** A scanned PDF without a text layer yields no
@@ -42,7 +43,7 @@ it or bring it into the house form through the loop.
 
 - **Kept as received:** the original, renamed only to the house kebab-case pattern.
 - **Derived (never hand-edited):** the Markdown reading copy, `<name>.reading.md`, except its
-  internal note. Never give it a plain `.md` name: the suffix is what keeps it from being synced
-  or mistaken for a deliverable.
+  internal note. Never give it a plain `.md` name: the suffix is what keeps it out of the Google
+  Drive workflows and from being mistaken for a deliverable.
 - **Hand-written:** the unit brief (through planning), section drafts, ledger entries, register
   rows.

@@ -101,6 +101,9 @@ the signature block present; no `\dnote` left. _Substantive._
 
 Report the instrument's path, register ID and status, and any step waived with its reason; sending
 and signing are the author's acts. When the counterparty proposes changes, they come back as a
-negotiation copy and a new version. When every party has signed, file the signed copy beside the
-`.tex` with `-signed` before `.pdf` and run `planning/workflows/07-record-an-approval/`; Executed is
-set only then. _Mechanical._
+negotiation copy and a new version. When every party has signed, file the signed copy under the
+`.tex`'s basename with `-signed` before `.pdf`, as the project's store says: committed beside the
+`.tex` under `repo`, or under `external` filed under the data root with
+`make files-add FILE=<file> AS=<stem>-signed.pdf ROLE=signed SOURCE=<stem>.tex`
+(`library/docs/reference/legal-standards.md`). Then run `planning/workflows/07-record-an-approval/`;
+Executed is set only then. _Mechanical._

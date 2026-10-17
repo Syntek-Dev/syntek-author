@@ -51,6 +51,6 @@ them.
 
 - **Hand-written:** instruments, letters and templates (`.tex`), section drafts.
 - **Received, never edited:** signed copies (`-signed.pdf`).
-- **Generated (never hand-edit):** the issued PDF beside each `.tex`. A Word copy that is sent is
-  copied from `build/` beside its source on the author's word, named as the issued PDF, and
-  committed with it.
+- **Generated (never hand-edit):** the issued PDF of each `.tex`, under its basename: beside it,
+  or filed under the data root at the same path (`.claude/rules/syntek-author/09-data-root.md`).
+  A Word copy that is sent, on the author's word, is named as the issued PDF and kept the same way.

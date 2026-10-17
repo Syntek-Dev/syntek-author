@@ -26,10 +26,11 @@ model: opus
 - [ ] Folder chosen and house kebab-case name set, keeping any version and date the document states. · _sonnet_
 - [ ] No existing file of that name; if there was one, stopped and asked. · _sonnet_
 - [ ] **Original copied in byte for byte, never re-saved,** and listed in the folder's `CONTEXT.md`. · _sonnet_
+- [ ] Kept as the store says: committed under `repo`; under `external`, a binary original filed with `make files-add FILE=<path> ROLE=ingested`, and `make files-status` listing nothing unfiled. · _sonnet_
 
 **Reading copy**
 
-- [ ] Reading copy made beside the original as `<name>.reading.md` (`pandoc` for `.docx`, `pdftotext -layout` for `.pdf`), or none needed for `.tex` or `.md`. · _sonnet_
+- [ ] Reading copy made beside the original as `<name>.reading.md` (`pandoc` for `.docx`, `pdftotext -layout` for `.pdf`), converted from the path the data-root resolver's `path` prints, or none needed for `.tex` or `.md`. · _sonnet_
 - [ ] A scanned PDF with no text layer reported; no retyping from an image. · _sonnet_
 - [ ] Reading copy checked against the original part by part; every loss listed in its internal note. · _opus_
 
@@ -52,6 +53,6 @@ model: opus
 
 ## Done When
 
-- [ ] **The original sits unchanged in its family, with its reading copy and every loss noted beside it.** · _opus_
+- [ ] **The original sits unchanged in its family (in Git, or filed under the data root with its `external.toml` row), with its reading copy and every loss noted beside it.** · _opus_
 - [ ] A record is registered, or a working source has a brief and section drafts ready for the loop. · _sonnet_
 - [ ] No claim from the ingested document is relied on unverified. · _opus_

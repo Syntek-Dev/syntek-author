@@ -154,11 +154,15 @@ Ask the author, in words, whether the document is final. On a yes: date V6 (line
 V6.1 and V6.2; set `final` in the brief and the `.tex` status block; set the Document Control
 Status to the value the author confirms it is issued with; and add the author's word, dated, to
 `.claude/MEMORY.md` `## Status`. Render once more with `make pdf FILE=<path>.tex ISSUE=1`, which
-places the issue PDF beside the `.tex` under the same basename. It refuses a status outside
-`ISSUE_STATUSES` (`tooling/project.mk`) and refuses to overwrite a file already there: an issued
-PDF is a record, so `FORCE=1` is passed only on the author's explicit word. An authored email has
-no issue PDF; record this render as not applying. On anything else, record what is outstanding
-and stop. _Substantive._
+issues the PDF under the `.tex`'s basename in the project's store
+(`.claude/rules/syntek-author/09-data-root.md`): beside the `.tex`, to be committed, under `repo`;
+filed under the data root with a row in `external.toml` under `external`, where it refuses and
+writes nothing without a valid data root.
+It refuses a status outside `ISSUE_STATUSES` (`tooling/project.mk`) and refuses to overwrite an
+issued copy: an issued PDF is a record, so `FORCE=1` is passed only on the author's explicit word
+(under `external` it keeps the superseded copy). Then run `make files-status` and report anything
+it lists. An authored email has no issue PDF; record this render as not applying. On anything
+else, record what is outstanding and stop. _Substantive._
 
 ## 15. Record the approval
 
@@ -172,8 +176,9 @@ author's word, through `planning/workflows/08-update-the-register/`. _Mechanical
 
 > **Skill:** `run-workflow` · **Guide:** `library/docs/reference/the-status-ladders.md`
 
-Report the document's status, the issue PDF's path, its register ID, the review file, every
-correction applied directly, every section reopened, and any gate waived with the author's reason.
+Report the document's status, the issue PDF's path (as `ext:<path>` where it is filed under the
+data root), its register ID, the review file, every correction applied directly, every section
+reopened, and any gate waived with the author's reason.
 Remind the author that sending, signing or publishing is theirs to do. _Substantive._
 
 ## Applying agreed fixes

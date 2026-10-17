@@ -50,4 +50,5 @@ Hold the documents that state money, so that every figure in them can be traced 
 
 - **Hand-written:** invoices, receipts, credit notes, reports, budgets, forecasts (`.tex`) and
   pricing models, named to the patterns in `library/docs/reference/accounting-standards.md`.
-- **Generated (never hand-edit):** the issued PDF beside each `.tex`.
+- **Generated (never hand-edit):** the issued PDF of each `.tex`, under its basename: beside it,
+  or filed under the data root at the same path (`.claude/rules/syntek-author/09-data-root.md`).

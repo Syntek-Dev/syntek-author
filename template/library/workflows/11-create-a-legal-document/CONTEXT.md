@@ -39,7 +39,8 @@ email about an instrument, which is correspondence, not an instrument.
 - **The instrument,** at `library/src/legal/client-docs/<client-slug>/`, the family root or
   `library/src/legal/templates/`, built through the loop, reviewed to `final`, registered, with
   its issue PDF; a row in `planning/src/precedence.md` when it belongs to a family of instruments.
-- **On execution:** the signed copy filed beside it and the approval recorded.
+- **On execution:** the signed copy filed, beside it or under the data root as the store says
+  (`library/docs/reference/legal-standards.md`), and the approval recorded.
 
 ## The failure this procedure exists to prevent
 

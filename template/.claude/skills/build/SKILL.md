@@ -81,7 +81,9 @@ edits anything under `build/` and never changes a source to make a build pass.
 7. **Report back.** Give the output path or paths, the scope and format, the unit's status, what
    was checked, anything raised in step 2, and every defect with its location. For each, name the
    procedure that owns the fix (a section procedure for prose, the reference skill for a reference
-   record, `fact-check` for a claim, the promotion for a conversion) and stop there.
+   record, `fact-check` for a claim, the promotion for a conversion) and stop there. Where the
+   build issued or filed a copy (the mode file says when), run `make files-status` first and
+   report every file it lists as neither in Git nor filed.
    *Complete when:* the author has the report, and nothing under `build/` or any source was edited
    to make the proof look right.
 
@@ -95,6 +97,8 @@ edits anything under `build/` and never changes a source to make a build pass.
 - Sending a proof beyond the author without the unit's `final` status or their recorded decision.
 - Overwriting an issued copy, or forcing a build past a refusal, without the author's word for
   that file.
+- Placing an issued copy by hand, beside the source or under the data root, instead of through the
+  target that issues and files it (`.claude/rules/syntek-author/09-data-root.md`).
 - Fixing a wording defect in place instead of sending it back through the loop.
 - Handing over a lossy conversion as the deliverable.
 

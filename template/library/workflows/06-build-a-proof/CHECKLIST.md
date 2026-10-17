@@ -37,7 +37,7 @@ model: opus
 **Reporting**
 
 - [ ] Proof path, source and status, checks made, defects by page and section, and the procedure that fixes each. · _opus_
-- [ ] A Word copy that is sent copied from `build/` beside its source on the author's word, named as the issued PDF, and committed with it. · _sonnet_
+- [ ] A Word copy that is sent, on the author's word, named as the issued PDF and kept as the store says: beside its source and committed under `repo`, or filed with `make files-add … ROLE=issued` under `external`. · _sonnet_
 
 ## Done When
 

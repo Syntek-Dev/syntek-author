@@ -59,9 +59,11 @@ converter. Only where that is empty, ask the author for a lossless converter (or
 `make docx` refuses a `.tex` without one on purpose, because a lossy copy is worse than none.
 Markdown copy needs no converter: `make docx FILE=<path>.md`. Compare any Word copy with the PDF:
 clause numbers resolved, tables intact, redline marks kept, no paragraph missing. If anything is
-lost, stop and report what failed; never patch the Word file. A Word copy that is sent is copied
-from `build/` beside its source on the author's word, named as the issued PDF (with `.docx`), and
-committed with it. _Mechanical._
+lost, stop and report what failed; never patch the Word file. A Word copy that is sent, on the
+author's word, is named as the issued PDF (with `.docx`) and kept as the project's store says
+(`.claude/rules/syntek-author/09-data-root.md`): under `repo`, copied from `build/` beside its
+source and committed with it; under `external`, filed under the data root with
+`make files-add FILE=build/<file>.docx AS=<path>.docx ROLE=issued`. _Mechanical._
 
 ## 6. Report
 

@@ -8,7 +8,7 @@ above) → this file.
 ## Purpose (one line)
 
 Hold the CI configuration that synchronises issued documents with the Google Drive folder in the
-project's shared drive.
+project's shared drive, while the documents are kept in the repository.
 
 ## How to work here
 
@@ -30,6 +30,9 @@ project's shared drive.
   to a file whose status is not `final`.
 - **The repository is the record.** Never let the pull overwrite a tracked file; a differing Drive
   copy is saved beside it for the author to compare.
+- **Never remove or weaken the store guard step** in either workflow. A GitHub runner has no data
+  root: once the documents are filed outside the repository (`DATA_STORE` external), a push would
+  bin the Drive copy of every file the move untracks.
 
 ## Output & naming
 

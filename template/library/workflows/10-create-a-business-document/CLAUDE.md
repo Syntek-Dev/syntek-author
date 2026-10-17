@@ -23,7 +23,8 @@ loop and the review to an issued `final`.
   procedure it names is run with its own `CHECKLIST.md` open.
 - **Definition of done:** the document sits at its named path in the business family with every
   part its type requires, every section promoted through the loop, the review passed, `final` set
-  on the author's word, the register row written and the issue PDF beside it.
+  on the author's word, the register row written and the issue PDF where the project's store keeps
+  it (beside the `.tex`, or filed under the data root).
 
 ## Guardrails
 

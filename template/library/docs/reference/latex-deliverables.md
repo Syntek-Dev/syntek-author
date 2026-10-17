@@ -67,9 +67,9 @@ survives; the draft's frontmatter stays behind.
   needs `LATEX_PASSES=3`). A `??` that survives is a missing or misspelt label.
 - A Word copy of a `.tex` comes only from the author's lossless converter (`DOCX_CONVERTER` in
   `tooling/project.mk`); without one, send the PDF. `make docx FILE=<path>.md` copies Markdown.
-- Proofs go to `build/`. The issue copy, beside the `.tex` under the same basename, is made once at
-  `final` with `ISSUE=1`, which refuses a status outside `ISSUE_STATUSES` (`tooling/project.mk`)
-  and refuses to overwrite an issued file; never pass `FORCE=1` without the author's word.
+- Proofs go to `build/`. `ISSUE=1` issues once, at `final`, under the `.tex`'s basename, where the
+  store keeps records (`.claude/rules/syntek-author/09-data-root.md`); it refuses a status outside
+  `ISSUE_STATUSES` and an issued copy already there. Never `FORCE=1` without the author's word.
 
 ## Who implements it
 

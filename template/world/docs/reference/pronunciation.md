@@ -25,8 +25,8 @@ say.
 
 ## ElevenLabs, through the user-scope MCP server
 
-- The server is configured once, at user scope, under the name `elevenlabs`; the project adds
-  nothing to `.mcp.json`, so a collaborator without the server simply gets the fallback. Export
+- The server is configured once, at user scope, under the name `elevenlabs`; the project never
+  adds it to `.mcp.json`, so a collaborator without the server simply gets the fallback. Export
   the key in your shell (never type it on the command line or commit it), then run:
 
   ```bash
@@ -65,9 +65,9 @@ label fallback files as approximate.
 
 ## How we apply it here
 
-- Audio lives in the language's audio folder, named `<headword>.mp3` (or `.wav`), and
-  `world/src/.gitignore` keeps every language's audio out of Git: it is regenerable from the
-  IPA, and large binaries do not belong in plain Git.
+- Audio lives in the language's audio folder as `<headword>.mp3` (or `.wav`), kept out of Git by
+  `world/src/.gitignore` as regenerable and large; `make files-add FILE=<file> ROLE=generated`
+  files a kept copy under the data root where the project keeps one, and under `repo` does nothing.
 - The author listens and judges; a wrong result is regenerated on the author's word, or noted.
 - Names from a language are voiced with that language's voice, whichever character says them.
 

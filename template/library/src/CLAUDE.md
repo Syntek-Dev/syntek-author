@@ -66,6 +66,7 @@ promotion.
 - **Naming:** kebab-case; client slugs are short and identical in every family; each family's
   patterns are in its standard; versioned documents follow
   `library/docs/reference/versioning-and-the-register.md`.
-- **Generated (never hand-edit):** the issued PDF beside a `.tex`, and a Word copy that is sent,
-  copied from `build/` beside its source on the author's word, named as the issued PDF, and
-  committed with it.
+- **Generated (never hand-edit):** the issued PDF of a `.tex` (`make pdf … ISSUE=1`), and a Word
+  copy that is sent, on the author's word, named as the issued PDF. Both keep the source's path:
+  beside it and committed under the `repo` store, or filed under the data root with
+  `make files-add` under `external` (`.claude/rules/syntek-author/09-data-root.md`).

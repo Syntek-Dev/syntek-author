@@ -168,7 +168,9 @@ is a client's or the business's own; an HR or staff-conduct policy is a company 
    `planning/workflows/07-record-an-approval/` once the approver signs; add or update the register
    row through `planning/workflows/08-update-the-register/`, the next review in
    `planning/src/review-schedule.md`, and the listing in its folder's `CONTEXT.md`. Issue only on
-   the author's word: `make pdf FILE=<path>.tex ISSUE=1` refuses to overwrite an issued file.
+   the author's word: `make pdf FILE=<path>.tex ISSUE=1` issues the PDF at the source's path, in
+   the project's store (beside it, or filed under the data root:
+   `.claude/rules/syntek-author/09-data-root.md`), and refuses to overwrite an issued file.
    Sending it to a client is the author's act. *Complete when:* the approval, register and
    schedule rows are written and the author has the hand-back.
 

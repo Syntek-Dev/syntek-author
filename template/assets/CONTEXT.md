@@ -19,8 +19,12 @@ assets/
   `CLAUDE.md` pair, and nothing sits directly in `assets/` itself.
 - **Source files are kept.** Where an image has an editable source (an SVG, a layered file),
   the source sits beside the export, so the image can be changed without being redrawn.
-- **Very large files stay out of Git.** Audio masters, video and high-resolution scans belong in
-  external storage, with a note here saying where; generated audio and renders are git-ignored.
+- **Very large files stay out of Git.** Audio masters, video and high-resolution scans are filed
+  under the data root where the project keeps one (`.claude/rules/syntek-author/09-data-root.md`), from
+  wherever they are, with `make files-add FILE=<file> AS=assets/<kind>/<name> ROLE=asset`, so no
+  copy lands here; otherwise they belong in external storage, with a note here saying where.
+  `make files-status` warns about any file over 1 MiB in this folder. Generated audio and renders
+  are git-ignored.
 - The folder is empty apart from this pair until the first asset arrives.
 
 ## Cross-references

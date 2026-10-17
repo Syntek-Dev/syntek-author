@@ -17,7 +17,8 @@ Plans, registers and research do not: they live in `planning/` and `research/`.
 library/src/
 ├── CONTEXT.md              ← this file
 ├── CLAUDE.md               ← operating rules
-<: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>├── legal/                  ← contracts, NDAs, data processing agreements, terms, notices
+<: if DOC_TYPE == 'business' and DATA_STORE == 'external' :>├── .gitignore              ← keeps binary records out of Git: they are filed under the data root
+<: endif :><: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>├── legal/                  ← contracts, NDAs, data processing agreements, terms, notices
 <: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>├── email/                  ← client and supplier correspondence, authored and archived
 <: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>├── accounting/             ← invoices, expenses, financial reports, budgets, forecasts
 <: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>├── social-media/           ← social media plans, content calendars, profiles and bios
@@ -51,14 +52,20 @@ library/src/<family>/
 - **Drafts.** A section draft is a Markdown file at
   `library/src/<family>/drafts/<unit-slug>/<NN>-<section-slug>.md`. A drafts folder carries only
   its `README.md` and the drafts; it has no pair and is excluded from every build.
-- **Derived files.** A rendered PDF sits beside its `.tex` under the same basename once issued.
-  A Word copy that is sent is copied from `build/` beside its source on the author's word, named
-  as the issued PDF, and committed with it. An ingested original has its reading copy beside it as
-  `<name>.reading.md`. None is ever edited by hand.
-- **Drive copies.** Where the project syncs with Google Drive, a pull never overwrites a file here:
-  a Drive copy that differs is saved beside it as `<name>.drive-DD-MM-YYYY.<ext>` for the author
-  to compare. It is never pushed, built or promoted; the author decides what to keep, then deletes
-  it.
+- **Derived files.** A rendered PDF is issued once, under its `.tex`'s basename
+  (`make pdf FILE=<path>.tex ISSUE=1`), and a Word copy that is sent is named as the issued PDF.
+  Where both are kept follows the project's store (`.claude/rules/syntek-author/09-data-root.md`):
+  beside the source and committed with it, or filed under the data root at the same path. An
+  ingested original has its reading copy beside it as `<name>.reading.md`. None is ever edited by
+  hand.
+<: if DOC_TYPE == 'business' and DATA_STORE == 'external' :>- **Binary records** (issued and signed copies, ingested originals, scans, received statements)
+  are git-ignored here by `.gitignore` and filed under the data root with `make files-add`, each
+  with a row in `external.toml`; prose names one as `ext:<path>`. `make files-status` lists any
+  binary here that is neither in Git nor filed.
+<: endif :>- **Drive copies.** With the Google Drive workflows, where the project has them, a pull never
+  overwrites a file here: a Drive copy that differs is saved beside it as
+  `<name>.drive-DD-MM-YYYY.<ext>` for the author to compare. It is never pushed, built or
+  promoted; the author decides what to keep, then deletes it.
 
 ## Cross-references
 

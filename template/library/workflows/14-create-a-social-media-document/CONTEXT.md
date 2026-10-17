@@ -37,7 +37,8 @@ proposal to run a client's social media (the business family's create procedure)
   `planning/src/approvals/`) for every client named or quoted.
 - **The document** at the family root (the business's own) or
   `library/src/social-media/client-docs/<client-slug>/`, built through the loop, reviewed to
-  `final`, registered where the standard says, with its issue PDF beside a `.tex`.
+  `final`, registered where the standard says, with the issue PDF of a `.tex` beside it or filed
+  under the data root, as the project's store says.
 
 ## The failure this procedure exists to prevent
 
