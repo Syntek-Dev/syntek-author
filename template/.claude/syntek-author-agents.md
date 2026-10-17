@@ -84,6 +84,17 @@ anything that decides meaning; when in doubt, the work is substantive.
   `--write` adds the missing ones to the client files that already exist, changing only their
   permission keys; it never creates a file. Run it after changing `.claude/settings.json` or
   adding a client, with the author's agreement. Allow rules stay with each client.
+- **The data root stays out of the session.** A data root is a folder outside every repository
+  that holds a `.syntek-data-root` marker; this machine's is the one `SYNTEK_DATA_ROOT` names.
+  Claude Code's `PreToolUse` hook (where `.claude/settings.json` wires it) blocks its file tools'
+  edits and writes there, and its searches where it offers `Grep` and `Glob`; no other client
+  runs it. Never browse, search, list or edit anything under a data root, by any tool or shell
+  command. Reach its files only through the project's data-root commands: `make root` (the
+  root, the store, this project's layout and the provider's checklist), `make files-add`,
+  `make files-status`, `make files-verify`, `make files-pull` and `make files-plan`, which run
+  `python3 .claude/syntek-author-dataroot.py` (Python 3.11 or later). Open a file there only at
+  the path that tool's `path` subcommand prints. `.claude/rules/syntek-author/09-data-root.md`
+  says when each is used and what each refusal means; never work round one.
 - **Permission is not approval.** A client that lets you edit or run a command has not given the
   author's approval. Promotion, standards changes and anything the rules reserve to the author
   still need the author's explicit word.
@@ -94,10 +105,10 @@ anything that decides meaning; when in doubt, the work is substantive.
 
 | Client | Entrypoint | Project settings | Skills |
 |---|---|---|---|
-| Codex | `AGENTS.md` | `config.toml` in `.codex`: the `CLAUDE.md` fallback, the model | `skills` in `.agents` |
+| Codex | `AGENTS.md` | `config.toml` in `.codex`: the `CLAUDE.md` fallback, the model, the MCP servers and their prompts | `skills` in `.agents` |
 | Gemini CLI | `GEMINI.md` | `settings.json` in `.gemini`: model, MCP servers, excluded tools | `skills` in `.agents` |
 | Antigravity | `GEMINI.md` (and `AGENTS.md` where present) | `mcp_config.json` in `.agents`: MCP servers; model chosen in the app | `skills` in `.agents` |
-| OpenCode 2 or later | `AGENTS.md` | `opencode.json` (OpenCode 2's format): model, local server, permissions, no auto-compaction | `.claude/skills` and `skills` in `.agents` |
+| OpenCode 2 or later | `AGENTS.md` | `opencode.json` (OpenCode 2's format): model, local server, the MCP servers and their asks, permissions, no auto-compaction | `.claude/skills` and `skills` in `.agents` |
 
 - **Codex** loads this project's settings and its `CLAUDE.md` fallback only once you trust the
   project; a project marked untrusted loads no `AGENTS.md` at all. In each folder an
@@ -122,9 +133,27 @@ anything that decides meaning; when in doubt, the work is substantive.
   raise the server's setting and the number in `opencode.json` together. Test tool calling on a
   scratch repository before trusting a local model with a draft. Codex can use a local model
   only through your user-level Codex settings, never this project's.
-- **MCP servers.** Claude Code reads `.mcp.json`; Codex, Gemini CLI, Antigravity and OpenCode
-  each have their own file and format. Configure a server in each client you use, from that
-  client's current documentation; preserve existing entries and keep credentials out of Git.
+- **MCP servers.** Every project ships two, pinned and keyless, in `.mcp.json` and in each
+  client's own file: `scrapling` (web pages) and `code-review-graph` (a local map of the code).
+  Use them as `.claude/rules/syntek-author/06-global-rules.md` Section 13 says: ask the author
+  before each of the six asked browser tools, and never run `code-review-graph install` or
+  `scrapling install`. Codex and Gemini CLI start them only in a trusted project; OpenCode
+  starts them when it opens the project. The first start downloads them through `uvx`, and a
+  client may give up waiting once. The author runs these in their own terminal; a session never
+  runs them. They warm the cache and download the Chromium that Scrapling drives, without
+  administrator rights:
+
+  ```bash
+  uvx --from 'scrapling[ai]==0.4.15' --with 'playwright==1.63.0' --with 'patchright==1.63.0' scrapling --version
+  uvx code-review-graph==2.3.9 --version
+  uvx --from 'playwright==1.63.0' playwright install chromium
+  ```
+
+  Where that Chromium then fails to start for missing system libraries, Playwright's
+  `install-deps chromium` installs them with administrator rights: the author runs it, never a
+  session. An update offers the two servers once to each of these files that lacks them and
+  never adds back one you removed. Add any other server from that client's current
+  documentation; preserve existing entries and keep credentials out of Git.
 
 ## Another template in this project
 
@@ -137,8 +166,9 @@ author when they do not.
 ## Enabling a client in an existing project
 
 The entrypoints, `.agents` and the client settings are written once, when the project is
-generated: `copier update` never adds them, changes them or brings back one you deleted. It
-does keep this file and the model table in the rules up to date for the clients the answers
+generated: `copier update` never adds them or brings back one you deleted, and changes them only
+by adding each of the two shipped MCP servers once to a client file that lacks it. It does keep
+this file and the model table in the rules up to date for the clients the answers
 name. On the update that first asks which clients you use, the answer defaults to none. To add
 a client later:
 

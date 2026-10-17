@@ -29,7 +29,7 @@ than restating it.
 | `handoffs/` | working | Session bridges written by the `handoff` skill; pruned once the work resumes |
 | `learning/` | working | The `teach` workspace; nothing in it is the work |
 | `assets/` | working | Images and other binaries the work uses |
-<: if DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC :>| `.github/` | config | The Google Drive push and pull workflows |
+<: if DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo' :>| `.github/` | config | The Google Drive push and pull workflows |
 <: endif :>| `build/` | generated | Everything `make` produces; git-ignored, never hand-edited |
 
 ---
@@ -159,7 +159,7 @@ before the template arrived may carry one; obey it there. Section drafts and uni
 
 | Class | What `copier update` does | Files |
 |---|---|---|
-| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**` (except the seven family-shared `SKILL.md` files), `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
+| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**` (except the seven family-shared `SKILL.md` files), `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, `.claude/syntek-author-dataroot.py` and its map `.claude/syntek-author-dataroot.json`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
 | **Seed-if-missing** | creates the file only if it is absent, then never touches it | listed below |
 | **Seed-once example** | ships at generation only; once deleted, stays deleted | the worked example, when one was generated |
 | **Copy-only** | never touches, adds or recreates | the other coding agents' entrypoints, `.agents` and their settings, where generated or added by hand (`.claude/syntek-author-agents.md` lists them) |
@@ -254,7 +254,7 @@ template file that needs a project-specific value reads it there, by heading:
 1. `00-project.md`.
 2. The project rules, where `00-project.md` `## Paths` says ('Project rules'; by default
    `.claude/CLAUDE.md`, under the heading 'Project-specific rules').
-3. The template's rules files, `01-layout-and-routing.md` to `08-naming-and-memory.md`.
+3. The template's rules files, `01-layout-and-routing.md` to `09-data-root.md`.
 4. A folder's `CLAUDE.md`, which adds to the rules and never relaxes them; then a skill; then its
    mode file, where the procedure wins over the mode.
 

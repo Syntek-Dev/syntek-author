@@ -200,7 +200,78 @@ covers only the files Git tracks or would track
 opened only when the author names that file, or when it is output in `build/` that a skill has
 just made in order to read it.
 
+**The data root is off-limits too, whatever the store.** A data root is a folder outside every
+repository that holds a `.syntek-data-root` marker; this machine's is the one `SYNTEK_DATA_ROOT`
+names. Never search, list, edit or write anything under one, by any tool or shell command.
+Reach its files only through the data-root commands, and open one only at the path they print
+for it (`.claude/rules/syntek-author/09-data-root.md` Section 2); those commands are the one
+exception to the paragraph above, listing an ignored binary by its name and size, never its
+contents. The guard hook stops edits and writes there, and searches only where the client offers
+`Grep` and `Glob`: on macOS, Linux and WSL Claude Code searches through the shell, which the hook
+does not read, so there this rule alone keeps a search out of the root.
+
 **Why this rule exists.** Ignored folders are where credentials, client copies and local-only
 material are kept, precisely because they must never be committed. A search that reads them
 prints their lines into the session, and from there into a handoff, a review or a commit. The
-build follows the same rule (`.claude/rules/syntek-author/04-build-pipeline.md` Section 3).
+build follows the same rule (`.claude/rules/syntek-author/04-build-pipeline.md` Section 3). The
+data root holds the records themselves: a search there prints them too, and an edit in place
+breaks the checksum that proves a record unchanged.
+
+---
+
+## 13. Web and code tools
+
+<!-- BEGIN family-shared rules: web and code tools -->
+**Requirement.** Every project ships two MCP servers, pinned and keyless: `scrapling`, which
+fetches web pages, and `code-review-graph`, a local map of a repository's code. Use them only
+as this section says.
+
+- **Ask the author before each of `scrapling`'s six asked browser tools**: `stealthy_fetch`,
+  `bulk_stealthy_fetch`, `open_session`, `session_fetch`, `fetch` and `bulk_fetch`. Say which
+  site, why, and which tool. Claude Code asks before each of them by itself; in a client that
+  does not, ask in the conversation and wait. A configured server, or a tool the client lets you
+  run, is not the author's approval. `screenshot` loads a page in a browser session already
+  open: use it only on the site the author approved for that session, and ask before taking it
+  to any other site.
+- **Use the plainest tool that does the job**: the client's own web search or fetch first, then
+  `make_request` or `bulk_get`. Even these present a browser's fingerprint and headers to the
+  site, and no `scrapling` tool reads `robots.txt` or limits how fast it asks.
+- **`make_request`, `bulk_get` and `session_make_request` only read.** Send `make_request` and
+  `session_make_request` as a GET with no request body unless the author agrees to that request.
+  Never send any of the three to a loopback, private or link-local address (localhost,
+  127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, or a browser's
+  DevTools port), and never set `follow_redirects` to true, `verify` to false, or a `proxy`.
+  Codex runs these three without asking, because the server marks them read-only.
+- **Never set `real_chrome`, `cdp_url` or `executable_path` without the author's word for that
+  call**, and never use a stealth tool to get past a sign-in, a paywall, a challenge page or a
+  site that refuses automated access: whether that is allowed is the author's decision, not the
+  session's.
+- **Respect each site's terms of use, its `robots.txt` and the law**, including data protection
+  and copyright. This rule is not legal advice: where the position is unclear, stop and ask the
+  author. Record what was fetched, from where and when, in the project's record of provenance
+  where its rules name one.
+- **`code-review-graph`** maps the code of the repository a call names: by default this project,
+  whose graph it keeps in a `.code-review-graph` folder at the project root, which Git ignores.
+  It indexes the files Git tracks; while Git tracks nothing (a new project before its first
+  `git add`) it scans every file on disk, ignored ones included, so never build its graph before
+  the project's first commit. Never pass `repo_root`, and never call `list_repos_tool` or
+  `cross_repo_search_tool`, without the author's word: they reach other repositories on this
+  machine and a registry in the home folder. `apply_refactor_tool` rewrites files and
+  `generate_wiki_tool` writes pages, so both ask first; its cloud-embedding tool is never
+  offered, and its cloud keys stay blank.
+- **Never run `code-review-graph install`, `init` or `uninstall`, or `scrapling install`.** The
+  first three rewrite the agent files every template shares, the project's settings, skills and
+  Git hooks, and configuration outside the project; `scrapling install` installs system packages
+  with administrator rights. The author runs the commands that fetch the servers and their
+  browser, in their own terminal.
+
+**Why this rule exists.** `scrapling`'s stealth tools are built to look like a person's browser
+and to get through anti-bot protection, so a site cannot tell them from a visitor. Its
+`real_chrome` option launches the Chrome installed on this machine, with a fresh profile;
+`cdp_url` hands the session control of any browser that exposes DevTools at that address, on
+this machine or another; `executable_path` launches whatever program it names. Every request
+comes from the machine and network address of the browser that sends it, the author's or the
+one `cdp_url` names: what a session fetches is the author's act, not the tool's.
+`code-review-graph`'s installer replaces the pinned, keyless entries with an unpinned one that
+offers the cloud-embedding tool.
+<!-- END family-shared rules: web and code tools -->
