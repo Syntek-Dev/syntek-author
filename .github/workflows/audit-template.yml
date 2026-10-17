@@ -19,6 +19,18 @@ name: Audit — Template Integrity
 # must never contain the dollar-brace-brace sequence at all: GitHub parses it anywhere in a
 # workflow file, even inside a run block. Render paths are a shell loop instead.
 #
+# NO DATA ROOT. SYNTEK_DATA_ROOT is never set here (DESIGN.md D50, Section 7): a fresh render
+# keeps its binaries under a data root, and no test may reach a real one. Every audit unsets it
+# when it sources _common.sh; the two Python self-tests run under `env -u SYNTEK_DATA_ROOT`, and
+# the resolver's own self-test never reads the inherited variable. A case that needs a root
+# makes a temporary one holding its own marker.
+#
+# ONE PYTHON, AND THE COPIER FLOOR. Every job runs Python 3.12: the resolver and the permissions
+# script need 3.11 (tomllib), and Copier, the newest and the declared floor alike, needs 3.10.
+# UV_PYTHON keeps every uvx Copier on that same interpreter. The renders use the newest Copier;
+# job [2/3] renders four profiles again on copier.yml's _min_copier_version (DESIGN.md D2)
+# and compares them byte for byte, as run-all.sh's check 4 does.
+#
 # Locally, one command does all three: bash .github/scripts/run-all.sh
 on:
   push:
@@ -32,6 +44,8 @@ permissions:
 env:
   # Copier commits inside its own scratch repositories during an update, and the runner has no
   # git identity; without one, every update test fails on "Please tell me who you are".
+  # UV_PYTHON is uv's --python: every uvx Copier runs on the Python the jobs set up.
+  UV_PYTHON: "3.12"
   GIT_AUTHOR_NAME: syntek-author audit
   GIT_AUTHOR_EMAIL: audit@example.com
   GIT_COMMITTER_NAME: syntek-author audit
@@ -71,12 +85,19 @@ jobs:
           done
           exit $status
 
-      # The one Python script whose classes, refresh and printed commands no audit renders a
+      # The Python script whose classes, refresh and printed commands no audit renders a
       # project to judge alone (DESIGN.md D52): its own self-test builds scratch projects with
-      # git and proves each class, the refresh and the settings additions.
+      # git and proves each class, the refresh, the settings additions and the MCP lane (D54).
       - name: Prove the update report script
         if: always()
-        run: python3 migrations/family-update.py --self-test
+        run: env -u SYNTEK_DATA_ROOT python3 migrations/family-update.py --self-test
+
+      # The data-root resolver every project ships (DESIGN.md D50, D53): its self-test makes
+      # its own temporary roots, each holding its own marker, and never reads the inherited
+      # SYNTEK_DATA_ROOT (unset here as well). shipped-variants runs it again in every render.
+      - name: Prove the data-root resolver
+        if: always()
+        run: env -u SYNTEK_DATA_ROOT python3 template/.claude/syntek-author-dataroot.py --self-test
 
       # Every shell script this repository runs or ships: the migrations copier update runs in an
       # author's project, the adoption scripts, these audits, and the template's hooks. Warning
@@ -151,6 +172,34 @@ jobs:
             bash ".github/scripts/$s.sh" $extra "${trees[@]}" \
               || { echo "::error::$s — findings in the renders"; status=1; }
             echo "::endgroup::"
+          done
+          exit $status
+
+      # The declared floor (copier.yml _min_copier_version; DESIGN.md D2). The renders above
+      # take the newest Copier; these four profiles (each variant as a fresh copy makes it, and
+      # business-all-on, which ships .github/) are rendered again on exactly the floor, and must
+      # be the newest's renders byte for byte: only .git (the record of the run) and the answers
+      # file's _commit and _src_path (each run renders its own snapshot) may differ.
+      - name: Prove the declared Copier floor
+        if: always()
+        run: |
+          floor="$(grep -m1 -E '^_min_copier_version:' copier.yml | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)"
+          [ -n "$floor" ] || { echo "::error::copier.yml declares no _min_copier_version"; exit 1; }
+          echo "the declared floor: Copier $floor"
+          only=theology-defaults,fiction-defaults,business-defaults,business-all-on
+          COPIER_CMD="uvx copier==$floor" bash .github/scripts/generate-all.sh "$RUNNER_TEMP/floor" --only "$only" > /dev/null \
+            || { echo "::error::generate-all — a render fails on Copier $floor, the declared floor"; exit 1; }
+          answers=.copier-answers.syntek-author.yml
+          status=0
+          for n in $(printf '%s' "$only" | tr ',' ' '); do
+            if [ ! -d "$RUNNER_TEMP/renders/$n" ]; then
+              echo "::error::$n — no render on the newest Copier to compare the floor with"; status=1; continue
+            fi
+            diff -rq --no-dereference --exclude=.git --exclude="$answers" "$RUNNER_TEMP/renders/$n" "$RUNNER_TEMP/floor/$n" \
+              || { echo "::error::$n renders differently on Copier $floor, the declared floor"; status=1; }
+            diff <(grep -vE '^(_commit|_src_path):' "$RUNNER_TEMP/renders/$n/$answers") \
+                 <(grep -vE '^(_commit|_src_path):' "$RUNNER_TEMP/floor/$n/$answers") \
+              || { echo "::error::$n records other answers on Copier $floor, the declared floor"; status=1; }
           done
           exit $status
 

@@ -17,7 +17,10 @@
 #                 in any file) — a generic list of common diagnoses and conditions.
 #              3. Source-repository names: syntek-base here; the PRIVATE source repositories'
 #                 names live in the deny-list (check 9), for the same reason client names do.
-#              4. Absolute paths: /home/…, /Users/…, /mnt/…, /root/…, C:\Users\….
+#              4. Absolute paths: /home/…, /Users/…, /mnt/…, /root/…, C:\Users\…; and, at
+#                 the start of a path, /media/…, /srv/… and /Volumes/…, where a machine's
+#                 drives and a data root are mounted (DESIGN.md D50: a root belongs to one
+#                 machine, never to a shipped file). `assets/media/` and `$HOME/…` are not.
 #              5. An email address outside the reserved example domains.
 #              6. A telephone number (+44 …, or a UK mobile 07…).
 #              7. A money amount (£ or € followed by a figure, GBP/USD/EUR and a figure) —
@@ -106,7 +109,7 @@ PATTERNS=$(cat <<'EOF'
 1	-iE	sambailey|sam-dev|syntekstudio|syntek studio
 2	-iE	autism|autistic|(^|[^A-Za-z])adhd([^A-Za-z]|$)|dyspraxi|neurodiverg|dyslexi|dyscalcul|(^|[^A-Za-z])spld([^A-Za-z]|$)
 3	-iE	syntek-base
-4	-E	/home/[A-Za-z]|/Users/[A-Za-z]|/mnt/[A-Za-z]|/root/|[A-Za-z]:\\(Users|home)\\
+4	-E	/home/[A-Za-z]|/Users/[A-Za-z]|/mnt/[A-Za-z]|/root/|[A-Za-z]:\\(Users|home)\\|(^|[^A-Za-z0-9._~})-])/(media|srv|Volumes)/[A-Za-z0-9]
 5	-E	[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
 6	-E	\+44[ 0-9()-]{9,}|(^|[^0-9])07[0-9]{3} ?[0-9]{3} ?[0-9]{3}([^0-9]|$)
 7	-E	(£|€) ?[0-9]|(^|[^A-Za-z])(GBP|USD|EUR) ?[0-9]
@@ -163,6 +166,7 @@ self_test() {
 Write to robin@example.com. Fees are written in <%CURRENCY%> (for example £ as a sign alone).
 The script reads $1 and loops 2027 times; the hook lives in .claude/hooks/; temporary files go
 in ${TMPDIR:-/tmp}. Bible references such as John 3:16 are not numbers to scrub.
+Cover art sits in assets/media/covers; a data root is written $HOME/Data or ${XDG_DATA_HOME}/srv/x.
 EOF
   local denylist="$tmp/deny"
   printf '# client names, kept outside the repository\nharbour-and-reed\n' > "$denylist"
@@ -174,6 +178,9 @@ EOF
     "2|Written for a reader with dyspraxia."
     "3|Ported from syntek-base."
     "4|See /home/someone/notes.md."
+    "4|Set the data root to /Volumes/Archive/Data on the Mac."
+    "4|Or mount the drive at /media/robin/archive first."
+    "4|The server keeps the records in \"/srv/records\"."
     "5|Email ada.quill@gmail.com for a copy."
     "6|Call 07700 900123 after six."
     "7|The retainer is £1,200 a month."

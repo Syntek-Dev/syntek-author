@@ -5,7 +5,9 @@ syntek-author still generates what `DESIGN.md` promises, and the workflow that r
 push. Nothing here is rendered — `_subdirectory: template` keeps the repository root out of every
 generated project — so nothing here ships, and nothing here may assume it will. The business
 variant's Google Drive workflows are a different thing entirely: they live in `template/.github/`,
-are gated on `INCLUDE_DRIVE_SYNC`, and ship.
+and ship only to a business project that answers `DATA_PROVIDER` google-drive and keeps its files
+in the repository (`DATA_STORE` repo); a store guard step in each stops it if the project's
+answers record any other store (DESIGN.md D37, D53).
 
 ## Directory Tree
 
@@ -39,5 +41,6 @@ only place the failure becomes visible before an author meets it.
 
 - `DESIGN.md` Section 7 — the audit list and what each one checks; this folder implements it.
 - `copier.yml` — the gates, seeds and questions the audits read.
-- `template/.github/` — the shipped Drive workflows (business), unrelated to these.
+- `template/.github/` — the shipped Drive workflows (business, with `DATA_PROVIDER` google-drive
+  and `DATA_STORE` repo), unrelated to these.
 - `adopt/` — the adoption scripts `scripts/adopt-test.sh` runs before its copy.

@@ -50,9 +50,10 @@
 #                   11. The refused update touched nothing: the clone's work tree is clean and
 #                       its answers file still records the original DOC_TYPE.
 #                   12. The update printed the option-off warning (_message_before_update),
-#                       naming every INCLUDE_* option and BUSINESS_FAMILIES — the only warning
-#                       an author gets before an option turned off deletes the seeds they
-#                       filled in.
+#                       naming every INCLUDE_* option, DATA_PROVIDER (D53), DATA_STORE=repo
+#                       (D50: the off value of the store deletes the data-root ignore files)
+#                       and BUSINESS_FAMILIES — the only warning an author gets before an
+#                       option turned off deletes the seeds they filled in.
 #                   13. Business: the update from v0.1.0 to the tree tagged VERSION succeeds,
 #                       and the v0.2.0 migration runs.
 #                   14. Every author file planted in a v0.1.0 family folder, and the kept
@@ -156,8 +157,9 @@
 #                       edited one is untouched; settings.json gains the threshold hook once,
 #                       beside the owner's allow rule.
 #                   47. Beyond the update's own changes (a copy updated with
-#                       SYNTEK_UPDATE_REPORT=off), only those shared files and settings.json
-#                       changed.
+#                       SYNTEK_UPDATE_REPORT=off), only those shared files, settings.json and
+#                       the files the MCP lane said it wrote (D54: the fixture's third release
+#                       declares the servers in .mcp.json, which the lane adds) changed.
 #                   48. Every printed command runs offline, each in a fresh copy.
 #                   49. A hand rerun of the update stage at the same versions changes nothing
 #                       (files and refs); a second update with nothing new is one quiet line.
@@ -196,7 +198,100 @@
 #                   59. The render record names no path of this machine: no tree of
 #                       refs/syntek-author/template's chain holds a .copier-answers.* file, and
 #                       no blob or message holds the template's or the project's absolute path,
-#                       Copier's temporary clone (copier._vcs.clone) or an _src_path line.
+#                       Copier's temporary clone (copier._vcs.clone) or an _src_path line (in a
+#                       blob, one that starts the line, as an answers file writes it); no
+#                       'mcp:' or 'written-blob:' line (D54) names a path that is absolute or
+#                       leaves the project. Also judged on the real D54 project below.
+#
+#                  The data root, the provider and the MCP servers on real updates (DESIGN.md
+#                  D50, D53, D54), on the real template: the working tree is tagged as the
+#                  release its newest _migrations entry names (v0.5.0), and a later release
+#                  (DT_NEXT) is made on a side branch, changing a rule and two copy-only files.
+#                  Once per run, on the first DOC_TYPE: a project copied at v0.4.0 with every
+#                  client, whose owner has their own server and an older Scrapling pin in a
+#                  four-space .mcp.json, reformatted opencode.json with a catch-all allow and
+#                  deleted .gemini/settings.json, is updated, --write run as printed, then
+#                  updated to DT_NEXT and again; a copy of it, whose owner removes two servers,
+#                  is updated to DT_NEXT; a project whose owner allows mcp__scrapling__*, keeps
+#                  .mcp.json out of git and runs a Drive workflow of their own is updated, and
+#                  so is its copy beside a sibling answers file that records external; a fresh
+#                  copy with its own area and slug goes repo and back. On every DOC_TYPE, the
+#                  update from v0.3.0 (checks 31–34) is judged too. For business, once: Drive
+#                  projects from v0.4.0 and v0.3.0, then another provider, external, the
+#                  settings trap and a sibling in both orders.
+#                   60. D54: the nine rules arrive once: .claude/settings.json denies
+#                       embed_graph_tool once and asks each of the eight tools once (from
+#                       v0.4.0 and from v0.3.0).
+#                   61. D54: .mcp.json and each existing client file declare each server once,
+#                       equal to the new render's (an entry the owner already had excepted),
+#                       and keep every key, value and list item they held, in order:
+#                       .mcp.json, .agents/mcp_config.json and .codex/config.toml after the
+#                       update, opencode.json after --write and the next one; from v0.3.0,
+#                       .mcp.json.
+#                   62. D54: a deleted client file stays deleted and none is created.
+#                   63. D54: Codex gains its prompt tables: each server's tools tables in
+#                       .codex/config.toml are the new render's.
+#                   64. D54: the update prints the permissions script's --write line; run as
+#                       printed it exits 0, then --check exits 0, and again after the next
+#                       update.
+#                   65. D54: a server the owner removed after the offer is not re-added: one
+#                       removed before the update was ever committed (only the record knows the
+#                       offer), one removed after a commit that held it.
+#                   66. D54: an owner's differing entry is kept and reported once: one line on
+#                       the update, none on the next.
+#                   67. D54: a git-ignored .mcp.json keeps its bytes and mtime, and the update
+#                       says so in exactly one line.
+#                   68. D54: where the owner allows mcp__scrapling__*, no Scrapling ask is
+#                       added (the other rules are, and the allow is kept), and each one left
+#                       out is reported 'because you allow it'.
+#                   69. D54: an owner's catch-all allow in opencode.json leaves no tool
+#                       unprompted: the servers are held back there, named in the --write line,
+#                       and after --write the next update adds them with an ask for every tool
+#                       the settings ask about.
+#                   70. D54: no file only the lane wrote is listed under 'you had changed them'
+#                       by the next update, and a second update is a quiet no-op (exit 0, a
+#                       clean tree, the one report line).
+#                   71. D50: an update from v0.4.0 or v0.3.0 with --defaults records DATA_STORE
+#                       repo and none of DATA_AREA, DATA_SLUG or the kinds, delivers the resolver
+#                       and its map, no data-root ignore file, and never wires the guard.
+#                   72. D50: choosing external on an update delivers the ignore files and
+#                       untracks nothing (a tracked PDF stays tracked under the new ignore
+#                       rule), with DATA_SLUG the real folder's kebab name.
+#                   73. D50: an owner's own research/src/.gitignore is listed under CONFLICT
+#                       when external is chosen.
+#                   74. D50: a DATA_AREA change of case alone is refused by DATA_AREA's
+#                       validator, with the tree clean and the area unchanged.
+#                   75. D50: the v0.5.0 migration runs before the update report, its copier.yml
+#                       entry sits before the update block, and two hand runs exit 0, print the
+#                       same report and change nothing.
+#                   76. D50: no hidden data-root answer gives the report a false line: no
+#                       template-owned file that reads a data-root answer is listed in any
+#                       section of a crossing update's report.
+#                   77. D50: beside a sibling answers file that records external, the first
+#                       update defaults to external, with the sibling's area and slug.
+#                   78. D50: a v0.4.0 business Drive project, and a fresh v0.5.0 sibling, in
+#                       both orders, records repo and google-drive and keeps .github/.
+#                   79. D50: the round trip: external with its own area and slug, repo (which
+#                       records neither), external with --defaults (the defaults re-derived);
+#                       the resolver's status names the old folder from filed_under and prints
+#                       the --data arguments, which restore the layout.
+#                   80. D50: a scratch settings file with DATA_STORE external makes a v0.4.0
+#                       business Drive project's update record external and delete .github/,
+#                       and the report lists the edited workflow (the hazard, documented).
+#                   81. D53: a business project with INCLUDE_DRIVE_SYNC true and an edited
+#                       Drive workflow, from v0.4.0 and from v0.3.0, updates with --defaults to
+#                       DATA_PROVIDER google-drive and DATA_STORE repo, records no
+#                       INCLUDE_DRIVE_SYNC, leaves no conflict in .github/, keeps the edit and
+#                       merges the store guard step into both workflows.
+#                   82. D53: a project without Drive (theology, and business with false)
+#                       records DATA_PROVIDER none and gains no .github/.
+#                   83. D53: another provider, or external, deletes .github/, and the report
+#                       lists the edited workflow under 'DELETED … although you had changed
+#                       them'.
+#                   84. D53: a second update of the Drive project changes nothing.
+#                   85. D53: the v0.5.0 migration lists a Drive workflow the answers no longer
+#                       manage and a seed line that names INCLUDE_DRIVE_SYNC, and lists no
+#                       workflow the answers still manage.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -205,9 +300,11 @@
 #                  Numbers are stable identifiers. Append, never renumber.
 #
 #                  What it CANNOT check: an upgrade from any release but v0.1.0 (and v0.3.0 for
-#                  checks 31–34), or a migration
+#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85), or a migration
 #                  the update does not reach (a later release's script needs its own flow here,
-#                  written with the release that moves the folder: DESIGN.md D26, D44).
+#                  written with the release that moves the folder: DESIGN.md D26, D44); a real
+#                  syntek-media beside it (an invented sibling answers file stands in: the
+#                  coexistence test runs both templates); whether a client honours the files.
 #
 # SELF-TEST. --self-test runs the whole flow against a fixture template written at runtime,
 #            proves the result clean, then mutates the result once per check and asserts
@@ -218,11 +315,16 @@
 #            and both upgrades run for real. For checks 31–34 the fixture's v0.1.0, which
 #            predates its agent questions, stands in for v0.3.0. For checks 40–43 the fixture
 #            is given the real migrations/agents-outside-link.py and the real family-shared
-#            migrations block of copier.yml, and every update runs for real.
+#            migrations block of copier.yml, and every update runs for real. The report
+#            fixture runs the real D54 lane (checks 47 and 59). Checks 60–85 need the real
+#            template, so the self-test writes the trees, logs and statuses a clean run leaves
+#            (dt_synth) and mutates one input per probe, which proves every judge too.
 #
-# Requirements: bash 4+, git, rsync, uvx (or COPIER_CMD), and the v0.1.0 and v0.3.0 tags in
-#               the template repository (CI checks out with fetch-depth 0). Network on the
-#               first uvx run only.
+# Requirements: bash 4+, git, rsync, Python 3.11+ (tomllib), uvx (or COPIER_CMD), and the
+#               v0.1.0, v0.3.0 and v0.4.0 tags in the template repository (CI checks out with
+#               fetch-depth 0). Network on the first uvx run only. The environment's
+#               SYNTEK_DATA_ROOT is never seen (_common.sh unsets it): the round trip makes
+#               its own root, with its marker, and passes it to each resolver command.
 #
 # Usage: update-test.sh [--root DIR] [--doc-type T[,T…]] [--quiet] [--self-test] [--help]
 #        --doc-type defaults to theology,fiction,business.
@@ -277,7 +379,9 @@ NEW_MODEL="update-test/update-test-model"
 DOCTYPE_REFUSAL="DOC_TYPE cannot change on update"
 MESSAGE_MARK="Before you answer: turning an option off deletes"
 # What the warning must name: each option as `KEY=false`, and the family list by its key.
-MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLANG=false INCLUDE_REFERENCES=false INCLUDE_SENSITIVE_CONTENT=false INCLUDE_DRIVE_SYNC=false BUSINESS_FAMILIES"
+# DATA_PROVIDER is D53's row (it replaced INCLUDE_DRIVE_SYNC=false) and DATA_STORE=repo D50's: the
+# table names the store's off value, which deletes the data-root ignore files.
+MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLANG=false INCLUDE_REFERENCES=false INCLUDE_SENSITIVE_CONTENT=false DATA_PROVIDER DATA_STORE=repo BUSINESS_FAMILIES"
 
 # State the checks read. --self-test mutates it.
 DOC=""; PROJ=""; COPY_STATUS=0; UPDATE_STATUS=0; AUTHOR_FILE=""; AUTHOR_SUM=""; TARGET_REL=""
@@ -425,13 +529,15 @@ brief_value() { # $1 = 00-project.md, $2 = label → the value of that bullet un
     }' "$1" 2>/dev/null
 }
 
-# The real repository as a template with history: its tags (v0.1.0, v0.3.0) and the working
-# tree committed on top, tagged with VERSION, so Copier sees a release to upgrade to. When
-# VERSION is already a release tag (unreleased work on top of it), that tag stays where the
+# The real repository as a template with history: its tags (v0.1.0, v0.3.0, v0.4.0) and the
+# working tree committed on top, tagged with VERSION, so Copier sees a release to upgrade to.
+# When VERSION is already a release tag (unreleased work on top of it), that tag stays where the
 # release put it: Copier reads the untagged commit as a later version (v0.3.0-1-g…), and the
-# Trap 1 flow can still copy the real release.
+# Trap 1 flow can still copy the real release. Unreleased work whose newest _migrations entry
+# names a later release than VERSION is tagged as that release: an update runs a migration only
+# up to the version it updates to, so v0.4.0-1-g… would never run the v0.5.0 migration.
 tagged_template() { # $1 = template repository, $2 = dest
-  local src="$1" dest="$2" ver
+  local src="$1" dest="$2" ver top
   git -C "$src" rev-parse -q --verify "refs/tags/$MIGRATION_FROM" >/dev/null 2>&1 \
     || die "$src has no $MIGRATION_FROM tag — the upgrade cannot be proven (git fetch --tags; CI needs fetch-depth: 0)"
   git clone -q --no-local "$src" "$dest" || die "could not clone $src"
@@ -440,6 +546,8 @@ tagged_template() { # $1 = template repository, $2 = dest
   sa_git "$dest" add -A && sa_git "$dest" commit -q --allow-empty -m 'update-test: the working tree' || die "could not commit the working tree"
   ver="v$(tr -d '[:space:]' < "$dest/VERSION" 2>/dev/null)"
   [[ "$ver" != v ]] || die "no VERSION in $src"
+  top="$(grep -oE '^  - version: v[0-9]+\.[0-9]+\.[0-9]+$' "$dest/copier.yml" | awk '{ print $3 }' | sort -V | tail -1 || true)"
+  [[ -z "$top" ]] || ver="$(printf '%s\n' "$ver" "$top" | sort -V | tail -1)"
   if ! git -C "$dest" rev-parse -q --verify "refs/tags/$ver" >/dev/null 2>&1; then
     sa_git "$dest" tag "$ver" >/dev/null
   fi
@@ -606,9 +714,14 @@ run_trap_flow() { # $1 = template repository WITH the tag, $2 = work dir, $3 = D
   [[ "$TRAP_COPY_STATUS" -eq 0 ]] || return 0
   [[ -d "$TRAP_PROJ/.git" ]] || sa_git "$TRAP_PROJ" init -q
   sa_git "$TRAP_PROJ" add -A && sa_git "$TRAP_PROJ" commit -q -m "generated at $TRAP_FROM" >>"$log" 2>&1
+  # What checks 60, 61, 71, 76 and 82 read in the real run (TD_*; D50, D53, D54).
+  TD_DOC="$TRAP_DOC"; TD_PROJ="$TRAP_PROJ"; TD_LOG="$w/trap-update.log"; TD_PRE="$w/trap-pre"; TD_TPL="$w/trap-tpl"
+  dt_keep "$TRAP_PROJ" "$TD_PRE"
   # A scripted update: --defaults, no AGENT_CLIENTS given (sa_update passes --defaults).
-  sa_update "$TRAP_PROJ" >>"$log" 2>&1 || TRAP_UPDATE_STATUS=$?
+  sa_update "$TRAP_PROJ" >"$TD_LOG" 2>&1 || TRAP_UPDATE_STATUS=$?
+  cat "$TD_LOG" >>"$log"
   TRAP_RECORDED="$(grep -E '^AGENT_CLIENTS:' "$TRAP_PROJ/$SA_ANSWERS_FILE" 2>/dev/null | head -1)"
+  dt_record "$TRAP_PROJ" "$TD_TPL"
 }
 
 trap_checks() {
@@ -1002,7 +1115,10 @@ tpl_file() { # $1 = template repo, $2 = ref, $3 = path under template/, $4 = des
 report_fixture() { # $1 = dest
   local t="$1"
   sa_fixture_template "$t" >/dev/null
-  sa_add_update "$t" syntek-author "$RP_SHARED $RP_ARRIVES" || die "could not give the fixture the update script"
+  sa_add_update "$t" syntek-author "$RP_SHARED $RP_ARRIVES" mcp || die "could not give the fixture the update script"
+  # D54: the first two releases declare no MCP server in the seed .mcp.json; the third does, so
+  # the update to it runs the real lane, which adds them to the owner's unedited file.
+  printf '{\n  "mcpServers": {}\n}\n' > "$t/template/.mcp.json"
   rm -rf "${t:?}/template/.claude/skills/to-questionnaire"
   mkdir -p "$t/template/notes"
   printf '# Retired notes\n\nTemplate-owned; release 1.\n' > "$t/template/notes/retired.md"
@@ -1020,6 +1136,7 @@ report_fixture() { # $1 = dest
   printf '\nRelease 3.\n' >> "$t/template/planning/src/units/01-example-chapter.md"
   printf '# A second example brief\n' > "$t/template/planning/src/units/02-example-chapter.md"
   printf '# Shared notes\n\nCopy-only; release 3.\n' > "$t/template/notes/shared.md"
+  printf '%s' "$SA_MCP_SHARED" > "$t/template/.mcp.json"
   mkdir -p "$t/template/.claude/skills/to-questionnaire"
   printf -- '---\nname: to-questionnaire\ndescription: A shared skill.\n---\n\n# Skill: to-questionnaire\n' > "$t/template/$RP_ARRIVES"
   python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" <<'PY'
@@ -1125,7 +1242,7 @@ run_report_flow() { # $1 = work dir — the fixture flow, the same in the real r
 }
 
 report_checks() {
-  local L="[report fixture]" path sec got line k rc n first
+  local L="[report fixture]" path sec got line k rc n first lane
   if [[ "$RP_COPY" -ne 0 ]]; then finding "check 44 — $L the fixture did not copy at v0.1.0 (exit $RP_COPY)"; return 0; fi
   if [[ "$RP_STATUS" -ne 0 ]] || ! grep -qF "$RP_HEAD" "$RP_LOG"; then
     finding "check 44 — $L the update to v0.3.0 failed (exit $RP_STATUS) or printed no update report — see $RP_LOG"
@@ -1152,8 +1269,11 @@ d = json.load(open(sys.argv[1]))
 ups = [h for e in d.get("hooks", {}).get("UserPromptSubmit", []) for h in e.get("hooks", [])]
 sys.exit(0 if len(ups) == 1 and "context-threshold-handoff.sh" in ups[0]["command"] and d["permissions"]["allow"] == ["Bash(make *)"] else 1)
 PY
-  [[ "$RP_BEYOND" == "$(printf '%s\n' .claude/settings.json .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md | LC_ALL=C sort | paste -sd' ' -)" ]] \
-    || finding "check 47 — $L beyond the update's own changes, the report changed '${RP_BEYOND:-nothing}' — only the refreshed and added shared files and settings.json may change"
+  # The files the MCP lane said it wrote (D54) are allowed too, and only those.
+  lane="$(sed -nE 's/^▸ [^:]+: added [0-9]+ MCP servers? to ([^ :]+)( \(.*\))?: .*/\1/p' "$RP_LOG" | LC_ALL=C sort -u)"
+  # shellcheck disable=SC2086  # one argument per path the lane wrote
+  [[ "$RP_BEYOND" == "$(printf '%s\n' .claude/settings.json .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md $lane | LC_ALL=C sort -u | paste -sd' ' -)" ]] \
+    || finding "check 47 — $L beyond the update's own changes, the report changed '${RP_BEYOND:-nothing}' — only the refreshed and added shared files, settings.json and the files the MCP lane wrote may change"
   [[ -z "$RP_CMD_FAILS" && "${RP_CMD_COUNT:-0}" -ge 12 ]] \
     || finding "check 48 — $L a printed command failed offline, or too few were printed (${RP_CMD_COUNT:-0}): ${RP_CMD_FAILS:-none failed}"
   [[ -z "$RP_RERUN_CHANGED" ]] || finding "check 49 — $L a second run of the update stage at the same versions changed something: $RP_RERUN_CHANGED"
@@ -1285,8 +1405,15 @@ sm_abs() { # $1 = project, $2 = template path, $3 = project path
       git -C "$1" ls-tree -r --name-only "$rev" | grep -E '(^|/)\.copier-answers\.' | sed "s/^/answers file in $rev: /" || true
     done
     # shellcheck disable=SC2086  # one argument per commit
-    git -C "$1" grep -l -F -e "$2" -e "$3" -e 'copier._vcs.clone' -e '_src_path:' $revs 2>/dev/null || true
+    git -C "$1" grep -l -F -e "$2" -e "$3" -e 'copier._vcs.clone' $revs 2>/dev/null || true
+    # An _src_path line is a rendered answers file's, at the start of a line: the resolver
+    # holds the text inside a string of its self-test, which names no path of this machine.
+    # shellcheck disable=SC2086  # one argument per commit
+    git -C "$1" grep -l -E -e '^_src_path:' $revs 2>/dev/null || true
     git -C "$1" log --format=%B refs/syntek-author/template | grep -F -e "$2" -e "$3" -e 'copier._vcs.clone' -e '_src_path:' || true
+    # D54: an 'mcp:' or 'written-blob:' line's path is project-relative, inside the project.
+    git -C "$1" log --format=%B refs/syntek-author/template \
+      | awk '($1 == "mcp:" || $1 == "written-blob:") && ($2 ~ /^[\/~]/ || $2 ~ /^[A-Za-z]:/ || $2 ~ /(^|\/)\.\.(\/|$)/) { print "record line: " $0 }' || true
   } | head -3 | paste -sd' ' -
 }
 
@@ -1385,6 +1512,1021 @@ sm_checks() {
   return 0
 }
 
+# ── The data root, the provider and the MCP servers on real updates (D50, D53, D54) ──
+#
+# Checks 60–85, on the real template: a project copied at v0.4.0 (or v0.3.0) is updated to the
+# working tree, tagged as the release its newest _migrations entry names, and then to one later
+# release made here on a side branch (DT_NEXT), so that an update after the crossing one has
+# something to deliver. Each flow keeps what the checks read: copies of the files before and
+# after, the new render's files from the render record (refs/syntek-author/template), the logs
+# and the exit statuses. The judges run when the checks run, so --self-test proves them on
+# synthetic trees it writes (dt_synth) with one mutation per check.
+
+DT_FROM="v0.4.0"                   # the release before D50, D53 and D54
+DT_NEXT=""                         # the later release next_release tags (v0.5.1 for v0.5.0)
+DT_MIG_SCRIPT="migrations/v0.5.0-data-root.sh"
+DT_MIG_MARK="▸ v0.5.0 migration — the data root and the provider"
+DT_MIG_ENTRY="  - version: v0.5.0"
+DT_PERMS=".claude/syntek-author-permissions.py"
+DT_WRITE_LINE="run: python3 $DT_PERMS --write"
+DT_OWNER_SERVER="owner-notes"      # an invented server the owner declared before the update
+DT_DIFF_LINE='kept your "scrapling" MCP server in .mcp.json'
+DT_IGNORED_LINE='.mcp.json is ignored by git, so it was not read'
+DT_ALLOW_LINE='not added to .claude/settings.json, because you allow it'
+DT_DRIVE_LIST="These workflows name Google Drive's API"
+DT_STALE_DRIVE="v0.5.0: DATA_PROVIDER replaces INCLUDE_DRIVE_SYNC"
+DT_SAME="the template did not change"
+DT_CHANGED_SEC="NOT UPDATED because you had changed them"
+DT_DELETED_SEC="DELETED by this update although you had changed them"
+DT_PULL=".github/workflows/google-drive-pull.yml"
+DT_PUSH=".github/workflows/google-drive-push.yml"
+DT_CRON_OLD="- cron: '0 6 \* \* \*'"     # a sed pattern: the pull workflow's schedule in v0.3.0 and v0.4.0
+DT_CRON_NEW="- cron: '30 5 * * 1-5'"     # the owner's own schedule
+DT_PDF="library/src/business/update-test-issued.pdf"
+# Invented folder names and answers. Each folder's kebab name is what DATA_SLUG's default gives.
+DT_EXT_DIR="Ext_Probe Project.v2";  DT_EXT_SLUG="ext-probe-project-v2"
+DT_RT_DIR="Round Trip_Probe";       DT_RT_SLUG_DEFAULT="round-trip-probe"
+DT_RT_AREA="Clients"; DT_RT_SLUG="custom-slug"; DT_AREA_DEFAULT="business"
+DT_SIB_AREA="Studio"; DT_SIB_SLUG="shared-probe"
+DT_LAYOUT_KEYS="DATA_AREA DATA_SLUG DATA_KIND_DOCS DATA_KIND_PHOTOS DATA_KIND_AUDIO DATA_KIND_VIDEOS"
+
+# "ok", or what is wrong, from the reasons given (one per argument).
+verdict() { if [[ $# -eq 0 ]]; then echo ok; else local IFS=$'\x1f'; local s="$*"; echo "${s//$'\x1f'/; }"; fi; }
+
+# The MCP judges. Every mode prints "ok", or what is wrong.
+#   rules SETTINGS [allowed]        the D54 deny and eight asks once each ('allowed': the owner
+#                                   allows mcp__scrapling__*, so no Scrapling ask, the allow kept)
+#   servers BEFORE AFTER TPL REL [KEEP…]  each server once under REL's key path, equal to the new
+#                                   render's (KEEP: to BEFORE's); BEFORE's keys, values and list
+#                                   items all kept, in order; a Codex server's tools tables apart
+#   absent FILE REL NAME…           none of the servers is declared there
+#   same BEFORE AFTER REL NAME      the server's value is BEFORE's
+#   codex AFTER TPL                 every server's tools tables (the prompts) are the render's
+#   ocasks FILE                     opencode.json asks for every tool of every server it declares
+ut_judge() {
+  UT_SERVERS="$SA_MCP_SERVERS" UT_ASKS="$SA_MCP_ASKS" UT_DENY="$SA_MCP_DENY" python3 - "$@" <<'PY'
+import json, os, re, sys
+KP = {".mcp.json": ["mcpServers"], ".agents/mcp_config.json": ["mcpServers"], ".codex/config.toml": ["mcp_servers"],
+      ".gemini/settings.json": ["mcpServers"], "opencode.json": ["mcp", "servers"]}
+SERVERS, ASKS, DENY = os.environ["UT_SERVERS"].split(), os.environ["UT_ASKS"].split(), os.environ["UT_DENY"]
+
+def load(path, rel):
+    text = open(path, encoding="utf-8").read()
+    if rel.endswith(".toml"):
+        import tomllib
+        return text, tomllib.loads(text)
+    return text, json.loads(text)
+
+def at(d, rel):
+    for k in KP[rel]:
+        d = d.get(k) if isinstance(d, dict) else None
+    return d if isinstance(d, dict) else {}
+
+def count(text, rel, name):
+    n = re.escape(name)
+    if rel.endswith(".toml"):
+        return len(re.findall(r'(?m)^[ \t]*\[[ \t]*mcp_servers\.(?:"%s"|%s)[ \t]*\][ \t]*$' % (n, n), text))
+    return len(re.findall(r'"%s"\s*:' % n, text))
+
+def own(v, rel):  # a Codex server's own keys; its tools tables are the prompts (mode codex)
+    return {k: x for k, x in v.items() if k != "tools"} if rel.endswith(".toml") and isinstance(v, dict) else v
+
+def within(a, b):  # every key, value and list item of a is in b, in a's order
+    if isinstance(a, dict):
+        if not isinstance(b, dict):
+            return False
+        keys, last = list(b), -1
+        for k, v in a.items():
+            if k not in b or keys.index(k) < last or not within(v, b[k]):
+                return False
+            last = keys.index(k)
+        return True
+    if isinstance(a, list):
+        if not isinstance(b, list):
+            return False
+        j = 0
+        for x in a:
+            while j < len(b) and not within(x, b[j]):
+                j += 1
+            if j == len(b):
+                return False
+            j += 1
+        return True
+    return a == b
+
+mode, a = sys.argv[1], sys.argv[2:]
+bad = []
+try:
+    if mode == "rules":
+        p = (json.load(open(a[0], encoding="utf-8")).get("permissions") or {})
+        allowed = len(a) > 1 and a[1] == "allowed"
+        n = (p.get("deny") or []).count(DENY)
+        if n != 1:
+            bad.append(f"denies {DENY} {n} time(s), not once")
+        for r in ASKS:
+            want = 0 if allowed and r.startswith("mcp__scrapling__") else 1
+            n = (p.get("ask") or []).count(r)
+            if n != want:
+                bad.append(f"asks {r} {n} time(s), not {'never' if want == 0 else 'once'}")
+        if allowed and "mcp__scrapling__*" not in (p.get("allow") or []):
+            bad.append("the owner's allow rule mcp__scrapling__* is gone")
+    elif mode == "servers":
+        before, after, tpl, rel, keep = a[0], a[1], a[2], a[3], set(a[4:])
+        if not os.path.isfile(after):
+            bad.append("missing")
+        else:
+            text, d = load(after, rel)
+            _, t = load(tpl, rel)
+            b = load(before, rel)[1] if before != "-" else {}
+            for s in SERVERS:
+                n = count(text, rel, s)
+                if n != 1:
+                    bad.append(f"declares {s} {n} time(s), not once")
+                elif s in keep:
+                    if at(d, rel).get(s) != at(b, rel).get(s):
+                        bad.append(f"the owner's own {s} entry was not kept")
+                elif own(at(d, rel).get(s), rel) != own(at(t, rel).get(s), rel):
+                    bad.append(f"its {s} entry is not the new render's")
+            if before != "-" and not within(b, d):
+                bad.append("a key, value or list item it held before is gone or out of order")
+    elif mode == "absent":
+        _, d = load(a[0], a[1])
+        bad += [f"declares {s}" for s in a[2:] if s in at(d, a[1])]
+    elif mode == "same":
+        b, d = load(a[0], a[2])[1], load(a[1], a[2])[1]
+        if at(d, a[2]).get(a[3]) != at(b, a[2]).get(a[3]):
+            bad.append(f"its {a[3]} entry is not the owner's")
+    elif mode == "codex":
+        d, t = load(a[0], ".codex/config.toml")[1], load(a[1], ".codex/config.toml")[1]
+        for s in SERVERS:
+            got = (at(d, ".codex/config.toml").get(s) or {}).get("tools")
+            if not got or got != (at(t, ".codex/config.toml").get(s) or {}).get("tools"):
+                bad.append(f"the {s} prompt tables are not the new render's")
+    elif mode == "ocasks":
+        d = json.load(open(a[0], encoding="utf-8"))
+        have = {(p.get("action"), p.get("effect")) for p in d.get("permissions") or [] if isinstance(p, dict)}
+        for r in ASKS:
+            _, s, tool = r.split("__", 2)
+            if s in at(d, "opencode.json") and (f"{s}_{tool}", "ask") not in have:
+                bad.append(f"declares {s} but does not ask before {s}_{tool}")
+    else:
+        bad.append(f"no judge called {mode}")
+except (OSError, ValueError, KeyError, ImportError) as e:
+    bad.append(f"unreadable ({e})")
+print("; ".join(bad) or "ok")
+PY
+}
+
+dt_stat() { # $1 = file → its sha1, size and mtime in nanoseconds (empty when absent)
+  python3 - "$1" <<'PY'
+import hashlib, os, sys
+try:
+    st = os.stat(sys.argv[1])
+    print(hashlib.sha1(open(sys.argv[1], "rb").read()).hexdigest(), st.st_size, st.st_mtime_ns)
+except OSError:
+    print("")
+PY
+}
+dt_keep() { # $1 = project, $2 = dir: copies of every MCP file and settings.json the project holds
+  local f
+  for f in $SA_MCP_FILES .claude/settings.json; do
+    [[ -f "$1/$f" ]] || continue
+    mkdir -p "$(dirname "$2/$f")"; cp "$1/$f" "$2/$f"
+  done
+}
+dt_record() { # $1 = project, $2 = dir: the new render's MCP files, from the render record
+  local f
+  for f in $SA_MCP_FILES; do
+    git -C "$1" cat-file -e "refs/syntek-author/template:$f" 2>/dev/null || continue
+    mkdir -p "$(dirname "$2/$f")"; git -C "$1" show "refs/syntek-author/template:$f" > "$2/$f"
+  done
+}
+dt_clients() { # $1 = project → the copy-only client files present, space-separated
+  local f out=()
+  for f in $SA_COPY_ONLY; do [[ -e "$1/$f" || -L "$1/$f" ]] && out+=("$f"); done
+  echo "${out[*]}"
+}
+dt_unmerged() { # $1 = project, $2 = path → every unmerged path under it, space-separated
+  git -C "$1" status --porcelain -- "$2" 2>/dev/null | grep -E '^(DD|AU|UD|UA|DU|AA|UU) ' | cut -c4- | paste -sd' ' - || true
+}
+dt_section_of() { # $1 = log, $2 = path → the report section listing the path (empty: none)
+  report_sections "$1" | awk -F'\t' -v p="$2" '$2 == p { print $1; exit }'
+}
+
+# Template-owned files that read a data-root answer inside a delimiter: none may be reported as
+# kept back by a crossing update, whatever hidden answers it records (D50, check 76). Seeds and
+# copy-only files are the author's once written, so they are left out.
+DT_READERS=""
+dt_readers_init() { # once, in the calling shell (the checks read it from subshells)
+  local f
+  if [[ -z "$DT_READERS" ]]; then
+    build_sets "$SA_ROOT/copier.yml"
+    while IFS= read -r f; do
+      is_seed "$f" && continue
+      [[ " $SA_COPY_ONLY " == *" $f "* ]] && continue
+      DT_READERS+="$f"$'\n'
+    done < <(python3 - "$SA_ROOT/template" <<'PY'
+import os, re, sys
+root = sys.argv[1]
+span = re.compile(r"(<%.*?%>|<:.*?:>)", re.S)
+key = re.compile(r"\bDATA_(STORE|AREA|SLUG|KIND_[A-Z]+|PROVIDER)\b")
+for d, _, fs in os.walk(root):
+    for f in fs:
+        p = os.path.join(d, f)
+        try:
+            t = open(p, encoding="utf-8").read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        if any(key.search(m.group(0)) for m in span.finditer(t)):
+            print(os.path.relpath(p, root))
+PY
+)
+  fi
+  [[ -n "$DT_READERS" ]] || die "no template file reads a data-root answer — check 76 has nothing to judge"
+}
+dt_false_lines() { # $1 = update log → every listed path that reads a data-root answer
+  report_sections "$1" | cut -f2 | grep -Fx -f <(printf '%s' "$DT_READERS") | LC_ALL=C sort -u | paste -sd' ' - || true
+}
+
+# The judges of the data root and the provider, from a project's files.
+dr_repo_judge() { # $1 = project → the update recorded repo and kept the data root off (check 71)
+  local p="$1" a="$1/$SA_ANSWERS_FILE" bad=() k f v
+  v="$(answer_value DATA_STORE "$a")"
+  [[ "$v" == repo ]] || bad+=("records DATA_STORE '${v:-nothing}', not repo")
+  for k in $DT_LAYOUT_KEYS; do grep -q "^$k:" "$a" 2>/dev/null && bad+=("records $k"); done
+  for f in "$SA_DATAROOT_PY" "$SA_DATAROOT_MAP"; do [[ -f "$p/$f" ]] || bad+=("has no $f"); done
+  for f in $SA_DATAROOT_IGNORES; do [[ -e "$p/$f" ]] && bad+=("gained $f"); done
+  grep -q 'dataroot' "$p/.claude/settings.json" 2>/dev/null && bad+=("its .claude/settings.json wires the data-root guard")
+  verdict "${bad[@]}"
+}
+dr_none_judge() { # $1 = project → DATA_PROVIDER none, no .github/, no retired key (check 82)
+  local a="$1/$SA_ANSWERS_FILE" bad=() v
+  v="$(answer_value DATA_PROVIDER "$a")"
+  [[ "$v" == none ]] || bad+=("records DATA_PROVIDER '${v:-nothing}', not none")
+  grep -q '^INCLUDE_DRIVE_SYNC:' "$a" 2>/dev/null && bad+=("still records INCLUDE_DRIVE_SYNC")
+  [[ -e "$1/.github" ]] && bad+=("has .github/")
+  verdict "${bad[@]}"
+}
+dr_drive_judge() { # $1 = project, $2 = its unmerged paths under .github/ → check 81
+  local p="$1" a="$1/$SA_ANSWERS_FILE" bad=() f n m
+  [[ "$(answer_value DATA_PROVIDER "$a")" == google-drive ]] || bad+=("records DATA_PROVIDER '$(answer_value DATA_PROVIDER "$a")', not google-drive")
+  [[ "$(answer_value DATA_STORE "$a")" == repo ]] || bad+=("records DATA_STORE '$(answer_value DATA_STORE "$a")', not repo")
+  grep -q '^INCLUDE_DRIVE_SYNC:' "$a" 2>/dev/null && bad+=("still records the retired INCLUDE_DRIVE_SYNC")
+  [[ -z "$2" ]] || bad+=("unmerged under .github/: $2")
+  m="$(grep -rlE '^(<<<<<<<|>>>>>>>)( |$)' "$p/.github" 2>/dev/null | sed "s#^$p/##" | paste -sd' ' -)"
+  [[ -z "$m" ]] || bad+=("conflict markers in $m")
+  grep -qF -e "$DT_CRON_NEW" "$p/$DT_PULL" 2>/dev/null || bad+=("the owner's edit to $DT_PULL is gone")
+  for f in "$DT_PULL" "$DT_PUSH"; do
+    n="$(grep -cE "^[[:space:]]*- name: ${SA_DRIVE_GUARD_STEP}[[:space:]]*$" "$p/$f" 2>/dev/null || true)"
+    [[ "${n:-0}" -eq 1 ]] || bad+=("$f holds the store guard step ${n:-0} time(s), not once")
+  done
+  verdict "${bad[@]}"
+}
+dr_ext_judge() { # $1 = project, $2 = the slug its folder gives, $3 = the area wanted → store external
+  local a="$1/$SA_ANSWERS_FILE" bad=() v
+  v="$(answer_value DATA_STORE "$a")"; [[ "$v" == external ]] || bad+=("records DATA_STORE '${v:-nothing}', not external")
+  v="$(answer_value DATA_SLUG "$a")"; [[ "$v" == "$2" ]] || bad+=("records DATA_SLUG '${v:-nothing}', not '$2'")
+  v="$(answer_value DATA_AREA "$a")"; [[ "$v" == "$3" ]] || bad+=("records DATA_AREA '${v:-nothing}', not '$3'")
+  verdict "${bad[@]}"
+}
+dr_gone_judge() { # $1 = project, $2 = update log → .github/ deleted and the edited workflow listed
+  local bad=() s
+  [[ -e "$1/.github" ]] && bad+=(".github/ is still there")
+  s="$(dt_section_of "$2" "$DT_PULL")"
+  [[ "$s" == "$DT_DELETED_SEC"* ]] || bad+=("the report lists the edited $DT_PULL under '${s:-nothing}', not '$DT_DELETED_SEC'")
+  verdict "${bad[@]}"
+}
+
+# ── The MCP flow (D54): a v0.4.0 project with every client, once per run ─────
+
+MC_RAN=false; MC_DOC=""; MC_W=""; MC_PROJ=""; MC_LOG=""; MC_NEXT_LOG=""; MC_AGAIN_LOG=""
+MC_COPY=0; MC_UPD=0; MC_WRITE=0; MC_CHECK1=0; MC_NEXT_ST=0; MC_CHECK2=0; MC_AGAIN_ST=0; MC_AGAIN_DIRTY=""
+MC_CLIENTS_PRE=""; MC_CLIENTS_MID=""; MC_CLIENTS_END=""; MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""
+MR_PROJ=""; MR_ST=0
+MA_PROJ=""; MA_LOG=""; MA_COPY=0; MA_UPD=0; MA_STAT_PRE=""
+SB_PROJ=""; SB_ST=0
+
+# A later release on a side branch of the tagged template, so an update after the crossing one
+# delivers something: a template-owned rule and two copy-only files change. HEAD stays put.
+next_release() { # $1 = tagged template
+  local t="$1" top
+  [[ -n "$DT_NEXT" ]] && return 0
+  top="$(git -C "$t" tag -l 'v[0-9]*' | sort -V | tail -1)"
+  DT_NEXT="$(awk -F. '{ printf "%s.%s.%d", $1, $2, $3 + 1 }' <<< "$top")"
+  sa_git "$t" checkout -q -b update-test-next || return 1
+  printf '\n%s\n' "$TEMPLATE_MARK" >> "$t/template/$RULES01"
+  printf '# update-test: the next release\n' >> "$t/template/.codex/config.toml"
+  printf '\n' >> "$t/template/.agents/mcp_config.json"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'update-test: the next release' && sa_git "$t" tag "$DT_NEXT" || return 1
+  sa_git "$t" checkout -q -
+}
+
+# The owner at work before the update: their own server and an older Scrapling pin in a
+# four-space .mcp.json, opencode.json reformatted with a catch-all allow, Gemini CLI's settings
+# deleted.
+mc_owner() { # $1 = project
+  python3 - "$1" "$DT_OWNER_SERVER" <<'PY'
+import json, os, sys
+p, mine = sys.argv[1], sys.argv[2]
+servers = {mine: {"command": "uvx", "args": [mine + "-mcp==1.0.0"]},
+           "scrapling": {"command": "uvx", "args": ["--from", "scrapling[ai]==0.4.10", "scrapling", "mcp"]}}
+open(os.path.join(p, ".mcp.json"), "w", encoding="utf-8").write(json.dumps({"mcpServers": servers}, indent=4) + "\n")
+f = os.path.join(p, "opencode.json")
+oc = json.load(open(f, encoding="utf-8"))
+oc = {"permissions": oc.get("permissions", []) + [{"action": "*", "resource": "*", "effect": "allow"}],
+      **{k: v for k, v in oc.items() if k != "permissions"}}
+open(f, "w", encoding="utf-8").write(json.dumps(oc, indent=4) + "\n")
+os.remove(os.path.join(p, ".gemini", "settings.json"))
+PY
+}
+dt_drop_server() { # $1 = JSON file, $2 = server: the owner removes it
+  python3 - "$1" "$2" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d.get("mcpServers", {}).pop(sys.argv[2], None)
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent=2) + "\n")
+PY
+}
+dt_sibling() { # $1 = project, then the record's lines: an invented answers file of the other template
+  local p="$1"; shift
+  { printf "# The other syntek template's answers: an invented record.\n_commit: v0.5.0\n_src_path: gh:example/syntek-media\n"
+    printf '%s\n' "$@"; } > "$p/$SA_PEER_ANSWERS_FILE"
+}
+
+run_mcp_flow() { # $1 = tagged template, $2 = work dir, $3 = DOC_TYPE
+  local tpl="$1" w="$2/mc" log="$2/mc-flow.log" p
+  MC_RAN=true; MC_DOC="$3"; MC_W="$w"; MC_PROJ="$w/proj"; MC_LOG="$w/up.log"; MC_NEXT_LOG="$w/next.log"; MC_AGAIN_LOG="$w/again.log"
+  MC_COPY=0; MC_UPD=0; MC_WRITE=0; MC_CHECK1=0; MC_NEXT_ST=0; MC_CHECK2=0; MC_AGAIN_ST=0; MC_AGAIN_DIRTY=""
+  MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""; MR_PROJ="$w/removed"; MR_ST=0
+  MA_PROJ="$w/allowed"; MA_LOG="$w/allowed.log"; MA_COPY=0; MA_UPD=0; MA_STAT_PRE=""; SB_PROJ="$w/sibling"; SB_ST=0
+  rm -rf "$w"; mkdir -p "$w"; : > "$MC_LOG"; : > "$MC_NEXT_LOG"; : > "$MC_AGAIN_LOG"; : > "$MA_LOG"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  next_release "$tpl" >>"$log" 2>&1 || die "could not tag a later release in $tpl"
+
+  # The owner's project, with every client.
+  p="$MC_PROJ"
+  rp_copy "$tpl" "$DT_FROM" "$p" "$3" --data "AGENT_CLIENTS=[$ALL_CLIENTS]" >>"$log" 2>&1 || MC_COPY=$?
+  [[ "$MC_COPY" -eq 0 ]] || return 0
+  [[ -d "$p/.git" ]] || sa_git "$p" init -q
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "copied at $DT_FROM" >>"$log" 2>&1
+  mc_owner "$p" >>"$log" 2>&1 || die "could not make the owner's MCP edits in $p"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own MCP setup' >>"$log" 2>&1
+  MC_CLIENTS_PRE="$(dt_clients "$p")"; dt_keep "$p" "$w/pre"
+  rp_update "$p" HEAD >"$MC_LOG" 2>&1 || MC_UPD=$?
+  cat "$MC_LOG" >>"$log"
+  dt_keep "$p" "$w/mid"; dt_record "$p" "$w/tpl-mid"; MC_CLIENTS_MID="$(dt_clients "$p")"
+  cp -a "$p" "$MR_PROJ"     # before the update is committed (check 65)
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated' >>"$log" 2>&1 || true
+  # 75: the migration by hand, twice, on the committed result.
+  (cd "$p" && bash "$tpl/$DT_MIG_SCRIPT") >"$w/mig1.out" 2>&1 || MC_MIG1=$?
+  (cd "$p" && bash "$tpl/$DT_MIG_SCRIPT") >"$w/mig2.out" 2>&1 || MC_MIG2=$?
+  MC_MIG_DIRTY="$(git -C "$p" status --porcelain)"
+  # 64: the line the update printed, run as printed; then the next release.
+  (cd "$p" && python3 "$DT_PERMS" --write) >>"$log" 2>&1 || MC_WRITE=$?
+  (cd "$p" && python3 "$DT_PERMS" --check) >>"$log" 2>&1 || MC_CHECK1=$?
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'the client rules written' >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >"$MC_NEXT_LOG" 2>&1 || MC_NEXT_ST=$?
+  cat "$MC_NEXT_LOG" >>"$log"
+  dt_record "$p" "$w/tpl-end"; MC_CLIENTS_END="$(dt_clients "$p")"
+  (cd "$p" && python3 "$DT_PERMS" --check) >>"$log" 2>&1 || MC_CHECK2=$?
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "updated to $DT_NEXT" >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >"$MC_AGAIN_LOG" 2>&1 || MC_AGAIN_ST=$?
+  cat "$MC_AGAIN_LOG" >>"$log"
+  MC_AGAIN_DIRTY="$(git -C "$p" status --porcelain)"
+  MC_ABS="$(sm_abs "$p" "$tpl" "$p")"
+
+  # 65: servers the owner removed, once before the update was ever committed (only the record
+  # lists the offer) and once after a commit that held it.
+  p="$MR_PROJ"
+  dt_drop_server "$p/.mcp.json" code-review-graph >>"$log" 2>&1 || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated, without code-review-graph' >>"$log" 2>&1 || true
+  dt_drop_server "$p/.agents/mcp_config.json" scrapling >>"$log" 2>&1 || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'no scrapling for Antigravity' >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >>"$log" 2>&1 || MR_ST=$?
+
+  # 67, 68, 85: an owner who allows every Scrapling tool, keeps .mcp.json out of git and runs a
+  # Drive workflow of their own; 77: the same project beside a sibling that records external.
+  p="$MA_PROJ"
+  rp_copy "$tpl" "$DT_FROM" "$p" "$3" >>"$log" 2>&1 || MA_COPY=$?
+  [[ "$MA_COPY" -eq 0 ]] || return 0
+  [[ -d "$p/.git" ]] || sa_git "$p" init -q
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "copied at $DT_FROM" >>"$log" 2>&1
+  python3 - "$p/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d.setdefault("permissions", {}).setdefault("allow", []).append("mcp__scrapling__*")
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent=2) + "\n")
+PY
+  printf '/.mcp.json\n' >> "$p/.gitignore"; sa_git "$p" rm -q --cached .mcp.json >>"$log" 2>&1 || true
+  mkdir -p "$p/.github/workflows"; git -C "$tpl" show "$DT_FROM:template/$DT_PUSH" > "$p/$DT_PUSH" 2>>"$log" || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my settings, my own Drive workflow' >>"$log" 2>&1
+  MA_STAT_PRE="$(dt_stat "$p/.mcp.json")"
+  cp -a "$p" "$SB_PROJ"
+  rp_update "$p" HEAD >"$MA_LOG" 2>&1 || MA_UPD=$?
+  cat "$MA_LOG" >>"$log"
+  p="$SB_PROJ"
+  dt_sibling "$p" "DATA_STORE: external" "DATA_AREA: $DT_SIB_AREA" "DATA_SLUG: $DT_SIB_SLUG" \
+    "DATA_KIND_DOCS: docs" "DATA_KIND_PHOTOS: photos" "DATA_KIND_AUDIO: audio" "DATA_KIND_VIDEOS: videos" "DATA_PROVIDER: none"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'a sibling at external' >>"$log" 2>&1
+  rp_update "$p" HEAD >>"$log" 2>&1 || SB_ST=$?
+}
+
+mcp_flow_checks() {
+  local L="[$MC_DOC from $DT_FROM]" v rel keep n a b s
+  if [[ "$MC_COPY" -ne 0 || "$MC_UPD" -ne 0 ]]; then
+    finding "check 60 — $L the copy at $DT_FROM or the update to the working tree failed (copy exit $MC_COPY, update exit $MC_UPD) — see $MC_LOG"
+    return 0
+  fi
+  v="$(ut_judge rules "$MC_W/mid/.claude/settings.json")"
+  [[ "$v" == ok ]] || finding "check 60 — $L after the update, .claude/settings.json $v"
+  for rel in .mcp.json .agents/mcp_config.json .codex/config.toml; do
+    keep=(); [[ "$rel" == .mcp.json ]] && keep=(scrapling)
+    v="$(ut_judge servers "$MC_W/pre/$rel" "$MC_W/mid/$rel" "$MC_W/tpl-mid/$rel" "$rel" "${keep[@]}")"
+    [[ "$v" == ok ]] || finding "check 61 — $L after the update, $rel: $v"
+  done
+  v="$(ut_judge servers "$MC_W/pre/opencode.json" "$MC_PROJ/opencode.json" "$MC_W/tpl-end/opencode.json" opencode.json)"
+  [[ "$v" == ok ]] || finding "check 61 — $L after --write and the next update, opencode.json: $v"
+  [[ "$MC_CLIENTS_MID" == "$MC_CLIENTS_PRE" && "$MC_CLIENTS_END" == "$MC_CLIENTS_PRE" ]] \
+    || finding "check 62 — $L the client files changed: before '$MC_CLIENTS_PRE', after the update '$MC_CLIENTS_MID', after the next '$MC_CLIENTS_END' — an update never creates or restores one"
+  v="$(ut_judge codex "$MC_W/mid/.codex/config.toml" "$MC_W/tpl-mid/.codex/config.toml")"
+  [[ "$v" == ok ]] || finding "check 63 — $L after the update, .codex/config.toml: $v"
+  if ! grep -qF "$DT_WRITE_LINE" "$MC_LOG"; then
+    finding "check 64 — $L the update did not print '$DT_WRITE_LINE'"
+  elif [[ "$MC_WRITE" -ne 0 || "$MC_CHECK1" -ne 0 || "$MC_CHECK2" -ne 0 ]]; then
+    finding "check 64 — $L the printed --write exited $MC_WRITE, then --check $MC_CHECK1, and $MC_CHECK2 after the next update — not 0, 0 and 0"
+  fi
+  if [[ "$MR_ST" -ne 0 ]]; then
+    finding "check 65 — $L the next update after the owner removed two servers failed (exit $MR_ST)"
+  else
+    v="$(ut_judge absent "$MR_PROJ/.mcp.json" .mcp.json code-review-graph)"
+    [[ "$v" == ok ]] || finding "check 65 — $L .mcp.json, whose code-review-graph the owner removed before any commit, $v again"
+    v="$(ut_judge absent "$MR_PROJ/.agents/mcp_config.json" .agents/mcp_config.json scrapling)"
+    [[ "$v" == ok ]] || finding "check 65 — $L .agents/mcp_config.json, whose scrapling the owner removed after a commit, $v again"
+  fi
+  a="$(grep -cF "$DT_DIFF_LINE" "$MC_LOG" || true)"; b="$(grep -cF "$DT_DIFF_LINE" "$MC_NEXT_LOG" || true)"
+  v="$(ut_judge same "$MC_W/pre/.mcp.json" "$MC_PROJ/.mcp.json" .mcp.json scrapling)"
+  [[ "$a" -eq 1 && "$b" -eq 0 && "$v" == ok ]] \
+    || finding "check 66 — $L the owner's differing scrapling entry: '$v'; reported $a time(s) by the update and $b by the next, not once and never again"
+  # shellcheck disable=SC2086  # one argument per server
+  v="$(ut_judge absent "$MC_W/mid/opencode.json" opencode.json $SA_MCP_SERVERS)"
+  if [[ "$v" != ok ]]; then
+    finding "check 69 — $L opencode.json, whose owner allows every tool, $v before --write — a server there must wait for its asks"
+  elif grep -qF "$DT_WRITE_LINE" "$MC_LOG" && ! grep -F "$DT_WRITE_LINE" "$MC_LOG" | grep -qE 'held back now: [^)]*opencode\.json'; then
+    finding "check 69 — $L the --write line does not name opencode.json as held back"
+  else
+    v="$(ut_judge ocasks "$MC_PROJ/opencode.json")"
+    [[ "$v" == ok ]] || finding "check 69 — $L after --write and the next update, opencode.json $v"
+  fi
+  for rel in .agents/mcp_config.json .codex/config.toml; do
+    s="$(dt_section_of "$MC_NEXT_LOG" "$rel")"
+    [[ "$s" == "$DT_CHANGED_SEC"* ]] && finding "check 70 — $L the next update lists $rel, which only the lane wrote, under '$DT_CHANGED_SEC'"
+  done
+  n="$(grep -c '^▸' "$MC_AGAIN_LOG" || true)"
+  if [[ "$MC_NEXT_ST" -ne 0 || "$MC_AGAIN_ST" -ne 0 || -n "$MC_AGAIN_DIRTY" || "$n" -ne 1 ]] || ! grep -q "^$RP_HEAD.*: $DT_SAME" "$MC_AGAIN_LOG" \
+     || grep -qE '^  (NOT|CONFLICT|DELETED|REJECTED)' "$MC_AGAIN_LOG"; then
+    finding "check 70 — $L the next update (exit $MC_NEXT_ST) and a second one (exit $MC_AGAIN_ST) were not a delivery then a quiet no-op ($(printf '%s\n' "$MC_AGAIN_DIRTY" | grep -c . || true) path(s) changed; $n ▸ line(s))"
+  fi
+  [[ -z "$MC_ABS" ]] || finding "check 59 — $L the render record names a path of this machine: $MC_ABS"
+  v="$(dr_repo_judge "$MC_PROJ")"
+  [[ "$v" == ok ]] || finding "check 71 — $L after the update with --defaults, the project $v"
+  a="$(grep -nF "$DT_MIG_MARK" "$MC_LOG" | head -1 | cut -d: -f1 || true)"; b="$(grep -n "^$RP_HEAD" "$MC_LOG" | head -1 | cut -d: -f1 || true)"
+  s="$(awk -v e="$DT_MIG_ENTRY" -v u="$SA_UPD_BEGIN" '$0 == e && !m { m = NR } $0 == u && !b { b = NR } END { print (m && b && m < b) ? "before" : "not before" }' "$SA_ROOT/copier.yml")"
+  if [[ -z "$a" || -z "$b" || "$a" -gt "$b" || "$s" != before ]]; then
+    finding "check 75 — $L the v0.5.0 migration did not run before the update report (its line ${a:-absent}, the report's ${b:-absent}), or its copier.yml entry is $s the update block"
+  elif [[ "$MC_MIG1" -ne 0 || "$MC_MIG2" -ne 0 || -n "$MC_MIG_DIRTY" ]] || ! cmp -s "$MC_W/mig1.out" "$MC_W/mig2.out"; then
+    finding "check 75 — $L two hand runs of the v0.5.0 migration (exits $MC_MIG1 and $MC_MIG2) did not print the same report and change nothing"
+  fi
+  v="$(dt_false_lines "$MC_LOG")"
+  [[ -z "$v" ]] || finding "check 76 — $L the update report lists template-owned files that read a data-root answer: $v"
+  v="$(dr_none_judge "$MC_PROJ")"
+  [[ "$v" == ok ]] || finding "check 82 — $L after the update, the project $v"
+  if [[ "$MA_COPY" -ne 0 || "$MA_UPD" -ne 0 ]]; then
+    finding "check 67 — $L the project with a git-ignored .mcp.json did not copy or update (copy exit $MA_COPY, update exit $MA_UPD) — see $MA_LOG"
+    return 0
+  fi
+  n="$(grep -cF "$DT_IGNORED_LINE" "$MA_LOG" || true)"
+  [[ "$(dt_stat "$MA_PROJ/.mcp.json")" == "$MA_STAT_PRE" && "$n" -eq 1 ]] \
+    || finding "check 67 — $L the git-ignored .mcp.json was touched, or the update said so $n time(s), not once"
+  v="$(ut_judge rules "$MA_PROJ/.claude/settings.json" allowed)"
+  [[ "$v" == ok ]] || finding "check 68 — $L where the owner allows mcp__scrapling__*, .claude/settings.json $v"
+  for s in $SA_MCP_ASKS; do
+    [[ "$s" == mcp__scrapling__* ]] || continue
+    grep -F "$DT_ALLOW_LINE" "$MA_LOG" | grep -qE "ask $s(;|$)" \
+      || finding "check 68 — $L the update did not say it left out '$s' because the owner allows it"
+  done
+  awk -v h="$DT_DRIVE_LIST" -v f="    $DT_PUSH" 'index($0, h) { on = 1 } on && $0 == f { ok = 1 } END { exit !ok }' "$MA_LOG" \
+    || finding "check 85 — $L the v0.5.0 migration did not list the owner's own $DT_PUSH, which the answers no longer manage"
+  if [[ "$SB_ST" -ne 0 ]]; then
+    finding "check 77 — $L the first update beside a sibling at external failed (exit $SB_ST)"
+  else
+    v="$(dr_ext_judge "$SB_PROJ" "$DT_SIB_SLUG" "$DT_SIB_AREA")"
+    [[ "$v" == ok ]] || finding "check 77 — $L beside a sibling that records external, the first update $v"
+  fi
+  return 0
+}
+
+# ── The update from v0.3.0, judged for D50, D53 and D54 (every DOC_TYPE, in the real run) ──
+
+TD_RAN=false; TD_DOC=""; TD_PROJ=""; TD_LOG=""; TD_PRE=""; TD_TPL=""
+trap_data_checks() {
+  local L="[$TD_DOC from $TRAP_FROM]" v
+  [[ "$TRAP_COPY_STATUS" -eq 0 && "$TRAP_UPDATE_STATUS" -eq 0 ]] || return 0   # check 31's
+  v="$(ut_judge rules "$TD_PROJ/.claude/settings.json")"
+  [[ "$v" == ok ]] || finding "check 60 — $L after the update, .claude/settings.json $v"
+  v="$(ut_judge servers "$TD_PRE/.mcp.json" "$TD_PROJ/.mcp.json" "$TD_TPL/.mcp.json" .mcp.json)"
+  [[ "$v" == ok ]] || finding "check 61 — $L after the update, .mcp.json: $v"
+  v="$(dr_repo_judge "$TD_PROJ")"
+  [[ "$v" == ok ]] || finding "check 71 — $L after the update with --defaults, the project $v"
+  v="$(dt_false_lines "$TD_LOG")"
+  [[ -z "$v" ]] || finding "check 76 — $L the update report lists template-owned files that read a data-root answer: $v"
+  v="$(dr_none_judge "$TD_PROJ")"
+  [[ "$v" == ok ]] || finding "check 82 — $L after the update, the project $v"
+  return 0
+}
+
+# ── The Drive flows (D53, and D50's store on a Drive project): business, once per run ──
+
+DR_RAN=false; DR_W=""
+DR4_PROJ=""; DR4_LOG=""; DR4_COPY=0; DR4_UPD=0; DR4_UNMERGED=""; DR4_AGAIN_ST=0; DR4_AGAIN_DIRTY=""; DR4_AGAIN_LOG=""
+DR3_PROJ=""; DR3_LOG=""; DR3_COPY=0; DR3_UPD=0; DR3_UNMERGED=""
+DRP_PROJ=""; DRP_LOG=""; DRP_ST=0
+DRE_PROJ=""; DRE_LOG=""; DRE_ST=0; DRE_PDF=""
+DRS_PROJ=""; DRS_LOG=""; DRS_ST=0
+DRA_PROJ=""; DRA_ST=0; DRB_PROJ=""; DRB_ST=0
+
+dr_owner() { # $1 = project: the owner's own schedule for the pull, and a tracked issued PDF
+  sed -i "s/$DT_CRON_OLD/$DT_CRON_NEW/" "$1/$DT_PULL" 2>/dev/null || true
+  mkdir -p "$(dirname "$1/$DT_PDF")"; printf '%%PDF-1.4 an invented issued copy\n' > "$1/$DT_PDF"
+}
+
+run_drive_flow() { # $1 = tagged template, $2 = work dir
+  local tpl="$1" w="$2/dr" log="$2/dr-flow.log" p before
+  DR_RAN=true; DR_W="$w"; rm -rf "$w"; mkdir -p "$w"
+  DR4_PROJ="$w/v040"; DR4_LOG="$w/v040.log"; DR4_COPY=0; DR4_UPD=0; DR4_UNMERGED=""; DR4_AGAIN_ST=0; DR4_AGAIN_DIRTY=""; DR4_AGAIN_LOG="$w/again.log"
+  DR3_PROJ="$w/v030"; DR3_LOG="$w/v030.log"; DR3_COPY=0; DR3_UPD=0; DR3_UNMERGED=""
+  DRP_PROJ="$w/onedrive"; DRP_LOG="$w/onedrive.log"; DRP_ST=0
+  DRE_PROJ="$w/$DT_EXT_DIR"; DRE_LOG="$w/external.log"; DRE_ST=0; DRE_PDF=""
+  DRS_PROJ="$w/settings-trap"; DRS_LOG="$w/settings-trap.log"; DRS_ST=0
+  DRA_PROJ="$w/sibling-after"; DRA_ST=0; DRB_PROJ="$w/sibling-first"; DRB_ST=0
+  : > "$DR4_LOG"; : > "$DR3_LOG"; : > "$DRP_LOG"; : > "$DRE_LOG"; : > "$DRS_LOG"; : > "$DR4_AGAIN_LOG"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+
+  # 81 (from v0.4.0), 84; then from its committed result 83 (another provider; external, with
+  # 72 and 73), and from its state before the update 80 (the settings trap) and 78 (a sibling).
+  p="$DR4_PROJ"
+  rp_copy "$tpl" "$DT_FROM" "$p" business --data INCLUDE_DRIVE_SYNC=true >>"$log" 2>&1 || DR4_COPY=$?
+  [[ "$DR4_COPY" -eq 0 ]] || return 0
+  [[ -d "$p/.git" ]] || sa_git "$p" init -q
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "copied at $DT_FROM" >>"$log" 2>&1
+  dr_owner "$p"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own schedule; an issued copy' >>"$log" 2>&1
+  cp -a "$p" "$DRS_PROJ"; cp -a "$p" "$DRA_PROJ"
+  rp_update "$p" HEAD >"$DR4_LOG" 2>&1 || DR4_UPD=$?
+  cat "$DR4_LOG" >>"$log"
+  DR4_UNMERGED="$(dt_unmerged "$p" .github)"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated' >>"$log" 2>&1 || true
+  rp_update "$p" HEAD >"$DR4_AGAIN_LOG" 2>&1 || DR4_AGAIN_ST=$?
+  cat "$DR4_AGAIN_LOG" >>"$log"
+  DR4_AGAIN_DIRTY="$(git -C "$p" status --porcelain)"
+
+  cp -a "$p" "$DRP_PROJ"
+  rp_update "$DRP_PROJ" HEAD --data DATA_PROVIDER=onedrive >"$DRP_LOG" 2>&1 || DRP_ST=$?
+  cat "$DRP_LOG" >>"$log"
+
+  cp -a "$p" "$DRE_PROJ"; p="$DRE_PROJ"
+  mkdir -p "$p/research/src"; printf '# The owner'\''s own ignore rules\n*.bak\n' > "$p/research/src/.gitignore"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own research/src/.gitignore' >>"$log" 2>&1
+  git -C "$p" ls-files | LC_ALL=C sort > "$w/index-before"
+  rp_update "$p" HEAD --data DATA_STORE=external >"$DRE_LOG" 2>&1 || DRE_ST=$?
+  cat "$DRE_LOG" >>"$log"
+  git -C "$p" ls-files | LC_ALL=C sort -u > "$w/index-after"
+  # Tracked although an ignore rule now matches it: an ignore rule never untracks a file.
+  DRE_PDF="$(git -C "$p" ls-files -ci --exclude-standard -- "$DT_PDF" 2>/dev/null)"
+
+  printf 'defaults:\n  DATA_STORE: external\n' > "$w/settings-trap.yml"
+  (export COPIER_SETTINGS_PATH="$w/settings-trap.yml"; rp_update "$DRS_PROJ" HEAD) >"$DRS_LOG" 2>&1 || DRS_ST=$?
+  cat "$DRS_LOG" >>"$log"
+
+  # 78: the v0.4.0 project first, then a fresh sibling at v0.5.0 (which records repo beside a
+  # record without a store); and the other order, a sibling from before D50 and a fresh copy.
+  dt_sibling "$DRA_PROJ" "DATA_STORE: repo" "DATA_PROVIDER: none"
+  sa_git "$DRA_PROJ" add -A && sa_git "$DRA_PROJ" commit -q -m 'a sibling at v0.5.0' >>"$log" 2>&1
+  rp_update "$DRA_PROJ" HEAD >>"$log" 2>&1 || DRA_ST=$?
+  mkdir -p "$DRB_PROJ"; dt_sibling "$DRB_PROJ"; sed -i 's/^_commit: v0.5.0$/_commit: v0.4.2/' "$DRB_PROJ/$SA_PEER_ANSWERS_FILE"
+  { sa_git "$DRB_PROJ" init -q && sa_git "$DRB_PROJ" add -A && sa_git "$DRB_PROJ" commit -q -m 'a sibling from before D50'; } >>"$log" 2>&1 || true
+  rp_copy "$tpl" HEAD "$DRB_PROJ" business --data DATA_PROVIDER=google-drive >>"$log" 2>&1 || DRB_ST=$?
+
+  # 81 from v0.3.0.
+  p="$DR3_PROJ"
+  rp_copy "$tpl" "$TRAP_FROM" "$p" business --data INCLUDE_DRIVE_SYNC=true >>"$log" 2>&1 || DR3_COPY=$?
+  [[ "$DR3_COPY" -eq 0 ]] || return 0
+  [[ -d "$p/.git" ]] || sa_git "$p" init -q
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "copied at $TRAP_FROM" >>"$log" 2>&1
+  dr_owner "$p"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own schedule; an issued copy' >>"$log" 2>&1
+  rp_update "$p" HEAD >"$DR3_LOG" 2>&1 || DR3_UPD=$?
+  cat "$DR3_LOG" >>"$log"
+  DR3_UNMERGED="$(dt_unmerged "$p" .github)"
+}
+
+drive_checks() {
+  local L="[business Drive]" v s
+  if [[ "$DR4_COPY" -ne 0 || "$DR4_UPD" -ne 0 ]]; then
+    finding "check 81 — $L from $DT_FROM: the copy or the update failed (copy exit $DR4_COPY, update exit $DR4_UPD) — see $DR4_LOG"
+    return 0
+  fi
+  v="$(dr_drive_judge "$DR4_PROJ" "$DR4_UNMERGED")"
+  [[ "$v" == ok ]] || finding "check 81 — $L from $DT_FROM, the update with --defaults: $v"
+  if [[ "$DR3_COPY" -ne 0 || "$DR3_UPD" -ne 0 ]]; then
+    finding "check 81 — $L from $TRAP_FROM: the copy or the update failed (copy exit $DR3_COPY, update exit $DR3_UPD) — see $DR3_LOG"
+  else
+    v="$(dr_drive_judge "$DR3_PROJ" "$DR3_UNMERGED")"
+    [[ "$v" == ok ]] || finding "check 81 — $L from $TRAP_FROM, the update with --defaults: $v"
+  fi
+  v="$(dr_repo_judge "$DR4_PROJ")"
+  [[ "$v" == ok ]] || finding "check 71 — $L from $DT_FROM, the project $v"
+  v="$(dt_false_lines "$DR4_LOG")"
+  [[ -z "$v" ]] || finding "check 76 — $L the update report lists template-owned files that read a data-root answer: $v"
+  if [[ "$DR4_AGAIN_ST" -ne 0 || -n "$DR4_AGAIN_DIRTY" ]] || ! grep -q "^$RP_HEAD.*: $DT_SAME" "$DR4_AGAIN_LOG"; then
+    finding "check 84 — $L a second update changed something (exit $DR4_AGAIN_ST; $(printf '%s\n' "$DR4_AGAIN_DIRTY" | grep -c . || true) path(s) changed)"
+  fi
+  if ! grep -qE '^    README\.md:[0-9]+ .*INCLUDE_DRIVE_SYNC' "$DR4_LOG" || ! grep -qF "$DT_STALE_DRIVE" "$DR4_LOG"; then
+    finding "check 85 — $L the v0.5.0 migration did not list the seed README.md line that names INCLUDE_DRIVE_SYNC, with its v0.5.0 text"
+  elif grep -qF "$DT_DRIVE_LIST" "$DR4_LOG"; then
+    finding "check 85 — $L the v0.5.0 migration listed a Drive workflow the answers still manage"
+  fi
+  if [[ "$DRP_ST" -ne 0 ]]; then finding "check 83 — $L the update to DATA_PROVIDER onedrive failed (exit $DRP_ST)"
+  else v="$(dr_gone_judge "$DRP_PROJ" "$DRP_LOG")"; [[ "$v" == ok ]] || finding "check 83 — $L after DATA_PROVIDER onedrive: $v"; fi
+  if [[ "$DRE_ST" -ne 0 ]]; then
+    finding "check 72 — $L the update to DATA_STORE external failed (exit $DRE_ST) — see $DRE_LOG"
+  else
+    v="$(dr_gone_judge "$DRE_PROJ" "$DRE_LOG")"; [[ "$v" == ok ]] || finding "check 83 — $L after DATA_STORE external: $v"
+    v="$(dr_ext_judge "$DRE_PROJ" "$DT_EXT_SLUG" "$DT_AREA_DEFAULT")"
+    s="$(LC_ALL=C comm -23 "$DR_W/index-before" "$DR_W/index-after" | paste -sd' ' - || true)"
+    [[ "$v" == ok && -z "$s" && "$DRE_PDF" == "$DT_PDF" && -f "$DRE_PROJ/library/src/.gitignore" && -f "$DRE_PROJ/research/src/.gitignore" ]] \
+      || finding "check 72 — $L choosing external: answers '$v'; untracked '${s:-nothing}'; the issued PDF tracked under an ignore rule: '${DRE_PDF:-no}'; the ignore files delivered: $([[ -f "$DRE_PROJ/library/src/.gitignore" && -f "$DRE_PROJ/research/src/.gitignore" ]] && echo yes || echo no)"
+    s="$(dt_section_of "$DRE_LOG" research/src/.gitignore)"
+    [[ "$s" == CONFLICT* ]] || finding "check 73 — $L the owner's own research/src/.gitignore is listed under '${s:-nothing}', not CONFLICT"
+  fi
+  if [[ "$DRS_ST" -ne 0 ]]; then finding "check 80 — $L the update under the settings trap failed (exit $DRS_ST)"
+  else
+    v="$(answer_value DATA_STORE "$DRS_PROJ/$SA_ANSWERS_FILE")"; s="$(dr_gone_judge "$DRS_PROJ" "$DRS_LOG")"
+    [[ "$v" == external && "$s" == ok ]] || finding "check 80 — $L a settings file with DATA_STORE external: the update recorded '${v:-nothing}' and $s (the hazard must show)"
+  fi
+  dr_sibling_check "$DRA_PROJ" "$DRA_ST" "the update after a fresh sibling at v0.5.0"
+  dr_sibling_check "$DRB_PROJ" "$DRB_ST" "a fresh copy beside a sibling from before D50"
+  return 0
+}
+dr_sibling_check() { # $1 = project, $2 = its exit status, $3 = what it was → check 78
+  local a="$1/$SA_ANSWERS_FILE" L="[business Drive]"
+  if [[ "$2" -ne 0 ]]; then finding "check 78 — $L $3 failed (exit $2)"; return 0; fi
+  [[ "$(answer_value DATA_STORE "$a")" == repo && "$(answer_value DATA_PROVIDER "$a")" == google-drive && -f "$1/$DT_PUSH" ]] \
+    || finding "check 78 — $L $3 recorded DATA_STORE '$(answer_value DATA_STORE "$a")' and DATA_PROVIDER '$(answer_value DATA_PROVIDER "$a")', .github/ $([[ -f "$1/$DT_PUSH" ]] && echo present || echo absent) — not repo, google-drive and the workflows"
+}
+
+# ── The round trip (D50): external with its own layout, repo, external again ─
+
+RT_RAN=false; RT_DOC=""; RT_W=""; RT_PROJ=""; RT_ROOT=""; RT_ST=""; RT_STATUS_OUT=""; RT_ARGS=""
+RT_CASE_ST=0; RT_CASE_DIRTY=""; RT_CASE_LOG=""
+rt_step() { # $1 = label, then a command: runs it into the flow's log and keeps "label status"
+  local label="$1" rc=0; shift
+  "$@" >>"$log" 2>&1 || rc=$?
+  st+=("$label $rc")
+}
+rt_resolver() { # $1 = project, then the resolver's arguments, with the round trip's own root
+  (cd "$1" && SYNTEK_DATA_ROOT="$RT_ROOT" python3 "$SA_DATAROOT_PY" "${@:2}")
+}
+run_roundtrip_flow() { # $1 = tagged template, $2 = work dir, $3 = DOC_TYPE
+  local tpl="$1" w="$2/rt" log="$2/rt-flow.log" p st=() a=()
+  RT_RAN=true; RT_DOC="$3"; RT_W="$w"; RT_PROJ="$w/$DT_RT_DIR"; RT_ROOT="$w/data-root"; RT_STATUS_OUT=""; RT_ARGS=""
+  RT_CASE_ST=0; RT_CASE_DIRTY=""; RT_CASE_LOG="$w/case.log"
+  rm -rf "$w"; mkdir -p "$RT_ROOT"; : > "$RT_ROOT/$SA_DATAROOT_MARKER"; : > "$RT_CASE_LOG"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  p="$RT_PROJ"
+  rt_step copy rp_copy "$tpl" HEAD "$p" "$3" --data "DATA_AREA=$DT_RT_AREA" --data "DATA_SLUG=$DT_RT_SLUG"
+  [[ -d "$p/.git" ]] || sa_git "$p" init -q
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied at external' >>"$log" 2>&1 || true
+  cp "$p/$SA_ANSWERS_FILE" "$w/copied.yml" 2>/dev/null || true
+  # A record filed under the custom layout (the root is passed to this one command only).
+  mkdir -p "$p/research/src"; printf '%%PDF-1.4 an invented scan\n' > "$p/research/src/update-test-scan.pdf"
+  rt_step add rt_resolver "$p" add research/src/update-test-scan.pdf --role archive
+  rm -f "$p/research/src/update-test-scan.pdf"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'filed a scan' >>"$log" 2>&1 || true
+  rt_step repo rp_update "$p" HEAD --data DATA_STORE=repo
+  cp "$p/$SA_ANSWERS_FILE" "$w/repo.yml" 2>/dev/null || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'repo' >>"$log" 2>&1 || true
+  rt_step external rp_update "$p" HEAD --data DATA_STORE=external
+  cp "$p/$SA_ANSWERS_FILE" "$w/again.yml" 2>/dev/null || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'external again' >>"$log" 2>&1 || true
+  RT_STATUS_OUT="$(rt_resolver "$p" status 2>&1 || true)"
+  RT_ARGS="$(sed -n 's/.*update every template with \(--data .*\)$/\1/p' <<< "$RT_STATUS_OUT" | head -1)"
+  read -r -a a <<< "$RT_ARGS"
+  rt_step restore rp_update "$p" HEAD "${a[@]}"
+  cp "$p/$SA_ANSWERS_FILE" "$w/restored.yml" 2>/dev/null || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'the layout restored' >>"$log" 2>&1 || true
+  # 74: the same area in another case.
+  rp_update "$p" HEAD --data "DATA_AREA=${DT_RT_AREA,,}" >"$RT_CASE_LOG" 2>&1 || RT_CASE_ST=$?
+  cat "$RT_CASE_LOG" >>"$log"
+  RT_CASE_DIRTY="$(git -C "$p" status --porcelain)"
+  RT_ST="${st[*]}"
+}
+
+rt_checks() {
+  local L="[$RT_DOC round trip]" bad=() k old="$DT_RT_AREA/docs/$DT_RT_SLUG"
+  [[ "$RT_ST" == "copy 0 add 0 repo 0 external 0 restore 0" ]] || bad+=("exit statuses: $RT_ST")
+  [[ "$(answer_value DATA_AREA "$RT_W/copied.yml")" == "$DT_RT_AREA" && "$(answer_value DATA_SLUG "$RT_W/copied.yml")" == "$DT_RT_SLUG" ]] \
+    || bad+=("the copy did not record its own layout")
+  [[ "$(answer_value DATA_STORE "$RT_W/repo.yml")" == repo ]] || bad+=("repo was not recorded")
+  for k in $DT_LAYOUT_KEYS; do grep -q "^$k:" "$RT_W/repo.yml" 2>/dev/null && bad+=("repo still records $k"); done
+  k="$(ut_rt_again)"
+  [[ "$k" == ok ]] || bad+=("external again $k")
+  [[ "$RT_STATUS_OUT" == *"'$old'"* ]] || bad+=("the resolver's status does not name the old folder '$old'")
+  [[ "$RT_ARGS" == "--data DATA_AREA=$DT_RT_AREA --data DATA_SLUG=$DT_RT_SLUG" ]] || bad+=("it printed the restore arguments '${RT_ARGS:-none}'")
+  [[ "$(answer_value DATA_AREA "$RT_W/restored.yml")" == "$DT_RT_AREA" && "$(answer_value DATA_SLUG "$RT_W/restored.yml")" == "$DT_RT_SLUG" ]] \
+    || bad+=("--data did not restore the layout")
+  [[ ${#bad[@]} -eq 0 ]] || finding "check 79 — $L $(verdict "${bad[@]}")"
+  if [[ "$RT_CASE_ST" -eq 0 ]]; then
+    finding "check 74 — $L an update changing DATA_AREA only in case was accepted"
+  elif ! grep -qF "question 'DATA_AREA'" "$RT_CASE_LOG" || [[ -n "$RT_CASE_DIRTY" ]] \
+       || [[ "$(answer_value DATA_AREA "$RT_PROJ/$SA_ANSWERS_FILE")" != "$DT_RT_AREA" ]]; then
+    finding "check 74 — $L the case-only DATA_AREA change was not refused by DATA_AREA's validator with the tree clean ($(printf '%s\n' "$RT_CASE_DIRTY" | grep -c . || true) path(s) changed)"
+  fi
+  return 0
+}
+ut_rt_again() { # the answers after external again: the defaults re-derived
+  local f="$RT_W/again.yml" bad=() v
+  v="$(answer_value DATA_STORE "$f")"; [[ "$v" == external ]] || bad+=("records '${v:-nothing}'")
+  v="$(answer_value DATA_AREA "$f")"; [[ "$v" == "$DT_AREA_DEFAULT" ]] || bad+=("records area '${v:-nothing}', not the default '$DT_AREA_DEFAULT'")
+  v="$(answer_value DATA_SLUG "$f")"; [[ "$v" == "$DT_RT_SLUG_DEFAULT" ]] || bad+=("records slug '${v:-nothing}', not the folder's '$DT_RT_SLUG_DEFAULT'")
+  verdict "${bad[@]}"
+}
+
+# The trees, logs and statuses every check from 60 to 85 reads, as a clean run leaves them, for
+# --self-test: invented server values, the real file shapes and the real report lines.
+dt_synth() { # $1 = dir
+  local s="$1"
+  rm -rf "$s"; mkdir -p "$s"
+  python3 - "$s" "$SA_MCP_ASKS" "$SA_MCP_DENY" "$SA_ANSWERS_FILE" "$DT_EXT_DIR" "$DT_RT_DIR" <<'PY'
+import json, os, sys
+s, asks, deny, ans, ext_dir, rt_dir = sys.argv[1], sys.argv[2].split(), sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
+T = {"code-review-graph": {"command": "uvx", "args": ["code-review-graph==9.9.9", "serve"]},
+     "scrapling": {"command": "uvx", "args": ["scrapling==9.9.9", "mcp"]}}
+def w(rel, text):
+    p = os.path.join(s, rel)
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    open(p, "w", encoding="utf-8").write(text)
+def j(rel, d, indent=2):
+    w(rel, json.dumps(d, indent=indent) + "\n")
+def toml(servers):
+    out = []
+    for n, v in servers.items():
+        out += ["", f"[mcp_servers.{n}]", "command = 'uvx'", "args = [%s]" % ", ".join(repr(a) for a in v["args"])]
+        for r in asks:
+            _, srv, tool = r.split("__", 2)
+            if srv == n:
+                out += ["", f"[mcp_servers.{n}.tools.{tool}]", 'approval_mode = "prompt"']
+    return "\n".join(out) + "\n"
+def answers(rel, **kv):
+    w(rel, "".join(f"{k}: {v}\n" for k, v in sorted(kv.items())))
+oc_asks = [{"action": "%s_%s" % tuple(r.split("__", 2)[1:]), "resource": "*", "effect": "ask"} for r in asks]
+rules = {"permissions": {"deny": ["AskUserQuestion", deny], "ask": list(asks)}}
+codex0 = "project_doc_fallback_filenames = ['CLAUDE.md']\n"
+mine = {"owner-notes": {"command": "uvx", "args": ["owner-notes-mcp==1.0.0"]},
+        "scrapling": {"command": "uvx", "args": ["scrapling==0.0.1", "mcp"]}}
+oc0 = {"permissions": [{"action": "edit", "resource": "*.pdf", "effect": "deny"}, {"action": "*", "resource": "*", "effect": "allow"}],
+       "$schema": "https://opencode.ai/config.json", "compaction": {"auto": False}}
+# The MCP flow: before, after the update, the new render, and the end.
+j("mc/pre/.mcp.json", {"mcpServers": mine}, 4)
+j("mc/pre/.agents/mcp_config.json", {"mcpServers": {}})
+w("mc/pre/.codex/config.toml", codex0)
+j("mc/pre/opencode.json", oc0, 4)
+for d in ("tpl-mid", "tpl-end"):
+    j(f"mc/{d}/.mcp.json", {"mcpServers": T}); j(f"mc/{d}/.agents/mcp_config.json", {"mcpServers": T})
+    w(f"mc/{d}/.codex/config.toml", codex0 + toml(T))
+    j(f"mc/{d}/opencode.json", {"$schema": oc0["$schema"], "compaction": oc0["compaction"], "mcp": {"servers": T}, "permissions": oc_asks})
+mid = {"mcpServers": {**mine, "code-review-graph": T["code-review-graph"]}}
+for d in ("mc/mid", "mc/proj"):
+    j(f"{d}/.mcp.json", mid, 4); j(f"{d}/.agents/mcp_config.json", {"mcpServers": T})
+    w(f"{d}/.codex/config.toml", codex0 + toml(T)); j(f"{d}/.claude/settings.json", rules)
+j("mc/mid/opencode.json", oc0, 4)
+j("mc/proj/opencode.json", {**oc0, "permissions": oc0["permissions"] + oc_asks, "mcp": {"servers": T}}, 4)
+answers(f"mc/proj/{ans}", DOC_TYPE="theology", DATA_STORE="repo", DATA_PROVIDER="none")
+for d in ("mc/proj", "td/proj", "dr/v040", "dr/v030"):
+    w(f"{d}/.claude/syntek-author-dataroot.py", "# the resolver\n"); w(f"{d}/.claude/syntek-author-dataroot.json", "{}\n")
+held = "▸ syntek-author: to carry the new ask and deny rules into opencode.json and .codex/config.toml, run: python3 .claude/syntek-author-permissions.py --write; the next update then adds the MCP servers to each file that holds their ask rules (held back now: opencode.json code-review-graph, scrapling)\n"
+w("mc/up.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
+  "▸ syntek-author: added 1 MCP server to .mcp.json: code-review-graph\n"
+  "▸ syntek-author: kept your \"scrapling\" MCP server in .mcp.json, which differs from the template's (compare: git diff syntek-author/template -- .mcp.json)\n"
+  + held + "▸ syntek-author update report, 0.4.0 → 0.5.0\n  The template changed 2 files here: 2 delivered.\n")
+w("mc/next.log", "▸ syntek-author: added 2 MCP servers to opencode.json: code-review-graph, scrapling\n"
+  "▸ syntek-author update report, 0.5.0 → 0.5.1\n  The template changed 3 files here: 1 delivered, 2 kept back.\n\n"
+  "  NOT UPDATED because files of this kind are written once: seeds, examples, copy-only (2):\n"
+  "    .agents/mcp_config.json\n        compare: git diff syntek-author/template -- .agents/mcp_config.json\n"
+  "    .codex/config.toml\n        compare: git diff syntek-author/template -- .codex/config.toml\n\n"
+  "  These commands work offline until the next update.\n")
+w("mc/again.log", "▸ syntek-author update report, 0.5.1 → 0.5.1: the template did not change.\n")
+w("mc/mig1.out", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n")
+w("mc/mig2.out", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n")
+j("mc/removed/.mcp.json", {"mcpServers": mine}, 4)
+j("mc/removed/.agents/mcp_config.json", {"mcpServers": {"code-review-graph": T["code-review-graph"]}})
+# The owner who allows every Scrapling tool, keeps .mcp.json out of git and runs a workflow.
+j("mc/allowed/.claude/settings.json", {"permissions": {"allow": ["mcp__scrapling__*"], "deny": [deny],
+                                                         "ask": [r for r in asks if not r.startswith("mcp__scrapling__")]}})
+j("mc/allowed/.mcp.json", {"mcpServers": {}})
+w("mc/allowed.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
+  "  These workflows name Google Drive's API, and the recorded answers ship no .github/.\n\n"
+  "    .github/workflows/google-drive-push.yml\n"
+  "▸ syntek-author: not added to .claude/settings.json, because you allow it: "
+  + "; ".join("ask " + r for r in asks if r.startswith("mcp__scrapling__")) + "\n"
+  "▸ syntek-author: .mcp.json is ignored by git, so it was not read and no MCP server was added to it (add them by hand): code-review-graph, scrapling\n"
+  "▸ syntek-author update report, 0.4.0 → 0.5.0\n")
+answers(f"mc/sibling/{ans}", DATA_STORE="external", DATA_AREA="Studio", DATA_SLUG="shared-probe", DATA_PROVIDER="none")
+# The update from v0.3.0.
+j("td/proj/.claude/settings.json", rules); j("td/proj/.mcp.json", {"mcpServers": T})
+answers(f"td/proj/{ans}", DOC_TYPE="theology", DATA_STORE="repo", DATA_PROVIDER="none", AGENT_CLIENTS="[]")
+j("td/pre/.mcp.json", {"mcpServers": {}}); j("td/tpl/.mcp.json", {"mcpServers": T})
+w("td/up.log", "▸ syntek-author update report, 0.3.0 → 0.5.0\n  The template changed 9 files here: 9 delivered.\n")
+# The Drive flows.
+step = "      - name: Stop unless the documents are kept in the repository\n"
+for d in ("dr/v040", "dr/v030"):
+    answers(f"{d}/{ans}", DOC_TYPE="business", DATA_STORE="repo", DATA_PROVIDER="google-drive")
+    w(f"{d}/.github/workflows/google-drive-pull.yml", "on:\n  schedule:\n    - cron: '30 5 * * 1-5'\njobs:\n  pull:\n    steps:\n" + step)
+    w(f"{d}/.github/workflows/google-drive-push.yml", "on: push\njobs:\n  push:\n    steps:\n" + step)
+w("dr/v040.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
+  "    README.md:206  - `INCLUDE_DRIVE_SYNC=false` deletes `.github/`, the Drive push and pull workflows.\n"
+  "        v0.5.0: DATA_PROVIDER replaces INCLUDE_DRIVE_SYNC: '- Choosing a provider other than Google Drive …'\n"
+  "▸ syntek-author update report, 0.4.0 → 0.5.0\n")
+w("dr/v030.log", "▸ syntek-author update report, 0.3.0 → 0.5.0\n")
+w("dr/again.log", "▸ syntek-author update report, 0.5.0 → 0.5.0: the template did not change.\n")
+gone = ("▸ syntek-author update report, 0.5.0 → 0.5.0\n"
+        "  DELETED by this update although you had changed them (the template retired them) (1):\n"
+        "    .github/workflows/google-drive-pull.yml\n        see:     git show syntek-author/yours:.github/workflows/google-drive-pull.yml\n")
+answers(f"dr/onedrive/{ans}", DOC_TYPE="business", DATA_STORE="repo", DATA_PROVIDER="onedrive")
+w("dr/onedrive.log", gone)
+answers(f"dr/{ext_dir}/{ans}", DOC_TYPE="business", DATA_STORE="external", DATA_AREA="business", DATA_SLUG="ext-probe-project-v2")
+w(f"dr/{ext_dir}/library/src/.gitignore", "*.pdf\n"); w(f"dr/{ext_dir}/research/src/.gitignore", "*.pdf\n")
+w("dr/external.log", gone.replace("  DELETED", "  CONFLICT: both versions are in the file between <<<<<<< and >>>>>>>; resolve it, then git add (1):\n    research/src/.gitignore\n  DELETED", 1))
+w("dr/index-before", ".gitignore\nlibrary/src/business/update-test-issued.pdf\n")
+w("dr/index-after", ".gitignore\nlibrary/src/.gitignore\nlibrary/src/business/update-test-issued.pdf\n")
+answers(f"dr/settings-trap/{ans}", DOC_TYPE="business", DATA_STORE="external", DATA_PROVIDER="google-drive")
+w("dr/settings-trap.log", gone)
+for d in ("dr/sibling-after", "dr/sibling-first"):
+    answers(f"{d}/{ans}", DOC_TYPE="business", DATA_STORE="repo", DATA_PROVIDER="google-drive")
+    w(f"{d}/.github/workflows/google-drive-push.yml", "on: push\n")
+# The round trip.
+answers("rt/copied.yml", DATA_STORE="external", DATA_AREA="Clients", DATA_SLUG="custom-slug")
+answers("rt/repo.yml", DATA_STORE="repo", DATA_PROVIDER="none")
+answers("rt/again.yml", DATA_STORE="external", DATA_AREA="business", DATA_SLUG="round-trip-probe")
+answers("rt/restored.yml", DATA_STORE="external", DATA_AREA="Clients", DATA_SLUG="custom-slug")
+answers(f"rt/{rt_dir}/{ans}", DATA_STORE="external", DATA_AREA="Clients", DATA_SLUG="custom-slug")
+w("rt/case.log", "ValueError: Validation error for question 'DATA_AREA': This project's files are filed under 'Clients'.\n")
+PY
+  MC_RAN=true; MC_DOC=theology; MC_W="$s/mc"; MC_PROJ="$s/mc/proj"; MC_LOG="$s/mc/up.log"; MC_NEXT_LOG="$s/mc/next.log"; MC_AGAIN_LOG="$s/mc/again.log"
+  MC_COPY=0; MC_UPD=0; MC_WRITE=0; MC_CHECK1=0; MC_NEXT_ST=0; MC_CHECK2=0; MC_AGAIN_ST=0; MC_AGAIN_DIRTY=""
+  MC_CLIENTS_PRE="AGENTS.md GEMINI.md .agents/mcp_config.json .codex/config.toml opencode.json"
+  MC_CLIENTS_MID="$MC_CLIENTS_PRE"; MC_CLIENTS_END="$MC_CLIENTS_PRE"; MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""
+  MR_PROJ="$s/mc/removed"; MR_ST=0
+  MA_PROJ="$s/mc/allowed"; MA_LOG="$s/mc/allowed.log"; MA_COPY=0; MA_UPD=0; MA_STAT_PRE="$(dt_stat "$MA_PROJ/.mcp.json")"
+  SB_PROJ="$s/mc/sibling"; SB_ST=0
+  TD_RAN=true; TD_DOC=theology; TD_PROJ="$s/td/proj"; TD_LOG="$s/td/up.log"; TD_PRE="$s/td/pre"; TD_TPL="$s/td/tpl"
+  TRAP_COPY_STATUS=0; TRAP_UPDATE_STATUS=0
+  DR_RAN=true; DR_W="$s/dr"
+  DR4_PROJ="$s/dr/v040"; DR4_LOG="$s/dr/v040.log"; DR4_COPY=0; DR4_UPD=0; DR4_UNMERGED=""; DR4_AGAIN_ST=0; DR4_AGAIN_DIRTY=""; DR4_AGAIN_LOG="$s/dr/again.log"
+  DR3_PROJ="$s/dr/v030"; DR3_LOG="$s/dr/v030.log"; DR3_COPY=0; DR3_UPD=0; DR3_UNMERGED=""
+  DRP_PROJ="$s/dr/onedrive"; DRP_LOG="$s/dr/onedrive.log"; DRP_ST=0
+  DRE_PROJ="$s/dr/$DT_EXT_DIR"; DRE_LOG="$s/dr/external.log"; DRE_ST=0; DRE_PDF="$DT_PDF"
+  DRS_PROJ="$s/dr/settings-trap"; DRS_LOG="$s/dr/settings-trap.log"; DRS_ST=0
+  DRA_PROJ="$s/dr/sibling-after"; DRA_ST=0; DRB_PROJ="$s/dr/sibling-first"; DRB_ST=0
+  RT_RAN=true; RT_DOC=theology; RT_W="$s/rt"; RT_PROJ="$s/rt/$DT_RT_DIR"; RT_ROOT="$s/rt/data-root"
+  RT_ST="copy 0 add 0 repo 0 external 0 restore 0"
+  RT_STATUS_OUT="warning: 1 current row(s) are filed under '$DT_RT_AREA/docs/$DT_RT_SLUG', not this project's '$DT_AREA_DEFAULT/docs/$DT_RT_SLUG_DEFAULT': to file there again, update every template with --data DATA_AREA=$DT_RT_AREA --data DATA_SLUG=$DT_RT_SLUG"
+  RT_ARGS="--data DATA_AREA=$DT_RT_AREA --data DATA_SLUG=$DT_RT_SLUG"; RT_CASE_ST=1; RT_CASE_DIRTY=""; RT_CASE_LOG="$s/rt/case.log"
+}
+dt_json() { # $1 = file, $2 = Python statement on d: edits a JSON file in place
+  python3 - "$1" "$2" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+exec(sys.argv[2])
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent=2) + "\n")
+PY
+}
+
+# The probes for checks 60–85, on dt_synth's trees: each mutation is undone before the next.
+dt_self_test() { # $1 = scratch dir
+  local s="$1/dt" h="$1/dt-held" r first
+  dt_synth "$s"
+  dt_readers_init
+  st_baseline "the trees and logs of real updates across D50, D53 and D54 (synthetic)"
+  first="$(head -1 <<< "$DT_READERS")"
+  hold() { cp -a "$1" "$h"; }; back() { rm -rf "$1"; cp -a "$h" "$1"; rm -rf "$h"; }
+  MC_UPD=1; probe "check 60 fires when the crossing update fails" "check 60 — [theology from v0.4.0] the copy at v0.4.0 or the update"; MC_UPD=0
+  hold "$s/mc/mid/.claude/settings.json"; dt_json "$s/mc/mid/.claude/settings.json" 'd["permissions"]["ask"].pop()'
+  probe "check 60 fires when an ask does not arrive" "check 60 — [theology from v0.4.0] after the update, .claude/settings.json asks"; back "$s/mc/mid/.claude/settings.json"
+  hold "$s/td/proj/.claude/settings.json"; dt_json "$s/td/proj/.claude/settings.json" 'd["permissions"]["deny"].append(d["permissions"]["deny"][-1])'
+  probe "check 60 fires when the deny arrives twice" "check 60 — [theology from v0.3.0] after the update, .claude/settings.json denies"; back "$s/td/proj/.claude/settings.json"
+  hold "$s/mc/mid/.mcp.json"; dt_json "$s/mc/mid/.mcp.json" 'd["mcpServers"].pop("owner-notes")'
+  probe "check 61 fires when the owner's own server is lost" "check 61 — [theology from v0.4.0] after the update, .mcp.json: a key"; back "$s/mc/mid/.mcp.json"
+  hold "$s/mc/mid/.agents/mcp_config.json"; printf '{"mcpServers": {"scrapling": {}, "scrapling": {}}}\n' > "$s/mc/mid/.agents/mcp_config.json"
+  probe "check 61 fires when a server is declared twice and another is missing" "check 61 — [theology from v0.4.0] after the update, .agents/mcp_config.json: declares code-review-graph 0 time(s)"; back "$s/mc/mid/.agents/mcp_config.json"
+  hold "$s/mc/proj/opencode.json"; dt_json "$s/mc/proj/opencode.json" 'd["mcp"]["servers"]["scrapling"]["args"] = ["x"]'
+  probe "check 61 fires when a server is not the new render's" "check 61 — [theology from v0.4.0] after --write and the next update, opencode.json: its scrapling entry"; back "$s/mc/proj/opencode.json"
+  hold "$s/mc/proj/opencode.json"; dt_json "$s/mc/proj/opencode.json" 'd["permissions"][:2] = d["permissions"][1::-1]'
+  probe "check 61 fires when the owner's list items change order" "check 61 — [theology from v0.4.0] after --write and the next update, opencode.json: a key, value or list item it held before is gone or out of order"; back "$s/mc/proj/opencode.json"
+  hold "$s/td/proj/.mcp.json"; dt_json "$s/td/proj/.mcp.json" 'd["mcpServers"].pop("scrapling")'
+  probe "check 61 fires when the update from v0.3.0 misses a server" "check 61 — [theology from v0.3.0] after the update, .mcp.json: declares scrapling 0"; back "$s/td/proj/.mcp.json"
+  r="$MC_CLIENTS_END"; MC_CLIENTS_END="$r .gemini/settings.json"
+  probe "check 62 fires when a deleted client file comes back" "check 62"; MC_CLIENTS_END="$r"
+  hold "$s/mc/mid/.codex/config.toml"; sed -i '0,/approval_mode = "prompt"/s//approval_mode = "never"/' "$s/mc/mid/.codex/config.toml"
+  probe "check 63 fires when a Codex prompt table is not the render's" "check 63"; back "$s/mc/mid/.codex/config.toml"
+  MC_CHECK2=1; probe "check 64 fires when --check fails after the next update" "check 64 — [theology from v0.4.0] the printed --write"; MC_CHECK2=0
+  hold "$MC_LOG"; grep -vF "$DT_WRITE_LINE" "$h" > "$MC_LOG" || true
+  probe "check 64 fires when the --write line is not printed" "check 64 — [theology from v0.4.0] the update did not print"; back "$MC_LOG"
+  hold "$s/mc/removed/.mcp.json"; dt_json "$s/mc/removed/.mcp.json" 'd["mcpServers"]["code-review-graph"] = {}'
+  probe "check 65 fires when a server removed before any commit comes back" "check 65 — [theology from v0.4.0] .mcp.json"; back "$s/mc/removed/.mcp.json"
+  hold "$s/mc/removed/.agents/mcp_config.json"; dt_json "$s/mc/removed/.agents/mcp_config.json" 'd["mcpServers"]["scrapling"] = {}'
+  probe "check 65 fires when a server removed after a commit comes back" "check 65 — [theology from v0.4.0] .agents/mcp_config.json"; back "$s/mc/removed/.agents/mcp_config.json"
+  hold "$MC_NEXT_LOG"; { grep -F "$DT_DIFF_LINE" "$MC_LOG"; cat "$h"; } > "$MC_NEXT_LOG"
+  probe "check 66 fires when the differing entry is reported again" "check 66"; back "$MC_NEXT_LOG"
+  hold "$s/mc/proj/.mcp.json"; dt_json "$s/mc/proj/.mcp.json" 'd["mcpServers"]["scrapling"]["args"] = ["the template'"'"'s"]'
+  probe "check 66 fires when the owner's differing entry is replaced" "check 66"; back "$s/mc/proj/.mcp.json"
+  printf ' ' >> "$MA_PROJ/.mcp.json"; probe "check 67 fires when the git-ignored .mcp.json is written" "check 67"
+  printf '{\n  "mcpServers": {}\n}\n' > "$MA_PROJ/.mcp.json"; MA_STAT_PRE="$(dt_stat "$MA_PROJ/.mcp.json")"
+  hold "$MA_LOG"; grep -vF "$DT_IGNORED_LINE" "$h" > "$MA_LOG" || true
+  probe "check 67 fires when the ignored .mcp.json is not reported" "check 67"; back "$MA_LOG"
+  hold "$MA_PROJ/.claude/settings.json"; dt_json "$MA_PROJ/.claude/settings.json" 'd["permissions"]["ask"].append("mcp__scrapling__fetch")'
+  probe "check 68 fires when an allowed Scrapling ask is added" "check 68 — [theology from v0.4.0] where the owner allows"; back "$MA_PROJ/.claude/settings.json"
+  hold "$MA_LOG"; sed -i 's/; ask mcp__scrapling__bulk_fetch//' "$MA_LOG"
+  probe "check 68 fires when a left-out ask is not reported" "check 68 — [theology from v0.4.0] the update did not say it left out 'mcp__scrapling__bulk_fetch'"; back "$MA_LOG"
+  hold "$s/mc/mid/opencode.json"; dt_json "$s/mc/mid/opencode.json" 'd["mcp"] = {"servers": {"scrapling": {}}}'
+  probe "check 69 fires when a server reaches opencode.json before its asks" "check 69 — [theology from v0.4.0] opencode.json, whose owner allows every tool, declares scrapling"; back "$s/mc/mid/opencode.json"
+  hold "$s/mc/proj/opencode.json"; dt_json "$s/mc/proj/opencode.json" 'd["permissions"] = [p for p in d["permissions"] if p["action"] != "scrapling_fetch"]'
+  probe "check 69 fires when a Scrapling tool is left unprompted" "check 69 — [theology from v0.4.0] after --write and the next update, opencode.json declares scrapling but does not ask before scrapling_fetch"; back "$s/mc/proj/opencode.json"
+  hold "$MC_NEXT_LOG"
+  sed -i -e 's/^  NOT UPDATED because files of this kind are written once.*/  NOT UPDATED because you had changed them (1):/' -e '/^    \.agents\/mcp_config\.json$/d' "$MC_NEXT_LOG"
+  probe "check 70 fires when a lane-written file counts as the owner's" "check 70 — [theology from v0.4.0] the next update lists .codex/config.toml"
+  back "$MC_NEXT_LOG"
+  MC_AGAIN_DIRTY=" M .mcp.json"; probe "check 70 fires when a second update changes a file" "check 70 — [theology from v0.4.0] the next update"; MC_AGAIN_DIRTY=""
+  MC_ABS="/tmp/x/tagged"; probe "check 59 fires when the real record names a path" "check 59 — [theology from v0.4.0]"; MC_ABS=""
+  hold "$TD_PROJ/$SA_ANSWERS_FILE"; printf 'DATA_AREA: business\n' >> "$TD_PROJ/$SA_ANSWERS_FILE"
+  probe "check 71 fires when an update under repo records a layout answer" "check 71 — [theology from v0.3.0] after the update with --defaults, the project records DATA_AREA"; back "$TD_PROJ/$SA_ANSWERS_FILE"
+  mkdir -p "$MC_PROJ/research/src"; : > "$MC_PROJ/research/src/.gitignore"
+  probe "check 71 fires when an update under repo delivers an ignore file" "check 71 — [theology from v0.4.0] after the update with --defaults, the project gained research/src/.gitignore"
+  rm -rf "$MC_PROJ/research"
+  hold "$DR4_PROJ/.claude/syntek-author-dataroot.py"; rm -f "$DR4_PROJ/.claude/syntek-author-dataroot.py"
+  probe "check 71 fires when the resolver does not arrive" "check 71 — [business Drive] from v0.4.0, the project has no .claude/syntek-author-dataroot.py"; back "$DR4_PROJ/.claude/syntek-author-dataroot.py"
+  DRE_PDF=""; probe "check 72 fires when a tracked binary is untracked" "check 72"; DRE_PDF="$DT_PDF"
+  hold "$DRE_PROJ/$SA_ANSWERS_FILE"; sed -i 's/^DATA_SLUG: .*/DATA_SLUG: probe-project/' "$DRE_PROJ/$SA_ANSWERS_FILE"
+  probe "check 72 fires when DATA_SLUG is not the folder's kebab name" "check 72 — [business Drive] choosing external: answers 'records DATA_SLUG"; back "$DRE_PROJ/$SA_ANSWERS_FILE"
+  hold "$DRE_LOG"; grep -v -e '^  CONFLICT' -e '^    research/src/.gitignore$' "$h" > "$DRE_LOG" || true
+  probe "check 73 fires when the owner's ignore file is not a conflict" "check 73"; back "$DRE_LOG"
+  RT_CASE_ST=0; probe "check 74 fires when a case-only area change is accepted" "check 74 — [theology round trip] an update changing"; RT_CASE_ST=1
+  RT_CASE_DIRTY=" M .copier-answers.syntek-author.yml"; probe "check 74 fires when the refusal touched the tree" "check 74 — [theology round trip] the case-only"; RT_CASE_DIRTY=""
+  printf 'a later line\n' >> "$s/mc/mig2.out"; probe "check 75 fires when the migration's second run differs" "check 75 — [theology from v0.4.0] two hand runs"
+  head -1 "$s/mc/mig1.out" > "$s/mc/mig2.out"
+  hold "$MC_LOG"; { grep "^$RP_HEAD" "$h"; grep -v "^$RP_HEAD" "$h"; } > "$MC_LOG"
+  probe "check 75 fires when the migration runs after the report" "check 75 — [theology from v0.4.0] the v0.5.0 migration did not run before"; back "$MC_LOG"
+  hold "$TD_LOG"; printf '  NOT UPDATED because you had changed them (1):\n    %s\n' "$first" >> "$TD_LOG"
+  probe "check 76 fires when a data-root reader is reported as kept back" "check 76 — [theology from v0.3.0] the update report lists template-owned files that read a data-root answer: $first"; back "$TD_LOG"
+  hold "$SB_PROJ/$SA_ANSWERS_FILE"; sed -i 's/^DATA_STORE: .*/DATA_STORE: repo/' "$SB_PROJ/$SA_ANSWERS_FILE"
+  probe "check 77 fires when the first update ignores a sibling at external" "check 77"; back "$SB_PROJ/$SA_ANSWERS_FILE"
+  hold "$DRB_PROJ/.github"; rm -rf "$DRB_PROJ/.github"
+  probe "check 78 fires when a fresh copy beside a sibling from before D50 ships no .github/" "check 78 — [business Drive] a fresh copy"; back "$DRB_PROJ/.github"
+  hold "$DRA_PROJ/$SA_ANSWERS_FILE"; sed -i 's/^DATA_STORE: .*/DATA_STORE: external/' "$DRA_PROJ/$SA_ANSWERS_FILE"
+  probe "check 78 fires when the update beside a fresh sibling leaves repo" "check 78 — [business Drive] the update after"; back "$DRA_PROJ/$SA_ANSWERS_FILE"
+  r="$RT_ARGS"; RT_ARGS=""; probe "check 79 fires when the resolver prints no restore arguments" "check 79"; RT_ARGS="$r"
+  hold "$RT_W/again.yml"; sed -i "s/^DATA_SLUG: .*/DATA_SLUG: $DT_RT_SLUG/" "$RT_W/again.yml"
+  probe "check 79 fires when repo does not forget the layout" "check 79 — [theology round trip] external again records slug"; back "$RT_W/again.yml"
+  r="$RT_STATUS_OUT"; RT_STATUS_OUT="status: 0 not filed"; probe "check 79 fires when the old folder is not named" "check 79"; RT_STATUS_OUT="$r"
+  hold "$DRS_PROJ/$SA_ANSWERS_FILE"; sed -i 's/^DATA_STORE: .*/DATA_STORE: repo/' "$DRS_PROJ/$SA_ANSWERS_FILE"
+  probe "check 80 fires when the settings trap does not show" "check 80"; back "$DRS_PROJ/$SA_ANSWERS_FILE"
+  hold "$DR4_PROJ/$DT_PULL"; sed -i '/cron/d' "$DR4_PROJ/$DT_PULL"
+  probe "check 81 fires when the owner's edit to a Drive workflow is lost" "check 81 — [business Drive] from v0.4.0, the update with --defaults: the owner's edit"; back "$DR4_PROJ/$DT_PULL"
+  hold "$DR3_PROJ/$DT_PUSH"; sed -i '/- name: Stop unless/d' "$DR3_PROJ/$DT_PUSH"
+  probe "check 81 fires when the store guard step is not merged" "check 81 — [business Drive] from v0.3.0, the update with --defaults: $DT_PUSH holds the store guard step 0"; back "$DR3_PROJ/$DT_PUSH"
+  hold "$DR3_PROJ/$SA_ANSWERS_FILE"; printf 'INCLUDE_DRIVE_SYNC: true\n' >> "$DR3_PROJ/$SA_ANSWERS_FILE"
+  probe "check 81 fires when the retired key is still recorded" "check 81 — [business Drive] from v0.3.0, the update with --defaults: still records"; back "$DR3_PROJ/$SA_ANSWERS_FILE"
+  DR4_UNMERGED="$DT_PULL"; probe "check 81 fires on an unmerged workflow" "check 81 — [business Drive] from v0.4.0, the update with --defaults: unmerged"; DR4_UNMERGED=""
+  hold "$TD_PROJ/$SA_ANSWERS_FILE"; sed -i 's/^DATA_PROVIDER: .*/DATA_PROVIDER: google-drive/' "$TD_PROJ/$SA_ANSWERS_FILE"
+  probe "check 82 fires when a project without Drive records google-drive" "check 82 — [theology from v0.3.0]"; back "$TD_PROJ/$SA_ANSWERS_FILE"
+  mkdir -p "$MC_PROJ/.github"; probe "check 82 fires when a project without Drive gains .github/" "check 82 — [theology from v0.4.0] after the update, the project has .github/"; rmdir "$MC_PROJ/.github"
+  mkdir -p "$DRP_PROJ/.github"; probe "check 83 fires when another provider keeps .github/" "check 83 — [business Drive] after DATA_PROVIDER onedrive"; rmdir "$DRP_PROJ/.github"
+  hold "$DRE_LOG"; grep -v '^  DELETED' "$h" > "$DRE_LOG" || true
+  probe "check 83 fires when the edited workflow is not listed as deleted" "check 83 — [business Drive] after DATA_STORE external"; back "$DRE_LOG"
+  DR4_AGAIN_DIRTY=" M Makefile"; probe "check 84 fires when a second update changes a file" "check 84"; DR4_AGAIN_DIRTY=""
+  hold "$MA_LOG"; grep -vF "    $DT_PUSH" "$h" > "$MA_LOG" || true
+  probe "check 85 fires when an unmanaged Drive workflow is not listed" "check 85 — [theology from v0.4.0]"; back "$MA_LOG"
+  hold "$DR4_LOG"; grep -v 'README\.md:' "$h" > "$DR4_LOG" || true
+  probe "check 85 fires when a stale seed line is not listed" "check 85 — [business Drive] the v0.5.0 migration did not list the seed"; back "$DR4_LOG"
+  hold "$DR4_LOG"; printf '  %s, and the recorded answers ship no .github/.\n' "$DT_DRIVE_LIST" >> "$DR4_LOG"
+  probe "check 85 fires when a managed workflow is listed" "check 85 — [business Drive] the v0.5.0 migration listed"; back "$DR4_LOG"
+  # The judges themselves, on shapes the mutations above do not reach.
+  r=""
+  [[ "$(ut_judge servers - "$s/mc/mid/.codex/config.toml" "$s/mc/tpl-mid/.codex/config.toml" .codex/config.toml)" == ok ]] || r+=" codex-servers"
+  [[ "$(ut_judge absent "$s/mc/mid/.codex/config.toml" .codex/config.toml scrapling)" == "declares scrapling" ]] || r+=" codex-absent"
+  [[ -z "$r" ]] || { printf '\033[31m  ✗ ut_judge misjudges:%s\033[0m\n' "$r" >&2; exit 2; }
+  MC_RAN=false; TD_RAN=false; DR_RAN=false; RT_RAN=false
+}
+
 run_checks() {
   FINDINGS=()
   $FLOW_RAN && flow_checks
@@ -1396,6 +2538,11 @@ run_checks() {
   $RP_RAN && report_checks
   $SH_RAN && shared_checks
   $SM_RAN && sm_checks
+  if $MC_RAN || $TD_RAN || $DR_RAN || $RT_RAN; then dt_readers_init; fi
+  $MC_RAN && mcp_flow_checks
+  $TD_RAN && trap_data_checks
+  $DR_RAN && drive_checks
+  $RT_RAN && rt_checks
   return 0
 }
 
@@ -1496,8 +2643,10 @@ self_test() {
   SWITCH_RECORDED=fiction; probe "check 11 fires when the answers record the new DOC_TYPE" "check 11"; SWITCH_RECORDED=theology
   cp "$UPDATE_LOG" "$tmp/h"; grep -vF "$MESSAGE_MARK" "$tmp/h" > "$UPDATE_LOG" || true
   probe "check 12 fires when the option-off warning is not printed" "check 12"; cp "$tmp/h" "$UPDATE_LOG"
-  grep -vF "INCLUDE_DRIVE_SYNC=false" "$tmp/h" > "$UPDATE_LOG" || true
-  probe "check 12 fires when the warning leaves an option out" "check 12 — [theology] the option-off warning does not name INCLUDE_DRIVE_SYNC"; cp "$tmp/h" "$UPDATE_LOG"
+  grep -vF "DATA_PROVIDER" "$tmp/h" > "$UPDATE_LOG" || true
+  probe "check 12 fires when the warning leaves the provider out" "check 12 — [theology] the option-off warning does not name DATA_PROVIDER"; cp "$tmp/h" "$UPDATE_LOG"
+  grep -vF "DATA_STORE=repo" "$tmp/h" > "$UPDATE_LOG" || true
+  probe "check 12 fires when the warning leaves the store out" "check 12 — [theology] the option-off warning does not name DATA_STORE=repo"; cp "$tmp/h" "$UPDATE_LOG"
   $CO_RAN || { finding "self-test: the fixture wrote no agent files"; }
   cp "$PROJ/AGENTS.md" "$tmp/h"; printf '%s\n' "$TEMPLATE_MARK" >> "$PROJ/AGENTS.md"
   probe "check 24 fires when the update renders AGENTS.md" "check 24 — [theology] the update rendered"; cp "$tmp/h" "$PROJ/AGENTS.md"
@@ -1638,6 +2787,9 @@ self_test() {
   cp "$tmp/h" "$RP_PROJ/.claude/skills/wait-what/SKILL.md"
   local rp_beyond="$RP_BEYOND"; RP_BEYOND="$RP_BEYOND README.md"
   probe "check 47 fires when the report changes another file" "check 47"; RP_BEYOND="$rp_beyond"
+  cp "$RP_LOG" "$tmp/h"; grep -vE '^▸ [^:]+: added [0-9]+ MCP servers? to \.mcp\.json' "$tmp/h" > "$RP_LOG" || true
+  probe "check 47 fires when the MCP lane changed a file it did not report" "check 47 — [report fixture] beyond the update's own changes, the report changed '.claude/settings.json .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md .mcp.json'"
+  cp "$tmp/h" "$RP_LOG"
   RP_CMD_FAILS="git show x (exit 128)"; probe "check 48 fires when a printed command fails" "check 48"; RP_CMD_FAILS=""
   RP_RERUN_CHANGED="> refs/x"; probe "check 49 fires when a rerun changes something" "check 49 — [report fixture] a second run"; RP_RERUN_CHANGED=""
   RP_AGAIN_DIRTY=" M README.md"; probe "check 49 fires when a second update changes a file" "check 49 — [report fixture] a second update"; RP_AGAIN_DIRTY=""
@@ -1698,7 +2850,18 @@ self_test() {
     sa_git "$tmp/abs-probe" update-ref refs/syntek-author/template HEAD; } >/dev/null 2>&1
   SM_ABS="$(sm_abs "$tmp/abs-probe" /nowhere/tpl /nowhere/proj)"
   probe "check 59 finds a recorded answers file naming Copier's temporary clone" "check 59"; SM_ABS=""
+  # sm_abs on a record whose MCP lines name a path outside the project (D54).
+  mkdir -p "$tmp/abs-mcp"; printf '{}\n' > "$tmp/abs-mcp/.mcp.json"
+  { sa_git "$tmp/abs-mcp" init -q
+    sa_git "$tmp/abs-mcp" add -A
+    sa_git "$tmp/abs-mcp" commit -q -m $'a record\n\nmcp: .mcp.json scrapling 0\nwritten-blob: ../outside/.mcp.json 0123abc'
+    sa_git "$tmp/abs-mcp" update-ref refs/syntek-author/template HEAD; } >/dev/null 2>&1
+  SM_ABS="$(sm_abs "$tmp/abs-mcp" /nowhere/tpl /nowhere/proj)"
+  probe "check 59 finds an MCP record line naming a path outside the project" "check 59 — [settings fixture] the render record names a path of this machine: record line: written-blob: ../outside"; SM_ABS=""
   SM_RAN=false
+
+  # Checks 60–85: the trees, logs and statuses of real updates across D50, D53 and D54.
+  dt_self_test "$tmp"
   st_finish "an update that keeps its promises from one that breaks them"
 }
 
@@ -1726,11 +2889,15 @@ for doc in ${DOC_TYPES//,/ }; do
   case "$doc" in theology|fiction|business) ;; *) die "unknown DOC_TYPE: $doc" ;; esac
   work="$(sa_mktemp)"
   MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false; OL_RAN=false; RP_RAN=false; SH_RAN=false; SM_RAN=false
+  MC_RAN=false; TD_RAN=false; DR_RAN=false; RT_RAN=false
   run_flow "$SA_ROOT" "$doc" "$work"
   tagged_once
   git -C "$TAGGED" rev-parse -q --verify "refs/tags/$TRAP_FROM" >/dev/null 2>&1 \
     || die "$SA_ROOT has no $TRAP_FROM tag — Trap 1 cannot be proven (git fetch --tags; CI needs fetch-depth: 0)"
+  git -C "$TAGGED" rev-parse -q --verify "refs/tags/$DT_FROM" >/dev/null 2>&1 \
+    || die "$SA_ROOT has no $DT_FROM tag — the updates across D50, D53 and D54 cannot be proven (CI needs fetch-depth: 0)"
   run_trap_flow "$TAGGED" "$work" "$doc"
+  TD_RAN=true
   cat "$work/trap-flow.log" >> "$work/flow.log" 2>/dev/null || true
   run_shared_flow "$TAGGED" "$work" "$doc" "$TRAP_FROM" HEAD "$TRAP_FROM"
   cat "$work/sh-$TRAP_FROM.log" >> "$work/flow.log" 2>/dev/null || true
@@ -1743,8 +2910,14 @@ for doc in ${DOC_TYPES//,/ }; do
     cat "$work/rp-flow.log" >> "$work/flow.log" 2>/dev/null || true
     run_sm_flow "$RP_TPL" "$work"
     cat "$work/sm-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_mcp_flow "$TAGGED" "$work" "$doc"
+    cat "$work/mc-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_roundtrip_flow "$TAGGED" "$work" "$doc"
+    cat "$work/rt-flow.log" >> "$work/flow.log" 2>/dev/null || true
   fi
   if [[ "$doc" == business ]]; then
+    run_drive_flow "$TAGGED" "$work"
+    cat "$work/dr-flow.log" >> "$work/flow.log" 2>/dev/null || true
     run_migration_flow "$TAGGED" "$work"
     cat "$work/mig-flow.log" >> "$work/flow.log" 2>/dev/null || true
   else
@@ -1772,6 +2945,10 @@ for doc in ${DOC_TYPES//,/ }; do
     $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds autoCompactEnabled false once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
+    $TD_RAN && log "  ✓ $doc — update from $TRAP_FROM across v0.5.0: the nine rules and both MCP servers once, DATA_STORE repo with no layout answer, the resolver and no ignore file, no guard wired, DATA_PROVIDER none and no .github/, no false report line"
+    $MC_RAN && log "  ✓ $doc — MCP servers from $DT_FROM: added once to each existing file in the owner's order, a differing entry kept and said once, no client file created or restored, Codex's prompts, --write then --check clean, held back from a catch-all opencode.json until --write, removed servers never re-added, an ignored .mcp.json untouched, allowed Scrapling asks left out, a quiet second update; the v0.5.0 migration before the report and the same twice; a sibling at external followed"
+    $RT_RAN && log "  ✓ $doc — the round trip: external with its own layout, repo, external re-derived, the old folder named from filed_under and restored by --data; a case-only area change refused, the tree clean"
+    $DR_RAN && log "  ✓ $doc — Google Drive from $DT_FROM and $TRAP_FROM: google-drive and repo recorded, the owner's edit kept with the guard step merged, a second update a no-op; another provider, external and the settings trap delete .github/ and list the edit; external delivers the ignore files, untracks nothing and lists the owner's ignore file as a conflict; a sibling in both orders keeps repo; the migration lists the unmanaged workflow and the stale seed line"
     rm -rf "$work"
   else
     bold "✗ $doc — ${#FINDINGS[@]} finding(s) (work kept in $work; Copier's output in $work/flow.log):"
