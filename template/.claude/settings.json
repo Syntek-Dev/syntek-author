@@ -13,8 +13,19 @@
     "deny": [
       "AskUserQuestion",
       "Edit(**/*.pdf)",
-      "Edit(build/**)"<: if DOC_TYPE != 'business' :>,
-      "Edit(typeset/src/units/.base/**)"<: endif :>
+      "Edit(build/**)",<: if DOC_TYPE != 'business' :>
+      "Edit(typeset/src/units/.base/**)",<: endif :>
+      "mcp__code-review-graph__embed_graph_tool"
+    ],
+    "ask": [
+      "mcp__scrapling__stealthy_fetch",
+      "mcp__scrapling__bulk_stealthy_fetch",
+      "mcp__scrapling__open_session",
+      "mcp__scrapling__session_fetch",
+      "mcp__scrapling__fetch",
+      "mcp__scrapling__bulk_fetch",
+      "mcp__code-review-graph__apply_refactor_tool",
+      "mcp__code-review-graph__generate_wiki_tool"
     ]
   },
   "hooks": {
@@ -46,6 +57,18 @@
           {
             "type": "command",
             "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" manual'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; for f in \"$ROOT\"/.claude/syntek-*-dataroot.py; do [ -f \"$f\" ] && exec python3 \"$f\" guard; done; exit 0'",
             "timeout": 10
           }
         ]

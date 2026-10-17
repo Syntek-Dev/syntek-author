@@ -28,7 +28,8 @@ Keep Codex's project settings working, without overriding the author's choices.
   credential store or the environment.
 - **Client permission is not the author's approval**, and a configured server is not approval
   to spend credits: the rules still decide.
-- This pair and `config.toml` are the author's. `copier update` never touches them.
+- This pair and `config.toml` are the author's. `copier update` never re-renders them; its
+  update script only adds a shipped MCP server to `config.toml` once (see `CONTEXT.md`).
 
 ## Output & naming
 

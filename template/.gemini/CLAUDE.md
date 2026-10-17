@@ -30,7 +30,8 @@ Keep Gemini CLI's project settings working, without overriding the author's choi
 - **Never copy skills into this folder.** A second copy drifts from `.claude/skills/`.
 - **Client permission is not the author's approval**, and a configured server is not approval
   to spend credits: the rules still decide.
-- This pair and `settings.json` are the author's. `copier update` never touches them.
+- This pair and `settings.json` are the author's. `copier update` never re-renders them; its
+  update script only adds a shipped MCP server to `settings.json` once (see `CONTEXT.md`).
 
 ## Output & naming
 

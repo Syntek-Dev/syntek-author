@@ -41,6 +41,20 @@
 .claude/settings.local.json
 
 # ----------------------------------------------------------------------------
+# code-review-graph — its local map of this repository's code (.mcp.json); never committed
+# ----------------------------------------------------------------------------
+/.code-review-graph/
+
+<: if DATA_STORE == 'external' :># ----------------------------------------------------------------------------
+# Binary records — filed under the data root (DATA_STORE external); none ignored here
+# ----------------------------------------------------------------------------
+# The template's nested .gitignore files (research/src/ and, where the project has
+# them, library/src/ and proposal/src/) ignore the binary types there: those files
+# are filed under each machine's data root with make files-add, and listed in the
+# folder's external.toml, which you commit. An ignore rule never untracks a file
+# Git already tracks; make files-plan lists those.
+
+<: endif :># ----------------------------------------------------------------------------
 # Operating system artefacts
 # ----------------------------------------------------------------------------
 .DS_Store

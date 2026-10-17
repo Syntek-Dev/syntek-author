@@ -106,8 +106,9 @@ make tex SCOPE=manuscript/src/<chapter-folder>     # a chapter's Pandoc base, fo
 make tex-check            # every styled chapter still carries exactly its Markdown's words
 make print                # the printed book, from typeset/src/book.tex
 <: else :>make pdf FILE=library/src/business/…/document.tex   # a proof of one document, in build/
-make pdf FILE=… ISSUE=1   # issue it beside its source (final by default; never over an issued file)
-<: endif :>make flags                # every AUTHOR TO CONFIRM and VERIFY still open<: if DOC_TYPE == 'business' :>, and every [AWAITING USER INPUT]<: endif :>
+<: if DATA_STORE == 'repo' :>make pdf FILE=… ISSUE=1   # issue it beside its source (final by default; never over an issued file)
+<: endif :><: if DATA_STORE == 'external' :>make pdf FILE=… ISSUE=1   # issue it under the data root (final by default; never over an issued file)
+<: endif :><: endif :>make flags                # every AUTHOR TO CONFIRM and VERIFY still open<: if DOC_TYPE == 'business' :>, and every [AWAITING USER INPUT]<: endif :>
 make provenance           # the AI-disclosure table
 make compare UNIT=<unit>  # each section's original, AI edit and final, marked by who changed what
 make clean                # remove build/
@@ -122,7 +123,61 @@ folder is ignored by Git, and no target ever reads a file Git ignores.
 
 ---
 
-## Working with Claude Code
+<: if DATA_STORE == 'external' :>## Binary files and the data root
+
+This project keeps its binary files (PDFs and scans, office documents, images, audio, video)
+outside the repository, under each machine's data root, so that Git keeps the text. Each file
+is filed under `<root>/<area>/<kind>/<slug>/`, at the path it would have in the repository,
+and listed with its checksum in its folder's `external.toml`, which you commit with the work.
+The rules are in `.claude/rules/syntek-author/09-data-root.md`.
+
+**On each machine you work on, once:**
+
+1. Choose the data root, a folder outside every repository, and set the environment variable
+   `SYNTEK_DATA_ROOT` to its absolute path (in your shell profile, or in the system's
+   environment settings on Windows). No file in this project names it.
+2. Create the empty marker file `.syntek-data-root` at the top of that folder: nothing is
+   filed under a folder without it, which also catches a disk that is not mounted.
+3. Run `make root`: it checks the root, and prints where each kind of file goes and the
+   checklist for the service you chose to keep a copy of it.
+
+```sh
+make root                       # the root, the layout and your provider's checklist
+make files-add FILE=… ROLE=…    # file a copy under the root and list it (AS=, SOURCE=, LABEL=)
+make files-status               # the loss check: binaries Git ignores that no manifest lists
+make files-verify               # check every listed file against its checksum
+make files-pull                 # copy listed files into the work tree, where Git ignores them
+make files-plan                 # tracked binaries and where each would go (COPY=1 copies them)
+```
+
+- **Text work needs no root.** Drafting, proofs, lint and `make flags` run without one;
+  issuing and filing stop with the reason and never fall back to the repository.
+<: if DOC_TYPE == 'business' :>- **Issuing files the PDF here.** `make pdf FILE=… ISSUE=1` files the issued copy under the
+  root instead of beside its source; with `FORCE=1` it keeps the old copy, marked superseded.
+<: endif :>- **Nothing filed is overwritten or deleted.** A file is copied, checked against its checksum
+  and only then listed, and a manifest's rows are never removed. The data-root tool behind
+  these targets is the one exception to 'no target reads a file Git ignores': it copies or
+  hashes only a file you name or a manifest lists, and lists any other by name and size only.
+- **Files Git already tracks stay tracked.** The nested `.gitignore` files keep new binaries
+  out of Git; `make files-plan` lists the tracked ones, and moving them out is your decision.
+- **Never put this repository inside a synced folder**, and never put the data root inside a
+  repository: a sync service copies file by file and corrupts Git. Sync the data root only,
+  with the service you named for `DATA_PROVIDER`. The template never installs, configures or
+  runs it.
+- **Never edit a filed file in place.** In Claude Code, the guard wired in
+  `.claude/settings.json` refuses an edit or a write under a data root, and a search there
+  where Claude Code has its own search tools. On macOS, Linux and WSL Claude Code searches
+  through the shell, which the guard cannot see, so there, as in every other client, the rules
+  alone keep a session out of the root.
+- **Keep the layout answers.** `DATA_AREA`, `DATA_SLUG` and the four kind folders decide where
+  files go, and any other syntek template in this project uses the same ones: the data-root
+  commands stop while two disagree. A later change leaves the files already filed where they
+  are, and `make root` names their folder. Answering `DATA_STORE` repo forgets these answers,
+  so note them first.
+
+---
+
+<: endif :>## Working with Claude Code
 
 - Open Claude Code at the root of this repository. `.claude/CLAUDE.md` and the template's rules
   load automatically.
@@ -152,8 +207,9 @@ read order these clients cannot load by themselves, and `.agents/skills` links t
 `.claude/rules/syntek-author/05-model-allocation.md`. Hand off rather than compact in every
 client: only Claude Code enforces it.
 
-These files are written once and are yours: an update never changes them, adds a missing one or
-brings back one you deleted. After changing `.claude/settings.json`, run
+These files are written once and are yours: an update never adds a missing one or brings back
+one you deleted, and changes them only by adding each of the template's two MCP servers once to
+a file that lacks it. After changing `.claude/settings.json`, run
 `python3 .claude/syntek-author-permissions.py --check` to see which client files need the change.
 <: endif :>
 To add a client later, follow 'Enabling a client in an existing project' in
@@ -180,9 +236,10 @@ uvx copier update --trust -a .copier-answers.syntek-author.yml
 git diff                  # review every change before committing
 ```
 
-Copier may print a `MissingFileWarning` about `.copier-answers.syntek-author.yml`. It is
-expected and harmless: the template reads your previous answers so it can refuse a changed
-`DOC_TYPE`.
+Copier may print a `MissingFileWarning` about `.copier-answers.syntek-author.yml`, and another
+about `.copier-answers.syntek-media.yml`. Both are expected and harmless: the template reads
+your previous answers so it can refuse a changed `DOC_TYPE`, and the other syntek template's
+answers so that both keep one data-root layout; without that template there are none.
 
 - **What updates:** the template's own files: the rules in `.claude/rules/syntek-author/`, the
   skills, the reference guides, the template workflows, the standards and the tooling.
@@ -192,11 +249,13 @@ expected and harmless: the template reads your previous answers so it can refuse
   other seeds. If you delete a seed, the update brings back an empty one. If you
   delete the worked example, it stays deleted. **The exceptions:** turning an option off
   deletes the seeds that option generated, and in a repository adopted additively, your own
-  files at its template paths (below).
+  files at its template paths (below). An update also adds, once each and into your own text,
+  the hook entries and permission rules the template lists to `.claude/settings.json`, and its
+  two MCP servers to `.mcp.json` and each client file you have, never one you removed.
 - **In a repository adopted additively,** a file you kept at a template path comes back with
   conflict markers whenever the template changed it: keep your version, and extend it by hand
   if you want the template's change.
-- **Never edit the rules from `01-` to `08-` in `.claude/rules/syntek-author/`**, or any other
+- **Never edit the rules from `01-` to `09-` in `.claude/rules/syntek-author/`**, or any other
   file the template owns: the next update overwrites the edit or turns it into a conflict. Put
   settings and overrides in `00-project.md`, project rules under 'Project-specific rules' in
   `.claude/CLAUDE.md`, your own guides in a layer's `docs/project/`, and your own procedures in
@@ -238,7 +297,9 @@ pairs) is deleted with it, so copy it out first. In this project:
   pipeline; `tooling/references.db` is yours and stays.
 <: endif :><: if DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT :>- `INCLUDE_SENSITIVE_CONTENT=false` deletes `standards/risk/sensitive-content.md`, the
   testimony workflow and the `sensitivity-pass` skill; your testimony records stay.
-<: endif :><: if DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC :>- `INCLUDE_DRIVE_SYNC=false` deletes `.github/`, the Drive push and pull workflows.
+<: endif :><: if DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo' :>- Choosing a provider other than Google Drive, or keeping files outside the repository
+  (`DATA_STORE` external), deletes `.github/`, the Drive push and pull workflows, including your
+  edits.
 <: endif :><: if DOC_TYPE == 'business' :>- Unticking a family in `BUSINESS_FAMILIES` deletes its folder's signposts (the `CONTEXT.md` and
   `CLAUDE.md` of `library/src/<family>/` and its sub-folders, and `drafts/README.md`), its
   standard `library/docs/reference/<family>-standards.md` and the standard's sub-documents
