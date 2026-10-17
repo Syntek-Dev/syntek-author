@@ -24,7 +24,6 @@ BUSINESS_FAMILIES:
   - email
   - accounting
   - social-media
-INCLUDE_DRIVE_SYNC: false
 INCLUDE_REFERENCES: false
 SEED_EXAMPLES: false
 AGENT_CLIENTS:
@@ -37,6 +36,15 @@ OPENCODE_PROVIDER: ollama
 OPENCODE_BASE_URL: http://127.0.0.1:11434/v1
 OPENCODE_MODEL: qwen3:30b
 OPENCODE_CONTEXT: 32768
+# Where binary files are kept (DESIGN.md D50). An adopted repository keeps its scans, figures
+# and issued copies in Git, as before: repo (a fresh copy defaults to external). Delete this
+# line where another syntek template's answers file in the repository already records
+# DATA_STORE: the copy then takes that store, and refuses a different one (adopt.sh says so).
+# With external, DATA_AREA, DATA_SLUG and the four DATA_KIND_* folders are asked too.
+DATA_STORE: repo
+# The service that keeps a copy of the data root once files move there; none until then.
+# google-drive with DATA_STORE repo also ships the template's Drive workflows (D37, D53).
+DATA_PROVIDER: none
 MODEL_MECHANICAL: opus
 TIMEZONE: Europe/London
 DATE: 03/10/2026

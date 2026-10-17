@@ -58,6 +58,18 @@
 #     .agents link to a folder outside the repository, the printed copy is wrapped in the two
 #     mv lines that hold the link aside and put it back (never run by this script)
 #
+# THE DATA ROOT, both modes (DESIGN.md Section 8, D50). A fresh copy keeps binary files outside
+# the repository (DATA_STORE external), but an adopted repository usually tracks its scans,
+# figures and issued copies, so every copy command printed here passes --data DATA_STORE=repo
+# and they stay in Git until the owner opts in — unless another syntek template's answers
+# file here already records a store: the copy must take that one (copier.yml refuses a first
+# answer that differs from the sibling's), so the command passes none, and the report says
+# which file records what. The report also names every file of the repository's own at a path
+# where a data-root ignore file would land (read from copier.yml's _exclude), a kept
+# .claude/settings.json that does not wire the data-root guard, the MCP servers a kept .mcp.json
+# or client file gains (D54) and a git-ignored one that nothing ever reads, and, for business,
+# a kept Drive workflow in the DATA_PROVIDER wording (D53).
+#
 # Idempotent: a second --apply finds nothing left to move and reports only what still needs
 # the author.
 #
@@ -89,13 +101,20 @@
 #   - every template CONTEXT.md, CLAUDE.md or README.md added to a folder that already holds
 #     the repository's own files, to check against its layout;
 #   - two workflows that will share a number in one layer (cite each by full folder name);
-#   - business: a kept google-drive-*.yml workflow, and a kept workflow that syncs library/src/
-#     without knowing the drafts/ folders the copy adds (D37);
+#   - business: a kept google-drive-*.yml workflow, in the DATA_PROVIDER wording (D53), and a
+#     kept workflow that syncs library/src/ without knowing the drafts/ folders the copy adds
+#     (D37);
+#   - the data root and the MCP servers, as above;
 #   - the settings file the copy writes, `.claude/rules/syntek-author/00-project.md`.
+# The preview meets the same peer rule as the copy: every other syntek template's answers file
+# is copied into the preview folder before it renders, and it renders into a folder of this
+# repository's own name (DATA_SLUG's default reads it). A DATA_STORE that the --answers file
+# records is the copy's (--data would override it), so no --data DATA_STORE is printed then.
 # Run it before the copy to preview, and after it to see what is left to extend.
 #
 # Requirements: bash 4+, find, awk; perl for step 8; git for --apply; uvx (or copier) and
-# git for --additive. No network, except uvx's first run.
+# git for --additive; python3 to name the MCP servers (otherwise the report names none). No
+# network, except uvx's first run.
 #
 # Usage: adopt.sh --kind theology|fiction|business [--apply] [TARGET]
 #        adopt.sh --kind theology|fiction|business --additive [--answers FILE] [TARGET]
@@ -120,8 +139,11 @@ Usage: adopt.sh --kind theology|fiction|business [--apply] [TARGET]
 
 Moving adoption (the default): reports (or, with --apply, makes) the moves an existing
 writing repository needs before `uvx copier copy --trust --overwrite --data-file <answers>
---data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .` can adopt it. Advisory unless
---apply is given. Never overwrites, never deletes.
+--data SEED_EXAMPLES=false --data DATA_STORE=repo gh:Syntek-Dev/syntek-author .` can adopt
+it. Advisory unless --apply is given. Never overwrites, never deletes.
+
+Both modes keep your binary files in Git (--data DATA_STORE=repo), unless another syntek
+template's answers file here records a store: the copy then takes that one, and passes none.
 
 Additive adoption (--additive, report only): what `uvx copier copy --trust --skip '*'
 --skip-tasks --data-file <answers> --data SEED_EXAMPLES=false <template> .` will add and
@@ -248,7 +270,6 @@ copy_cmd() {
 }
 agents_exclude() {
   AGX=""; AGHOLD=""; AGBACK=""
-  local mcp=$'{\n  "mcpServers": {}\n}\n'
   if [ -L .agents ] || { [ -e .agents ] && [ ! -d .agents ]; }; then
     AGX=" --exclude /.agents"
     if agents_outside; then
@@ -266,7 +287,9 @@ agents_exclude() {
     elif [ -L .agents/skills ] && [ "$(readlink .agents/skills)" != ../.claude/skills ]; then
       note ".agents/skills links to $(readlink .agents/skills), not ../.claude/skills: the copy keeps it, so clients other than Claude Code will not see the template's skills until it points at ../.claude/skills."
     fi
-    if [ -f .agents/mcp_config.json ] && [ "$(cat .agents/mcp_config.json; printf x)" != "${mcp}x" ]; then
+    # The template's own bytes are read, never typed: since D54 they declare the MCP servers,
+    # so a companion's older, empty file is now one the copy keeps (and adds the servers to).
+    if [ -f .agents/mcp_config.json ] && ! cmp -s .agents/mcp_config.json "$TEMPLATE_DIR/.agents/mcp_config.json"; then
       item kept ".agents/mcp_config.json (yours already: the copy never overwrites it)"
     fi
   fi
@@ -373,6 +396,51 @@ read_gates() { # $1 = copier.yml → "<what closes it>\t<path>" per line
     }' "$1"
 }
 
+# ── The data root (DESIGN.md Section 8, D50) ──────────────────────────────────
+# A fresh copy defaults DATA_STORE to external, but an adopted repository usually tracks its
+# binaries, so every printed copy passes --data DATA_STORE=repo. Not where another syntek
+# template's answers file here already records a store: copier.yml's DATA_STORE takes the
+# sibling's (_external_data.peer) as the first answer's default and refuses any other, so the
+# copy passes none and the report names the file. "Records" is the validator's own test: the
+# key holds a value. The peer's file name and the data-root ignore files are READ from
+# copier.yml, never typed here: the ignore files are the _exclude lines gated on the external
+# store, and a DOC_TYPE test in their gate says which kind can receive each.
+read_peer() { # $1 = copier.yml → the sibling answers file _external_data.peer names
+  awk '
+    /^_external_data:/ { on = 1; next }
+    on && /^[^[:space:]#]/ { exit }
+    on && /^[[:space:]]+peer:/ {
+      s = $0
+      sub(/^[[:space:]]+peer:[[:space:]]*/, "", s); sub(/[[:space:]]+#.*$/, "", s)
+      gsub(/["\047]/, "", s); sub(/[[:space:]]+$/, "", s)
+      print s; exit
+    }' "$1"
+}
+read_dataroot_ignores() { # $1 = copier.yml → "<gate>\t<path>" per data-root ignore file
+  awk '
+    /^_exclude:/ { on = 1; next }
+    on && /^[A-Za-z_][A-Za-z0-9_]*:/ { exit }
+    on && /^[[:space:]]+- "<: if not \(/ {
+      s = $0
+      sub(/^[[:space:]]+- "<: if not \(/, "", s)
+      i = index(s, ") :>/")
+      if (i == 0) next
+      gate = substr(s, 1, i - 1); p = substr(s, i + 5)
+      sub(/<: endif :>".*$/, "", p)
+      if (gate ~ /DATA_STORE == \047external\047/ && p ~ /(^|\/)\.gitignore$/) print gate "\t" p
+    }' "$1"
+}
+answer_of() { # $1 = key, $2 = a Copier answers file → its value, unquoted; empty if none
+  awk -v k="$1" '
+    index($0, k ":") == 1 {
+      s = substr($0, length(k) + 2)
+      sub(/\r$/, "", s); sub(/^[[:space:]]+/, "", s); sub(/[[:space:]]+#.*$/, "", s); sub(/[[:space:]]+$/, "", s)
+      if (s ~ /^".*"$/ || s ~ /^\047.*\047$/) s = substr(s, 2, length(s) - 2)
+      if (s == "~" || s == "null") s = ""
+      print s; exit
+    }' "$2" 2>/dev/null
+}
+
 # Both modes. An unanchored `build/` (or `build`) also ignores .claude/skills/build/, so the
 # proof skill every variant needs is never committed (the template's own seed writes /build/).
 BUILD_UNANCHORED=".gitignore ignores every folder named build, including .claude/skills/build/; change it to /build/"
@@ -406,6 +474,77 @@ else
   LAYERS="$CONTENT planning research"
 fi
 
+PEER=""
+STORE_ASKED=0
+DR_IGNORES=""
+if [ -f "$COPIER_YML" ]; then
+  PEER=$(read_peer "$COPIER_YML")
+  grep -q '^DATA_STORE:' "$COPIER_YML" && STORE_ASKED=1
+  while IFS=$'\t' read -r t p; do
+    case "$t" in
+      *"DOC_TYPE == 'business'"*) [ "$BOOK" -eq 0 ] || continue ;;
+      *"DOC_TYPE != 'business'"*) [ "$BOOK" -eq 1 ] || continue ;;
+    esac
+    DR_IGNORES="$DR_IGNORES $p"
+  done < <(read_dataroot_ignores "$COPIER_YML")
+fi
+# Every other syntek template's answers file here; the additive preview copies them all in.
+SIBLINGS=()
+for f in .copier-answers.syntek-*.yml; do
+  [ "$f" != .copier-answers.syntek-author.yml ] && [ -f "$f" ] && SIBLINGS+=("$f")
+done
+# STORE_DATA is what every printed copy carries; STORE the store that copy records; STORE_FROM
+# the file it comes from (empty for the repo this script passes).
+STORE_DATA=""
+STORE=""
+STORE_FROM=""
+if [ "$STORE_ASKED" -eq 1 ]; then
+  STORE_DATA=" --data DATA_STORE=repo"; STORE=repo
+  for f in "${SIBLINGS[@]}"; do
+    v=$(answer_of DATA_STORE "$f")
+    [ -n "$v" ] || continue
+    STORE_DATA=""
+    # Copier reads the peer alone, so its store is the one the copy takes.
+    if [ -z "$STORE_FROM" ] || [ "$f" = "$PEER" ]; then STORE=$v; STORE_FROM=$f; fi
+  done
+  # An --answers file that records a store is the copy's own answer: --data would override it.
+  if [ -n "$ANSWERS" ]; then
+    v=$(answer_of DATA_STORE "$ANSWERS")
+    if [ -n "$v" ]; then
+      if [ -n "$PEER" ] && [ "$STORE_FROM" = "$PEER" ] && [ "$v" != "$STORE" ]; then
+        die "$ANSWERS records DATA_STORE $v, but $PEER records $STORE: one project keeps one store, so the copy would be refused. Remove DATA_STORE from $ANSWERS (the other template's store then applies), or change that template's answer first"
+      fi
+      STORE_DATA=""; STORE=$v; STORE_FROM=$ANSWERS
+    fi
+  fi
+fi
+is_dataroot_ignore() { in_words "$1" "$DR_IGNORES"; }
+
+# The MCP servers (D54) and the files they are added to, READ from the refresh data the update
+# script uses (migrations/family-refresh.json, its "mcp" key). Without python3 the list is empty
+# and the report says nothing about them.
+MCP_SERVERS=""
+MCP_FILES=()
+if [ -f "$SCRIPT_DIR/../migrations/family-refresh.json" ] && command -v python3 >/dev/null 2>&1; then
+  mapfile -t MCP_FILES < <(python3 -I - "$SCRIPT_DIR/../migrations/family-refresh.json" 2>/dev/null <<'PY' || true
+import json, sys
+m = (json.load(open(sys.argv[1], encoding="utf-8")) or {}).get("mcp") or {}
+s, f = m.get("servers"), m.get("files")
+if isinstance(s, list) and s and isinstance(f, dict) and f:
+    print(" ".join(str(x) for x in s))
+    for k in sorted(f):
+        print(k)
+PY
+  )
+  if [ "${#MCP_FILES[@]}" -gt 1 ]; then
+    read -r -a mcp_names <<<"${MCP_FILES[0]}"
+    MCP_SERVERS=$(join_and "${mcp_names[@]}")
+    MCP_FILES=("${MCP_FILES[@]:1}")
+  else
+    MCP_FILES=()
+  fi
+fi
+
 # What git holds of a path, from the in_head and in_index sets additive_report fills: committed,
 # staged (in the index, not yet in a commit), ignored or untracked; empty outside git.
 kept_state() { # $1 = path
@@ -416,6 +555,103 @@ kept_state() { # $1 = path
   else echo untracked; fi
 }
 
+# A template file as this clone holds it, for a report line that says where to copy from.
+tpl_file() { # $1 = path in the template
+  local d
+  if d=$(cd "$TEMPLATE_DIR" 2>/dev/null && pwd); then printf '%s/%s' "$d" "$1"; else printf "the template's %s" "$1"; fi
+}
+
+# The data root, both modes (DESIGN.md Section 8, D50): the store the printed copy records,
+# every sibling's, what the external store means for an adopted repository, every file of the
+# repository's own where a data-root ignore file would land, and the guard a kept settings.json
+# never gains. No line here holds the words of a copy command, which adopt-test.sh reads.
+dataroot_report() { # $1 = moving or additive
+  local f v m p
+  [ "$STORE_ASKED" -eq 1 ] || return 0
+  heading "The data root — where this repository's binary files are kept (DESIGN.md D50)"
+  if [ -n "$STORE_DATA" ]; then
+    m="the copy below passes --data DATA_STORE=repo, so your binary files (scans, figures, recordings, issued copies) stay in Git as they are, where a fresh copy would keep them outside the repository, under a data root (DATA_STORE external)"
+    if [ "$1" = moving ]; then
+      m="$m. It wins over a DATA_STORE in your answers file: to start under external instead, leave it out and answer DATA_STORE: external there"
+    else
+      m="$m. To start under external instead, answer DATA_STORE: external in your answers file and run this report again with --answers: the copy then takes your answer"
+    fi
+    note "$m. To move them out later, answer DATA_STORE=external on a copier update: it moves nothing, and make files-plan then lists what to file (.claude/rules/syntek-author/09-data-root.md, once the copy has written it)"
+  elif [ -n "$ANSWERS" ] && [ "$STORE_FROM" = "$ANSWERS" ]; then
+    note "$ANSWERS records DATA_STORE $STORE: the copy takes it, so the command below passes no DATA_STORE"
+  fi
+  for f in "${SIBLINGS[@]}"; do
+    v=$(answer_of DATA_STORE "$f")
+    if [ -z "$v" ]; then
+      note "$f records no DATA_STORE (that template predates the data root): this copy records ${STORE:-repo}, and that template takes it when its own update first asks DATA_STORE"
+      continue
+    fi
+    case "$v" in
+      external | repo) ;;
+      *) note "$f records DATA_STORE $v, a store this template does not offer: the copy is refused until that template records external or repo"; continue ;;
+    esac
+    m="$f records DATA_STORE $v: one project keeps one store, so the copy below passes no DATA_STORE and takes $v from it"
+    [ "$v" != external ] || m="$m, with that template's data-root layout (DATA_AREA, DATA_SLUG and the four DATA_KIND_* folders)"
+    if [ "$STORE_FROM" != "$ANSWERS" ] || [ -z "$ANSWERS" ]; then
+      m="$m. An answers file must not answer them otherwise, or the copy is refused: if yours holds DATA_STORE: repo, as the example does, delete that line"
+    fi
+    if [ -n "$PEER" ] && [ "$f" != "$PEER" ]; then
+      m="$m. This template reads only $PEER for that default, so give the copy --data DATA_STORE=$v yourself"
+    fi
+    note "$m"
+  done
+  if [ "$STORE" = external ]; then
+    note "under DATA_STORE external the copy delivers the data-root ignore files and moves nothing: every binary git already tracks stays tracked until you file it. After the copy, name the data root on each machine in SYNTEK_DATA_ROOT and run make files-plan, which lists what to file (.claude/rules/syntek-author/09-data-root.md)"
+  fi
+  # A file of the repository's own at a data-root ignore path (R4 Section 1.7): kept under repo,
+  # but the template's arrives there under external.
+  for p in $DR_IGNORES; do
+    [ -e "$p" ] || [ -L "$p" ] || continue
+    if [ "$STORE" != external ]; then
+      note "$p is where a data-root ignore file would land: under DATA_STORE repo the copy leaves it as yours. If you later answer DATA_STORE=external, that update brings the template's there with conflict markers: merge your lines with the template's by hand"
+    elif [ "$1" = moving ]; then
+      note "$p is where a data-root ignore file would land, and under DATA_STORE external this copy writes the template's there: --overwrite replaces yours, so after the copy take your own lines back from git diff and add them to the template's"
+    else
+      note "$p is where a data-root ignore file would land: --skip '*' keeps yours, so the template's rules, which keep every binary there out of Git under DATA_STORE external, are never added. Add them to yours by hand, from $(tpl_file "$p")"
+    fi
+  done
+  # The seed alone wires the guard, so a kept settings.json never gains it (D50 Section 6).
+  if [ -f .claude/settings.json ] && ! grep -q 'dataroot\.py' .claude/settings.json; then
+    note ".claude/settings.json is kept as yours, and no copy or update adds the data-root guard to it (a PreToolUse hook that stops a session writing under a data root): copy that entry by hand from the template's seed, $(tpl_file .claude/settings.json)"
+  fi
+  return 0
+}
+
+# The MCP servers, both modes (D54): what a kept MCP file gains, and the git-ignored one that
+# nothing ever reads, whose servers the author adds by hand.
+mcp_report() { # $1 = moving or additive, $2 = the preview tree (additive)
+  local f m found=0 agx ign=0
+  [ -n "$MCP_SERVERS" ] || return 0
+  agx=$(agents_exclude >/dev/null; printf '%s' "$AGX")
+  heading "MCP servers — what the template adds to the files you keep (D54)"
+  if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then ign=1; fi
+  for f in "${MCP_FILES[@]}"; do
+    [ -e "$f" ] || [ -L "$f" ] || continue
+    case "$agx|$f" in " --exclude /.agents|.agents/"*) continue ;; esac
+    # Additive: a client file the answers do not name is no template path, and gains nothing.
+    if [ "$1" = additive ] && [ ! -e "$2/$f" ]; then continue; fi
+    found=1
+    if [ "$ign" -eq 1 ] && git check-ignore -q -- "$f" 2>/dev/null; then
+      note "$f is ignored by git: copier update never reads it or adds the MCP servers to it, nor does the copy. To use $MCP_SERVERS, add them to it by hand, as the template's $f declares them"
+    elif [ -L "$f" ] || [ ! -f "$f" ]; then
+      note "$f is a link or not a regular file: the template never writes through it, so add $MCP_SERVERS to it by hand if you want them"
+    elif [ "$1" = moving ]; then
+      m=""; [ "$f" = .mcp.json ] || m=", where your answers name its client; until the file holds their ask rules they wait, and the copy's report says what to run"
+      note "$f is kept as yours: the copy adds $MCP_SERVERS to it once each, into its own text, and changes nothing else$m"
+    else
+      m=""; [ "$f" = .mcp.json ] || m="; until the file holds their ask rules they wait, and that update's report says what to run"
+      note "$f is kept as yours: your first copier update adds $MCP_SERVERS to it once each, into its own text, and changes nothing else (the additive copy runs no task)$m"
+    fi
+  done
+  [ "$found" -eq 1 ] || item clean "no MCP file of yours at a template path: the copy writes the template's, with $MCP_SERVERS"
+  return 0
+}
+
 # ── Additive adoption (DESIGN.md D41): report only ───────────────────────────
 # Renders the template for this kind into a temporary folder — the exact tree the additive
 # copy would write, options included when --answers names the answers file — and compares it
@@ -424,9 +660,9 @@ kept_state() { # $1 = path
 additive_report() {
   local tpl_root render copier log f n m mode dir name e p entries unmentioned kept_n add_n found with
   local ref tag dirty refdesc rule t where ans q step2 step3 ign_n=0 seed_ign=0 risk_n=0 checked=0
-  local st loose=0 dup_n=0 b c own_dir in_git=0 agx
-  local -a args=() rfiles=() held=() added=() ign=() order=() porder=() names=() drafts=() cands=()
-  local -A risk=() pdir=() atrisk=() in_head=() in_index=() dup_seen=()
+  local st loose=0 dup_n=0 b c own_dir in_git=0 agx pv pv_name
+  local -a args=() rfiles=() held=() added=() ign=() order=() porder=() names=() drafts=() cands=() sibx=()
+  local -A risk=() pdir=() atrisk=() in_head=() in_index=() dup_seen=() sibcopy=()
   tpl_root=$(cd "$SCRIPT_DIR/.." && pwd)
   [ -f "$tpl_root/copier.yml" ] || die "no copier.yml beside this script: run it from a clone of syntek-author"
   if [ -n "${COPIER_CMD:-}" ]; then copier=$COPIER_CMD
@@ -436,7 +672,21 @@ additive_report() {
   render=$(mktemp -d "${TMPDIR:-/tmp}/adopt-additive.XXXXXX") || die "could not create a temporary folder"
   # shellcheck disable=SC2064 # expand now: the folder is this run's own
   trap "rm -rf -- '${render:?}'" EXIT
+  # The preview folder takes this repository's own name, as the copy's destination does
+  # (DATA_SLUG's default reads it under the external store), and holds every other syntek
+  # template's answers file before it renders, so the preview meets the same peer rule as the
+  # copy (D50). Those files are this repository's, so they are neither added nor kept.
+  pv_name=$(basename "$(pwd -P)")
+  case "$pv_name" in "" | / | . | ..) pv_name=p ;; esac
+  pv="$render/preview/$pv_name"
+  mkdir -p "$pv" || die "could not create a temporary folder"
+  sibx=(-e .copier-answers.syntek-author.yml)
+  for f in "${SIBLINGS[@]}"; do
+    cp -- "$f" "$pv/$f" || die "could not copy $f into the preview folder"
+    sibcopy[$f]=1; sibx+=(-e "$f")
+  done
   args=(copy --trust --defaults --skip-tasks --data "DOC_TYPE=$KIND" --data SEED_EXAMPLES=false)
+  [ -z "$STORE_DATA" ] || args+=(--data DATA_STORE=repo)
   if [ -n "$ANSWERS" ]; then
     args+=(--data-file "$ANSWERS")
   else
@@ -446,13 +696,13 @@ additive_report() {
   git -C "$tpl_root" rev-parse --git-dir >/dev/null 2>&1 && args+=(--vcs-ref=HEAD)
   log="$render/copier.log"
   # shellcheck disable=SC2086 # $copier is one or two words on purpose
-  if ! $copier "${args[@]}" "$tpl_root" "$render/p" </dev/null >"$log" 2>&1; then
+  if ! $copier "${args[@]}" "$tpl_root" "$pv" </dev/null >"$log" 2>&1; then
     tail -5 "$log" >&2
     die "could not render the template for --kind $KIND${ANSWERS:+ with $ANSWERS}"
   fi
 
-  mapfile -t rfiles < <(cd "$render/p" && find . -name .git -prune -o \( -type f -o -type l \) -print \
-    | sed 's#^\./##' | grep -vx '.copier-answers.syntek-author.yml' | LC_ALL=C sort)
+  mapfile -t rfiles < <(cd "$pv" && find . -name .git -prune -o \( -type f -o -type l \) -print \
+    | sed 's#^\./##' | grep -vxF "${sibx[@]}" | LC_ALL=C sort)
   # Paths the printed copy excludes under .agents (agents_exclude, run in a subshell here so
   # its notes print once, in their place below) are neither added nor kept: the copy never
   # writes there, and a linked .agents would otherwise be counted through its link.
@@ -545,7 +795,7 @@ additive_report() {
     for c in "${cands[@]}"; do
       c=${c#./}
       [ "$c" != "$f" ] && [ -f "$c" ] || continue
-      [ ! -e "$render/p/$c" ] || continue
+      [ ! -e "$pv/$c" ] || continue
       [ -z "${dup_seen[$f|$c]:-}" ] || continue
       dup_seen[$f|$c]=1; dup_n=$((dup_n + 1))
       st=$(kept_state "$c")
@@ -639,11 +889,11 @@ additive_report() {
   found=0
   for f in .claude/skills/*/SKILL.md; do
     name=${f#.claude/skills/}; name=${name%/SKILL.md}
-    [ -d "$render/p/.claude/skills/$name" ] || continue
+    [ -d "$pv/.claude/skills/$name" ] || continue
     found=1
     mode=""
     for m in THEOLOGY.md FICTION.md BUSINESS.md; do
-      [ -f "$render/p/.claude/skills/$name/$m" ] && mode=$m
+      [ -f "$pv/.claude/skills/$name/$m" ] && mode=$m
     done
     if [ -z "$mode" ]; then
       item kept "$f is yours: the template's $name skill is not installed, and yours answers to its own description"
@@ -668,7 +918,7 @@ additive_report() {
     [ "${f##*/}" = CONTEXT.md ] || continue
     dir=$(dirname "$f")
     unmentioned=""
-    entries=$(cd "$render/p/$dir" && find . -mindepth 1 -maxdepth 1 \( -type d -printf '%f/\n' -o -printf '%f\n' \) | LC_ALL=C sort)
+    entries=$(cd "$pv/$dir" && find . -mindepth 1 -maxdepth 1 \( -type d -printf '%f/\n' -o -printf '%f\n' \) | LC_ALL=C sort)
     while IFS= read -r e; do
       [ -n "$e" ] || continue
       case "$e" in CONTEXT.md | CLAUDE.md | README.md) continue ;; esac
@@ -707,7 +957,7 @@ additive_report() {
     n=0
     for e in "$dir"/* "$dir"/.[!.]*; do
       [ "${e##*/}" != .git ] || continue
-      [ -e "$render/p/${e#./}" ] || n=$((n + 1))
+      { [ -e "$pv/${e#./}" ] && [ -z "${sibcopy[${e#./}]:-}" ]; } || n=$((n + 1))
     done
     [ "$n" -gt 0 ] || continue
     found=1
@@ -731,22 +981,25 @@ additive_report() {
   done
   [ "$found" -eq 1 ] || item clean "no number is shared"
 
-  # D37: Drive sync never pushes drafts. The template's own workflows exclude every drafts/
+  # D37: the Google Drive workflows never push drafts. The template's own exclude every drafts/
   # folder; a workflow of the repository's own does not know the ones the copy adds, whatever
-  # INCLUDE_DRIVE_SYNC says (a kept file of the template's name shadows the template's).
+  # DATA_PROVIDER says (a kept file of the template's name shadows the template's). The template
+  # ships its Drive workflows only with DATA_PROVIDER google-drive and DATA_STORE repo (D53).
   if [ "$KIND" = business ]; then
-    heading "Your GitHub workflows — Drive sync and drafts (DESIGN.md D37)"
+    heading "Your GitHub workflows — Google Drive and drafts (DESIGN.md D37, D53)"
     found=0; names=()
-    for f in "$render/p"/.github/workflows/google-drive-*.yml; do names+=("${f##*/}"); done
+    for f in "$pv"/.github/workflows/google-drive-*.yml; do names+=("${f##*/}"); done
     for f in .github/workflows/google-drive-*.yml; do
       found=1
-      if [ -f "$render/p/$f" ]; then
-        if cmp -s "$f" "$render/p/$f"; then item kept "$f (the template's own, unchanged)"; continue; fi
-        note "$f is kept as yours, so the template's Drive workflow of that name is never installed: yours runs, with its own rules for drafts and for files already on Drive, and every copier update merges the template's changes into it. For the template's (it pushes only issued documents and never overwrites the record), move yours aside before the copy"
+      if [ -f "$pv/$f" ]; then
+        if cmp -s "$f" "$pv/$f"; then item kept "$f (the template's own, unchanged)"; continue; fi
+        note "$f is kept as yours, so the template's Drive workflow of that name, which DATA_PROVIDER=google-drive with DATA_STORE=repo installs, is never installed: yours runs, with its own rules for drafts and for files already on Drive, and every copier update merges the template's changes into it. For the template's (it pushes only issued documents, never overwrites the record and stops unless the store is repo), move yours aside before the copy"
       elif [ "${#names[@]}" -gt 0 ]; then
-        note "$f is kept as yours, and the copy adds the template's $(join_and "${names[@]}") beside it: both would sync library/src/ with Drive. Keep one: move yours aside before the copy, or answer INCLUDE_DRIVE_SYNC=false"
+        note "$f is kept as yours, and the copy adds the template's $(join_and "${names[@]}") beside it (DATA_PROVIDER=google-drive with DATA_STORE=repo): both would sync library/src/ with Drive. Keep one: move yours aside before the copy, or answer DATA_PROVIDER with another value (none, if nothing keeps a copy of the data root)"
+      elif [ "$STORE" = external ]; then
+        note "$f is kept as yours: the template ships its Drive workflows only with DATA_PROVIDER=google-drive and DATA_STORE=repo, and this copy takes DATA_STORE external from $STORE_FROM, so it adds none and yours runs as it is. Yours does not know the data root: to keep a copy of the files filed there on Drive, point Google Drive for desktop at the data root (DATA_PROVIDER=google-drive), never at the repository"
       else
-        note "$f is kept as yours: with INCLUDE_DRIVE_SYNC=false the template adds no Drive workflow, and yours runs as it is. For the template's (it pushes only issued documents and never overwrites the record), answer INCLUDE_DRIVE_SYNC=true and move yours aside before the copy"
+        note "$f is kept as yours: the template ships its Drive workflows only with DATA_PROVIDER=google-drive and DATA_STORE=repo, so with these answers it adds none, and yours runs as it is. For the template's (it pushes only issued documents and never overwrites the record), answer DATA_PROVIDER=google-drive with DATA_STORE=repo and move yours aside before the copy"
       fi
     done
     mapfile -t drafts < <(printf '%s\n' "${added[@]}" | awk -F/ '
@@ -755,7 +1008,7 @@ additive_report() {
       }' | LC_ALL=C sort -u)
     if [ "${#drafts[@]}" -gt 0 ]; then
       for f in .github/workflows/*.yml .github/workflows/*.yaml; do
-        [ -f "$render/p/$f" ] && cmp -s "$f" "$render/p/$f" && continue
+        [ -f "$pv/$f" ] && cmp -s "$f" "$pv/$f" && continue
         grep -q 'library/src' "$f" || continue
         found=1
         note "$f mentions library/src/: the copy adds drafts/ folders under library/src/ ($(join_and "${drafts[@]}")); your workflow will sync them unless it excludes */drafts/* (D37)"
@@ -763,6 +1016,9 @@ additive_report() {
     fi
     [ "$found" -eq 1 ] || item clean "no Drive workflow of yours, and none that syncs library/src/"
   fi
+
+  dataroot_report additive
+  mcp_report additive "$pv"
 
   heading "The settings file — where the template reads this repository's conventions"
   f=.claude/rules/syntek-author/00-project.md
@@ -778,7 +1034,7 @@ additive_report() {
     [ "$KIND" != business ] || m="$m, BRAND_DIRS (where make flags looks for brand files, when yours are not in standards/brand), DOCX_CONVERTER (a Word converter you already use) and ISSUE_STATUSES (the statuses at which make pdf ISSUE=1 may issue)"
     note "the copy writes tooling/project.mk, the build settings the Makefile reads first (D43). Set them there, never in the Makefile: $m"
   fi
-  if [ -e Makefile ] && [ -f "$render/p/Makefile" ] && ! cmp -s Makefile "$render/p/Makefile"; then
+  if [ -e Makefile ] && [ -f "$pv/Makefile" ] && ! cmp -s Makefile "$pv/Makefile"; then
     note "Makefile is kept as yours, so the template's targets (make flags, make pdf ISSUE=1, the git-ignore filter of D42) are not installed. The Makefile is template-owned: to use them, move yours aside before the copy and put any project-only target in tooling/project.mk; a locally edited copy of the template's Makefile will conflict on every copier update"
   fi
   if [ -f .claude/CLAUDE.md ]; then
@@ -802,22 +1058,24 @@ additive_report() {
   else
     step2="    2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml — then run this
        report again with --answers <that file>, so it previews your options, not the defaults."
+    [ -z "$STORE_FROM" ] || step2="$step2
+       Delete its DATA_STORE: repo line: the copy takes $STORE from $STORE_FROM."
   fi
   if [ -n "$tag" ] && [ -z "$dirty" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact. This clone is
        clean at the tag $tag, so that published release is the same tree:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=$tag gh:Syntek-Dev/syntek-author .")
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=$tag gh:Syntek-Dev/syntek-author .")
        (Or this clone: $q in place of gh:…, and --vcs-ref=HEAD.)"
   elif [ -n "$ref" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false --vcs-ref=HEAD $q .")
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=HEAD $q .")
        Copier records that ABSOLUTE path for every later update.${dirty:+ This clone has uncommitted
        changes, which Copier copies too: commit them first, so the version it records is one
        this clone holds.} For a published release of gh:Syntek-Dev/syntek-author instead, check
        this clone out at that release's tag and run this report again."
   else
     step3="    3. Copy from the folder this report previewed, or it is not exact:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false $q .")
+         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA $q .")
        It is not a git clone, so Copier records no version and no update can follow: prefer a
        clone of gh:Syntek-Dev/syntek-author at a release tag, and run this report from it."
   fi
@@ -1103,6 +1361,11 @@ if [ "$BOOK" -eq 0 ] && [ -d library/src ]; then
   done
 fi
 
+# ── The data root and the MCP servers (D50, D54) ─────────────────────────────
+
+dataroot_report moving
+mcp_report moving
+
 # ── Seeds the copy will keep ─────────────────────────────────────────────────
 
 heading "Seeds the copy will KEEP because they exist (never overwritten)"
@@ -1134,7 +1397,11 @@ if [ -f .claude/settings.json ]; then
 fi
 if [ "$BOOK" -eq 0 ]; then
   for f in .github/workflows/google-drive-*.yml; do
-    note "$f exists: answer INCLUDE_DRIVE_SYNC=true to take the template's Drive workflows, which the copy will then replace it with"
+    if [ "$STORE" = external ]; then
+      note "$f exists: the template ships its Drive workflows only with DATA_PROVIDER=google-drive and DATA_STORE=repo, and this copy takes DATA_STORE external from $STORE_FROM, so it adds none and keeps yours. Yours does not know the data root: to keep a copy of the files filed there on Drive, point Google Drive for desktop at the data root (DATA_PROVIDER=google-drive), never at the repository"
+    else
+      note "$f exists: answer DATA_PROVIDER=google-drive with DATA_STORE=repo to take the template's Drive workflows, which the copy will then replace it with; with any other DATA_PROVIDER the copy adds none and keeps yours"
+    fi
   done
 fi
 if [ -f .claude/CLAUDE.md ] && ! grep -q 'rules/syntek-author' .claude/CLAUDE.md; then
@@ -1172,6 +1439,7 @@ if [ -d "$TEMPLATE_DIR" ]; then
     p=${p#./}
     [ -e "$p" ] || continue
     is_seed "$p" && continue
+    if is_dataroot_ignore "$p" && [ "$STORE" != external ]; then continue; fi # the data-root section names it
     case "${p##*/}" in
       CONTEXT.md | CLAUDE.md) pairs=$((pairs + 1)) ;;
       *) item replace "$p"; others=$((others + 1)) ;;
@@ -1199,8 +1467,8 @@ cat <<EOF
 
   Next:
     1. Review with \`git add -A && git diff --cached -M\`, then commit on this branch.
-    2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml
-    3. $(copy_cmd "       " "uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false gh:Syntek-Dev/syntek-author .")
+    2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml$( [ -z "$STORE_FROM" ] || printf '\n       Delete its DATA_STORE: repo line: the copy takes %s from %s.' "$STORE" "$STORE_FROM")
+    3. $(copy_cmd "       " "uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false$STORE_DATA gh:Syntek-Dev/syntek-author .")
        (From a local clone: its ABSOLUTE path in place of gh:…, plus --vcs-ref=HEAD. Copier
        records the path for every later update, and a relative one breaks them all.)
     4. Review git diff: recover project text the copy replaced into docs/project/,
