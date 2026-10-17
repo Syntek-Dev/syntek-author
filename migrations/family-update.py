@@ -43,7 +43,11 @@ absent, it is added; a rule the owner allows is reported, never added; a top-lev
 owner set to another value is kept and reported, never changed; a hook entry whose script is
 not in .claude/hooks/ is reported and offered again; a settings.json that is a link, or lies
 beyond one, is never written, and a link to a file inside the project is read, so only the
-entries it lacks are named for adding by hand. The render record lists every entry offered
+entries it lacks are named for adding by hand. An ask counts as allowed where an allow rule
+is the same rule or, for mcp__S__T, is mcp__S, mcp__S__* or a tool-name glob after mcp__S__
+that matches T: Claude Code takes the first of deny, ask and allow that matches, however
+specific, so the ask would override the owner's allow. A deny counts as allowed only by the
+same rule. The render record lists every entry offered
 ('settings: ' lines), so an entry the owner removed after it was offered stays removed. Where no record lists them (a project
 older than the record, a fresh clone, a copy without tasks), an entry counts as offered when
 any committed version of settings.json held it. Entries are inserted as text into the
@@ -51,9 +55,40 @@ owner's file, in its own indentation and line endings; the file is written only 
 something is added; a file that is not plain JSON is reported and left alone; if the result
 would not parse to exactly the planned settings, the file is rewritten as JSON in its own key
 order and indentation, and the report line says so. Never removed, reordered or weakened.
-The record also lists each settings.json the script wrote ('settings-blob: ' lines), so a later update counts that file as the template's, not
-as the owner's edit, and a settings.json equal to the new render's, list order apart, counts
-as delivered.
+
+MCP servers. Each server the data file's "mcp" lists is offered once to each listed file,
+with the value the new render's file holds at that file's key path, by baseline and by
+update. A file the new render lacks (its client is not recorded) or the project lacks is
+never created or written; one the project holds although the answers do not name its client
+gets one line. A file in conflict, a link, a path beyond a link and a file that is not
+regular are never written: what can be read is read, so only the servers it lacks are named
+for adding by hand, and they are offered again. A git-ignored file is never read: one line
+names the servers to add by hand, and the offer is recorded. A file that does not parse is
+reported, and its servers are offered again. A server already there by name is only
+recorded; where its value differs, one line says so, once, naming the sibling template whose
+recorded render holds that value. A missing server is added unless the record lists it as
+offered or any commit of HEAD's history held it there (the owner removed it). JSON is
+inserted into the owner's text as settings are, and must parse to the plan; TOML gets the new
+render's [mcp_servers.<server>] tables appended (its env and tools tables included) and is
+written only if the result parses to the owner's file plus exactly those servers, with no
+rewrite fallback. Where the file's bytes equal a recorded render and the new render's file
+parses to it plus exactly the servers offered, the new render's bytes are written instead.
+opencode.json and .gemini/settings.json gain a server only once they hold, in the form the
+permissions script writes there, every ask rule for its tools that the new render's or the
+project's .claude/settings.json holds, so an allow written there before the server existed
+never covers its tools; otherwise nothing is added or recorded there, and one line gives the
+permissions script's --write command (as it does where this run added an mcp__ rule to
+settings.json and a client file it writes exists).
+
+The record lists every server offered ('mcp: <path> <server> <sha256 of the value offered,
+as canonical JSON>' lines, after 'mcp-offered: <count>'; no such count means no record of MCP
+offers) and every blob this script wrote to settings.json or an MCP file ('written-blob:
+<path> <blob>' lines, carried from record to record, the last 50 kept; ' edited' at the end
+where the file held the owner's edit before the write and does not parse equal to the new
+render's after it; an older record's 'settings-blob: ' lines are read as settings.json's). A later update counts a file only the script changed as
+written once, never as the owner's edit; a file the script changed in this run is classified
+by its blob from before the change; and a JSON or TOML file it wrote that parses equal to the
+new render's, list order apart, counts as delivered.
 Nothing else of the owner's is ever written: not the work tree, the index or a branch. It
 never commits and needs no network. The record holds no path of this machine (the rendered
 answers file, which names the template's source, is left out of it).
@@ -64,7 +99,9 @@ but its format is shared by every template of the family:
    "refresh": ["<project path>", ...],
    "settings": {"<top-level key>": <true, false, a number or a string>, ...,
                 "hooks": {"<event>": [<entry exactly as settings.json holds it>, ...]},
-                "permissions": {"deny": ["<rule>", ...], "ask": ["<rule>", ...]}}}
+                "permissions": {"deny": ["<rule>", ...], "ask": ["<rule>", ...]}},
+   "mcp": {"servers": ["<name, [A-Za-z0-9_-]+>", ...],
+           "files": {"<project path, no ..>": ["<key>", ...], ...}}}
 A hook entry counts as present when an entry of the same event and matcher already runs every
 hook script it names; a rule, when the same list already holds it; a top-level key, when the
 owner's file holds the key at all (any value: one other than the template's is reported, once).
@@ -73,11 +110,15 @@ history, as where there is no record.
 Every key of "settings" but hooks and permissions is a top-level value (an object, a list or
 null there is ignored); a script older than this format reads only hooks and permissions, so it
 ignores the top-level values and offers nothing for them.
+"mcp" sits beside "settings", never inside it, and is optional. Its "files" maps each path to
+the key path that holds the servers there; a path ending .toml is TOML, every other is JSON.
+The values are read from the new render, never from the data file. A malformed "mcp" gives one
+line and no MCP offer, and the rest of the run goes on. A script older than "mcp" ignores it.
 
 SYNTEK_UPDATE_REPORT=off skips every render and prints only conflicts and deletions; it also
-skips the refresh and the settings entries, which the next update without it then delivers
-(as it does after a render that failed). A .rej file counts as a conflict only beside a
-template path and only where it is new or changed since HEAD.
+skips the refresh, the settings entries and the MCP servers, which the next update without it
+then delivers (as it does after a render that failed). A .rej file counts as a conflict only
+beside a template path and only where it is new or changed since HEAD.
 The project must be its own git repository (not a folder inside one); otherwise nothing is
 recorded, refreshed or added, and one line says so. A record is a commit whose message ends
 with its 'commit: ' and 'answers: ' lines; any other commit at refs/<name>/template, and any
@@ -89,6 +130,9 @@ Python 3.11 or later, standard library and git only. Exit status: always 0, exce
 --self-test. A non-zero exit would abort the update.
 """
 
+import copy
+import fnmatch
+import hashlib
 import json
 import os
 import re
@@ -109,6 +153,14 @@ SETTINGS = '.claude/settings.json'
 REFRESH_DATA = 'migrations/family-refresh.json'
 # Who relies on a top-level value, for the line that reports an owner's other value.
 SETTING_USERS = {'autoCompactEnabled': 'the handoff hooks'}
+# An MCP rule of .claude/settings.json, as the permissions script reads one: mcp__<server>__<tool>.
+MCP_RULE = re.compile(r'mcp__([A-Za-z0-9_-]+?)__([A-Za-z0-9_-]+)')
+MCP_NAME = re.compile(r'[A-Za-z0-9_-]+')
+MCP_PATH = re.compile(r'[A-Za-z0-9._@+-]+(?:/[A-Za-z0-9._@+-]+)*')   # and no . or .. part
+# The client files whose own permission rules the permissions script writes; a server reaches
+# the first two only once they hold its ask rules (an earlier broad allow there would cover it).
+PERMISSION_FILES = ('opencode.json', '.codex/config.toml', '.gemini/settings.json')
+ASK_FORMS = ('opencode.json', '.gemini/settings.json')
 RENDER = None   # replaced by the self-test
 
 
@@ -264,6 +316,15 @@ def history(ref, into=None):
     return seen
 
 
+def union_history(*maps):
+    """Several {path: {blob, ...}} maps as one."""
+    out = {}
+    for m in maps:
+        for p, blobs in m.items():
+            out.setdefault(p, set()).update(blobs)
+    return out
+
+
 def owner_held(p, yours):
     """True where the owner's committed history, or the tree at the last update, held p."""
     if p in yours:
@@ -271,9 +332,20 @@ def owner_held(p, yours):
     return bool(git('log', '-1', '--format=%H', 'HEAD', '--', ':(literal)' + p, check=False).strip())
 
 
-def settings_blobs(msg):
-    """The settings.json blobs this script wrote, as a render record lists them."""
-    return re.findall(r'^settings-blob: ([0-9a-f]{7,64})$', msg or '', re.M)
+def written_blobs(msg):
+    """Every blob this script wrote, as a render record lists them: [(path, blob, edited)].
+    edited: the file held the owner's edit before the write, so the blob is never the
+    template's. An older record's 'settings-blob: ' lines are settings.json's."""
+    out = []
+    for line in (msg or '').splitlines():
+        m = re.fullmatch(r'written-blob: (\S+) ([0-9a-f]{7,64})( edited)?', line)
+        if m:
+            out.append((m.group(1), m.group(2), bool(m.group(3))))
+            continue
+        m = re.fullmatch(r'settings-blob: ([0-9a-f]{7,64})', line)
+        if m:
+            out.append((SETTINGS, m.group(1), False))
+    return out
 
 
 def commit(tree, msg, ref=None, parent=None):
@@ -439,14 +511,37 @@ def is_scalar(v):
 
 
 def same(a, b):
-    """JSON equality: false is never 0, and 1 never true."""
-    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+    """JSON equality: false is never 0, and 1 never true (a TOML date compares as its text)."""
+    return json.dumps(a, sort_keys=True, default=str) == json.dumps(b, sort_keys=True, default=str)
 
 
 def has_rule(settings, kind, rule):
     perms = settings.get('permissions') if isinstance(settings, dict) else None
     rules = (perms if isinstance(perms, dict) else {}).get(kind)
     return isinstance(rules, list) and rule in rules
+
+
+def allow_covers(settings, item):
+    """True where an allow rule of the owner's covers a deny or ask entry, which is then
+    reported, never added. A deny is covered by the same rule only. An ask is also covered,
+    for mcp__S__T, by mcp__S, mcp__S__* or a tool-name glob after mcp__S__ that matches T (the
+    server part literal): Claude Code takes the first of deny, ask and allow that matches,
+    however specific, so the ask would override that allow."""
+    if has_rule(settings, 'allow', item[1]):
+        return True
+    m = MCP_RULE.fullmatch(item[1]) if item[0] == 'ask' else None
+    if not m:
+        return False
+    server, tool = m.groups()
+    perms = settings.get('permissions') if isinstance(settings, dict) else None
+    allows = (perms if isinstance(perms, dict) else {}).get('allow')
+    prefix = 'mcp__%s__' % server
+    for rule in (allows if isinstance(allows, list) else []):
+        if not isinstance(rule, str):
+            continue
+        if rule == 'mcp__' + server or (rule.startswith(prefix) and fnmatch.fnmatchcase(tool, rule[len(prefix):])):
+            return True
+    return False
 
 
 def entry_id(item):
@@ -689,7 +784,7 @@ def settings_merge(data, N, offered, skip):
             continue
         if i[0] == 'hook':
             path, value = ['hooks', i[1]], [i[2]]
-        elif has_rule(plan, 'allow', i[1]):
+        elif allow_covers(plan, i):
             allowed.append(describe(i))
             continue
         else:
@@ -805,22 +900,26 @@ def offered_ids(msg):
     return {l[len('settings: '):] for l in msg.splitlines() if l.startswith('settings: ')}
 
 
-def record_tail(to, answers_blob, ids, blobs=()):
-    """The record's tail: what it renders, the entries offered, and every settings.json this
-    script wrote here (carried from record to record), which a later update counts as the
-    template's, not the owner's."""
-    kept = list(dict.fromkeys(blobs))[-50:]
-    return '\n\ncommit: %s\nanswers: %s\nsettings-offered: %d\n%s%s' % (
-        to, answers_blob, len(ids), ''.join('settings: %s\n' % i for i in sorted(ids)),
-        ''.join('settings-blob: %s\n' % b for b in kept))
+def record_tail(to, answers_blob, ids, blobs=(), mcp=None):
+    """The record's tail: what it renders, the settings entries and MCP servers offered (mcp:
+    {(path, server): hash}, or None where no record of MCP offers exists yet), and every blob
+    this script wrote here (carried from record to record): one the owner had not edited
+    before the write counts as the template's on a later update, never as the owner's."""
+    kept = list(dict.fromkeys((p, b, bool(e)) for p, b, e in blobs))[-50:]
+    tail = '\n\ncommit: %s\nanswers: %s\nsettings-offered: %d\n%s' % (
+        to, answers_blob, len(ids), ''.join('settings: %s\n' % i for i in sorted(ids)))
+    if mcp is not None:
+        tail += 'mcp-offered: %d\n%s' % (len(mcp), ''.join(
+            'mcp: %s %s %s\n' % (p, s, h) for (p, s), h in sorted(mcp.items())))
+    return tail + ''.join('written-blob: %s %s%s\n' % (p, b, ' edited' if e else '') for p, b, e in kept)
 
 
 def canon(v):
-    """JSON compared by meaning: list order ignored."""
+    """JSON (or parsed TOML) compared by meaning: list order ignored."""
     if isinstance(v, dict):
         return {k: canon(x) for k, x in v.items()}
     if isinstance(v, list):
-        return sorted((canon(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True))
+        return sorted((canon(x) for x in v), key=lambda x: json.dumps(x, sort_keys=True, default=str))
     return v
 
 
@@ -829,6 +928,375 @@ def settings_wrote(lines):
     if not any(re.match(r'▸ added to ', l) for l in lines):
         return None
     return worktree([SETTINGS]).get(SETTINGS)
+
+
+# ── MCP servers, added to the owner's own files ─────────────────────────────
+# family-refresh.json's "mcp" names the servers and, for each file, the key path that holds
+# them. Each server is offered once to each listed file that the new render holds and the
+# project already has, with the value the new render holds there; nothing is ever created,
+# replaced or removed. JSON is inserted as settings entries are; TOML has the new render's
+# tables appended, and is written only where the result parses to exactly the plan.
+
+def _toml():
+    import tomllib   # Python 3.11: imported here, so an older Python still reaches its one line
+    return tomllib
+
+
+def mcp_data(data):
+    """((servers, {path: key path}), '') from the data file's "mcp"; (None, '') where it has
+    none; (None, one line) where it cannot be read, so the lane is skipped, never the run."""
+    m = data.get('mcp') if isinstance(data, dict) else None
+    if m is None:
+        return None, ''
+    servers = m.get('servers') if isinstance(m, dict) else None
+    files = m.get('files') if isinstance(m, dict) else None
+    ok = (isinstance(servers, list) and isinstance(files, dict) and len(set(map(str, servers))) == len(servers)
+          and all(isinstance(s, str) and MCP_NAME.fullmatch(s) for s in servers)
+          and all(isinstance(p, str) and MCP_PATH.fullmatch(p) and not set(p.split('/')) & {'.', '..'}
+                  and isinstance(k, list) and k and all(isinstance(x, str) and x for x in k)
+                  for p, k in files.items()))
+    if not ok:
+        return None, '▸ the "mcp" key of %s is not in the shape this script reads, so no MCP server was offered.' % REFRESH_DATA
+    return (list(servers), dict(files)), ''
+
+
+def offered_mcp(msg):
+    """{(path, server): hash} a render record lists as offered, or None where it lists none."""
+    if not msg or not re.search(r'^mcp-offered: \d+$', msg, re.M):
+        return None
+    return {(p, s): h for p, s, h in re.findall(r'^mcp: (\S+) (\S+) ([0-9a-f]{64})$', msg, re.M)}
+
+
+def value_hash(v):
+    return hashlib.sha256(json.dumps(v, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+                                     default=str).encode('utf-8')).hexdigest()
+
+
+def parse_bytes(path, raw):
+    """A JSON or TOML file's value (TOML where the path ends .toml), or None where it does not
+    parse. A byte-order mark is ignored."""
+    if raw is None:
+        return None
+    try:
+        text = raw.decode('utf-8-sig')
+        return _toml().loads(text) if path.endswith('.toml') else json.loads(text)
+    except ValueError:   # a decoding, JSON or TOML error
+        return None
+
+
+_PARSED = {}
+
+
+def blob_value(sha, path):
+    """parse_bytes of a blob, read once per run."""
+    if (sha, path) not in _PARSED:
+        _PARSED[(sha, path)] = parse_bytes(path, git('cat-file', 'blob', sha, check=False, binary=True))
+    return _PARSED[(sha, path)]
+
+
+def servers_at(value, keys):
+    """('ok', the object at the key path), ('missing', None) where a key on it is absent (it
+    can be created), or ('bad', None) where a node on it is not an object."""
+    node = value
+    for k in keys:
+        if not isinstance(node, dict):
+            return 'bad', None
+        if k not in node:
+            return 'missing', None
+        node = node[k]
+    return ('ok', node) if isinstance(node, dict) else ('bad', None)
+
+
+def ignored(p):
+    """True where git ignores p (such a file is never read), False where it does not, None
+    where git cannot tell."""
+    r = subprocess.run(['git', *GITCFG, 'check-ignore', '-q', '--', p], capture_output=True)
+    return True if r.returncode == 0 else False if r.returncode == 1 else None
+
+
+def committed_servers(path, keys, servers):
+    """The servers any commit of HEAD's history held at the key path of path: ones the owner
+    had, so one missing now was removed, never to be added back."""
+    found = set()
+    for sha in git('log', '--format=%H', 'HEAD', '--', ':(literal)' + path, check=False).split()[:200]:
+        st, node = servers_at(parse_bytes(path, git('show', '%s:%s' % (sha, path), check=False, binary=True)), keys)
+        if st == 'ok':
+            found |= {s for s in servers if s in node}
+        if found >= set(servers):
+            break
+    return found
+
+
+def project_asks(N):
+    """The ask rules a client file must hold, in its own form, before a server is added there:
+    every ask of the new render's settings.json and of the project's as it stands now (which
+    the permissions script maps), so a broad allow written in that file before the server
+    existed never covers a tool the update brings in, whatever the project's settings.json
+    allows or has lost."""
+    out = []
+    mine = None
+    if not beyond_link(SETTINGS) and os.path.isfile(SETTINGS) and (not os.path.islink(SETTINGS) or inside_project(SETTINGS)):
+        try:
+            with open(SETTINGS, 'rb') as f:
+                mine = json.loads(f.read().decode('utf-8-sig'))
+        except (OSError, ValueError):
+            mine = None
+    for v in (read_json_blob(N, SETTINGS), mine):
+        perms = v.get('permissions') if isinstance(v, dict) else None
+        asks = perms.get('ask') if isinstance(perms, dict) else None
+        out += [a.strip() for a in asks if isinstance(a, str)] if isinstance(asks, list) else []
+    return list(dict.fromkeys(out))
+
+
+def missing_forms(path, cur, server, asks):
+    """The tools of server whose ask rule, in the form the permissions script writes into
+    opencode.json or .gemini/settings.json, the file does not hold yet."""
+    tools = [m.group(2) for m in (MCP_RULE.fullmatch(a) for a in asks) if m and m.group(1) == server]
+    if path == 'opencode.json':
+        rules = cur.get('permissions') if isinstance(cur, dict) else None
+        rules = rules if isinstance(rules, list) else []
+        return [t for t in tools if not any(
+            isinstance(r, dict) and r.get('action') == '%s_%s' % (server, t) and r.get('resource') == '*'
+            and r.get('effect') in ('ask', 'deny') for r in rules)]
+    if path == '.gemini/settings.json':
+        if '_' in server:   # not expressible there, so the permissions script writes nothing
+            return []
+        tools_key = cur.get('tools') if isinstance(cur, dict) else None
+        listed = tools_key.get('confirmationRequired') if isinstance(tools_key, dict) else None
+        listed = listed if isinstance(listed, list) else []
+        return [t for t in tools if 'mcp_%s_%s' % (server, t) not in listed]
+    return []
+
+
+_TOML_HEADER = re.compile(r'[ \t]*(\[\[?)([^\[\]#]+)\]\]?[ \t]*(?:#.*)?')
+
+
+def _toml_blocks(text, server):
+    """The new render's tables of one server: [mcp_servers.<server>] and every table under
+    it, each from its header to the line before the next header, trailing blank lines and
+    comments dropped. Returns a list of line lists."""
+    tl, out, cur = _toml(), [], None
+    for line in text.splitlines():
+        m = _TOML_HEADER.fullmatch(line)
+        if not m:
+            if cur is not None:
+                cur.append(line)
+            continue
+        cur, path = None, []
+        if m.group(1) == '[':
+            try:
+                node = tl.loads('[%s]\n' % m.group(2))
+            except ValueError:
+                node = None
+            while isinstance(node, dict) and len(node) == 1:
+                k = next(iter(node))
+                path.append(k)
+                node = node[k]
+        if path[:2] == ['mcp_servers', server]:
+            cur = [line]
+            out.append(cur)
+    for b in out:
+        while len(b) > 1 and (not b[-1].strip() or b[-1].lstrip().startswith('#')):
+            b.pop()
+    return out
+
+
+def _toml_append(text, blocks, nl):
+    """The owner's text, a final line ending added where missing and one blank line, then the
+    tables, in the owner's line ending."""
+    body = (nl + nl).join(nl.join(b) for b in blocks) + nl
+    if not text.strip():
+        return text + body
+    head = text if text.endswith(('\n', '\r')) else text + nl
+    blank = head.splitlines()[-1].strip() == ''
+    return head + ('' if blank else nl) + body
+
+
+def mcp_differs(path, keys, server, value, others, t):
+    """The one line for a server the owner holds with another value than the one offered."""
+    cmp = 'compare: git diff %s/template -- %s' % (t, q(path))
+    for name in sorted(others):
+        for b in sorted(others[name].get(path, ())):
+            st, node = servers_at(blob_value(b, path), keys)
+            if st == 'ok' and server in node and same(node[server], value):
+                return "▸ %s holds %s's version of the %s MCP server, which is kept (%s)" % (
+                    path, name, json.dumps(server), cmp)
+    return "▸ kept your %s MCP server in %s, which differs from the template's (%s)" % (json.dumps(server), path, cmp)
+
+
+def mcp_merge(spec, N, offered, skip, rendered, others, t):
+    """Offer each MCP server to each file, once. spec: (servers, {path: key path}); N: the new
+    render; offered: {(path, server): hash} recorded before, or None; skip: paths in conflict;
+    rendered: every blob a render here held, by path (where the file still equals one, the
+    new render's bytes may be taken); others: the sibling templates' render histories.
+    Returns (lines, {(path, server): hash} now offered, [(path, blob before, blob after)]
+    written, {path: [server, ...]} held back for their ask rules)."""
+    servers, files = spec
+    seen, lines, writes, held, asks = dict(offered or {}), [], [], {}, None
+    for path, keys in files.items():
+        n = N.get(path)
+        if not n:
+            if os.path.lexists(path):
+                lines.append('▸ %s exists but the recorded answers do not name its client, so no MCP server was offered to it' % path)
+            continue
+        if not os.path.lexists(path) or path in skip:
+            continue   # never created; a conflict is in the report and offered again
+        st, node = servers_at(blob_value(n[1], path), keys)
+        offers = {s: node[s] for s in servers if st == 'ok' and s in node}
+        todo = [s for s in servers if s in offers and (path, s) not in seen]
+        if not todo:
+            continue
+        hashes = {s: value_hash(offers[s]) for s in todo}
+        hand = 'add them by hand; git show %s/template:%s shows them' % (t, q(path))
+        if beyond_link(path):
+            lines.append('▸ %s lies beyond a link, so these MCP servers were not added (%s): %s' % (path, hand, ', '.join(todo)))
+            continue
+        ig = ignored(path)
+        if ig is not False:
+            if ig:   # never read: the servers are named once, and recorded as offered
+                seen.update({(path, s): hashes[s] for s in todo})
+            lines.append('▸ %s %s, so it was not read and no MCP server was added to it (%s): %s' % (
+                path, 'is ignored by git' if ig else 'could not be checked against the ignore rules', hand, ', '.join(todo)))
+            continue
+        why, raw = '', None
+        if os.path.islink(path):
+            why = 'is a link'
+            if os.path.isfile(path) and inside_project(path):
+                with open(path, 'rb') as f:
+                    raw = f.read()
+        elif not os.path.isfile(path):
+            why = 'is not a regular file'
+        else:
+            with open(path, 'rb') as f:
+                raw = f.read()
+        toml = path.endswith('.toml')
+        cur = parse_bytes(path, raw)
+        if why or not isinstance(cur, dict):
+            # Read only (a link inside the project), or not plain JSON or TOML: the servers it
+            # plainly holds are recorded; the rest are named, and offered again.
+            have = []
+            if isinstance(cur, dict):
+                cst, cnode = servers_at(cur, keys)
+                have = [s for s in todo if cst == 'ok' and s in cnode]
+                lines += [mcp_differs(path, keys, s, cnode[s], others, t) for s in have if not same(cnode[s], offers[s])]
+            elif raw is not None:
+                text = raw.decode('utf-8', 'replace')
+                have = [s for s in todo if re.search(
+                    r'(^|[{,\s.\[])["\']?%s["\']?\s*(:|=|\]|\.)' % re.escape(s), text, re.M)]
+            seen.update({(path, s): hashes[s] for s in have})
+            rest = [s for s in todo if s not in have]
+            if rest:
+                lines.append('▸ %s %s, so these MCP servers were not added (%s): %s' % (
+                    path, why or ('is not plain TOML' if toml else 'is not plain JSON'), hand, ', '.join(rest)))
+            continue
+        cst, cnode = servers_at(cur, keys)
+        if cst == 'bad':
+            seen.update({(path, s): hashes[s] for s in todo})
+            lines.append('▸ not added to %s, because its %s is not an object (%s): %s' % (
+                path, '.'.join(keys), hand, ', '.join(todo)))
+            continue
+        present = [s for s in todo if cst == 'ok' and s in cnode]
+        for s in present:
+            seen[(path, s)] = hashes[s]
+            if not same(cnode[s], offers[s]):
+                lines.append(mcp_differs(path, keys, s, cnode[s], others, t))
+        absent = [s for s in todo if s not in present]
+        gone = committed_servers(path, keys, absent) if absent else set()
+        seen.update({(path, s): hashes[s] for s in gone})   # removed by the owner: never re-added
+        add = [s for s in absent if s not in gone]
+        if add and path in ASK_FORMS:
+            if asks is None:
+                asks = project_asks(N)
+            lacking = [s for s in add if missing_forms(path, cur, s, asks)]
+            if lacking:
+                held[path] = lacking   # not recorded: offered again once the file holds them
+                add = [s for s in add if s not in lacking]
+        if not add:
+            continue
+        plan = copy.deepcopy(cur)
+        holder = plan
+        for k in keys:
+            holder = holder.setdefault(k, {})
+        for s in add:
+            holder[s] = copy.deepcopy(offers[s])
+        before = worktree([path]).get(path)
+        bom = b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b''
+        text = raw[len(bom):].decode('utf-8')
+        how = ''
+        if before in rendered.get(path, ()) and same(blob_value(n[1], path), plan):
+            out = git('cat-file', 'blob', n[1], binary=True)   # unedited: the new render's own bytes
+        elif toml:
+            nl = '\r\n' if '\r\n' in text else '\n'
+            new_text = git('cat-file', 'blob', n[1], binary=True).decode('utf-8-sig')
+            blocks = [b for s in add for b in _toml_blocks(new_text, s)]
+            result = _toml_append(text, blocks, nl)
+            if parse_bytes(path, result.encode('utf-8')) is None or not same(_toml().loads(result), plan):
+                seen.update({(path, s): hashes[s] for s in add})
+                lines.append('▸ not added to %s, because appending their tables would not leave exactly your file '
+                             'plus the servers (an inline or dotted mcp_servers, say; %s): %s' % (path, hand, ', '.join(add)))
+                continue
+            out = bom + result.encode('utf-8')
+        else:
+            unit, nl = _style(text)
+            if unit is None and not cur:
+                unit = '  '
+            result = text
+            try:
+                for s in add:
+                    result = _add_text(result, keys + [s], offers[s], unit, nl)
+                if json.loads(result) != plan:
+                    raise ValueError('the text did not parse to the plan')
+            except (ValueError, IndexError, KeyError):
+                result = json.dumps(plan, indent=unit if unit is not None else 2, ensure_ascii=False).replace('\n', nl)
+                result += nl if text.endswith(('\n', '\r')) else ''
+                how = ' (the file was rewritten as JSON, its key order and indentation kept, because the servers could not be inserted into its text)'
+            out = bom + result.encode('utf-8')
+        try:
+            with open(path, 'wb') as f:
+                f.write(out)
+        except OSError as err:
+            lines.append('▸ could not write %s (%s), so these MCP servers were not added: %s' % (
+                path, err.strerror or err, ', '.join(add)))
+            continue
+        writes.append((path, before, worktree([path]).get(path)))
+        seen.update({(path, s): hashes[s] for s in add})
+        lines.append('▸ added %d MCP server%s to %s%s: %s' % (len(add), '' if len(add) == 1 else 's', path, how, ', '.join(add)))
+    return lines, seen, writes, held
+
+
+def mcp_lane(data, N, offered, skip, rendered, others, t, settings_lines):
+    """The MCP lane of one run, with its one line for the permissions script. Returns (lines,
+    the offers to record, the writes); without an "mcp" key, the offers recorded before."""
+    spec, bad = mcp_data(data)
+    if spec is None:
+        return ([bad] if bad else []), offered, []
+    lines, seen, writes, held = mcp_merge(spec, N, offered, skip, rendered, others, t)
+    rules = any(l.startswith('▸ added to %s' % SETTINGS) and re.search(r'\b(ask|deny) mcp__', l) for l in settings_lines)
+    have = [p for p in PERMISSION_FILES if os.path.lexists(p)]
+    if held or (rules and have):
+        files = have or list(held)
+        line = '▸ to carry the new ask and deny rules into %s, run: python3 .claude/%s-permissions.py --write' % (
+            ' and '.join([', '.join(files[:-1]), files[-1]]) if len(files) > 1 else files[0], t)
+        if held:
+            line += ('; the next update then adds the MCP servers to each file that holds their ask rules '
+                     '(held back now: %s)') % '; '.join(
+                '%s %s' % (p, ', '.join(s)) for p, s in held.items())
+        lines.append(line)
+    return lines, seen, writes
+
+
+def delivered(N, path):
+    """True where the project's file, parsed (JSON, or TOML for .toml), equals the new
+    render's, list order apart."""
+    if path not in N or os.path.islink(path) or not os.path.isfile(path) or beyond_link(path):
+        return False
+    try:
+        with open(path, 'rb') as f:
+            mine = parse_bytes(path, f.read())
+    except OSError:
+        return False
+    theirs = blob_value(N[path][1], path)
+    return mine is not None and theirs is not None and same(canon(mine), canon(theirs))
 
 
 # ── The report ───────────────────────────────────────────────────────────────
@@ -966,8 +1434,8 @@ def setup(args):
         data = refresh_data(os.path.abspath(src), template_name(answers)) if src and answers else None
         missing = [p for p in (data or {}).get('refresh', []) if not os.path.lexists(p)]
         say('the project is not at its repository root, so nothing was recorded, no shared file was '
-            'refreshed or added and no settings entry was offered%s. Run the update in a project that '
-            'is its own git repository.' % ((' (missing here: %s)' % ', '.join(missing)) if missing else ''))
+            'refreshed or added and no settings entry or MCP server was offered%s. Run the update in a '
+            'project that is its own git repository.' % ((' (missing here: %s)' % ', '.join(missing)) if missing else ''))
         return None
     if not (src and answers and to and re.fullmatch(r'[0-9a-f]{7,64}', to)):
         say('needs --src, --to <commit> and --answers (is the template a git repository?).')
@@ -1028,18 +1496,6 @@ def seed_history(c, tmp, from_sha, old_text, old_ans, chain, seeds):
     return chain, O_tree, chain
 
 
-def settings_delivered(N):
-    """True where the project's settings.json, parsed, equals the new render's, list order apart."""
-    if SETTINGS not in N or os.path.islink(SETTINGS) or not os.path.isfile(SETTINGS) or beyond_link(SETTINGS):
-        return False
-    try:
-        with open(SETTINGS, 'rb') as f:
-            mine = json.loads(f.read().decode('utf-8-sig'))
-    except (OSError, ValueError):
-        return False
-    return canon(mine) == canon(read_json_blob(N, SETTINGS))
-
-
 def cmd_baseline(args):
     c = setup(args)
     if not c or off():
@@ -1071,28 +1527,44 @@ def cmd_baseline(args):
     data = refresh_data(src, t)
     N = tree_map(tree)
     offered = offered_ids(cur['msg']) if cur else None
-    blobs = settings_blobs(cur['msg']) if cur else []
+    mcp_offered = offered_mcp(cur['msg']) if cur else None
+    blobs = written_blobs(cur['msg']) if cur else []
+    own = history(chain) if chain else {}
+    for p, b, edited in blobs:
+        if not edited:
+            own.setdefault(p, set()).add(b)
+    others = others_history(t)
+    rendered = union_history(own, *others.values())
+    lines = []
     if data:
         try:
             if chain and head:
-                own = history(chain)
                 paths = [p for p in data.get('refresh', []) if p in N]
                 done, _, failed = refresh(paths, N, worktree(paths), tree_map('HEAD'), own, own, {},
                                           False, c['root'], lambda p: True)
                 notes += refresh_notes(t, done, [], failed)
             # A copy over an existing settings.json keeps the owner's file (a seed): the entries
             # this template offers are added to it, once, as an update would.
+            before = worktree([SETTINGS]).get(SETTINGS)
             lines, offered = settings_merge(data, N, offered, set())
             notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in lines]
             wrote = settings_wrote(lines)
             if wrote:
-                blobs.append(wrote)
+                blobs.append((SETTINGS, wrote, not delivered(N, SETTINGS) and before not in rendered.get(SETTINGS, ())))
         except Exception as err:   # report what was done; the record is still written
             notes.append('▸ %s: the refresh stopped (%s).' % (t, err))
+        try:
+            # A copy keeps an existing .mcp.json and client file (seed, copy-only): the servers
+            # this template offers are added to them, once, as an update would.
+            ml, mcp_offered, writes = mcp_lane(data, N, mcp_offered, set(), rendered, others, t, lines)
+            notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in ml]
+            blobs += [(p, after, not delivered(N, p) and before not in rendered.get(p, ())) for p, before, after in writes]
+        except Exception as err:
+            notes.append('▸ %s: the MCP servers stopped (%s).' % (t, err))
     if notes:
         print('\n'.join(notes), flush=True)
     ab = git('hash-object', c['answers']).strip()
-    commit(tree, '\n'.join(notes + ['%s render, copied' % t]) + record_tail(c['to'], ab, offered or set(), blobs),
+    commit(tree, '\n'.join(notes + ['%s render, copied' % t]) + record_tail(c['to'], ab, offered or set(), blobs, mcp_offered),
            T, chain)
 
 
@@ -1177,15 +1649,20 @@ def cmd_update(args):
     own = history(O_commit or (cur['sha'] if cur else None))
     for p, (_, sha) in O.items():
         own.setdefault(p, set()).add(sha)
-    blobs = settings_blobs(cur['msg']) if cur else []
-    if blobs:
-        own.setdefault(SETTINGS, set()).update(blobs)
+    # Every blob this script wrote over a file the owner had not edited counts as the template's.
+    blobs = written_blobs(cur['msg']) if cur else []
+    for p, b, edited in blobs:
+        if not edited:
+            own.setdefault(p, set()).add(b)
     others = others_history(t)
+    rendered = union_history(own, recorded, *others.values())
     yours = tree_map(Y) if verify(Y) else {}
     notes, counts = [], {}
     offered = offered_ids(cur['msg']) if cur else None
+    mcp_offered = offered_mcp(cur['msg']) if cur else None
     data = refresh_data(src, t)
     touched = set()
+    lines = []
     if data:
         try:
             paths = [p for p in data.get('refresh', []) if isinstance(p, str)]
@@ -1197,12 +1674,24 @@ def cmd_update(args):
             lines, offered = settings_merge(data, N, offered, skip)
             notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in lines]
             wrote = settings_wrote(lines)
+            done_settings = SETTINGS not in skip and delivered(N, SETTINGS)
             if wrote:
-                blobs.append(wrote)
-            if SETTINGS not in skip and settings_delivered(N):
+                # P holds every file as it was before this run wrote it: that is what is classified.
+                blobs.append((SETTINGS, wrote, not done_settings and P.get(SETTINGS) not in rendered.get(SETTINGS, ())))
+            if done_settings:
                 P[SETTINGS] = N[SETTINGS][1]   # the release's settings, its entries added: delivered
         except Exception as err:   # report what was done; the report and the record still follow
             notes.append('▸ %s: the refresh stopped (%s); the report below covers every other file.' % (t, err))
+        try:
+            ml, mcp_offered, writes = mcp_lane(data, N, mcp_offered, skip, rendered, others, t, lines)
+            notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in ml]
+            for p, before, after in writes:
+                done_file = delivered(N, p)
+                blobs.append((p, after, not done_file and before not in rendered.get(p, ())))
+                if done_file:
+                    P[p] = N[p][1]   # the release's file, the servers added: delivered
+        except Exception as err:
+            notes.append('▸ %s: the MCP servers stopped (%s); the report below covers every other file.' % (t, err))
     g, cnt = classify(N, O, P, H, own, others, skip | touched)
     cnt.update(counts)
     if O_tree:
@@ -1217,7 +1706,7 @@ def cmd_update(args):
     if rerun:
         return
     full = build_report(t, frm, vto, g, cnt, unmerged, rej, notes, (deleted_unknown, override), 10 ** 9, True)
-    commit(N_tree, '\n'.join(full) + record_tail(to, ans_now, offered or set(), blobs), T, chain)
+    commit(N_tree, '\n'.join(full) + record_tail(to, ans_now, offered or set(), blobs, mcp_offered), T, chain)
     if head:
         git('update-ref', Y, head)
 
@@ -1535,6 +2024,341 @@ def setting_probe(base, check):
         check(not lines and not seen, 'top-level unknown: an object or null value is ignored (%r)' % lines)
     finally:
         os.chdir(old)
+
+
+PROBE_CRG = {'command': 'uvx', 'args': ['crg==1', 'serve', '--tools', 'a,b'], 'env': {'KEY': ''}}
+PROBE_SCR = {'command': 'uvx', 'args': ['--from', 'scr==1', 'scr', 'mcp']}
+PROBE_TOML_HEAD = "# The client's settings.\nproject_doc_fallback_filenames = ['CLAUDE.md']\n"
+PROBE_TOML = PROBE_TOML_HEAD + (
+    "\n[mcp_servers.code-review-graph]\ncommand = 'uvx'\nargs = ['crg==1', 'serve', '--tools', 'a,b']\n"
+    "\n[mcp_servers.code-review-graph.env]\nKEY = ''\n"
+    '\n[mcp_servers.code-review-graph.tools.apply_refactor_tool]\napproval_mode = "prompt"\n'
+    "\n[mcp_servers.scrapling]\ncommand = 'uvx'\nargs = ['--from', 'scr==1', 'scr', 'mcp']\n"
+    '\n[mcp_servers.scrapling.tools.fetch]\napproval_mode = "prompt"\n')
+PROBE_MCP = {'servers': ['code-review-graph', 'scrapling'],
+             'files': {'.agents/mcp_config.json': ['mcpServers'], '.codex/config.toml': ['mcp_servers'],
+                       '.gemini/settings.json': ['mcpServers'], '.mcp.json': ['mcpServers'], 'opencode.json': ['mcp', 'servers']}}
+
+
+def mcp_probe(base, check):
+    """The MCP lane on real files: each server offered once, the owner's text kept, nothing
+    created, nothing ignored read, nothing written through a link."""
+    both = {'code-review-graph': PROBE_CRG, 'scrapling': PROBE_SCR}
+    asks = ['mcp__scrapling__fetch', 'mcp__code-review-graph__apply_refactor_tool']
+    oc_forms = [{'action': 'scrapling_fetch', 'resource': '*', 'effect': 'ask'},
+                {'action': 'code-review-graph_apply_refactor_tool', 'resource': '*', 'effect': 'ask'}]
+    gm_forms = ['mcp_scrapling_fetch', 'mcp_code-review-graph_apply_refactor_tool']
+    js = lambda v: json.dumps(v, indent=2) + '\n'
+    new = {'.mcp.json': js({'mcpServers': both}), '.agents/mcp_config.json': js({'mcpServers': both}),
+           '.codex/config.toml': PROBE_TOML,
+           '.gemini/settings.json': js({'tools': {'exclude': ['ask_user'], 'confirmationRequired': gm_forms}, 'mcpServers': both}),
+           'opencode.json': js({'$schema': 'x', 'mcp': {'servers': {k: {'type': 'local', 'command': [v['command']] + v['args']}
+                                                                 for k, v in both.items()}},
+                                'permissions': oc_forms + [{'action': 'edit', 'resource': 'build/*', 'effect': 'deny'}]}),
+           SETTINGS: js({'permissions': {'ask': asks}})}
+    old_mcp, old_agents = '{"mcpServers": {}}\n', '{\n  "mcpServers": {}\n}\n'
+    data = {'mcp': PROBE_MCP}
+    old = os.getcwd()
+
+    def blob(text):
+        return git('hash-object', '-w', '--stdin', inp=text).strip()
+
+    def put(rel, content, mode=None):
+        os.makedirs(os.path.dirname(rel) or '.', exist_ok=True)
+        with open(rel, 'wb') as f:
+            f.write(content if isinstance(content, bytes) else content.encode('utf-8'))
+        if mode is not None:
+            os.chmod(rel, mode)
+
+    def get(rel):
+        with open(rel, 'rb') as f:
+            return f.read()
+
+    def project(name, files, commits=(), drop=()):
+        d = os.path.join(base, name)
+        os.makedirs(d)
+        os.chdir(d)
+        git('init', '-q')
+        for i, snap in enumerate(commits):
+            for rel, text in snap.items():
+                put(rel, text)
+            git('add', '-A')
+            git('commit', '-q', '-m', 'c%d' % i, env=IDENT)
+        put(SETTINGS, new[SETTINGS])
+        for rel, text in files.items():
+            put(rel, text)
+        return {rel: ('100644', blob(text)) for rel, text in new.items() if rel not in drop}
+
+    def lane(N, offered=None, skip=(), rendered=None, others=None, settings_lines=()):
+        return mcp_lane(data, N, offered, set(skip), rendered or {}, others or {}, 'probe', list(settings_lines))
+
+    try:
+        # JSON: the unedited one-line seed takes the new render's bytes; a second run is a no-op.
+        N = project('fast', {'.mcp.json': old_mcp})
+        lines, seen, writes = lane(N, rendered={'.mcp.json': {blob(old_mcp)}})
+        check(get('.mcp.json') == new['.mcp.json'].encode() and lines == ['▸ added 2 MCP servers to .mcp.json: code-review-graph, scrapling'],
+              'mcp fast: an unedited seed takes the new render\'s bytes (%r)' % lines)
+        check(set(seen) == {('.mcp.json', 'code-review-graph'), ('.mcp.json', 'scrapling')} and len(writes) == 1
+              and all(re.fullmatch(r'[0-9a-f]{64}', h) for h in seen.values()), 'mcp fast: both offers recorded with their hash (%r)' % seen)
+        mtime = os.stat('.mcp.json').st_mtime_ns
+        again, seen2, writes2 = lane(N, offered=seen, rendered={'.mcp.json': {blob(old_mcp)}})
+        check(not again and not writes2 and seen2 == seen and os.stat('.mcp.json').st_mtime_ns == mtime,
+              'mcp fast: a second run changes nothing, mtime included (%r)' % again)
+        os.chdir(old)
+        # The 23-byte form of another template's copy gains exactly the shared bytes.
+        N = project('agents23', {'.agents/mcp_config.json': old_agents})
+        lane(N)
+        check(get('.agents/mcp_config.json') == new['.agents/mcp_config.json'].encode(),
+              'mcp agents23: inserting into the 23-byte file gives the shared bytes exactly')
+        os.chdir(old)
+        # An edited one-line file stays one line, the owner's server first.
+        N = project('one-line', {'.mcp.json': '{"mcpServers": {"mine": {"command": "x"}}}\n'})
+        lines, _, _ = lane(N, rendered={'.mcp.json': {blob(old_mcp)}})
+        body = get('.mcp.json').decode()
+        cur = json.loads(body)
+        check(body.count('\n') == 1 and body.endswith('}\n') and list(cur['mcpServers']) == ['mine', 'code-review-graph', 'scrapling']
+              and cur['mcpServers']['scrapling'] == PROBE_SCR, 'mcp one-line: stays one line, the owner\'s server first (%r)' % body)
+        os.chdir(old)
+        # Four spaces, CRLF, a byte-order mark, no final newline: all kept.
+        raw = b'\xef\xbb\xbf' + '{\r\n    "mcpServers": {\r\n        "mine": {\r\n            "command": "x"\r\n        }\r\n    }\r\n}'.encode()
+        N = project('crlf', {'.mcp.json': raw})
+        lines, seen, _ = lane(N)
+        after = get('.mcp.json')
+        text = after[3:].decode()
+        check(after.startswith(b'\xef\xbb\xbf') and '\n' not in text.replace('\r\n', '') and not text.endswith('\n')
+              and all(len(re.match(r' *', l).group(0)) % 4 == 0 for l in text.split('\r\n'))
+              and list(json.loads(text)['mcpServers']) == ['mine', 'code-review-graph', 'scrapling'] and 'rewritten' not in ''.join(lines),
+              'mcp crlf: the mark, CRLF, four spaces, no final newline and the owner\'s order kept (%r)' % text[:120])
+        mtime = os.stat('.mcp.json').st_mtime_ns
+        again, _, _ = lane(N, offered=seen)
+        check(not again and os.stat('.mcp.json').st_mtime_ns == mtime, 'mcp crlf: a second run changes nothing')
+        os.chdir(old)
+        # Tabs in .gemini/settings.json that already holds its ask rules.
+        tabs = ('{\n\t"tools": {\n\t\t"confirmationRequired": [\n\t\t\t"mcp_scrapling_fetch",\n'
+                '\t\t\t"mcp_code-review-graph_apply_refactor_tool"\n\t\t]\n\t},\n\t"mcpServers": {}\n}\n')
+        N = project('tabs', {'.gemini/settings.json': tabs})
+        lines, _, _ = lane(N)
+        body = get('.gemini/settings.json').decode()
+        check(not any(l.startswith(' ') for l in body.splitlines()) and set(json.loads(body)['mcpServers']) == set(both),
+              'mcp tabs: added with tab indentation (%r)' % lines)
+        os.chdir(old)
+        # opencode.json with no "mcp": mcp.servers is created at its end.
+        N = project('oc-new', {'opencode.json': js({'permissions': oc_forms})})
+        lines, _, _ = lane(N)
+        cur = json.loads(get('opencode.json'))
+        check(list(cur) == ['permissions', 'mcp'] and set(cur['mcp']['servers']) == set(both),
+              'mcp oc-new: mcp.servers created at the end (%r, %r)' % (list(cur), lines))
+        os.chdir(old)
+        # A key path that is not an object is refused, never replaced, and said once.
+        text = js({'mcp': True, 'permissions': oc_forms})
+        N = project('oc-bad', {'opencode.json': text})
+        lines, seen, _ = lane(N)
+        check(get('opencode.json') == text.encode() and any('mcp.servers is not an object' in l for l in lines)
+              and ('opencode.json', 'scrapling') in seen, 'mcp oc-bad: a non-object refused, reported, recorded (%r)' % lines)
+        os.chdir(old)
+        # JSONC: reported, not written, offered again.
+        text = '{\n  // mine\n  "permissions": []\n}\n'
+        N = project('jsonc', {'opencode.json': text})
+        lines, seen, _ = lane(N)
+        again, _, _ = lane(N, offered=seen)
+        check(get('opencode.json') == text.encode() and any('is not plain JSON' in l for l in lines)
+              and not any(p == 'opencode.json' for p, _ in seen) and again == lines,
+              'mcp jsonc: reported, never written, offered again (%r)' % lines)
+        os.chdir(old)
+        # TOML: an append parses to exactly the new render's servers; the unedited file takes
+        # the new render's bytes; no final newline and CRLF are handled.
+        for name, text in (('toml-append', PROBE_TOML_HEAD + "model = 'mine'\n"), ('toml-nonl', "model = 'mine'"),
+                           ('toml-crlf', "model = 'mine'\r\n"), ('toml-fast', PROBE_TOML_HEAD)):
+            N = project(name, {'.codex/config.toml': text})
+            lines, seen, _ = lane(N, rendered={'.codex/config.toml': {blob(PROBE_TOML_HEAD)}})
+            body = get('.codex/config.toml').decode()
+            tree = _toml().loads(body)
+            check(tree.get('mcp_servers') == _toml().loads(PROBE_TOML)['mcp_servers'] and body.startswith(text.rstrip('\r\n'))
+                  and lines == ['▸ added 2 MCP servers to .codex/config.toml: code-review-graph, scrapling'],
+                  'mcp %s: the tables, env and tools included, appended (%r)' % (name, lines))
+            if name == 'toml-fast':
+                check(body == PROBE_TOML, 'mcp toml-fast: an unedited file takes the new render\'s bytes')
+            if name == 'toml-crlf':
+                check('\n' not in body.replace('\r\n', ''), 'mcp toml-crlf: CRLF kept')
+            if name == 'toml-nonl':
+                check(body.startswith("model = 'mine'\n\n[mcp_servers.code-review-graph]\n"), 'mcp toml-nonl: a final newline added (%r)' % body[:60])
+            again, _, _ = lane(N, offered=seen)
+            check(not again, 'mcp %s: a second run is quiet' % name)
+            os.chdir(old)
+        # TOML that already declares a server (a table, dotted keys, an inline table) or that
+        # cannot be extended: the owner's bytes kept, each said once.
+        for name, text, want in (
+                ('toml-table', PROBE_TOML_HEAD + "\n[mcp_servers.scrapling]\ncommand = 'mine'\n", 'kept your "scrapling"'),
+                ('toml-dotted', "mcp_servers.scrapling.command = 'mine'\n", 'kept your "scrapling"'),
+                ('toml-inline', "mcp_servers = { scrapling = { command = 'mine' } }\n", 'would not leave exactly your file'),
+                ('toml-inline-other', "mcp_servers = { mine = { command = 'x' } }\n", 'would not leave exactly your file')):
+            N = project(name, {'.codex/config.toml': text})
+            lines, seen, _ = lane(N)
+            body = get('.codex/config.toml').decode()
+            check(body.startswith(text) and any(want in l for l in lines) and _toml().loads(body)['mcp_servers'].get('scrapling', {}).get('command') != 'uvx',
+                  'mcp %s: the owner\'s server kept and reported (%r)' % (name, lines))
+            if name.startswith('toml-inline'):
+                check(body == text, 'mcp %s: an inline table is never written' % name)
+            again, _, _ = lane(N, offered=seen)
+            check(not again, 'mcp %s: said once (%r)' % (name, again))
+            os.chdir(old)
+        # Appended tables that would not parse to exactly the plan are never written (here the
+        # extraction is made to lose a line).
+        global _toml_blocks
+        real = _toml_blocks
+        _toml_blocks = lambda text, server: [b[:-1] if len(b) > 2 else b for b in real(text, server)]
+        try:
+            text = PROBE_TOML_HEAD + "model = 'mine'\n"
+            N = project('toml-verify', {'.codex/config.toml': text})
+            lines, seen, writes = lane(N)
+        finally:
+            _toml_blocks = real
+        check(get('.codex/config.toml') == text.encode() and not writes and any('would not leave exactly your file' in l for l in lines),
+              'mcp toml-verify: an append that does not parse to the plan is never written (%r)' % lines)
+        os.chdir(old)
+        # Offers: a server held with another value is kept, said once; a sibling's value is named.
+        mine = js({'mcpServers': {'scrapling': {'command': 'mine'}}})
+        sib_blob = None
+        for name in ('differs', 'sibling'):
+            N = project(name, {'.mcp.json': mine})
+            others = {}
+            if name == 'sibling':
+                sib_blob = blob(js({'mcpServers': {'scrapling': {'command': 'mine'}}, 'x': 1}))
+                others = {'sibling': {'.mcp.json': {sib_blob}}}
+            lines, seen, _ = lane(N, others=others)
+            body = get('.mcp.json').decode()
+            want = "holds sibling's version of the \"scrapling\" MCP server" if name == 'sibling' else 'kept your "scrapling" MCP server'
+            check('"scrapling": {\n      "command": "mine"\n    }' in body and any(want in l and 'compare: git diff probe/template -- .mcp.json' in l for l in lines)
+                  and 'code-review-graph' in json.loads(body)['mcpServers'] and ('.mcp.json', 'scrapling') in seen,
+                  'mcp %s: kept byte for byte, one line, recorded (%r)' % (name, lines))
+            again, _, _ = lane(N, offered=seen, others=others)
+            check(not again, 'mcp %s: quiet on the next run' % name)
+            os.chdir(old)
+        # Removed after the offer: never added back. Removed with no record, the history shows it:
+        # never added back. An old record without MCP offers and a clean history: added.
+        only = js({'mcpServers': {'code-review-graph': PROBE_CRG}})
+        N = project('removed', {'.mcp.json': only})
+        lines, seen, _ = lane(N, offered={('.mcp.json', 'scrapling'): '0' * 64})
+        check(get('.mcp.json') == only.encode() and not lines and ('.mcp.json', 'code-review-graph') in seen,
+              'mcp removed: a server removed after the offer is not re-added (%r)' % lines)
+        os.chdir(old)
+        N = project('history', {'.mcp.json': only}, commits=({'.mcp.json': new['.mcp.json']}, {'.mcp.json': only}))
+        lines, seen, _ = lane(N)
+        check(get('.mcp.json') == only.encode() and not lines and ('.mcp.json', 'scrapling') in seen,
+              'mcp history: a server the committed history held is not re-added (%r)' % lines)
+        os.chdir(old)
+        N = project('clean', {'.mcp.json': old_mcp}, commits=({'.mcp.json': old_mcp},))
+        lines, _, _ = lane(N)
+        check(set(json.loads(get('.mcp.json'))['mcpServers']) == set(both), 'mcp clean: no record, a clean history: added (%r)' % lines)
+        os.chdir(old)
+        # Guards: the client not named; the file absent; git-ignored at mode 000; a link and a
+        # path beyond one; a file in conflict.
+        text = js({'permissions': oc_forms})
+        N = project('unnamed', {'opencode.json': text}, drop=('opencode.json',))
+        lines, seen, _ = lane(N)
+        check(get('opencode.json') == text.encode() and not any(p == 'opencode.json' for p, _ in seen)
+              and lines == ['▸ opencode.json exists but the recorded answers do not name its client, so no MCP server was offered to it'],
+              'mcp unnamed: nothing offered, nothing recorded, one line (%r)' % lines)
+        os.chdir(old)
+        N = project('absent', {})
+        lines, seen, _ = lane(N)
+        check(not lines and not seen and not any(os.path.lexists(p) for p in PROBE_MCP['files']),
+              'mcp absent: no file is ever created (%r)' % lines)
+        os.chdir(old)
+        N = project('ignored', {'.gitignore': '.mcp.json\n', '.mcp.json': old_mcp})
+        os.chmod('.mcp.json', 0)
+        st = os.stat('.mcp.json')
+        lines, seen, writes = lane(N, rendered={'.mcp.json': {blob(old_mcp)}})
+        st2 = os.stat('.mcp.json')
+        again, _, _ = lane(N, offered=seen)
+        os.chmod('.mcp.json', 0o644)
+        check((st.st_size, st.st_mtime_ns) == (st2.st_size, st2.st_mtime_ns) and not writes and len(lines) == 1
+              and 'is ignored by git, so it was not read' in lines[0] and 'git show probe/template:.mcp.json' in lines[0]
+              and ('.mcp.json', 'scrapling') in seen and not again, 'mcp ignored: never read or written, said once (%r)' % lines)
+        os.chdir(old)
+        N = project('link', {'shared/mcp.json': old_mcp, 'real-agents/mcp_config.json': old_agents})
+        os.symlink('shared/mcp.json', '.mcp.json')
+        os.symlink('real-agents', '.agents')
+        lines, seen, writes = lane(N)
+        check(get('shared/mcp.json') == old_mcp.encode() and get('real-agents/mcp_config.json') == old_agents.encode() and not writes
+              and any(l.startswith('▸ .mcp.json is a link') for l in lines) and any(l.startswith('▸ .agents/mcp_config.json lies beyond a link') for l in lines)
+              and not seen, 'mcp link: never written through a link, offered again (%r)' % lines)
+        os.chdir(old)
+        N = project('conflict', {'.mcp.json': old_mcp})
+        lines, seen, writes = lane(N, skip={'.mcp.json'})
+        check(get('.mcp.json') == old_mcp.encode() and not lines and not seen and not writes, 'mcp conflict: a file in conflict is untouched')
+        os.chdir(old)
+        # An owner's catch-all allow in opencode.json covers no tool the update brings in: the
+        # servers wait, with the --write line, until the file holds their ask rules.
+        catch = js({'permissions': [{'action': '*', 'resource': '*', 'effect': 'allow'}]})
+        N = project('catch-all', {'opencode.json': catch})
+        lines, seen, writes = lane(N)
+        check(get('opencode.json') == catch.encode() and not writes and not any(p == 'opencode.json' for p, _ in seen)
+              and len(lines) == 1 and 'python3 .claude/probe-permissions.py --write' in lines[0]
+              and 'held back now: opencode.json code-review-graph, scrapling' in lines[0],
+              'mcp catch-all: the servers held back with the --write line (%r)' % lines)
+        put('opencode.json', js({'permissions': [{'action': '*', 'resource': '*', 'effect': 'allow'}] + oc_forms}))
+        lines, seen, _ = lane(N, offered=seen)
+        check(set(json.loads(get('opencode.json')).get('mcp', {}).get('servers', {})) == set(both)
+              and lines == ['▸ added 2 MCP servers to opencode.json: code-review-graph, scrapling'],
+              'mcp catch-all: after --write, the next run adds them (%r)' % lines)
+        os.chdir(old)
+        # The same where the project's settings.json allows the server, so it holds no ask for
+        # it: the new render's asks still decide, and the server waits.
+        N = project('catch-all-allowed', {'opencode.json': catch, SETTINGS: js({'permissions': {'allow': ['mcp__scrapling__*']}})})
+        lines, seen, writes = lane(N)
+        check(get('opencode.json') == catch.encode() and not writes and len(lines) == 1
+              and 'held back now: opencode.json code-review-graph, scrapling' in lines[0],
+              'mcp catch-all-allowed: an allow in settings.json does not open the file early (%r)' % lines)
+        os.chdir(old)
+        # The --write line where this run added an mcp__ rule and a client file exists.
+        N = project('rules', {'.codex/config.toml': PROBE_TOML})
+        lines, _, _ = lane(N, settings_lines=['▸ added to %s: ask mcp__scrapling__fetch' % SETTINGS])
+        check(lines == ['▸ to carry the new ask and deny rules into .codex/config.toml, run: python3 .claude/probe-permissions.py --write'],
+              'mcp rules: the --write line once (%r)' % lines)
+        lines, _, _ = lane(N)
+        check(not lines, 'mcp rules: no line where no rule was added (%r)' % lines)
+        os.chdir(old)
+        # A malformed "mcp": one line, nothing offered, the offers recorded before kept; none: as before.
+        rec = {('.mcp.json', 'scrapling'): '1' * 64}
+        for bad in ({'servers': 'scrapling', 'files': {}}, {'servers': ['a b'], 'files': {}},
+                    {'servers': ['s'], 'files': {'../x.json': ['k']}}, {'servers': ['s'], 'files': {'x.json': []}}):
+            got = mcp_lane({'mcp': bad}, {}, rec, set(), {}, {}, 'probe', [])
+            check(len(got[0]) == 1 and 'not in the shape' in got[0][0] and got[1] == rec and got[2] == [],
+                  'mcp malformed %r: one line, the lane skipped' % bad)
+        check(mcp_lane({'settings': {}}, {}, None, set(), {}, {}, 'probe', []) == ([], None, []),
+              'mcp none: a data file without "mcp" behaves as before')
+    finally:
+        os.chdir(old)
+
+
+def allow_probe(check):
+    """An ask the owner allows by server, wildcard or tool glob is reported, never added; a
+    deny is covered only by the same rule."""
+    deny = 'mcp__code-review-graph__embed_graph_tool'
+    asks = ['mcp__scrapling__fetch', 'mcp__scrapling__bulk_fetch', 'mcp__scrapling__open_session',
+            'mcp__code-review-graph__apply_refactor_tool']
+    data = {'settings': {'permissions': {'deny': [deny], 'ask': asks}}}
+    for allows, want_added in ((['mcp__scrapling__*', 'mcp__code-review-graph'], {deny}),
+                               (['mcp__scrapling'], {deny, asks[3]}),
+                               (['mcp__scrapling__*fetch'], {deny, asks[2], asks[3]}),
+                               (['mcp__scrap*', 'mcp__scrapling__open'], set(asks) | {deny})):
+        with tempfile.TemporaryDirectory() as d:
+            old = os.getcwd()
+            try:
+                os.chdir(d)
+                git('init', '-q')
+                os.makedirs('.claude')
+                with open(SETTINGS, 'w', encoding='utf-8') as f:
+                    f.write(json.dumps({'permissions': {'allow': allows}}, indent=2) + '\n')
+                sha = git('hash-object', '-w', '--stdin', inp=json.dumps(data['settings'], indent=2) + '\n').strip()
+                lines, _ = settings_merge(data, {SETTINGS: ('100644', sha)}, None, set())
+                perms = json.loads(open(SETTINGS).read())['permissions']
+                got = set(perms.get('deny', [])) | set(perms.get('ask', []))
+                check(got == want_added and (got == set(asks) | {deny} or any('because you allow it' in l for l in lines)),
+                      'allow %r: added %r, want %r (%r)' % (allows, sorted(got), sorted(want_added), lines))
+            finally:
+                os.chdir(old)
 
 
 def self_test():
@@ -1993,6 +2817,102 @@ def self_test():
                   'a %s family-refresh.json refreshes nothing and says so (%r)' % (label, buf.getvalue()))
 
         settings_probe(os.path.join(tmp, 'settings'), check)
+        for probe in (lambda: mcp_probe(os.path.join(tmp, 'mcp'), check), lambda: allow_probe(check)):
+            try:
+                probe()
+            except Exception as err:   # a probe that raises is a failure, never a crash
+                check(False, 'a probe raised %s: %s' % (type(err).__name__, err))
+
+        # ── The MCP lane through update and baseline: attribution, the opt-out, the root ──
+        msrc = os.path.join(tmp, 'tplm')
+        os.makedirs(os.path.join(msrc, 'migrations'))
+        write(msrc, REFRESH_DATA, json.dumps({'format': 1, 'template': 'mprobe', 'refresh': [], 'settings': {},
+                                              'mcp': {'servers': PROBE_MCP['servers'], 'files': {'.mcp.json': ['mcpServers']}}}))
+        git('init', '-q', msrc)
+        scr2 = dict(PROBE_SCR, args=['--from', 'scr==2', 'scr', 'mcp'])
+        for v, servers in (('m1', {}), ('m2', {'code-review-graph': PROBE_CRG, 'scrapling': PROBE_SCR}),
+                           ('m3', {'code-review-graph': PROBE_CRG, 'scrapling': scr2})):
+            releases[v] = {'README.md': 'readme %s\n' % v, SETTINGS: '{\n  "model": "opus"\n}\n',
+                           '.mcp.json': json.dumps({'mcpServers': servers}, indent=2 if servers else None) + '\n'}
+            write(msrc, 'VERSION', v + '\n')
+            git('-C', msrc, 'add', '-A')
+            git('-C', msrc, 'commit', '-q', '-m', v, env=IDENT)
+            shas[v] = verify('HEAD', cwd=msrc)
+            by_sha[shas[v]] = v
+        MA = '.copier-answers.mprobe.yml'
+        mcommon = ['--src', msrc, '--answers', MA]
+
+        def mfresh(name, edit=None):
+            d = os.path.join(tmp, name)
+            git('init', '-q', d)
+            for rel, text in releases['m1'].items():
+                write(d, rel, text)
+            write(d, MA, '_commit: m1\nNAME: probe\n')
+            run(d, 'baseline', '--to', shas['m1'], *mcommon)
+            if edit:
+                write(d, '.mcp.json', edit)
+            commit_all(d, 'copied')
+            return d
+
+        def mupd(d, v_from, v_to, extra=None, cwd=None):
+            write(d, 'README.md', releases[v_to]['README.md'])
+            write(d, MA, '_commit: %s\nNAME: probe\n' % v_to)
+            return run(cwd or d, 'update', '--to', shas[v_to], *mcommon,
+                       env={'VERSION_FROM': shas[v_from], 'VERSION_PEP440_FROM': v_from, 'VERSION_PEP440_TO': v_to, **(extra or {})})
+
+        def mrecord(d):
+            return git('-C', d, 'log', '-1', '--format=%B', 'refs/mprobe/template')
+
+        # Unedited: the lane writes the new render's bytes (delivered); written once on the next update.
+        d = mfresh('mcp-unedited')
+        out = mupd(d, 'm1', 'm2')
+        msg = mrecord(d)
+        check(read(d, '.mcp.json') == releases['m2']['.mcp.json'] and '.mcp.json' not in sections(out)
+              and 'added 2 MCP servers to .mcp.json' in out, 'mcp flow: an unedited .mcp.json is delivered (%r)' % out)
+        check(re.search(r'^mcp-offered: 2$', msg, re.M) and re.search(r'^mcp: \.mcp\.json scrapling [0-9a-f]{64}$', msg, re.M)
+              and re.search(r'^written-blob: \.mcp\.json [0-9a-f]{40,64}$', msg, re.M), 'mcp flow: the record lists the offers and the blob (%r)' % msg[-400:])
+        check(tmp not in git('-C', d, 'log', '--format=%B', 'refs/mprobe/template'), 'mcp flow: the record holds no absolute path')
+        commit_all(d, 'updated')
+        out = mupd(d, 'm2', 'm3')
+        check(sections(out).get('.mcp.json', '').startswith('NOT UPDATED because files of this kind')
+              and read(d, '.mcp.json') == releases['m2']['.mcp.json'] and 'MCP server' not in out,
+              'mcp flow: a file only the lane wrote is written once next time, its offers quiet (%r)' % out)
+        # Edited by the owner: 'you had changed them' on both updates.
+        mine = '{\n    "mcpServers": {\n        "mine": {\n            "command": "x"\n        }\n    }\n}\n'
+        d = mfresh('mcp-edited', mine)
+        out = mupd(d, 'm1', 'm2')
+        check(sections(out).get('.mcp.json', '').startswith('NOT UPDATED because you had changed')
+              and list(json.loads(read(d, '.mcp.json'))['mcpServers']) == ['mine', 'code-review-graph', 'scrapling']
+              and re.search(r'^written-blob: \.mcp\.json [0-9a-f]+ edited$', mrecord(d), re.M),
+              'mcp flow: an owner-edited .mcp.json is yours, the servers added (%r)' % out)
+        commit_all(d, 'updated')
+        out = mupd(d, 'm2', 'm3')
+        check(sections(out).get('.mcp.json', '').startswith('NOT UPDATED because you had changed'),
+              'mcp flow: and still yours on the next update (%r)' % sections(out).get('.mcp.json'))
+        # Reformatted by the owner, the servers inserted: equal to the new render's once written,
+        # so the template's, never 'yours'.
+        d = mfresh('mcp-reformatted', '{\n    "mcpServers": {}\n}\n')
+        out = mupd(d, 'm1', 'm2')
+        check('.mcp.json' not in sections(out) and re.search(r'^written-blob: \.mcp\.json [0-9a-f]+$', mrecord(d), re.M),
+              'mcp flow: a write that leaves the file equal to the new render is delivered and the template\'s (%r)' % out)
+        commit_all(d, 'updated')
+        out = mupd(d, 'm2', 'm3')
+        check(sections(out).get('.mcp.json', '').startswith('NOT UPDATED because files of this kind'),
+              'mcp flow: and written once on the next update (%r)' % sections(out).get('.mcp.json'))
+        # The opt-out: no lane; the next full update delivers it.
+        d = mfresh('mcp-off')
+        mupd(d, 'm1', 'm2', {'SYNTEK_UPDATE_REPORT': 'off'})
+        check(read(d, '.mcp.json') == releases['m1']['.mcp.json'], 'mcp flow: SYNTEK_UPDATE_REPORT=off runs no lane')
+        commit_all(d, 'updated, report off')
+        mupd(d, 'm2', 'm3')
+        check(set(json.loads(read(d, '.mcp.json'))['mcpServers']) == {'code-review-graph', 'scrapling'},
+              'mcp flow: the next full update adds the servers')
+        # Not at the repository root: the line says no MCP server was offered.
+        d = mfresh('mcp-sub')
+        os.makedirs(os.path.join(d, 'sub'))
+        out = mupd(d, 'm1', 'm2', cwd=os.path.join(d, 'sub'))
+        check('no settings entry or MCP server was offered' in out and read(d, '.mcp.json') == releases['m1']['.mcp.json'],
+              'mcp flow: not at the root, no MCP server is offered (%r)' % out)
     RENDER = None
     for f in fails:
         print('  ✗ ' + f)

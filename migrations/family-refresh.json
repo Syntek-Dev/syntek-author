@@ -58,9 +58,43 @@
         "AskUserQuestion",
         "Edit(**/*.pdf)",
         "Edit(build/**)",
-        "Edit(typeset/src/units/.base/**)"
+        "Edit(typeset/src/units/.base/**)",
+        "mcp__code-review-graph__embed_graph_tool"
       ],
-      "ask": []
+      "ask": [
+        "mcp__scrapling__stealthy_fetch",
+        "mcp__scrapling__bulk_stealthy_fetch",
+        "mcp__scrapling__open_session",
+        "mcp__scrapling__session_fetch",
+        "mcp__scrapling__fetch",
+        "mcp__scrapling__bulk_fetch",
+        "mcp__code-review-graph__apply_refactor_tool",
+        "mcp__code-review-graph__generate_wiki_tool"
+      ]
+    }
+  },
+  "mcp": {
+    "servers": [
+      "code-review-graph",
+      "scrapling"
+    ],
+    "files": {
+      ".agents/mcp_config.json": [
+        "mcpServers"
+      ],
+      ".codex/config.toml": [
+        "mcp_servers"
+      ],
+      ".gemini/settings.json": [
+        "mcpServers"
+      ],
+      ".mcp.json": [
+        "mcpServers"
+      ],
+      "opencode.json": [
+        "mcp",
+        "servers"
+      ]
     }
   }
 }
