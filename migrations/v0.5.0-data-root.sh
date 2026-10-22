@@ -24,11 +24,15 @@
 #   6. every tracked workflow under .github/workflows/ that names Google Drive's API while the
 #      recorded answers ship no .github/ (not business, not google-drive, or not repo): it still
 #      runs on GitHub, unmanaged, and under the external store its push would bin the Drive copy
-#      of every file the owner untracks;
+#      of every file the owner untracks; and every such workflow HEAD holds without the store
+#      guard step that this update deleted, because the update report offers to restore it from
+#      refs/syntek-author/yours, and the restored copy would do the same (read from git's
+#      objects at HEAD, never from the work tree);
 #   7. every line of a seed the owner already has that still names the retired
 #      INCLUDE_DRIVE_SYNC (README.md, CONTEXT.md, .claude/CLAUDE.md, 00-project.md), or still
 #      counts the template's rules as 01- to 08- (README.md, .claude/CONTEXT.md,
-#      .claude/CLAUDE.md), with file:line and the v0.5.0 text: an update never rewrites a seed.
+#      .claude/CLAUDE.md), with file:line and the v0.5.0 text (for INCLUDE_DRIVE_SYNC, 'delete
+#      this line' where the answers ship no .github/): an update never rewrites a seed.
 #
 # Runs automatically as a copier `_migrations` entry when an update crosses v0.5.0, after the
 # update has written the new tree and before the update report. Safe to run again from the
@@ -221,10 +225,26 @@ if ! $ships_github; then
     grep -qF 'googleapis.com/auth/drive' "$f" 2>/dev/null && DRIVE+=("$f")
   done
 fi
+# The ones this update deleted: HEAD still holds them until the owner commits. A copy from
+# before the store guard, restored from the update report, would run unmanaged and unguarded.
+GUARD_STEP='Stop unless the documents are kept in the repository'
+declare -a DRIVE_GONE=()
+if ! $ships_github && $IN_GIT && git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+  while IFS= read -r -d '' f; do
+    case "$f" in .github/workflows/*.yml | .github/workflows/*.yaml) ;; *) continue ;; esac
+    [[ -e "$f" || -L "$f" ]] && continue
+    body="$(git cat-file blob "HEAD:$f" 2>/dev/null)" || continue
+    grep -qF 'googleapis.com/auth/drive' <<< "$body" || continue
+    grep -qF "$GUARD_STEP" <<< "$body" && continue
+    DRIVE_GONE+=("$f")
+  done < <(git ls-tree -r -z --name-only HEAD -- .github/workflows/ 2>/dev/null)
+fi
 
 # ── 7. Seed lines a v0.5.0 seed words differently ────────────────────────────
 
 R_DRIVE="DATA_PROVIDER replaces INCLUDE_DRIVE_SYNC: '- Choosing a provider other than Google Drive, or keeping files outside the repository (\`DATA_STORE\` external), deletes \`.github/\`, the Drive push and pull workflows, including your edits.'"
+# v0.5.0's README says that only where the answers ship .github/; otherwise it has no such line.
+$ships_github || R_DRIVE="delete this line: these answers (DOC_TYPE ${DOC_TYPE:-not recorded}, DATA_PROVIDER ${PROVIDER:-not recorded}, DATA_STORE ${STORE:-not recorded}) ship no \`.github/\`, so v0.5.0 has no such line"
 R_RULES="the rules now run from \`01-\` to \`09-\`: v0.5.0 adds \`.claude/rules/syntek-author/09-data-root.md\` (nine numbered files; ten with \`00-project.md\`)"
 
 declare -a STALE=()
@@ -329,7 +349,8 @@ case "$STORE" in
     ;;
   repo)
     printf '\n  To keep binary files outside the repository instead, update with\n'
-    printf '    uvx copier update --trust -a %s --data DATA_STORE=external\n' "$ANSWERS"
+    printf '    GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \\\n'
+    printf '      uvx copier update --trust -a %s --data DATA_STORE=external\n' "$ANSWERS"
     printf '  then run make files-plan.\n'
     ;;
 esac
@@ -339,6 +360,15 @@ if [[ ${#DRIVE[@]} -gt 0 ]]; then
   printf '  Each runs on GitHub and is not managed by the template; under the external store its\n'
   printf '  push bins the Drive copy of every file you untrack: disable or delete it first.\n\n'
   for f in "${DRIVE[@]}"; do printf '    %s\n' "$f"; done
+fi
+
+if [[ ${#DRIVE_GONE[@]} -gt 0 ]]; then
+  printf '\n  This update deleted these workflows, which name Google Drive'\''s API. Your copies\n'
+  printf '  predate the store guard, so one restored from the update report (git restore\n'
+  printf '  --source=syntek-author/yours) runs on GitHub unmanaged and, under the external store,\n'
+  printf '  its push bins the Drive copy of every file you untrack. Restore one only to disable\n'
+  printf '  it, or first add the step '\''%s'\''\n  from a v0.5.0 render:\n\n' "$GUARD_STEP"
+  for f in "${DRIVE_GONE[@]}"; do printf '    %s\n' "$f"; done
 fi
 
 if [[ ${#STALE[@]} -gt 0 ]]; then

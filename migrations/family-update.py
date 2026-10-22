@@ -14,7 +14,8 @@ Records, per clone, inside .git (never pushed by default, never in the work tree
                             now recorded (copy semantics: seeds, copy-only paths, examples).
                             Its parent is the previous render, so the chain holds every
                             version this project has been rendered at. Its message is the
-                            full report, then 'commit: <sha>' and 'answers: <blob>'.
+                            full report, then 'commit: <sha>', 'answers: <blob>' and, where
+                            that file's pairs can be read, 'answers-key: <sha256>'.
   refs/<template>/yours     the owner's HEAD when the update ran (the pre-update state).
 The template's name comes from the answers file: .copier-answers.<template>.yml.
 
@@ -30,10 +31,49 @@ Subcommands (run from the project root; Copier runs both through _copier_python)
 The refresh replaces a listed file only when it is a regular file the update left untouched
 (the work tree equals HEAD), whose bytes equal a render this project recorded, and which
 differs from the new render. A listed file that is absent and that the owner never had (no
-commit of HEAD's history and no recorded render of any template here held it) is added, so
-one the owner deleted stays deleted and one a skipped refresh never wrote arrives with the next
-full run. A hook written or refreshed under .claude/hooks/ is left mode 755. A file that cannot
-be written is reported and the run goes on to the report and the record.
+commit of HEAD's history, and no render this template or a sibling recorded before the update
+and the project committed, held it) is added, so one the owner deleted stays deleted and one a
+skipped refresh never wrote arrives with the next full run. A hook written or refreshed under
+.claude/hooks/ is left mode 755. A file that cannot be written is reported and the run goes on
+to the report and the record.
+
+A record the project never committed counts as not made. Where the tip record's version and
+answers are not the ones HEAD's answers file names (an update discarded with git reset --hard
+and git clean, or git stash -u, and run again or followed by an update to a later release),
+the tip's first-parent chain of render records is walked to the nearest record that names
+them, and the offers, the written blobs and the render history are read from it; the run is
+recorded afresh on it (a rerun at the tip's own version and answers, only if any lane writes),
+so the result is what an update from the committed version gives. Where no record names them,
+the nearest record whose answers HEAD's history held is read, and where none is, no record
+(the tip only where there is no HEAD, or git ignores the answers file or cannot say whether it
+does). A copy's baseline reads its base the same way, and each sibling template's render
+history is read likewise from its own chain, by its own answers file in HEAD alone (that file
+names the sibling's version); a sibling with no record its answers file's history held is left
+out. A hand rerun before the update is committed reads the same committed record, so it offers
+again what the first run offered: where the files still hold the first run's writes it adds
+nothing and records nothing, and an entry the owner removed from the uncommitted tree is added
+back.
+A run that records nothing (SYNTEK_UPDATE_REPORT=off, or a copy whose render failed; an update
+at the tip's version and answers reuses the tip's render) at the tip's own version and answers,
+which HEAD does not name, reads the work tree: where it is back at HEAD where the tip wrote (a
+file holding a blob the tip lists as written, beyond the committed record's list, holds HEAD's
+bytes again, or a full run would refresh or add a listed shared file it can write), the update
+or copy was discarded, so the tip is set back to the record HEAD committed (or removed where
+there is none) and committing the run never makes it count. Over the tip's writes, or the
+owner's later edits to them (a hand rerun before the commit), the tip is left. Where every file
+the tip wrote was rewritten since (another template's run, a formatter, a hand edit) and no
+listed shared file shows the discard, the tip is left too, and what it offered is added by hand.
+
+A record's answers match an answers file whose blob is the record's, or which holds the same
+key and value pairs, read as YAML: comments, quotes, indentation, line folding, key order, a
+leading '---', a byte-order mark and line endings apart, but every key, every value, the type
+PyYAML (Copier's reader) gives each value and the order of every list kept (a plain value that
+opens with a digit, a sign, a dot, ~, = or <, or is spelt yes, no, on, off, true, false, y or n
+in any letter case, matches only the same text, and null matches null however it is written).
+So a formatter that rewrites the file before it is committed still leaves the record counted.
+Each record keeps a versioned sha256 of those pairs ('answers-key: '), since git may never
+store the file it read. A file the reader is not sure of (an anchor, a tag, a block scalar, a
+nested value, a flow list over several lines, a tab) compares by its blob alone.
 
 Settings. Each entry the template's family-refresh.json lists (hooks, permissions deny and
 ask, and top-level values such as autoCompactEnabled) that the new render's
@@ -43,11 +83,12 @@ absent, it is added; a rule the owner allows is reported, never added; a top-lev
 owner set to another value is kept and reported, never changed; a hook entry whose script is
 not in .claude/hooks/ is reported and offered again; a settings.json that is a link, or lies
 beyond one, is never written, and a link to a file inside the project is read, so only the
-entries it lacks are named for adding by hand. An ask counts as allowed where an allow rule
-is the same rule or, for mcp__S__T, is mcp__S, mcp__S__* or a tool-name glob after mcp__S__
-that matches T: Claude Code takes the first of deny, ask and allow that matches, however
-specific, so the ask would override the owner's allow. A deny counts as allowed only by the
-same rule. The render record lists every entry offered
+entries it lacks are named for adding by hand; a git-ignored settings.json is never read: one
+line names the entries to add by hand, and none is recorded, so they are offered again. An ask
+counts as allowed where an allow rule is the same rule or, for mcp__S__T, is mcp__S,
+mcp__S__* or a tool-name glob after mcp__S__ that matches T: Claude Code takes the first of
+deny, ask and allow that matches, however specific, so the ask would override the owner's
+allow. A deny counts as allowed only by the same rule. The render record lists every entry offered
 ('settings: ' lines), so an entry the owner removed after it was offered stays removed. Where no record lists them (a project
 older than the record, a fresh clone, a copy without tasks), an entry counts as offered when
 any committed version of settings.json held it. Entries are inserted as text into the
@@ -76,9 +117,18 @@ parses to it plus exactly the servers offered, the new render's bytes are writte
 opencode.json and .gemini/settings.json gain a server only once they hold, in the form the
 permissions script writes there, every ask rule for its tools that the new render's or the
 project's .claude/settings.json holds, so an allow written there before the server existed
-never covers its tools; otherwise nothing is added or recorded there, and one line gives the
-permissions script's --write command (as it does where this run added an mcp__ rule to
-settings.json and a client file it writes exists).
+never covers its tools (in opencode.json an ask counts only where no later allow, of the file
+or of an agent's own rules, which OpenCode applies last, outweighs it; an agent whose rules
+would still outweigh it once --write appends it is named in one more line, since --write cannot
+outweigh it); otherwise nothing is added or recorded there. One line then gives the permissions script's --write command for the client files whose
+plan still lacks a rule (a held server's ask form that the project's settings.json asks for),
+promising the next update only the servers --write completes; where the missing forms are asks
+the project's settings.json does not hold (the owner allows those tools there, or it cannot be
+read), one line says so instead, once, in the run whose settings lane names those asks, with the
+two ways in: add the asks to settings.json and run --write, or add the server by hand. Where
+this run added an mcp__ rule to settings.json, the --write line names only the client files that
+lack it in their form (a file equal to the new render holds every rule), and, on a clause of its
+own, any it could not read (git-ignored, beyond a link, not plain JSON or TOML), which may.
 
 The record lists every server offered ('mcp: <path> <server> <sha256 of the value offered,
 as canonical JSON>' lines, after 'mcp-offered: <count>'; no such count means no record of MCP
@@ -117,8 +167,9 @@ line and no MCP offer, and the rest of the run goes on. A script older than "mcp
 
 SYNTEK_UPDATE_REPORT=off skips every render and prints only conflicts and deletions; it also
 skips the refresh, the settings entries and the MCP servers, which the next update without it
-then delivers (as it does after a render that failed). A .rej file counts as a conflict only
-beside a template path and only where it is new or changed since HEAD.
+then delivers (as it does after a render that failed). It records nothing, but sets back a
+discarded record, as above. A .rej file counts as a conflict only beside a template path and
+only where it is new or changed since HEAD.
 The project must be its own git repository (not a folder inside one); otherwise nothing is
 recorded, refreshed or added, and one line says so. A record is a commit whose message ends
 with its 'commit: ' and 'answers: ' lines; any other commit at refs/<name>/template, and any
@@ -284,7 +335,7 @@ def ref_info(ref):
     msg = git('log', '-1', '--format=%B', sha)
     if not is_record(msg):
         return None
-    info = dict(re.findall(r'^(commit|answers): (\S+)$', msg, re.M))
+    info = dict(re.findall(r'^(commit|answers|answers-key): (\S+)$', msg, re.M))
     info.update(sha=sha, tree=git('rev-parse', sha + '^{tree}').strip(),
                 parent=verify(sha + '^'), msg=msg)
     return info
@@ -304,6 +355,316 @@ def record_chain(ref):
             break
         out.append(sha)
     return out
+
+
+# The answers file as key and value pairs. A formatter may rewrite it before it is committed
+# (lists re-indented, other quotes, comments, a '---', lines folded), so a record also matches
+# an answers file that holds the same pairs. The reader takes only the YAML such a file holds
+# (plain keys, each with a scalar or a list of scalars) and reads each scalar as PyYAML (Copier's
+# reader) does; anything else leaves it unsure, and then only the blob compares.
+YAML_ODD = re.compile('[^\n -~\xa0-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]|[\u2028\u2029\ufeff]')
+YAML_KEY = re.compile(r'([A-Za-z_][A-Za-z0-9_]*):(?: +|$)')
+YAML_TAIL = re.compile(r'(?: +(?:#.*)?)?')
+YAML_FLOW = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_./+-]*(?: [A-Za-z0-9_./+-]+)*')
+YAML_STARTS = '-?:,[]{}#&*!|>\'"%@`'
+YAML_WORDS = {'y', 'n', 'yes', 'no', 'on', 'off', 'true', 'false', 'null'}
+YAML_ESCAPES = {'0': '\0', 'a': '\a', 'b': '\b', 't': '\t', 'n': '\n', 'v': '\v', 'f': '\f',
+                'r': '\r', 'e': '\x1b', ' ': ' ', '"': '"', '/': '/', '\\': '\\', 'N': '\x85',
+                '_': '\xa0', 'L': '\u2028', 'P': '\u2029'}
+
+
+class Unsure(ValueError):
+    """The answers file holds YAML the reader is not sure of."""
+
+
+def _indent(line):
+    return len(line) - len(line.lstrip(' '))
+
+
+def _string(text):
+    """Whether a plain scalar is a string in YAML 1.1 and 1.2 alike: it opens with no character a
+    null, bool, number, date, merge key or value can open with, and is no bool or null word."""
+    return bool(text) and text[0] not in '-+.0123456789~=<' and text.lower() not in YAML_WORDS
+
+
+def _token(text):
+    """A plain scalar as a value: ['s', text] where it is a string, else ['p', text] as written
+    (any of YAML's ways to write null as ['p', 'null'])."""
+    if text in ('<<', '=') or re.match(r'[0-9]{4}-', text):
+        raise Unsure   # a merge key, a value key or a date: never an answer here
+    if text in ('', '~', 'null', 'Null', 'NULL'):
+        return ['p', 'null']
+    return ['s' if _string(text) else 'p', text]
+
+
+def _next_line(L, i, least):
+    """After a line break in a scalar: (next line with text, its indent, empty lines between)."""
+    gap, i = 0, i + 1
+    while i < len(L) and not L[i].strip(' '):
+        gap, i = gap + 1, i + 1
+    if i == len(L) or _indent(L[i]) < least:
+        raise Unsure
+    return i, _indent(L[i]), gap
+
+
+def _quoted(L, i, j, least):
+    """The quoted scalar opening at L[i][j], folded as YAML folds it: (text, its last line, the
+    column after its closing quote)."""
+    q, out, line, j = L[i][j], [], L[i], j + 1
+    while True:
+        if j == len(line):   # a line break: spaces before it dropped, one break a space
+            i, j, gap = _next_line(L, i, least)
+            line = L[i]
+            out.append('\n' * gap or ' ')
+            continue
+        c = line[j]
+        if c == q and not (q == "'" and line[j + 1:j + 2] == "'"):
+            return ''.join(out), i, j + 1
+        if c == ' ':
+            k = j
+            while k < len(line) and line[k] == ' ':
+                k += 1
+            out.append(line[j:k] if k < len(line) else '')
+            j = k
+        elif q == "'" or c != '\\':
+            out.append(c)
+            j += 2 if c == q else 1   # '' is one ' inside single quotes
+        elif j + 1 == len(line):   # an escaped line break: no space
+            i, j, gap = _next_line(L, i, least)
+            line = L[i]
+            out.append('\n' * gap)
+        else:
+            e = line[j + 1]
+            n = {'x': 2, 'u': 4, 'U': 8}.get(e, 0)
+            h = line[j + 2:j + 2 + n]
+            if n:
+                if not re.fullmatch('[0-9A-Fa-f]{' + str(n) + '}', h) or 0xd800 <= int(h, 16) <= 0xdfff \
+                        or int(h, 16) > 0x10ffff:
+                    raise Unsure   # no character, or half of one
+                out.append(chr(int(h, 16)))
+            elif e in YAML_ESCAPES:
+                out.append(YAML_ESCAPES[e])
+            else:
+                raise Unsure
+            j += 2 + n
+
+
+def _plain(L, i, j, least):
+    """The plain scalar starting at L[i][j], folded as YAML folds it: (text, next line)."""
+    out, line = [], L[i]
+    while True:
+        k = j
+        while k < len(line) and line[k] != ' ':
+            if line[k] == ':' and line[k + 1:k + 2] in ('', ' '):
+                raise Unsure   # a mapping inside the value
+            k += 1
+        out.append(line[j:k])
+        j = k
+        while j < len(line) and line[j] == ' ':
+            j += 1
+        if j < len(line):
+            if line[j] == '#':
+                return ''.join(out), i + 1
+            out.append(line[k:j])
+            continue
+        n, gap = i + 1, 0
+        while n < len(L) and not L[n].strip(' '):
+            n, gap = n + 1, gap + 1
+        if n == len(L) or _indent(L[n]) < least or L[n].lstrip(' ')[0] == '#':
+            return ''.join(out), n
+        out.append('\n' * gap or ' ')   # a line that goes on is text, whatever it opens with
+        i, line, j = n, L[n], _indent(L[n])
+
+
+def _scalar(L, i, j, least):
+    """The scalar at L[i][j], continued only on lines indented least or more: (value, next line)."""
+    c = L[i][j]
+    if c in '\'"':
+        text, i, j = _quoted(L, i, j, least)
+        if not YAML_TAIL.fullmatch(L[i], j):
+            raise Unsure
+        return ['s', text], i + 1
+    if c in YAML_STARTS and not (c in '-?:' and L[i][j + 1:j + 2] not in ('', ' ')):
+        raise Unsure
+    text, i = _plain(L, i, j, least)
+    return _token(text), i
+
+
+def _flow(line, j):
+    """The one-line list of scalars opening at line[j] ('['): (value, the column after it)."""
+    items, j = [], j + 1
+    while True:
+        while line[j:j + 1] == ' ':
+            j += 1
+        if not items and line[j:j + 1] == ']':
+            return ['l', items], j + 1
+        if line[j:j + 1] in ('"', "'"):
+            text, _, j = _quoted([line], 0, j, 1)
+            items.append(['s', text])
+        else:
+            m = YAML_FLOW.match(line, j)
+            if not m:
+                raise Unsure
+            items.append(_token(m.group()))
+            j = m.end()
+        while line[j:j + 1] == ' ':
+            j += 1
+        if line[j:j + 1] == ']':
+            return ['l', items], j + 1
+        if line[j:j + 1] != ',':
+            raise Unsure
+        j += 1
+
+
+def _items(L, i, col):
+    """The block list whose items open '- ' at column col from line i: (value, next line)."""
+    items = []
+    while i < len(L):
+        line = L[i]
+        if not line.strip(' ') or line.lstrip(' ').startswith('#'):
+            i += 1
+            continue
+        if _indent(line) != col or line[col:col + 2] != '- ':
+            break
+        j = col + 2
+        while line[j:j + 1] == ' ':
+            j += 1
+        if j == len(line) or line[j] == '#':
+            raise Unsure   # an empty item, or one that opens on a later line
+        value, i = _scalar(L, i, j, col + 1)
+        items.append(value)
+    if not items:
+        raise Unsure
+    return ['l', items], i
+
+
+def answers_pairs(text):
+    """An answers file's key and value pairs as canonical JSON, or None where the text holds YAML
+    the reader is not sure of. Each key maps to ['s', text] (a string, whatever its quotes or
+    folding), ['p', text] (a plain scalar whose first character or spelling YAML may read as
+    another type: kept as written, but null, however written, as null), or ['l', [...]] (a list
+    of those, in order, block or flow); comments, a leading '---', a byte-order mark, line
+    endings and key order are left out."""
+    try:
+        text = text[1:] if text.startswith('\ufeff') else text
+        text = text.replace('\r\n', '\n')
+        if YAML_ODD.search(text):
+            raise Unsure
+        L, out, i, begun = text.split('\n'), {}, 0, False
+        while i < len(L):
+            line = L[i]
+            if not line.strip(' ') or line.lstrip(' ').startswith('#'):
+                i += 1
+                continue
+            if not begun and re.fullmatch(r'---(?: +(?:#.*)?)?', line):
+                begun, i = True, i + 1
+                continue
+            begun = True
+            m = YAML_KEY.match(line)
+            if not m or not _string(m.group(1)) or m.group(1) in out:
+                raise Unsure
+            key, j = m.group(1), m.end()
+            if j < len(line) and line[j] == '[':
+                out[key], j = _flow(line, j)
+                if not YAML_TAIL.fullmatch(line, j):
+                    raise Unsure
+                i += 1
+            elif j < len(line) and line[j] != '#':
+                out[key], i = _scalar(L, i, j, 1)
+            else:   # the value opens on a later line, or is empty
+                n = i + 1
+                while n < len(L) and (not L[n].strip(' ') or L[n].lstrip(' ').startswith('#')):
+                    n += 1
+                col = _indent(L[n]) if n < len(L) else 0
+                if n < len(L) and (L[n][col:col + 2] == '- ' or L[n][col:] == '-'):
+                    out[key], i = _items(L, n, col)
+                elif col:
+                    out[key], i = _scalar(L, n, col, 1)
+                else:
+                    out[key], i = _token(''), i + 1
+        if not out:
+            raise Unsure
+        return json.dumps(out, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+    except Unsure:
+        return None
+
+
+_ANSWERS = {}
+
+
+def answers_key(blob, raw=None):
+    """The sha256, behind a format tag, of answers_pairs of an answers file, the blob's bytes
+    (raw where given: a file git has not stored), read once per blob, or again where raw is
+    given and the blob read as None; None where it is absent or its pairs unread."""
+    if blob not in _ANSWERS or (raw is not None and _ANSWERS[blob] is None):
+        if raw is None:
+            raw = git('cat-file', 'blob', blob, check=False, binary=True) \
+                if re.fullmatch(r'[0-9a-f]{40,64}', blob or '') else b''
+        try:
+            pairs = answers_pairs(raw.decode('utf-8'))
+        except UnicodeDecodeError:
+            pairs = None
+        _ANSWERS[blob] = hashlib.sha256(('answers-pairs/1\n' + pairs).encode('utf-8')).hexdigest() if pairs else None
+    return _ANSWERS[blob]
+
+
+def same_answers(info, blob):
+    """Whether record info was made with the answers of blob (an answers file): the same blob,
+    or the same key and value pairs (the record's 'answers-key: ' line, or where an older record
+    has none, its own blob's pairs)."""
+    if not info or not blob:
+        return False
+    if info.get('answers') == blob:
+        return True
+    key = answers_key(blob)
+    return bool(key) and (info.get('answers-key') or answers_key(info.get('answers'))) == key
+
+
+def answers_held(path):
+    """Every blob HEAD's history held at path (the new blob of each commit that changed it, a
+    merge's against each parent, so a blob a merge alone made or a side branch it set aside is
+    seen too), or None where that cannot tell which records the project committed: there is no
+    HEAD, or git ignores path (so no commit holds it), or git cannot say whether it does."""
+    if not verify('HEAD') or ignored(path) is not False:
+        return None
+    out = set()
+    for line in git('log', '-m', '--full-history', '--no-abbrev', '--format=', '--raw', 'HEAD', '--',
+                    ':(literal)' + path, check=False).splitlines():
+        parts = line.split()
+        if line.startswith(':') and len(parts) >= 5:
+            out.add(parts[3])
+    return out
+
+
+def committed_record(cur, commit, answers, held):
+    """The record HEAD committed, read from the first-parent chain of render records at cur (a
+    ref_info record): cur itself where it names answers (the blob of HEAD's answers file) and,
+    unless commit is None, commit (the version that file names); else the nearest record below
+    it that names both; else the nearest record, cur included, whose answers match a blob in
+    held (answers_held of the answers path); else None. A record's answers match a blob that is
+    its own or holds the same key and value pairs (same_answers). A record the project never
+    committed (an update or a copy discarded, or one not yet committed) counts as not made.
+    Where held is None (no HEAD, or git ignores the answers file or cannot say whether it
+    does), cur stands in for both last steps. Returns (record or None, True where it is not cur)."""
+    if not cur:
+        return cur, False
+
+    def names(info):
+        return same_answers(info, answers) and (commit is None or info.get('commit') == commit)
+    if names(cur):
+        return cur, False
+    chain = [cur]
+    for sha in record_chain(cur['sha'])[1:]:
+        info = ref_info(sha)
+        if names(info):
+            return info, True
+        chain.append(info)
+    if held is None:
+        return cur, False
+    for i, info in enumerate(chain):
+        if any(same_answers(info, b) for b in held):
+            return info, i > 0
+    return None, True
 
 
 def history(ref, into=None):
@@ -378,6 +739,19 @@ def worktree(paths):
     return out
 
 
+def ignored_paths(paths):
+    """The paths among paths that exist and that git ignores: never read, so never hashed,
+    classified or refreshed. A path git cannot judge counts as ignored, so it is never read."""
+    paths = [p for p in paths if os.path.lexists(p) and not beyond_link(p)]
+    if not paths:
+        return set()
+    r = subprocess.run(['git', *GITCFG, 'check-ignore', '-z', '--stdin'], input='\0'.join(paths) + '\0',
+                       capture_output=True, text=True)
+    if r.returncode in (0, 1):
+        return {p for p in r.stdout.split('\0') if p}
+    return {p for p in paths if ignored(p) is not False}
+
+
 def conflicts():
     unmerged = sorted({l.split('\t', 1)[1] for l in git('ls-files', '-u', '-z').split('\0') if '\t' in l})
     rej = []
@@ -448,12 +822,14 @@ def write_blob(p, mode, sha):
         os.chmod(p, os.stat(p).st_mode & ~0o111)
 
 
-def refresh(paths, N, P, H, own, recorded, others, arrive, root, held):
+def refresh(paths, N, P, H, own, recorded, others, arrive, root, held, write=True):
     """Replace each listed shared file the owner had not changed; add each one the owner never
     had. own: every blob a render here held (the refresh test); recorded: the renders this
     template recorded before this run; held(p): the owner's committed history or the tree at
     the last update held p. A file the owner deleted therefore stays deleted, and one an update
     never wrote (a report switched off, a render that failed) arrives with the next full run.
+    write=False writes nothing and returns what it would write, skipping a file, or a new file's
+    folder, it cannot write.
     Returns (refreshed, added, failed), failed as 'path (reason)'."""
     done, added, failed = [], [], []
     for p in paths:
@@ -466,11 +842,21 @@ def refresh(paths, N, P, H, own, recorded, others, arrive, root, held):
                 if os.path.islink(p) or not os.path.isfile(p) or w != (h[1] if h else None):
                     continue
                 if w != n[1] and w in own.get(p, ()):
-                    write_blob(p, n[0], n[1])
+                    if write:
+                        write_blob(p, n[0], n[1])
+                    elif not os.access(p, os.W_OK):
+                        continue
                     done.append(p)
             elif arrive and h is None and not os.path.lexists(p) and not recorded.get(p) \
                     and not any(o.get(p) for o in others.values()) and not held(p):
-                write_blob(p, n[0], n[1])
+                if write:
+                    write_blob(p, n[0], n[1])
+                else:
+                    d = os.path.dirname(p) or '.'
+                    while not os.path.lexists(d):
+                        d = os.path.dirname(d) or '.'
+                    if not os.access(d, os.W_OK | os.X_OK):
+                        continue
                 added.append(p)
         except OSError as err:
             failed.append('%s (%s)' % (p, err.strerror or err))
@@ -738,6 +1124,15 @@ def settings_merge(data, N, offered, skip):
     if not pending or SETTINGS in skip or not os.path.lexists(SETTINGS):
         # Nothing new; a conflict in the file (reported there); or the owner has none.
         return [], seen - history_only
+    ig = ignored(SETTINGS) if not beyond_link(SETTINGS) else False
+    if ig is not False:
+        # Never read (its ignore rule may guard a credential): one line names the entries to add
+        # by hand, and none is recorded, so they are offered again.
+        hand = [i for i in pending if entry_id(i) not in history_only]
+        return (['▸ %s %s, so it was not read and these entries were not added (add them by hand; they are '
+                 'offered again by the next update): %s' % (
+                     SETTINGS, 'is ignored by git' if ig else 'could not be checked against the ignore rules',
+                     '; '.join(describe(i) for i in hand))] if hand else []), seen - history_only
     why = ('lies beyond a link' if beyond_link(SETTINGS) else 'is a link' if os.path.islink(SETTINGS)
            else 'is not a regular file' if not os.path.isfile(SETTINGS) else '')
     if why:
@@ -901,13 +1296,17 @@ def offered_ids(msg):
 
 
 def record_tail(to, answers_blob, ids, blobs=(), mcp=None):
-    """The record's tail: what it renders, the settings entries and MCP servers offered (mcp:
-    {(path, server): hash}, or None where no record of MCP offers exists yet), and every blob
-    this script wrote here (carried from record to record): one the owner had not edited
-    before the write counts as the template's on a later update, never as the owner's."""
+    """The record's tail: what it renders, with the answers_key of the answers file (a formatter
+    may rewrite that file before it is committed, so git may never store this blob), the
+    settings entries and MCP servers offered (mcp: {(path, server): hash}, or None where no
+    record of MCP offers exists yet), and every blob this script wrote here (carried from
+    record to record): one the owner had not edited before the write counts as the template's
+    on a later update, never as the owner's."""
     kept = list(dict.fromkeys((p, b, bool(e)) for p, b, e in blobs))[-50:]
-    tail = '\n\ncommit: %s\nanswers: %s\nsettings-offered: %d\n%s' % (
-        to, answers_blob, len(ids), ''.join('settings: %s\n' % i for i in sorted(ids)))
+    key = answers_key(answers_blob)
+    tail = '\n\ncommit: %s\nanswers: %s\n%ssettings-offered: %d\n%s' % (
+        to, answers_blob, ('answers-key: %s\n' % key) if key else '', len(ids),
+        ''.join('settings: %s\n' % i for i in sorted(ids)))
     if mcp is not None:
         tail += 'mcp-offered: %d\n%s' % (len(mcp), ''.join(
             'mcp: %s %s %s\n' % (p, s, h) for (p, s), h in sorted(mcp.items())))
@@ -1027,37 +1426,91 @@ def committed_servers(path, keys, servers):
     return found
 
 
-def project_asks(N):
+def project_settings():
+    """The project's .claude/settings.json as it stands now, parsed, or None where it is absent,
+    beyond a link, a link out of the project, git-ignored (never read) or not plain JSON."""
+    if beyond_link(SETTINGS) or not os.path.isfile(SETTINGS) or (os.path.islink(SETTINGS) and not inside_project(SETTINGS)) \
+            or ignored(SETTINGS) is not False:
+        return None
+    try:
+        with open(SETTINGS, 'rb') as f:
+            mine = json.loads(f.read().decode('utf-8-sig'))
+    except (OSError, ValueError):
+        return None
+    return mine if isinstance(mine, dict) else None
+
+
+def rule_list(settings, kind):
+    perms = settings.get('permissions') if isinstance(settings, dict) else None
+    rules = perms.get(kind) if isinstance(perms, dict) else None
+    return [r.strip() for r in rules if isinstance(r, str)] if isinstance(rules, list) else []
+
+
+def project_asks(N, mine=None):
     """The ask rules a client file must hold, in its own form, before a server is added there:
     every ask of the new render's settings.json and of the project's as it stands now (which
     the permissions script maps), so a broad allow written in that file before the server
     existed never covers a tool the update brings in, whatever the project's settings.json
-    allows or has lost."""
-    out = []
-    mine = None
-    if not beyond_link(SETTINGS) and os.path.isfile(SETTINGS) and (not os.path.islink(SETTINGS) or inside_project(SETTINGS)):
-        try:
-            with open(SETTINGS, 'rb') as f:
-                mine = json.loads(f.read().decode('utf-8-sig'))
-        except (OSError, ValueError):
-            mine = None
-    for v in (read_json_blob(N, SETTINGS), mine):
-        perms = v.get('permissions') if isinstance(v, dict) else None
-        asks = perms.get('ask') if isinstance(perms, dict) else None
-        out += [a.strip() for a in asks if isinstance(a, str)] if isinstance(asks, list) else []
-    return list(dict.fromkeys(out))
+    allows or has lost. mine: project_settings()."""
+    return list(dict.fromkeys(rule_list(read_json_blob(N, SETTINGS), 'ask') + rule_list(mine, 'ask')))
+
+
+def oc_glob(value, pattern):
+    """OpenCode's wildcard match, as the permissions script reads it: '*' is any run of
+    characters, '?' one, and a trailing ' *' is optional."""
+    rx = re.sub(r'[.+^${}()|\[\]\\]', lambda m: '\\' + m.group(0), pattern.replace('\\', '/'))
+    rx = rx.replace('*', '.*').replace('?', '.')
+    if rx.endswith(' .*'):
+        rx = rx[:-3] + '( .*)?'
+    return re.fullmatch(rx, value.replace('\\', '/'), re.S) is not None
+
+
+OC_STRICT = {'allow': 0, 'ask': 1, 'deny': 2}
+
+
+def oc_holds(rules, action, effect):
+    """True where an OpenCode permissions array holds effect ('ask' or 'deny') for action on every
+    resource at its end, as the permissions script judges it: a rule as strict or stricter is
+    there, and no later, less strict rule that matches outweighs it (the last match wins)."""
+    level = OC_STRICT[effect]
+    last = max((i for i, r in enumerate(rules) if isinstance(r, dict) and r.get('action') == action
+                and r.get('resource') == '*' and OC_STRICT.get(r.get('effect'), -1) >= level), default=-1)
+    return last >= 0 and not any(
+        isinstance(r, dict) and isinstance(r.get('action'), str) and isinstance(r.get('resource'), str)
+        and OC_STRICT.get(r.get('effect'), 3) < level and oc_glob(action, r['action']) and oc_glob('*', r['resource'])
+        for r in rules[last + 1:])
+
+
+def oc_asks(rules, action):
+    """True where an OpenCode permissions array still asks (or denies) before action at its end:
+    the ask is there and no later allow that matches outweighs it (the last match wins)."""
+    return oc_holds(rules, action, 'ask')
+
+
+def oc_agents(cur, rules, action):
+    """The agents of opencode.json whose own rules, which OpenCode appends after the file's,
+    let action run without its ask: an owner's earlier allow there outweighs any ask above it."""
+    agents = cur.get('agents') if isinstance(cur, dict) else None
+    if not isinstance(agents, dict):
+        return []
+    return sorted(str(n) for n, a in agents.items() if isinstance(a, dict) and isinstance(a.get('permissions'), list)
+                  and not oc_asks(rules + a['permissions'], action))
+
+
+def oc_rules(cur):
+    rules = cur.get('permissions') if isinstance(cur, dict) else None
+    return rules if isinstance(rules, list) else []
 
 
 def missing_forms(path, cur, server, asks):
     """The tools of server whose ask rule, in the form the permissions script writes into
-    opencode.json or .gemini/settings.json, the file does not hold yet."""
+    opencode.json or .gemini/settings.json, the file does not hold yet, or (opencode.json) holds
+    but a later allow, its own or an agent's, outweighs."""
     tools = [m.group(2) for m in (MCP_RULE.fullmatch(a) for a in asks) if m and m.group(1) == server]
     if path == 'opencode.json':
-        rules = cur.get('permissions') if isinstance(cur, dict) else None
-        rules = rules if isinstance(rules, list) else []
-        return [t for t in tools if not any(
-            isinstance(r, dict) and r.get('action') == '%s_%s' % (server, t) and r.get('resource') == '*'
-            and r.get('effect') in ('ask', 'deny') for r in rules)]
+        rules = oc_rules(cur)
+        return [t for t in tools if not oc_asks(rules, '%s_%s' % (server, t))
+                or oc_agents(cur, rules, '%s_%s' % (server, t))]
     if path == '.gemini/settings.json':
         if '_' in server:   # not expressible there, so the permissions script writes nothing
             return []
@@ -1066,6 +1519,86 @@ def missing_forms(path, cur, server, asks):
         listed = listed if isinstance(listed, list) else []
         return [t for t in tools if 'mcp_%s_%s' % (server, t) not in listed]
     return []
+
+
+def oc_agents_after_write(cur, action):
+    """The agents of opencode.json whose own rules would still let action run unasked once the
+    file's own rules hold its ask, appended at their end as the permissions script's --write
+    appends it: an agent's rules come after the file's, so --write cannot outweigh them."""
+    rules = oc_rules(cur)
+    if not oc_asks(rules, action):
+        rules = rules + [{'action': action, 'resource': '*', 'effect': 'ask'}]
+    return oc_agents(cur, rules, action)
+
+
+def hold_kinds(path, cur, server, tools, mine):
+    """Why each tool's ask form is missing from a client file, as [(tool, kind)]: 'agent' where
+    an agent's own rule in opencode.json outweighs it, even once --write appends the form (--write
+    cannot); 'write' where the project's settings.json asks before the tool, so the permissions
+    script's plan holds the form and --write adds it; 'allowed' where settings.json allows the
+    tool instead of asking; 'absent' where it does neither, or cannot be read (mine:
+    project_settings())."""
+    asks, out = rule_list(mine, 'ask'), []
+    for t in tools:
+        rule = 'mcp__%s__%s' % (server, t)
+        if path == 'opencode.json' and oc_agents_after_write(cur, '%s_%s' % (server, t)):
+            out.append((t, 'agent'))
+        elif rule in asks:
+            out.append((t, 'write'))
+        elif isinstance(mine, dict) and allow_covers(mine, ('ask', rule)):
+            out.append((t, 'allowed'))
+        else:
+            out.append((t, 'absent'))
+    return out
+
+
+def client_lacks(path, rules):
+    """True where the client file at path lacks, in the form the permissions script writes there,
+    one of rules ((kind, 'mcp__S__T') pairs, deny or ask): a form missing, or (opencode.json) one
+    a later, less strict rule of the file outweighs. A file equal to the new render holds every
+    rule. False where it holds them all, or is absent (--write writes nothing there). None where
+    it exists but is not read here (git-ignored or git cannot tell, beyond a link, a link out of
+    the project, not plain JSON or TOML): whether it lacks one is unknown."""
+    if not os.path.isfile(path):
+        return False
+    if beyond_link(path) or (os.path.islink(path) and not inside_project(path)) or ignored(path) is not False:
+        return None
+    try:
+        with open(path, 'rb') as f:
+            cur = parse_bytes(path, f.read())
+    except OSError:
+        return None
+    if not isinstance(cur, dict):
+        return None
+    for kind, rule in rules:
+        m = MCP_RULE.fullmatch(rule)
+        if not m or kind not in OC_STRICT:
+            continue
+        server, tool = m.groups()
+        if path == 'opencode.json' and not oc_holds(oc_rules(cur), '%s_%s' % (server, tool), kind):
+            return True
+        if path == '.gemini/settings.json' and kind == 'ask' and missing_forms(path, cur, server, [rule]):
+            return True
+        if path == '.codex/config.toml' and kind == 'ask':
+            servers = cur.get('mcp_servers')
+            declared = servers.get(server) if isinstance(servers, dict) else None
+            if isinstance(declared, dict):   # the script writes a tool's table only under a declared server
+                tables = declared.get('tools')
+                table = tables.get(tool) if isinstance(tables, dict) else None
+                if not (isinstance(table, dict) and table.get('approval_mode') == 'prompt'):
+                    return True
+    return False
+
+
+def settings_named(lines, added=False):
+    """The (kind, mcp__ rule) pairs the settings lane's lines name: those it added (added=True),
+    or every one it named, added, allowed or left to add by hand."""
+    out = []
+    for l in lines:
+        if added and not l.startswith('▸ added to %s' % SETTINGS):
+            continue
+        out += [(k, r) for k, r in re.findall(r'\b(ask|deny) (mcp__[A-Za-z0-9_-]+)', l) if MCP_RULE.fullmatch(r)]
+    return list(dict.fromkeys(out))
 
 
 _TOML_HEADER = re.compile(r'[ \t]*(\[\[?)([^\[\]#]+)\]\]?[ \t]*(?:#.*)?')
@@ -1130,9 +1663,10 @@ def mcp_merge(spec, N, offered, skip, rendered, others, t):
     rendered: every blob a render here held, by path (where the file still equals one, the
     new render's bytes may be taken); others: the sibling templates' render histories.
     Returns (lines, {(path, server): hash} now offered, [(path, blob before, blob after)]
-    written, {path: [server, ...]} held back for their ask rules)."""
+    written, {path: {server: [(tool, why), ...]}} held back for their ask rules, why as
+    hold_kinds gives it)."""
     servers, files = spec
-    seen, lines, writes, held, asks = dict(offered or {}), [], [], {}, None
+    seen, lines, writes, held, asks, mine = dict(offered or {}), [], [], {}, None, None
     for path, keys in files.items():
         n = N.get(path)
         if not n:
@@ -1206,10 +1740,23 @@ def mcp_merge(spec, N, offered, skip, rendered, others, t):
         add = [s for s in absent if s not in gone]
         if add and path in ASK_FORMS:
             if asks is None:
-                asks = project_asks(N)
+                mine = project_settings()
+                asks = project_asks(N, mine)
             lacking = [s for s in add if missing_forms(path, cur, s, asks)]
             if lacking:
-                held[path] = lacking   # not recorded: offered again once the file holds them
+                # Not recorded: offered again once the file holds them. Each tool says why its
+                # form is missing, so the line after the lane promises only what --write does.
+                held[path] = {s: hold_kinds(path, cur, s, missing_forms(path, cur, s, asks), mine) for s in lacking}
+                # Only the agents whose rules would still outweigh the asks once --write appends
+                # them, and only the servers they hold back.
+                by_agent = [s for s in lacking if any(k == 'agent' for _, k in held[path][s])]
+                by = sorted({n for s in by_agent for tool, k in held[path][s] if k == 'agent'
+                             for n in oc_agents_after_write(cur, '%s_%s' % (s, tool))})
+                if by:
+                    lines.append("▸ %s: %s let%s these servers' tools run unasked after the file's own rules (OpenCode "
+                                 "applies an agent's rules last, so --write cannot outweigh them): they wait until that rule "
+                                 "asks, changed by hand: %s" % (path, ', '.join('agents.%s.permissions' % n for n in by),
+                                                                 's' if len(by) == 1 else '', ', '.join(by_agent)))
                 add = [s for s in add if s not in lacking]
         if not add:
             continue
@@ -1271,17 +1818,50 @@ def mcp_lane(data, N, offered, skip, rendered, others, t, settings_lines):
     if spec is None:
         return ([bad] if bad else []), offered, []
     lines, seen, writes, held = mcp_merge(spec, N, offered, skip, rendered, others, t)
-    rules = any(l.startswith('▸ added to %s' % SETTINGS) and re.search(r'\b(ask|deny) mcp__', l) for l in settings_lines)
-    have = [p for p in PERMISSION_FILES if os.path.lexists(p)]
-    if held or (rules and have):
-        files = have or list(held)
-        line = '▸ to carry the new ask and deny rules into %s, run: python3 .claude/%s-permissions.py --write' % (
-            ' and '.join([', '.join(files[:-1]), files[-1]]) if len(files) > 1 else files[0], t)
-        if held:
+    added = settings_named(settings_lines, added=True)
+    named = set(settings_named(settings_lines))
+    join = lambda xs: ' and '.join([', '.join(xs[:-1]), xs[-1]]) if len(xs) > 1 else xs[0]
+    cmd = 'python3 .claude/%s-permissions.py --write' % t
+    # The --write line names only the client files whose plan still lacks a rule: a held server's
+    # form that the project's settings.json asks for, or an MCP rule this run added there.
+    lacks = {p: client_lacks(p, added) for p in PERMISSION_FILES if p not in skip} if added else {}
+    files = [p for p in PERMISSION_FILES if p not in skip and (
+        any(k == 'write' for kinds in held.get(p, {}).values() for _, k in kinds) or lacks.get(p))]
+    # A client file this run could not read may lack the added rule: it is named on its own clause.
+    unread = [p for p in PERMISSION_FILES if p not in files and p in lacks and lacks[p] is None]
+    # Only a server whose every missing form --write adds is promised to the next update.
+    soon = [(p, [s for s, kinds in held[p].items() if all(k == 'write' for _, k in kinds)]) for p in held]
+    soon = [(p, ss) for p, ss in soon if ss]
+    if files or unread:
+        into = [join(files)] if files else []
+        if unread:
+            one = len(unread) == 1
+            into.append('%s where %s them (%s not read here)' % (
+                join(unread), 'it lacks' if one else 'they lack', 'it was' if one else 'they were'))
+        line = '▸ to carry the %s into %s, run: %s' % (
+            'new ask and deny rules' if added else 'ask rules these MCP servers wait for', ' and into '.join(into), cmd)
+        if soon:
             line += ('; the next update then adds the MCP servers to each file that holds their ask rules '
-                     '(held back now: %s)') % '; '.join(
-                '%s %s' % (p, ', '.join(s)) for p, s in held.items())
+                     '(held back now: %s)') % '; '.join('%s %s' % (p, ', '.join(ss)) for p, ss in soon)
         lines.append(line)
+    # A server whose forms wait for asks the project's settings.json does not hold (the owner
+    # allows those tools there, or it cannot be read) never gains them by --write: that is said
+    # instead, once, in the run whose settings lane names those asks, with the two ways in.
+    wait = [(p, s, ['mcp__%s__%s' % (s, tool) for tool, k in kinds if k in ('allowed', 'absent')],
+             {k for _, k in kinds}) for p in held for s, kinds in held[p].items()]
+    wait = [w for w in wait if w[2]]
+    asks = list(dict.fromkeys(a for w in wait for a in w[2]))
+    if any(('ask', a) in named for a in asks):
+        kinds = set().union(*(w[3] for w in wait))
+        where = list(dict.fromkeys(w[0] for w in wait))
+        lines.append(
+            "▸ these MCP servers wait for ask rules --write cannot carry, because %s does not ask before "
+            "their tools%s: %s. To add them, either add those asks to %s (%s) and run %s, after which the next "
+            "update adds them; or add the servers to those files by hand (%s)." % (
+                SETTINGS, ' (you allow them there)' if 'absent' not in kinds else
+                ' (you allow some of them there)' if 'allowed' in kinds else '',
+                '; '.join('%s %s' % (p, ', '.join(dict.fromkeys(w[1] for w in wait if w[0] == p))) for p in where),
+                SETTINGS, ', '.join(asks), cmd, '; '.join('git show %s/template:%s' % (t, q(p)) for p in where)))
     return lines, seen, writes
 
 
@@ -1301,8 +1881,8 @@ def delivered(N, path):
 
 # ── The report ───────────────────────────────────────────────────────────────
 
-def classify(N, O, P, H, own, others, skip):
-    g = {k: [] for k in ('edit', 'sibling', 'once', 'new_here', 'not_restored', 'new_absent', 'lost')}
+def classify(N, O, P, H, own, others, skip, ign=()):
+    g = {k: [] for k in ('edit', 'sibling', 'once', 'new_here', 'not_restored', 'new_absent', 'lost', 'ignored')}
     counts = {'changed': 0, 'delivered': 0, 'merged': 0}
     for p in sorted(set(N) | set(O)):
         if os.path.basename(p).startswith('.copier-answers.') or p.endswith('.rej'):
@@ -1311,6 +1891,9 @@ def classify(N, O, P, H, own, others, skip):
         if (n and o and n[1] == o[1]) or (not n and not o):
             continue
         counts['changed'] += 1
+        if p in ign:
+            g['ignored'].append(p)
+            continue
         if p in skip:
             continue
         if n:
@@ -1362,7 +1945,7 @@ def body(t, g, unmerged, rej, deleted_unknown, cap):
             rej_here, lambda p: ['compare: git diff %s %s -- %s' % (T, Y, q(p)),
                                  'yours:   git restore --source=%s -- %s' % (Y, q(p))])
     restore = lambda p: ['see:     git show %s:%s' % (Y, q(p)), 'restore: git restore --source=%s -- %s' % (Y, q(p))]
-    section(L, cap, 'DELETED by this update although you had changed them (the template retired them)',
+    section(L, cap, 'DELETED by this update although you had changed them (retired by the template, or by an answer that no longer ships them)',
             g['lost'] + rej_gone, restore)
     section(L, cap, 'DELETED by this update (retired by the template, or by an option you turned off)',
             deleted_unknown, restore)
@@ -1381,6 +1964,8 @@ def body(t, g, unmerged, rej, deleted_unknown, cap):
     section(L, cap, 'NOT RESTORED because you had deleted them', g['not_restored'], show)
     section(L, cap, 'NOT ADDED: new in this version, and an update never adds files of this kind',
             g['new_absent'], show)
+    section(L, cap, 'NOT COMPARED because git ignores them, so they were not read',
+            g.get('ignored', []), lambda p: ['see:     git show %s:%s' % (T, q(p))])
     return L
 
 
@@ -1396,6 +1981,7 @@ def build_report(t, frm, to, g, counts, unmerged, rej, notes, extra, cap, full):
         return lines + (['', '  These commands work offline until the next update.'] if B else [])
     refreshed, added = counts.get('refreshed', 0), counts.get('added', 0)
     kept = sum(len(g[k]) for k in ('edit', 'sibling', 'once', 'new_here', 'not_restored', 'new_absent'))
+    unread = len(g.get('ignored', []))
     if counts['changed'] == 0 and not B:
         return lines + [head + ': the template did not change.']
     if not B:
@@ -1404,7 +1990,8 @@ def build_report(t, frm, to, g, counts, unmerged, rej, notes, extra, cap, full):
     parts = [('delivered', counts['delivered']), ('merged with your edits', counts['merged']),
              ('refreshed', refreshed), ('added', added), ('kept back', kept),
              ('conflict' + ('' if len(unmerged) + len(rej) == 1 else 's'), len(unmerged) + len(rej)),
-             ('deleted although you had changed them', len(g['lost']))]
+             ('deleted although you had changed them', len(g['lost'])),
+             ('not compared because git ignores them', unread)]
     lines.append(head)
     lines.append('  The template changed %d file%s here: %s.' % (
         counts['changed'], '' if counts['changed'] == 1 else 's',
@@ -1448,13 +2035,67 @@ def setup(args):
 
 def others_history(t):
     """The render records of every other template here: refs/<name>/template, where <name> is
-    no namespace of Git's own and the commit is a render record."""
+    no namespace of Git's own and the commit is a render record. Each is read from the record
+    the sibling's answers file in HEAD names (committed_record, by its own answers file in HEAD
+    alone, which names the sibling's version), so a sibling's update or copy the project never
+    committed counts as not made; where no record names it, from the nearest record whose
+    answers HEAD's history held, and where none is, that sibling is left out (from the tip only
+    where there is no HEAD or git ignores the sibling's answers file)."""
     out = {}
+    head = verify('HEAD')
     for ref in git('for-each-ref', '--format=%(refname)', 'refs/').split():
         m = re.fullmatch(r'refs/([^/]+)/template', ref)
-        if m and m.group(1) != t and m.group(1) not in GIT_NAMESPACES and ref_info(ref):
-            out[m.group(1)] = history(ref)
+        if not m or m.group(1) == t or m.group(1) in GIT_NAMESPACES:
+            continue
+        cur = ref_info(ref)
+        if not cur:
+            continue
+        path = '.copier-answers.%s.yml' % m.group(1)
+        ans = git('rev-parse', '-q', '--verify', 'HEAD:' + path, check=False).strip() if head else ''
+        base, _ = committed_record(cur, None, ans, answers_held(path))
+        if base:
+            out[m.group(1)] = history(base['sha'])
     return out
+
+
+def set_back(c, T, tip, base, arrive):
+    """A run that records nothing (the report off, a render that failed) at the version and
+    answers of tip, a record HEAD never committed; base is the record HEAD committed (or None).
+    Where the work tree is back at HEAD where tip wrote (a file holding a blob tip lists as
+    written beyond base's list holds HEAD's bytes again, or a full run at tip's version and
+    answers would refresh or, where arrive, add a listed shared file it can write), tip was
+    discarded: it is set back to base, or removed, so committing this run never makes it count.
+    A hand rerun over tip's writes, or over the owner's later edits to them, leaves it; so does
+    a run where every file tip wrote was rewritten since (another template's run, a formatter, a
+    hand edit) and no listed shared file shows the discard."""
+    H = tree_map('HEAD')
+    known = {(p, b) for p, b, _ in written_blobs(base['msg'])} if base else set()
+    mine = {}
+    for p, b, _ in written_blobs(tip['msg']):
+        if (p, b) not in known:
+            mine.setdefault(p, set()).add(b)
+    unread = ignored_paths(sorted(mine))
+    now = worktree(sorted(set(mine) - unread))
+    def at_head(p):
+        h = H[p][1] if p in H else None
+        return now.get(p) == h and h not in mine[p]
+    gone = any(at_head(p) for p in mine if p not in unread)
+    data = None if gone else refresh_data(c['src'], c['t'])
+    if data:
+        N = tree_map(tip['tree'])
+        paths = [p for p in data.get('refresh', []) if isinstance(p, str) and p in N]
+        paths = [p for p in paths if p not in ignored_paths(paths)]
+        own = history(base['sha']) if base else {}
+        Y = 'refs/%s/yours' % c['t']
+        yours = tree_map(Y) if verify(Y) else {}
+        done, added, _ = refresh(paths, N, worktree(paths), H, own, own,
+                                 others_history(c['t']) if arrive else {}, arrive, c['root'],
+                                 lambda p: owner_held(p, yours), write=False)
+        gone = bool(done or added)
+    if gone and base:
+        git('update-ref', T, base['sha'], tip['sha'])
+    elif gone:
+        git('update-ref', '-d', T, tip['sha'])
 
 
 def answers_commits(path, limit):
@@ -1498,17 +2139,39 @@ def seed_history(c, tmp, from_sha, old_text, old_ans, chain, seeds):
 
 def cmd_baseline(args):
     c = setup(args)
-    if not c or off():
+    if not c:
         return
     t, T, src = c['t'], 'refs/%s/template' % c['t'], c['src']
     with open(c['answers'], encoding='utf-8') as f:
         answers_text = f.read()
-    cur = ref_info(T)
+    tip = ref_info(T)
     head = verify('HEAD')
+    head_text = git('show', 'HEAD:' + c['answers'], check=False) if head else ''
+    m = re.search(r'^_commit:\s*(\S+)', head_text, re.M)
+    from_sha = verify(m.group(1), cwd=src) if m else ''
+    head_ans = git('rev-parse', '-q', '--verify', 'HEAD:' + c['answers'], check=False).strip() if head_text else ''
+    # A record the project never committed counts as not made (a copy discarded, then run
+    # again): the base is the record HEAD's answers file names, else the nearest whose answers
+    # HEAD's history held, else none (a moving adoption discarded: HEAD never held an answers
+    # file), and the offers then fall back to the committed history of settings.json.
+    cur, uncommitted = committed_record(tip, from_sha or None, head_ans, answers_held(c['answers']))
+    ab = git('hash-object', c['answers']).strip()
+    with open(c['answers'], 'rb') as f:
+        answers_key(ab, f.read())
+    # A copy that records nothing (the report off, a render that failed) at the version and
+    # answers of a record HEAD never committed (a copy discarded, then made again) sets that
+    # record back where the work tree no longer holds what it wrote.
+    again = bool(tip) and uncommitted and tip.get('commit') == c['to'] and same_answers(tip, ab)
+    if off():
+        if again:
+            set_back(c, T, tip, cur, False)
+        return
     with tempfile.TemporaryDirectory() as tmp:
         tree, reason = render_tree(src, c['to'], answers_text, c['gitdir'], tmp, 'n')
         if not tree:
             say('no render recorded (%s); the first update will render it.' % reason)
+            if again:
+                set_back(c, T, tip, cur, False)
             return
         chain = cur['sha'] if cur else None
         if not cur and head:
@@ -1516,11 +2179,7 @@ def cmd_baseline(args):
             # moving re-adoption) and that has no record: its renders are seeded as an update
             # seeds them, so the shared files the copy kept are refreshed now and later updates
             # know their history.
-            head_text = git('show', 'HEAD:' + c['answers'], check=False)
-            m = re.search(r'^_commit:\s*(\S+)', head_text, re.M)
-            from_sha = verify(m.group(1), cwd=src) if m else ''
             if from_sha and from_sha != verify(c['to'], cwd=src):
-                head_ans = git('rev-parse', '-q', '--verify', 'HEAD:' + c['answers'], check=False).strip()
                 chain, _, _ = seed_history(c, tmp, from_sha, head_text, head_ans, None,
                                            seed_list(c['answers'], src, from_sha))
     notes = []
@@ -1540,12 +2199,15 @@ def cmd_baseline(args):
         try:
             if chain and head:
                 paths = [p for p in data.get('refresh', []) if p in N]
+                unread = ignored_paths(paths)
+                paths = [p for p in paths if p not in unread]
                 done, _, failed = refresh(paths, N, worktree(paths), tree_map('HEAD'), own, own, {},
                                           False, c['root'], lambda p: True)
                 notes += refresh_notes(t, done, [], failed)
             # A copy over an existing settings.json keeps the owner's file (a seed): the entries
-            # this template offers are added to it, once, as an update would.
-            before = worktree([SETTINGS]).get(SETTINGS)
+            # this template offers are added to it, once, as an update would. One git ignores is
+            # never read, so never hashed.
+            before = worktree([SETTINGS]).get(SETTINGS) if not ignored_paths([SETTINGS]) else None
             lines, offered = settings_merge(data, N, offered, set())
             notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in lines]
             wrote = settings_wrote(lines)
@@ -1563,7 +2225,6 @@ def cmd_baseline(args):
             notes.append('▸ %s: the MCP servers stopped (%s).' % (t, err))
     if notes:
         print('\n'.join(notes), flush=True)
-    ab = git('hash-object', c['answers']).strip()
     commit(tree, '\n'.join(notes + ['%s render, copied' % t]) + record_tail(c['to'], ab, offered or set(), blobs, mcp_offered),
            T, chain)
 
@@ -1585,6 +2246,8 @@ def cmd_update(args):
     vto = os.environ.get('VERSION_PEP440_TO') or os.environ.get('VERSION_TO') or to[:10]
     head_ans = git('rev-parse', '-q', '--verify', 'HEAD:' + answers, check=False).strip() if head else ''
     ans_now = git('hash-object', answers).strip()
+    with open(answers, 'rb') as f:
+        answers_key(ans_now, f.read())   # read now: git may never store this file
     with open(answers, encoding='utf-8') as f:
         answers_text = f.read()
     unmerged, rej_all = conflicts()
@@ -1592,23 +2255,36 @@ def cmd_update(args):
     cur = ref_info(T)
     empty = lambda: {k: [] for k in ('edit', 'sibling', 'once', 'new_here', 'not_restored', 'new_absent', 'lost')}
 
+    # A record the project never committed counts as not made: where the tip does not name the
+    # version and answers HEAD's answers file names (an update discarded with git reset --hard and
+    # git clean, or git stash -u, then run again or followed by an update to a later release; or
+    # a hand rerun over the uncommitted tree), the offers, the written blobs and the render
+    # history are read from the nearest record of the tip's first-parent chain that names them;
+    # where none does, from the nearest whose answers HEAD's history held; and where none is,
+    # from no record: the committed version is rendered afresh, as for a project with no record.
+    base, uncommitted = committed_record(cur, from_sha or None, head_ans, answers_held(answers))
+
     O_tree = O_commit = N_tree = None
     rerun = False
-    if cur and cur.get('commit') == to and cur.get('answers') == ans_now:
+    if cur and cur.get('commit') == to and same_answers(cur, ans_now):
         rerun, N_tree = True, cur['tree']
-        if from_sha == to:
+        if uncommitted:
+            # Only a record that names the committed version is the old render; one HEAD's
+            # history merely held, or none, leaves it to be rendered, as below.
+            if base and base.get('commit') == from_sha and same_answers(base, head_ans):
+                O_tree, O_commit = base['tree'], base['sha']
+        elif from_sha == to:
             O_tree, O_commit = cur['tree'], cur['sha']
-        elif cur['parent'] and (ref_info(cur['parent']) or {}).get('commit') == from_sha:
-            O_tree, O_commit = git('rev-parse', cur['parent'] + '^{tree}').strip(), cur['parent']
-    elif cur and from_sha and cur.get('commit') == from_sha and cur.get('answers') == head_ans:
-        O_tree, O_commit = cur['tree'], cur['sha']
+    elif base and from_sha and base.get('commit') == from_sha and same_answers(base, head_ans):
+        O_tree, O_commit = base['tree'], base['sha']
 
     if off():
         O = tree_map(O_tree)
         rej = this_update_rej(rej_all, H, set(O) if O_tree else None)
         skip = set(unmerged) | {r[:-4] for r in rej}
         if O_tree:
-            g, _ = classify({}, O, worktree(sorted(O)), H, {}, {}, skip)
+            ign = ignored_paths(sorted(set(O) - skip))
+            g, _ = classify({}, O, worktree(sorted(set(O) - ign)), H, {}, {}, skip | ign)
             gone = []
         else:
             g = empty()
@@ -1617,6 +2293,11 @@ def cmd_update(args):
         if head:
             git('update-ref', Y, head)
         print('\n'.join(build_report(t, frm, vto, g, {}, unmerged, rej, [], (gone, 'SYNTEK_UPDATE_REPORT=off, so conflicts and deletions only; no shared file is refreshed or added until an update runs without it.'), MAX_LIST, False)), flush=True)
+        # At the tip's own version and answers, which HEAD does not name (an update discarded and
+        # run again with the report off, or a hand rerun before the commit), the tip is set back
+        # where its writes are gone, so committing this run never makes a discarded record count.
+        if rerun and uncommitted:
+            set_back(c, T, cur, base, True)
         return
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -1630,27 +2311,31 @@ def cmd_update(args):
                     git('update-ref', Y, head)
                 print('\n'.join(build_report(t, frm, vto, empty(), {}, unmerged, rej, [], (gone, 'no report, because %s; no shared file was refreshed or added, so the next update does it.' % reason), MAX_LIST, False)), flush=True)
                 return
-        chain = cur['sha'] if cur else None
+        chain = base['sha'] if base else None
         if O_tree is None and from_sha:
-            seeds = seed_list(answers, src, from_sha) if not cur else []
+            seeds = seed_list(answers, src, from_sha) if not base else []
             chain, O_tree, O_commit = seed_history(c, tmp, from_sha, head_text or answers_text,
                                                    head_ans or ans_now, chain, seeds)
             if not O_tree:
-                chain = cur['sha'] if cur else chain
+                chain = base['sha'] if base else chain
         elif O_commit:
             chain = O_commit
 
     N, O = tree_map(N_tree), tree_map(O_tree)
     rej = this_update_rej(rej_all, H, set(N) | set(O))
     skip = set(unmerged) | {r[:-4] for r in rej}
-    P = worktree(sorted(set(N) | set(O)))
     skip |= {p for p in set(N) | set(O) if beyond_link(p)}
-    recorded = history(cur['sha']) if cur else {}
-    own = history(O_commit or (cur['sha'] if cur else None))
+    # A file git ignores is never read (its ignore rule may guard a credential): it is left out
+    # of the comparison, the refresh and the report's commands, and listed once on its own. The
+    # MCP lane judges it itself (one line, the offer recorded), so it is not in skip.
+    ign = ignored_paths(sorted((set(N) | set(O)) - skip))
+    P = worktree(sorted((set(N) | set(O)) - ign))
+    recorded = history(base['sha']) if base else {}
+    own = history(O_commit or (base['sha'] if base else None))
     for p, (_, sha) in O.items():
         own.setdefault(p, set()).add(sha)
     # Every blob this script wrote over a file the owner had not edited counts as the template's.
-    blobs = written_blobs(cur['msg']) if cur else []
+    blobs = written_blobs(base['msg']) if base else []
     for p, b, edited in blobs:
         if not edited:
             own.setdefault(p, set()).add(b)
@@ -1658,23 +2343,27 @@ def cmd_update(args):
     rendered = union_history(own, recorded, *others.values())
     yours = tree_map(Y) if verify(Y) else {}
     notes, counts = [], {}
-    offered = offered_ids(cur['msg']) if cur else None
-    mcp_offered = offered_mcp(cur['msg']) if cur else None
+    offered = offered_ids(base['msg']) if base else None
+    mcp_offered = offered_mcp(base['msg']) if base else None
     data = refresh_data(src, t)
     touched = set()
     lines = []
+    wrote_any = False   # whether any lane wrote a file in this run
     if data:
         try:
             paths = [p for p in data.get('refresh', []) if isinstance(p, str)]
             done, added, failed = refresh(paths, N, P, H, own, recorded, others, bool(head), c['root'],
                                           lambda p: owner_held(p, yours))
             touched |= set(done) | set(added)
+            wrote_any = bool(touched)
             counts['refreshed'], counts['added'] = len(done), len(added)
             notes += refresh_notes(t, done, added, failed)
             lines, offered = settings_merge(data, N, offered, skip)
             notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in lines]
             wrote = settings_wrote(lines)
-            done_settings = SETTINGS not in skip and delivered(N, SETTINGS)
+            wrote_any = wrote_any or bool(wrote)
+            # A settings.json git ignores is never read, so never judged delivered.
+            done_settings = SETTINGS not in skip and SETTINGS not in ign and delivered(N, SETTINGS)
             if wrote:
                 # P holds every file as it was before this run wrote it: that is what is classified.
                 blobs.append((SETTINGS, wrote, not done_settings and P.get(SETTINGS) not in rendered.get(SETTINGS, ())))
@@ -1685,6 +2374,7 @@ def cmd_update(args):
         try:
             ml, mcp_offered, writes = mcp_lane(data, N, mcp_offered, skip, rendered, others, t, lines)
             notes += [l.replace('▸ ', '▸ %s: ' % t, 1) for l in ml]
+            wrote_any = wrote_any or bool(writes)
             for p, before, after in writes:
                 done_file = delivered(N, p)
                 blobs.append((p, after, not done_file and before not in rendered.get(p, ())))
@@ -1692,7 +2382,7 @@ def cmd_update(args):
                     P[p] = N[p][1]   # the release's file, the servers added: delivered
         except Exception as err:
             notes.append('▸ %s: the MCP servers stopped (%s); the report below covers every other file.' % (t, err))
-    g, cnt = classify(N, O, P, H, own, others, skip | touched)
+    g, cnt = classify(N, O, P, H, own, others, skip | touched, ign)
     cnt.update(counts)
     if O_tree:
         override = ''
@@ -1703,7 +2393,11 @@ def cmd_update(args):
         override = ('the full report needs version %s, which could not be rendered.' % frm_raw) if not rerun else ''
     printed = build_report(t, frm, vto, g, cnt, unmerged, rej, notes, (deleted_unknown, override), MAX_LIST, False)
     print('\n'.join(printed), flush=True)
-    if rerun:
+    # A rerun records nothing: a hand rerun over the uncommitted tree finds the first run's writes
+    # and adds nothing. Where the tip was never committed and a lane wrote (the update was
+    # discarded, or the owner removed an entry it offered before committing it), the run is
+    # recorded afresh on the record HEAD committed. Every other run records on its base.
+    if rerun and not (uncommitted and wrote_any):
         return
     full = build_report(t, frm, vto, g, cnt, unmerged, rej, notes, (deleted_unknown, override), 10 ** 9, True)
     commit(N_tree, '\n'.join(full) + record_tail(to, ans_now, offered or set(), blobs, mcp_offered), T, chain)
@@ -1852,6 +2546,40 @@ def settings_probe(base, check):
                 check(not any(x.startswith('hook ') for x in seen), 'noscript: the hook entries are offered again')
         finally:
             os.chdir(old)
+    # A settings.json git ignores is never read (mode 000 proves it) or written: one line names
+    # the entries to add by hand, none is recorded, and the next run names them again.
+    d = os.path.join(base, 'ignored')
+    os.makedirs(os.path.join(d, '.claude', 'hooks'))
+    try:
+        os.chdir(d)
+        git('init', '-q')
+        for script in ('probe-hook.sh', 'pre.sh'):
+            with open('.claude/hooks/' + script, 'w') as f:
+                f.write('exit 0\n')
+        with open('.gitignore', 'w') as f:
+            f.write('/.claude/settings.json\n')
+        plain = '{\n  "model": "opus"\n}\n'
+        with open(SETTINGS, 'w', encoding='utf-8') as f:
+            f.write(plain)
+        sha = git('hash-object', '-w', '--stdin', inp=json.dumps(rendered, indent=2) + '\n').strip()
+        N = {SETTINGS: ('100644', sha)}
+        st = os.stat(SETTINGS)
+        os.chmod(SETTINGS, 0)
+        try:
+            lines, seen = settings_merge(data, N, None, set())
+            again, seen2 = settings_merge(data, N, seen, set())
+        except OSError as err:
+            lines, seen, again, seen2 = ['read: %s' % err], {'read'}, [], set()
+        finally:
+            os.chmod(SETTINGS, 0o644)
+        st2 = os.stat(SETTINGS)
+        check(open(SETTINGS).read() == plain and (st.st_size, st.st_mtime_ns) == (st2.st_size, st2.st_mtime_ns)
+              and len(lines) == 1 and 'is ignored by git, so it was not read' in lines[0] and 'add them by hand' in lines[0]
+              and 'probe-hook.sh' in lines[0] and 'deny Edit(build/**)' in lines[0] and '"autoCompactEnabled": false' in lines[0],
+              'ignored: settings.json is never read or written, one line names the entries (%r)' % lines)
+        check(not seen and not seen2 and again == lines, 'ignored: nothing is recorded, so the entries are offered again (%r)' % again)
+    finally:
+        os.chdir(old)
     # The rule for an entry missing now: offered before (recorded, or in a committed settings.json)
     # means the owner removed it, so it stays removed; never offered means it is added.
     d = os.path.join(base, 'removed')
@@ -2303,21 +3031,125 @@ def mcp_probe(base, check):
               and lines == ['▸ added 2 MCP servers to opencode.json: code-review-graph, scrapling'],
               'mcp catch-all: after --write, the next run adds them (%r)' % lines)
         os.chdir(old)
-        # The same where the project's settings.json allows the server, so it holds no ask for
-        # it: the new render's asks still decide, and the server waits.
-        N = project('catch-all-allowed', {'opencode.json': catch, SETTINGS: js({'permissions': {'allow': ['mcp__scrapling__*']}})})
+        # An agent's own allow in opencode.json comes after the file's asks, so it outweighs them:
+        # the server waits, and one line names the agent's rule; a later allow of the file's own
+        # outweighs them the same way.
+        N = project('agent-allow', {'opencode.json': js({'permissions': oc_forms, 'agents': {'build': {'permissions': [
+            {'action': 'scrapling_*', 'resource': '*', 'effect': 'allow'}]}}})})
         lines, seen, writes = lane(N)
-        check(get('opencode.json') == catch.encode() and not writes and len(lines) == 1
-              and 'held back now: opencode.json code-review-graph, scrapling' in lines[0],
-              'mcp catch-all-allowed: an allow in settings.json does not open the file early (%r)' % lines)
+        servers = set(json.loads(get('opencode.json')).get('mcp', {}).get('servers', {}))
+        check('scrapling' not in servers and not any(p == 'opencode.json' and s == 'scrapling' for p, s in seen)
+              and any("agents.build.permissions lets these servers' tools run unasked" in l and l.endswith(': scrapling') for l in lines),
+              'mcp agent allow: an agent allow holds the server back, named (%r)' % lines)
+        put('opencode.json', js({'permissions': oc_forms + [{'action': 'scrapling_*', 'resource': '*', 'effect': 'allow'}]}))
+        lines, seen, writes = lane(N)
+        servers = set(json.loads(get('opencode.json')).get('mcp', {}).get('servers', {}))
+        check('scrapling' not in servers and not any(p == 'opencode.json' and s == 'scrapling' for p, s in seen)
+              and any('held back now: opencode.json scrapling' in l for l in lines)
+              and not any('agents.' in l for l in lines),
+              'mcp later allow: a later top-level allow outweighs the asks, so the server waits (%r)' % lines)
         os.chdir(old)
-        # The --write line where this run added an mcp__ rule and a client file exists.
-        N = project('rules', {'.codex/config.toml': PROBE_TOML})
-        lines, _, _ = lane(N, settings_lines=['▸ added to %s: ask mcp__scrapling__fetch' % SETTINGS])
-        check(lines == ['▸ to carry the new ask and deny rules into .codex/config.toml, run: python3 .claude/probe-permissions.py --write'],
-              'mcp rules: the --write line once (%r)' % lines)
-        lines, _, _ = lane(N)
-        check(not lines, 'mcp rules: no line where no rule was added (%r)' % lines)
+        # No ask in the file's own rules, and an agent's allow: --write would append the asks, but
+        # that agent's rule still outweighs them, so the server is never promised to the next
+        # update, and only that agent is named, never one whose rules leave the tools alone.
+        N = project('agent-no-ask', {'opencode.json': js({'agents': {
+            'build': {'permissions': [{'action': 'scrapling_*', 'resource': '*', 'effect': 'allow'}]},
+            'plan': {'permissions': [{'action': 'edit', 'resource': '*', 'effect': 'deny'}]}}})})
+        lines, seen, writes = lane(N)
+        check(not writes and not any(p == 'opencode.json' for p, _ in seen)
+              and any(l.startswith("▸ opencode.json: agents.build.permissions lets these servers' tools run unasked")
+                      and l.endswith(': scrapling') for l in lines)
+              and not any('agents.plan' in l for l in lines)
+              and any('(held back now: opencode.json code-review-graph)' in l for l in lines)
+              and not any('held back now' in l and 'scrapling' in l for l in lines),
+              'mcp agent no-ask: an agent allow --write cannot outweigh is never promised; only that agent named (%r)' % lines)
+        os.chdir(old)
+        # The same where the project's settings.json allows Scrapling, so it holds no ask for it
+        # (the settings lane said 'because you allow it') while this run added the other server's:
+        # the new render's asks still decide, and both servers wait. The --write line promises
+        # only the server --write completes; the allowed one is said instead, once, with the two
+        # ways in; after --write the next run adds the first, and the second only once the owner
+        # asks before its tools and runs --write again.
+        crg_ask, scr_ask = 'mcp__code-review-graph__apply_refactor_tool', 'mcp__scrapling__fetch'
+        allowed_settings = js({'permissions': {'allow': ['mcp__scrapling__*'], 'ask': [crg_ask]}})
+        N = project('catch-all-allowed', {'opencode.json': catch, SETTINGS: allowed_settings})
+        said = ['▸ added to %s: ask %s' % (SETTINGS, crg_ask), '▸ not added to %s, because you allow it: ask %s' % (SETTINGS, scr_ask)]
+        lines, seen, writes = lane(N, settings_lines=said)
+        write_line = ('▸ to carry the new ask and deny rules into opencode.json, run: python3 .claude/probe-permissions.py --write; '
+                      'the next update then adds the MCP servers to each file that holds their ask rules '
+                      '(held back now: opencode.json code-review-graph)')
+        check(get('opencode.json') == catch.encode() and not writes and not any(p == 'opencode.json' for p, _ in seen)
+              and len(lines) == 2 and lines[0] == write_line,
+              'mcp catch-all-allowed: the --write line promises only the server --write completes (%r)' % lines)
+        check(len(lines) == 2 and lines[1].startswith('▸ these MCP servers wait for ask rules --write cannot carry')
+              and '(you allow them there): opencode.json scrapling.' in lines[1] and '(%s)' % scr_ask in lines[1]
+              and 'and run python3 .claude/probe-permissions.py --write, after which' in lines[1]
+              and 'by hand (git show probe/template:opencode.json)' in lines[1],
+              'mcp catch-all-allowed: the allowed server is said instead, with the two ways in (%r)' % lines[1:])
+        lines, seen, _ = lane(N, offered=seen)
+        check(lines == [write_line.replace('new ask and deny rules', 'ask rules these MCP servers wait for')],
+              'mcp catch-all-allowed: the next run says --write again, and the allowed server not again (%r)' % lines)
+        put('opencode.json', js({'permissions': [{'action': '*', 'resource': '*', 'effect': 'allow'}, oc_forms[1]]}))
+        lines, seen, _ = lane(N, offered=seen)
+        check(set(json.loads(get('opencode.json')).get('mcp', {}).get('servers', {})) == {'code-review-graph'}
+              and lines == ['▸ added 1 MCP server to opencode.json: code-review-graph'],
+              'mcp catch-all-allowed: after --write, the next run adds the completed server, silent on the other (%r)' % lines)
+        put(SETTINGS, js({'permissions': {'allow': ['mcp__scrapling__*'], 'ask': [crg_ask, scr_ask]}}))
+        cur = json.loads(get('opencode.json'))
+        cur['permissions'].append(oc_forms[0])
+        put('opencode.json', js(cur))
+        lines, seen, _ = lane(N, offered=seen)
+        check(set(json.loads(get('opencode.json'))['mcp']['servers']) == set(both)
+              and lines == ['▸ added 1 MCP server to opencode.json: scrapling'],
+              'mcp catch-all-allowed: the asks added by hand and --write run, the next run adds it (%r)' % lines)
+        os.chdir(old)
+        # A settings.json git ignores is never read here either (mode 000): every form waits as
+        # one settings.json does not ask for, said in the run whose settings lane names the asks.
+        N = project('settings-ignored', {'opencode.json': catch, '.gitignore': '/.claude/settings.json\n'})
+        os.chmod(SETTINGS, 0)
+        try:
+            said = ['▸ %s is ignored by git, so it was not read and these entries were not added (add them by hand; they '
+                    'are offered again by the next update): ask %s; ask %s' % (SETTINGS, scr_ask, crg_ask)]
+            lines, seen, writes = lane(N, settings_lines=said)
+        finally:
+            os.chmod(SETTINGS, 0o644)
+        check(get('opencode.json') == catch.encode() and not writes and len(lines) == 1
+              and ': opencode.json code-review-graph, scrapling.' in lines[0] and 'you allow' not in lines[0]
+              and 'wait for ask rules --write cannot carry' in lines[0],
+              'mcp settings-ignored: never read; the servers wait, said once with the two ways in (%r)' % lines)
+        os.chdir(old)
+        # The --write line where this run added an mcp__ rule names only the client files that
+        # lack it in their form: none where each equals the new render; one that lost the form.
+        N = project('rules', {'.codex/config.toml': PROBE_TOML, 'opencode.json': new['opencode.json'],
+                              '.gemini/settings.json': new['.gemini/settings.json']})
+        said = ['▸ added to %s: ask %s' % (SETTINGS, scr_ask)]
+        lines, seen, _ = lane(N, settings_lines=said)
+        check(not lines, 'mcp rules: no --write line where every client file equals the new render (%r)' % lines)
+        cur = json.loads(new['opencode.json'])
+        cur['permissions'] = [r for r in cur['permissions'] if r['action'] != 'scrapling_fetch']
+        put('opencode.json', js(cur))
+        put('.codex/config.toml', PROBE_TOML.replace('\n[mcp_servers.scrapling.tools.fetch]\napproval_mode = "prompt"\n', ''))
+        lines, _, _ = lane(N, offered=seen, settings_lines=said)
+        check(lines == ['▸ to carry the new ask and deny rules into opencode.json and .codex/config.toml, run: '
+                        'python3 .claude/probe-permissions.py --write'],
+              'mcp rules: the --write line names only the files that lack the rule (%r)' % lines)
+        lines, _, _ = lane(N, offered=seen, settings_lines=['▸ added to %s: deny mcp__code-review-graph__embed_graph_tool' % SETTINGS])
+        check(lines == ['▸ to carry the new ask and deny rules into opencode.json, run: python3 .claude/probe-permissions.py --write'],
+              'mcp rules: a deny is judged in opencode.json alone, where it has a form (%r)' % lines)
+        lines, _, _ = lane(N, offered=seen)
+        check(not lines, 'mcp rules: no line where no rule was added and no server waits (%r)' % lines)
+        os.chdir(old)
+        # A client file this run cannot read (git-ignored, mode 000) may lack the added rule:
+        # --write still reaches it, so the line names it on a clause of its own.
+        N = project('rules-ignored', {'opencode.json': new['opencode.json'], '.gitignore': '/opencode.json\n'})
+        os.chmod('opencode.json', 0)
+        try:
+            lines, _, writes = lane(N, settings_lines=['▸ added to %s: ask %s' % (SETTINGS, scr_ask)])
+        finally:
+            os.chmod('opencode.json', 0o644)
+        check(not writes and '▸ to carry the new ask and deny rules into opencode.json where it lacks them (it was not read '
+              'here), run: python3 .claude/probe-permissions.py --write' in lines,
+              'mcp rules-ignored: an unread client file is named on its own clause (%r)' % lines)
         os.chdir(old)
         # A malformed "mcp": one line, nothing offered, the offers recorded before kept; none: as before.
         rec = {('.mcp.json', 'scrapling'): '1' * 64}
@@ -2330,6 +3162,59 @@ def mcp_probe(base, check):
               'mcp none: a data file without "mcp" behaves as before')
     finally:
         os.chdir(old)
+
+
+def answers_probe(check):
+    """answers_pairs: a formatter's rewrite of the same answers reads the same; other answers, a
+    value of another type and a list in another order never do; YAML it is unsure of is None."""
+    copier = ("# Rendered by Copier.\n#   copier update -a .copier-answers.probe.yml\n"
+              "AGENT_CLIENTS:\n- codex\n- opencode\nCODEX_MODEL: ''\nCOUNT: 32768\nFLAG: true\n"
+              "GONE: null\nNOTE: A ferry pilot on a drowned coast must carry a stranger across\n"
+              "    the salt marsh before the spring tide.\nSUBTITLE: 'yes'\n"
+              "TEST: \"it's a tab\\tand a long\\\n    \\ tail\"\nTITLE: '007'\n_commit: v3\n"
+              "_src_path: gh:Example/probe\n")
+    prettier = ("---\nAGENT_CLIENTS:\n  - codex\n  - opencode\nCODEX_MODEL: \"\"\nCOUNT: 32768\n"
+                "FLAG: true\nGONE: null\nNOTE:\n  A ferry pilot on a drowned coast must carry a\n"
+                "  stranger across the salt marsh before the spring tide.\nSUBTITLE: \"yes\"\n"
+                "TEST:\n  \"it's a tab\\tand a long\\\n  \\ tail\"\nTITLE: \"007\"\n_commit: v3\n"
+                "_src_path: gh:Example/probe\n")
+    flow = ("_src_path: gh:Example/probe # the source\r\n_commit: v3\r\nTITLE: \"007\"\r\n"
+            "TEST: \"it's a tab\\tand a long tail\"\r\nSUBTITLE: 'yes'\r\nNOTE: A ferry pilot on a "
+            "drowned coast must carry a stranger across the salt marsh before the spring tide.\r\n"
+            "GONE:\r\nFLAG: true\r\nCOUNT: 32768\r\nCODEX_MODEL: ''\r\nAGENT_CLIENTS: [codex, 'opencode']")
+    want = answers_pairs(copier)
+    check(want is not None and json.loads(want)['TEST'] == ['s', "it's a tab\tand a long tail"],
+          'answers: Copier\'s file reads as its pairs (%r)' % want)
+    for label, text in (('re-indented lists, double quotes, values on the next line', prettier),
+                        ('a flow list, unfolded text, another key order, comments, CRLF', flow),
+                        ('a byte-order mark and no comments', '\ufeff' + copier.split('\n', 2)[2])):
+        got = answers_pairs(text)
+        check(got == want, 'answers: %s read as the same pairs (%r)' % (label, got))
+    for label, old, new in (('a list in another order', '- codex\n- opencode', '- opencode\n- codex'),
+                            ("'yes' unquoted (true)", "SUBTITLE: 'yes'", 'SUBTITLE: yes'),
+                            ("'007' unquoted (7)", "TITLE: '007'", 'TITLE: 007'),
+                            ('a number quoted', 'COUNT: 32768', "COUNT: '32768'"),
+                            ("'' left empty (null)", "CODEX_MODEL: ''", 'CODEX_MODEL:'),
+                            ('null quoted', 'GONE: null', "GONE: 'null'"),
+                            ('a word changed', 'spring tide', 'neap tide'),
+                            ('a list item added', '- opencode\n', '- opencode\n- gemini-cli\n'),
+                            ('a list item dropped', '- opencode\n', ''),
+                            ('a key dropped', 'FLAG: true\n', ''),
+                            ('a key added', 'FLAG: true\n', 'FLAG: true\nMORE: x\n')):
+        got = answers_pairs(copier.replace(old, new))
+        check(old in copier and got is not None and got != want,
+              'answers: %s reads as other pairs (%r)' % (label, got))
+    for label, old, new in (('an anchor', "TITLE: '007'", "TITLE: &t '007'"),
+                            ('a block scalar', 'FLAG: true', 'FLAG: |\n  true'),
+                            ('a tab', 'COUNT: 32768', 'COUNT:\t32768'),
+                            ('a nested mapping', 'FLAG: true', 'FLAG:\n  a: b'),
+                            ('a key twice', 'FLAG: true', 'FLAG: true\nFLAG: true'),
+                            ('a tag', 'FLAG: true', 'FLAG: !!str true'),
+                            ('a flow list over two lines', 'AGENT_CLIENTS:\n- codex\n- opencode',
+                             'AGENT_CLIENTS: [codex,\n  opencode]'),
+                            ('a second document', '_commit: v3', '_commit: v3\n---\nX: y')):
+        check(old in copier and answers_pairs(copier.replace(old, new)) is None,
+              'answers: %s leaves the reader unsure' % label)
 
 
 def allow_probe(check):
@@ -2521,16 +3406,20 @@ def self_test():
         git('-C', proj, 'add', '-A')
         git('-C', proj, 'commit', '-q', '-m', 'updated to v2', env=IDENT)
 
-        # A sibling template's record holds the bytes CONTEXT.md has here.
+        # A sibling template's record holds the bytes CONTEXT.md has here, and the project
+        # committed the sibling's copy, its answers file with it (a record counts only where
+        # HEAD's history held its answers).
         sib_tree_dir = os.path.join(tmp, 'sib')
         write(sib_tree_dir, 'CONTEXT.md', 'context of the sibling\n')
         env_sib = {'GIT_DIR': os.path.join(proj, '.git'), 'GIT_WORK_TREE': sib_tree_dir,
                    'GIT_INDEX_FILE': os.path.join(tmp, 'sib.index')}
         git('add', '-A', '--force', '.', env=env_sib, cwd=sib_tree_dir)
         stree = git('write-tree', env=env_sib, cwd=sib_tree_dir).strip()
+        write(proj, '.copier-answers.sibling.yml', '_commit: s1\nNAME: sibling\n')
         os.chdir(proj)
         try:
-            commit(stree, 'sibling render\n\ncommit: %s\nanswers: %s\n' % ('a' * 40, 'b' * 40), 'refs/sibling/template')
+            commit(stree, 'sibling render\n\ncommit: %s\nanswers: %s\n' % (
+                'a' * 40, git('hash-object', '.copier-answers.sibling.yml').strip()), 'refs/sibling/template')
         finally:
             os.chdir(tmp)
         write(proj, 'CONTEXT.md', 'context of the sibling\n')
@@ -2721,6 +3610,494 @@ def self_test():
         check(not has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook),
               'recorded: a hook the record lists as offered is not added back, though no commit held it')
 
+        # An update discarded (git reset --hard with git clean -fd; git stash -u) and run again
+        # delivers what the first run did, recorded afresh on the record HEAD committed; a hand
+        # rerun over the redo's uncommitted tree adds nothing and records nothing.
+        def state(d):
+            out = {}
+            for entry in git('-C', d, 'status', '--porcelain', '-uall', '-z').split('\0'):
+                if entry:
+                    out[entry[3:]] = (entry[:2], read(d, entry[3:]))
+            return out
+        for how in ('reset', 'stash'):
+            d = fresh('discard-' + how, 'v2')
+            commit_all(d, 'copied')
+            base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+            sim_update(d, 'v3')
+            upd(d, 'v2', 'v3')
+            first, first_rec = state(d), git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+            if how == 'reset':
+                git('-C', d, 'reset', '-q', '--hard')
+                git('-C', d, 'clean', '-q', '-fd')
+            else:
+                git('-C', d, 'stash', 'push', '-q', '-u', env=IDENT)
+            check(not git('-C', d, 'status', '--porcelain'), '%s: the update is discarded' % how)
+            sim_update(d, 'v3')
+            out = upd(d, 'v2', 'v3')
+            again, rec = state(d), git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+            check(again == first and read(d, G[2]) == 'fresh 3\n' and has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook),
+                  '%s: the second run delivers what the first did (%r)' % (how, sorted(set(first.items()) ^ set(again.items()))))
+            msg = git('-C', d, 'log', '-1', '--format=%B', rec)
+            first_msg = git('-C', d, 'log', '-1', '--format=%B', first_rec)
+            check(git('-C', d, 'rev-parse', rec + '^').strip() == base_rec
+                  and offered_ids(msg) == offered_ids(first_msg) and written_blobs(msg) == written_blobs(first_msg)
+                  and not set(G) & set(sections(out)),
+                  '%s: the second run is recorded afresh on the record HEAD committed (%r)' % (how, out))
+            snap = (git('-C', d, 'status', '--porcelain'), git('-C', d, 'for-each-ref'))
+            upd(d, 'v2', 'v3')
+            check(snap == (git('-C', d, 'status', '--porcelain'), git('-C', d, 'for-each-ref')),
+                  '%s: a hand rerun over the uncommitted tree adds nothing and records nothing' % how)
+
+        # An update discarded, then an update to a later release: the discarded record is never
+        # read, so the result is a direct update's, its offers and written blobs included, and the
+        # record sits on the one HEAD committed. A sibling's discarded record is not read either.
+        def record_of(d):
+            msg = git('-C', d, 'log', '-1', '--format=%B', 'refs/probe/template')
+            return offered_ids(msg), offered_mcp(msg), written_blobs(msg)
+        direct = fresh('later-direct', 'v2')
+        commit_all(direct, 'copied')
+        sim_update(direct, 'v4')
+        upd(direct, 'v2', 'v4')
+        d = fresh('later-discarded', 'v2')
+        commit_all(d, 'copied')
+        base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        sim_update(d, 'v3')
+        upd(d, 'v2', 'v3')
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        sim_update(d, 'v4')
+        out = upd(d, 'v2', 'v4')
+        check(state(d) == state(direct) and read(d, G[2]) == 'fresh 3\n' and has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook)
+              and has_rule(json.loads(read(d, SETTINGS)), 'ask', 'Bash(git push *)'),
+              'later: an update discarded, then one to a later release, gives what a direct update gives (%r)'
+              % sorted(set(state(d).items()) ^ set(state(direct).items())))
+        check(record_of(d) == record_of(direct) and git('-C', d, 'rev-parse', 'refs/probe/template^').strip() == base_rec,
+              'later: the offers and the written blobs are a direct update\'s, on the record HEAD committed (%r)' % out)
+        write(d, '.copier-answers.sibling.yml', '_commit: s1\nNAME: sibling\n')
+        commit_all(d, 'updated, and a sibling copied')
+        os.chdir(d)
+        try:
+            chain = commit(git('rev-parse', 'refs/probe/template^{tree}').strip(),
+                           'sibling render\n\ncommit: %s\nanswers: %s\n' % (
+                               'c' * 40, git('rev-parse', 'HEAD:.copier-answers.sibling.yml').strip()))
+            sib = git('hash-object', '-w', '--stdin', inp='sibling, discarded\n').strip()
+            idx = os.path.join(tmp, 'sib-later.index')
+            git('read-tree', 'refs/probe/template', env={'GIT_INDEX_FILE': idx})
+            git('update-index', '--add', '--cacheinfo', '100644,%s,README.md' % sib, env={'GIT_INDEX_FILE': idx})
+            later = git('write-tree', env={'GIT_INDEX_FILE': idx}).strip()
+            commit(later, 'sibling render, discarded\n\ncommit: %s\nanswers: %s\n' % ('d' * 40, 'e' * 40),
+                   'refs/sibling/template', chain)
+            hist = others_history('probe').get('sibling', {})
+        finally:
+            os.chdir(tmp)
+        check(sib not in hist.get('README.md', ()) and hist.get('README.md'),
+              'later: a sibling\'s record HEAD never committed is not read (%r)' % hist.get('README.md'))
+
+        # A recopy discarded, then made again: the baseline reads the record HEAD committed, not
+        # the discarded copy's, so the second recopy wires the hook and the deny again, on it.
+        def recopy_v3(d, extra=None):
+            for rel, text in releases['v3'].items():
+                if rel != SETTINGS:
+                    write(d, rel, text, 0o755 if rel.endswith('.sh') else None)
+            if os.path.exists(os.path.join(d, 'retired.md')):
+                os.remove(os.path.join(d, 'retired.md'))
+            write(d, A, '_commit: v3\nNAME: probe\n')
+            return run(d, 'baseline', '--to', shas['v3'], *common, env=extra)
+        d = fresh('recopy-discarded', 'v2')
+        commit_all(d, 'copied')
+        base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        recopy_v3(d)
+        first = has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook)
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        out = recopy_v3(d)
+        st = json.loads(read(d, SETTINGS))
+        check(first and has_hook(st, 'UserPromptSubmit', hook) and has_rule(st, 'deny', 'Bash(rm *)')
+              and git('-C', d, 'rev-parse', 'refs/probe/template^').strip() == base_rec,
+              'baseline: a recopy discarded and made again wires the hook and the deny again, on the record '
+              'HEAD committed (%r)' % out)
+
+        # A moving adoption (copier copy --overwrite into a repository whose HEAD holds no answers
+        # file) discarded and made again: HEAD's history never held the discarded copy's answers,
+        # so the second baseline reads no record and wires the hook, the deny and the ask again.
+        def adopt_v4(d):
+            for rel, text in releases['v4'].items():
+                if rel != SETTINGS:   # a seed: the copy keeps the owner's settings.json
+                    write(d, rel, text, 0o755 if rel.endswith('.sh') else None)
+            write(d, A, '_commit: v4\nNAME: probe\n')
+            return run(d, 'baseline', '--to', shas['v4'], *common)
+        d = os.path.join(tmp, 'adopt-discarded')
+        git('init', '-q', d)
+        write(d, SETTINGS, '{\n  "model": "opus"\n}\n')
+        write(d, 'notes.md', 'my own notes\n')
+        commit_all(d, 'my own project')
+        adopt_v4(d)
+        st = json.loads(read(d, SETTINGS))
+        first = has_hook(st, 'UserPromptSubmit', hook) and has_rule(st, 'ask', 'Bash(git push *)')
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        out = adopt_v4(d)
+        st = json.loads(read(d, SETTINGS))
+        check(first and has_hook(st, 'UserPromptSubmit', hook) and has_rule(st, 'deny', 'Edit(build/**)')
+              and has_rule(st, 'deny', 'Bash(rm *)') and has_rule(st, 'ask', 'Bash(git push *)')
+              and not verify('refs/probe/template^', cwd=d),
+              'adoption: a moving adoption discarded and made again wires the hook, the deny and the ask '
+              'again, on no record (%r)' % out)
+
+        # A sibling's copy discarded (its record left, its answers file never committed): its
+        # render is not read, so a shared file new in this release that it held is no file the
+        # owner deleted, and the update adds it.
+        d = fresh('sibling-discarded', 'v2')
+        commit_all(d, 'copied')
+        os.chdir(d)
+        try:
+            dis_blob = git('hash-object', '-w', '--stdin', inp='fresh, from the sibling\n').strip()
+            dis_idx = os.path.join(tmp, 'sib-discarded.index')
+            git('update-index', '--add', '--cacheinfo', '100644,%s,%s' % (dis_blob, G[2]),
+                env={'GIT_INDEX_FILE': dis_idx})
+            commit(git('write-tree', env={'GIT_INDEX_FILE': dis_idx}).strip(),
+                   'sibling render, copied\n\ncommit: %s\nanswers: %s\n' % (
+                       'c' * 40, git('hash-object', '--stdin', inp='_commit: s1\nNAME: sibling\n').strip()),
+                   'refs/sibling/template')
+            left_out = 'sibling' not in others_history('probe')
+        finally:
+            os.chdir(tmp)
+        sim_update(d, 'v3')
+        out = upd(d, 'v2', 'v3')
+        check(left_out and read(d, G[2]) == 'fresh 3\n',
+              'sibling discarded: its render is not read, so a shared file new in this release arrives (%r)' % out)
+
+        # An update discarded, then an update with the report off committed (it records nothing),
+        # then a full update: the discarded record is never read, so the result, its offers and
+        # written blobs included, is what the same updates give without the discard.
+        direct = fresh('off-direct', 'v1')
+        commit_all(direct, 'copied')
+        sim_update(direct, 'v2')
+        upd(direct, 'v1', 'v2', {'SYNTEK_UPDATE_REPORT': 'off'})
+        commit_all(direct, 'updated, the report off')
+        sim_update(direct, 'v4')
+        upd(direct, 'v2', 'v4')
+        d = fresh('off-discarded', 'v1')
+        commit_all(d, 'copied')
+        base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        sim_update(d, 'v3')
+        upd(d, 'v1', 'v3')
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        sim_update(d, 'v2')
+        upd(d, 'v1', 'v2', {'SYNTEK_UPDATE_REPORT': 'off'})
+        commit_all(d, 'updated, the report off')
+        sim_update(d, 'v4')
+        out = upd(d, 'v2', 'v4')
+        check(state(d) == state(direct) and record_of(d) == record_of(direct) and read(d, G[2]) == 'fresh 3\n'
+              and has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook)
+              and git('-C', d, 'rev-parse', 'refs/probe/template~2').strip() == base_rec,
+              'off: an update discarded, then one with the report off committed, then a full update gives '
+              'what they give without the discard (%r)' % sorted(set(state(d).items()) ^ set(state(direct).items())))
+
+        # The same at the release and answers the discarded update recorded: the run with the
+        # report off finds the work tree back at HEAD where that record wrote, so it sets the
+        # record back to the one HEAD committed, and committing the run never makes the discarded
+        # record count. A hand rerun with the report off over the first run's writes keeps the
+        # record, so an entry the owner removed after committing stays removed.
+        same_direct = fresh('same-off-direct', 'v1')
+        commit_all(same_direct, 'copied')
+        sim_update(same_direct, 'v3')
+        upd(same_direct, 'v1', 'v3', {'SYNTEK_UPDATE_REPORT': 'off'})
+        commit_all(same_direct, 'updated, the report off')
+        sim_update(same_direct, 'v4')
+        upd(same_direct, 'v3', 'v4')
+        d = fresh('same-off-discarded', 'v1')
+        commit_all(d, 'copied')
+        base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        sim_update(d, 'v3')
+        upd(d, 'v1', 'v3')
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        sim_update(d, 'v3')
+        upd(d, 'v1', 'v3', {'SYNTEK_UPDATE_REPORT': 'off'})
+        back = git('-C', d, 'rev-parse', 'refs/probe/template').strip() == base_rec
+        commit_all(d, 'updated, the report off')
+        sim_update(d, 'v4')
+        out = upd(d, 'v3', 'v4')
+        st = json.loads(read(d, SETTINGS))
+        check(back and state(d) == state(same_direct) and record_of(d) == record_of(same_direct) and read(d, G[2]) == 'fresh 3\n'
+              and has_hook(st, 'UserPromptSubmit', hook) and has_rule(st, 'deny', 'Bash(rm *)'),
+              'same-off: an update discarded, then one to the same release with the report off committed, then a '
+              'full update gives what they give without the discard (%r)' % sorted(set(state(d).items()) ^ set(state(same_direct).items())))
+        d = fresh('same-off-rerun', 'v1')
+        commit_all(d, 'copied')
+        sim_update(d, 'v3')
+        upd(d, 'v1', 'v3')
+        first_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        upd(d, 'v1', 'v3', {'SYNTEK_UPDATE_REPORT': 'off'})
+        kept = git('-C', d, 'rev-parse', 'refs/probe/template').strip() == first_rec
+        commit_all(d, 'updated')
+        st = json.loads(read(d, SETTINGS))
+        st['permissions']['deny'].remove('Bash(rm *)')
+        write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+        commit_all(d, 'the deny removed')
+        sim_update(d, 'v4')
+        out = upd(d, 'v3', 'v4')
+        st = json.loads(read(d, SETTINGS))
+        check(kept and not has_rule(st, 'deny', 'Bash(rm *)') and has_rule(st, 'ask', 'Bash(git push *)'),
+              'same-off: a hand rerun with the report off over the first run\'s writes keeps the record, so a deny '
+              'the owner removed after committing stays removed (%r)' % out)
+
+        # A recopy discarded, then made again at the same release with the report off or a render
+        # that failed (it records nothing) and committed: the discarded copy's record is set back,
+        # so the next update wires the hook and the deny. A hand rerun of the baseline with the
+        # report off over the first copy's writes keeps the record.
+        for label, extra in (('off', {'SYNTEK_UPDATE_REPORT': 'off'}), ('failed', {'PROBE_NO_COPIER': '1'})):
+            same_direct = fresh('recopy-%s-direct' % label, 'v2')
+            commit_all(same_direct, 'copied')
+            recopy_v3(same_direct, extra)
+            commit_all(same_direct, 'recopied')
+            sim_update(same_direct, 'v4')
+            upd(same_direct, 'v3', 'v4')
+            d = fresh('recopy-%s-discarded' % label, 'v2')
+            commit_all(d, 'copied')
+            base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+            recopy_v3(d)
+            git('-C', d, 'reset', '-q', '--hard')
+            git('-C', d, 'clean', '-q', '-fd')
+            recopy_v3(d, extra)
+            back = git('-C', d, 'rev-parse', 'refs/probe/template').strip() == base_rec
+            commit_all(d, 'recopied')
+            sim_update(d, 'v4')
+            out = upd(d, 'v3', 'v4')
+            st = json.loads(read(d, SETTINGS))
+            check(back and state(d) == state(same_direct) and record_of(d) == record_of(same_direct)
+                  and has_hook(st, 'UserPromptSubmit', hook) and has_rule(st, 'deny', 'Bash(rm *)'),
+                  'recopy-%s: a recopy discarded, then made again at the same release with nothing recorded and '
+                  'committed: the next update gives what it gives without the discard (%r)' % (
+                      label, sorted(set(state(d).items()) ^ set(state(same_direct).items()))))
+        d = fresh('recopy-rerun', 'v2')
+        commit_all(d, 'copied')
+        recopy_v3(d)
+        first_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        run(d, 'baseline', '--to', shas['v3'], *common, env={'SYNTEK_UPDATE_REPORT': 'off'})
+        kept = git('-C', d, 'rev-parse', 'refs/probe/template').strip() == first_rec
+        commit_all(d, 'recopied')
+        st = json.loads(read(d, SETTINGS))
+        st['permissions']['deny'].remove('Bash(rm *)')
+        write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+        commit_all(d, 'the deny removed')
+        sim_update(d, 'v4')
+        out = upd(d, 'v3', 'v4')
+        check(kept and not has_rule(json.loads(read(d, SETTINGS)), 'deny', 'Bash(rm *)'),
+              'recopy: a hand rerun of the baseline with the report off keeps the record, so a deny the owner '
+              'removed after committing stays removed (%r)' % out)
+
+        # A shared file or folder the update cannot write (a file at mode 444, a skills folder at
+        # 555): the first run reports it, and a hand rerun with the report off finds nothing there
+        # it could refresh or add, so it keeps the record, and a deny the owner removed after
+        # committing stays removed. Skipped as root, who can write anything.
+        if os.geteuid() != 0:
+            for label, locked, mode in (('a read-only shared file', G[0], 0o444),
+                                        ('a shared folder it cannot write', '.claude/skills', 0o555)):
+                d = fresh('locked-rerun-%o' % mode, 'v1')
+                commit_all(d, 'copied')
+                p = os.path.join(d, locked)
+                was = os.stat(p).st_mode & 0o777
+                os.chmod(p, mode)
+                try:
+                    sim_update(d, 'v3')
+                    first = upd(d, 'v1', 'v3')
+                    first_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+                    upd(d, 'v1', 'v3', {'SYNTEK_UPDATE_REPORT': 'off'})
+                    kept = git('-C', d, 'rev-parse', 'refs/probe/template').strip() == first_rec
+                    commit_all(d, 'updated')
+                    st = json.loads(read(d, SETTINGS))
+                    st['permissions']['deny'].remove('Bash(rm *)')
+                    write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+                    commit_all(d, 'the deny removed')
+                    sim_update(d, 'v4')
+                    out = upd(d, 'v3', 'v4')
+                finally:
+                    os.chmod(p, was)
+                check('could not write 1 shared file' in first and kept
+                      and not has_rule(json.loads(read(d, SETTINGS)), 'deny', 'Bash(rm *)'),
+                      '%s: the first run reports it, and a hand rerun with the report off keeps the record, '
+                      'so a deny the owner removed after committing stays removed (%r)' % (label, out))
+
+        # A formatter rewrites the answers file before every commit ('---', other quotes, a
+        # comment, another key order): each record still matches the answers HEAD committed, so a
+        # deny the owner removed before committing stays removed and the records are the plain
+        # flow's. A rewrite that changes the answers matches no record of them, as before.
+        def formatted(d, msg, name='probe'):
+            v = re.search(r'^_commit: (\S+)', read(d, A), re.M).group(1)
+            write(d, A, "---\nNAME: '%s'   # formatted\n_commit: %s\n" % (name, v))
+            commit_all(d, msg)
+        flows = {}
+        for label, cm in (('plain', commit_all), ('formatted', formatted)):
+            d = fresh('fmt-' + label, 'v2')
+            cm(d, 'copied')
+            sim_update(d, 'v3')
+            upd(d, 'v2', 'v3')
+            st = json.loads(read(d, SETTINGS))
+            st['permissions']['deny'].remove('Bash(rm *)')
+            write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+            cm(d, 'updated, a deny removed')
+            sim_update(d, 'v4')
+            out = upd(d, 'v3', 'v4')
+            flows[label] = (has_rule(json.loads(read(d, SETTINGS)), 'deny', 'Bash(rm *)'), record_of(d),
+                            git('-C', d, 'rev-list', '--count', 'refs/probe/template').strip(), out)
+        check(not flows['formatted'][0] and flows['formatted'][1:] == flows['plain'][1:],
+              'formatter: a deny removed before the commit stays removed, the records the plain '
+              'flow\'s (%r)' % (flows['formatted'],))
+        d = fresh('fmt-other', 'v2')
+        commit_all(d, 'copied')
+        sim_update(d, 'v3')
+        upd(d, 'v2', 'v3')
+        tip_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        formatted(d, 'updated, the answers changed', 'other')
+        os.chdir(d)
+        try:
+            base, _ = committed_record(ref_info('refs/probe/template'), None,
+                                       git('rev-parse', 'HEAD:' + A).strip(), answers_held(A))
+        finally:
+            os.chdir(tmp)
+        check(base and base['sha'] != tip_rec,
+              'formatter: a rewrite that changes the answers matches no record of them')
+        # With the formatter, a hand rerun over a tree whose answers file it rewrote adds and
+        # records nothing; and an update discarded, then one with the report off, then a full
+        # update give what off-direct above gives.
+        d = fresh('fmt-rerun', 'v2')
+        formatted(d, 'copied')
+        sim_update(d, 'v3')
+        upd(d, 'v2', 'v3')
+        write(d, A, '# formatted\n_commit: v3\nNAME: "probe"\n')
+        snap = (git('-C', d, 'status', '--porcelain'), git('-C', d, 'for-each-ref'))
+        upd(d, 'v2', 'v3')
+        check(snap == (git('-C', d, 'status', '--porcelain'), git('-C', d, 'for-each-ref')),
+              'formatter: a hand rerun over the rewritten answers file adds and records nothing')
+        d = fresh('fmt-off', 'v1')
+        formatted(d, 'copied')
+        base_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        sim_update(d, 'v3')
+        upd(d, 'v1', 'v3')
+        git('-C', d, 'reset', '-q', '--hard')
+        git('-C', d, 'clean', '-q', '-fd')
+        sim_update(d, 'v2')
+        upd(d, 'v1', 'v2', {'SYNTEK_UPDATE_REPORT': 'off'})
+        formatted(d, 'updated, the report off')
+        sim_update(d, 'v4')
+        upd(d, 'v2', 'v4')
+        st, direct_st = state(d), state(direct)
+        st.pop(A, None)
+        direct_st.pop(A, None)
+        check(st == direct_st and record_of(d) == record_of(direct)
+              and git('-C', d, 'rev-parse', 'refs/probe/template~2').strip() == base_rec,
+              'formatter: an update discarded, then one with the report off, then a full update give '
+              'what they give without the discard (%r)' % sorted(set(st.items()) ^ set(direct_st.items())))
+        # A recopy over a record an older script wrote (no 'answers-key: ' line) whose answers file
+        # the formatter rewrote before the commit, so git never stored the record's answers blob:
+        # the recopy's answers file holds those same bytes, and its record still keeps their key,
+        # so a deny the owner removed after the recopy stays removed on the next update. Each run
+        # is a process of its own, so the cache of answers keys is emptied before the recopy and
+        # before the update.
+        def drop_deny(d):
+            st = json.loads(read(d, SETTINGS))
+            st['permissions']['deny'] = [r for r in st['permissions']['deny'] if r != 'Bash(rm *)']
+            write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+        d = os.path.join(tmp, 'fmt-old-tip')
+        git('init', '-q', d)
+        for rel, text in releases['v3'].items():
+            write(d, rel, text, 0o755 if rel.endswith('.sh') else None)
+        write(d, A, '_commit: v3\nNAME: key\n')
+        run(d, 'baseline', '--to', shas['v3'], *common)
+        os.chdir(d)
+        try:
+            old = ref_info('refs/probe/template')
+            commit(old['tree'], re.sub(r'^answers-key: \S+\n', '', old['msg'], flags=re.M),
+                   'refs/probe/template', old['parent'])
+        finally:
+            os.chdir(tmp)
+        drop_deny(d)
+        formatted(d, 'copied, a deny removed', 'key')
+        write(d, A, '_commit: v3\nNAME: key\n')
+        _ANSWERS.clear()
+        run(d, 'baseline', '--to', shas['v3'], *common)
+        keyed = re.search(r'^answers-key: [0-9a-f]{64}$',
+                          git('-C', d, 'log', '-1', '--format=%B', 'refs/probe/template'), re.M)
+        drop_deny(d)   # the recopy, whose base record it could not match, added it back
+        sim_update(d, 'v4')
+        write(d, A, '_commit: v4\nNAME: key\n')
+        _ANSWERS.clear()
+        out = upd(d, 'v3', 'v4')
+        check(keyed and not has_rule(json.loads(read(d, SETTINGS)), 'deny', 'Bash(rm *)'),
+              'formatter: a recopy over a record without its answers key, whose answers bytes equal the '
+              'recopy\'s, writes the key, so a deny the owner removed stays removed (%r)' % out)
+
+        # Where HEAD cannot say which records it committed, the tip is read, as where there is no
+        # HEAD. Git ignores the answers file, so no commit holds it: a hook the tip offered, which
+        # the owner removed before committing, stays removed, and the next record follows the tip.
+        d = fresh('answers-ignored', 'v2')
+        write(d, '.gitignore', 'build/\n/%s\n' % A)
+        commit_all(d, 'copied, the answers file ignored')
+        sim_update(d, 'v3')
+        upd(d, 'v2', 'v3')
+        tip_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        st = json.loads(read(d, SETTINGS))
+        st.pop('hooks', None)
+        write(d, SETTINGS, json.dumps(st, indent=2) + '\n')
+        commit_all(d, 'updated, the hook removed')
+        sim_update(d, 'v4')
+        out = upd(d, 'v3', 'v4')
+        check(not git('-C', d, 'ls-files', A) and not has_hook(json.loads(read(d, SETTINGS)), 'UserPromptSubmit', hook)
+              and tip_rec in git('-C', d, 'rev-list', 'refs/probe/template').split(),
+              'answers ignored: the tip is read, so a hook it offered that the owner removed stays removed (%r)' % out)
+        # Git cannot say whether it ignores the answers file (check-ignore exits 128 for that file
+        # alone, through a git first on PATH that runs the real one for everything else): the tip
+        # is read, where a git that can say gives the record whose answers HEAD's history held.
+        d = fresh('answers-unsure', 'v2')
+        commit_all(d, 'copied')
+        sim_update(d, 'v3')
+        upd(d, 'v2', 'v3')
+        tip_rec = git('-C', d, 'rev-parse', 'refs/probe/template').strip()
+        formatted(d, 'updated, the answers changed', 'other')
+        unsure = os.path.join(tmp, 'unsure-bin')
+        write(unsure, 'git', '#!/bin/sh\ncase " $* " in *" check-ignore "*" %s "*) exit 128 ;; esac\nexec %s "$@"\n'
+              % (A, shlex.quote(shutil.which('git'))), 0o755)
+        read_as, path = {}, os.environ.get('PATH', '')
+        os.chdir(d)
+        try:
+            for label, p in (('sure', path), ('unsure', unsure + os.pathsep + path)):
+                os.environ['PATH'] = p
+                base, _ = committed_record(ref_info('refs/probe/template'), None,
+                                           git('rev-parse', 'HEAD:' + A).strip(), answers_held(A))
+                read_as[label] = (ignored(A), base and base['sha'] == tip_rec)
+        finally:
+            os.environ['PATH'] = path
+            os.chdir(tmp)
+        check(read_as == {'sure': (False, False), 'unsure': (None, True)},
+              'answers unsure: where git cannot say whether it ignores the answers file, the tip is read (%r)' % read_as)
+
+        # A settings.json git ignores (mode 000: never read) the new version changes: one line
+        # names the entries to add by hand, the file is listed as not compared, nothing is
+        # recorded as offered, and the next update names them again.
+        d = fresh('signored', 'v2')
+        commit_all(d, 'copied')
+        write(d, '.gitignore', 'build/\n/.claude/settings.json\n')
+        git('-C', d, 'rm', '-q', '--cached', SETTINGS)
+        commit_all(d, 'the owner ignores settings.json')
+        sim_update(d, 'v3')
+        os.chmod(os.path.join(d, SETTINGS), 0)
+        try:
+            out = upd(d, 'v2', 'v3')
+        finally:
+            os.chmod(os.path.join(d, SETTINGS), 0o644)
+        line = '%s is ignored by git, so it was not read' % SETTINGS
+        check(out.count(line) == 1 and 'stopped' not in out and read(d, SETTINGS) == releases['v2'][SETTINGS]
+              and sections(out).get(SETTINGS, '').startswith('NOT COMPARED because git ignores them')
+              and not any(l.startswith('settings: hook') for l in git('-C', d, 'log', '-1', '--format=%B', 'refs/probe/template').splitlines()),
+              'settings ignored: never read or written, one line, not compared, nothing recorded (%r)' % out)
+        commit_all(d, 'updated')
+        sim_update(d, 'v4')
+        out = upd(d, 'v3', 'v4')
+        check(out.count(line) == 1 and 'UserPromptSubmit hook' in out, 'settings ignored: the next update names the entries again (%r)' % out)
+
         # Guards: a branch and a tag called template, a foreign commit at the record's ref, stale
         # and ignored .rej files, an uncommitted change, an unedited retired file.
         d = fresh('probes', 'v2')
@@ -2817,7 +4194,8 @@ def self_test():
                   'a %s family-refresh.json refreshes nothing and says so (%r)' % (label, buf.getvalue()))
 
         settings_probe(os.path.join(tmp, 'settings'), check)
-        for probe in (lambda: mcp_probe(os.path.join(tmp, 'mcp'), check), lambda: allow_probe(check)):
+        for probe in (lambda: mcp_probe(os.path.join(tmp, 'mcp'), check), lambda: allow_probe(check),
+                      lambda: answers_probe(check)):
             try:
                 probe()
             except Exception as err:   # a probe that raises is a failure, never a crash
@@ -2913,6 +4291,19 @@ def self_test():
         out = mupd(d, 'm1', 'm2', cwd=os.path.join(d, 'sub'))
         check('no settings entry or MCP server was offered' in out and read(d, '.mcp.json') == releases['m1']['.mcp.json'],
               'mcp flow: not at the root, no MCP server is offered (%r)' % out)
+        # A git-ignored file the new version changes is never read: listed once as not compared,
+        # with no compare or take command that would show it as deleted or overwrite it.
+        d = mfresh('mcp-ignored')
+        secret = '{"mcpServers": {"private": {"command": "secret-tool", "env": {"TOKEN": "probe-secret"}}}}\n'
+        write(d, '.gitignore', '/.mcp.json\n')
+        git('-C', d, 'rm', '-q', '--cached', '.mcp.json')
+        write(d, '.mcp.json', secret)
+        commit_all(d, 'the owner ignores .mcp.json')
+        out = mupd(d, 'm1', 'm2')
+        check(sections(out).get('.mcp.json', '').startswith('NOT COMPARED because git ignores them')
+              and read(d, '.mcp.json') == secret and 'is ignored by git, so it was not read' in out
+              and '-- .mcp.json' not in out and 'probe-secret' not in mrecord(d),
+              'mcp flow: an ignored file is listed as not compared, never read, compared or taken (%r)' % out)
     RENDER = None
     for f in fails:
         print('  ✗ ' + f)
@@ -2927,6 +4318,7 @@ def main(argv):
         return 0
     if len(argv) > 1 and argv[1] == '--self-test':
         return self_test()
+    _ANSWERS.clear()   # a file git never stored is read in its own run only
     try:
         sub = argv[1] if len(argv) > 1 else ''
         args, rest = {}, argv[2:]
