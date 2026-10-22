@@ -13,7 +13,7 @@ syntek-author/
 ├── README.md                 ← the user guide: generating, the questions, the settings files, updating, adopting, audits
 ├── DESIGN.md                 ← the build contract; where any file disagrees with it, DESIGN.md wins
 ├── copier.yml                ← questions, gated _exclude, _skip_if_exists, _tasks, _migrations
-├── VERSION                   ← the template's release number (0.4.0)
+├── VERSION                   ← the template's release number (0.5.0)
 ├── CHANGELOG.md              ← the template's history, Keep a Changelog
 ├── LICENSE                   ← MIT, Copyright (c) 2026 Sam Bailey t/a Syntek: the template only, never an author's writing (never shipped)
 ├── CONTRIBUTING.md           ← the front door for changes to the template: issue first, DESIGN.md approval, run-all.sh, pull requests

@@ -1,6 +1,6 @@
 # Changelog
 
-**Last Updated**: 17/10/2026 **Version**: 0.4.0 **Maintained By**: Syntek Studio
+**Last Updated**: 22/10/2026 **Version**: 0.5.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 All notable changes to syntek-author are documented here.
@@ -12,6 +12,8 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 ---
 
 ## [Unreleased]
+
+## [0.5.0] - 22/10/2026
 
 A new project now keeps its binary files (scans, signed and issued copies, archived email, large images, generated audio) outside the repository, under one data root per machine that the owner names in `SYNTEK_DATA_ROOT`, each file listed with its checksum in a committed manifest, so Git keeps the text (D50). An existing project keeps its files in the repository on the update to this release and opts in when it chooses; nothing is moved for it.
 
