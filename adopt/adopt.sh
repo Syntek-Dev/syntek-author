@@ -396,6 +396,71 @@ read_gates() { # $1 = copier.yml → "<what closes it>\t<path>" per line
     }' "$1"
 }
 
+# Whether the moving copy would write each template path, from the same _exclude lines: every
+# "<: if not (GATE) :>/path<: endif :>" ships the path only when GATE holds, and every generated
+# mode-file line "<: if DOC_TYPE != 'x' :>/path<: endif :>" only for x. One "<ships when>\t<path>"
+# per line (the path without its leading /).
+read_ship_gates() { # $1 = copier.yml
+  awk '
+    /^_exclude:/ { on = 1; next }
+    on && /^[A-Za-z_][A-Za-z0-9_]*:/ { exit }
+    on && /^[[:space:]]+- "<: if not \(/ {
+      s = $0
+      sub(/^[[:space:]]+- "<: if not \(/, "", s)
+      i = index(s, ") :>/")
+      if (i == 0) next
+      gate = substr(s, 1, i - 1); p = substr(s, i + 5)
+      sub(/<: endif :>".*$/, "", p)
+      if (p != "") print gate "\t" p
+      next
+    }
+    on && /^[[:space:]]+- "<: if DOC_TYPE != \047[a-z]+\047 :>\// {
+      s = $0
+      sub(/^[[:space:]]+- "<: if DOC_TYPE != \047/, "", s)
+      k = s; sub(/\047.*$/, "", k)
+      p = s; sub(/^[a-z]+\047 :>\//, "", p); sub(/<: endif :>".*$/, "", p)
+      if (p != "") print "DOC_TYPE == \047" k "\047\t" p
+    }' "$1"
+}
+# $1 = copier.yml, $2 = the kind, $3 = the store the printed copy takes; template paths on
+# stdin → "ships\tpath", "closed\tpath" (the kind or the store never ships it) or
+# "only\tpath\t<the rest of its gate>" (it ships only if the answers open that).
+ship_verdicts() {
+  awk -v kind="$2" -v store="$3" '
+    BEGIN { FS = "\t" }
+    FILENAME == ARGV[1] { cond[++n] = $1; gp[n] = $2; next }
+    {
+      p = $0; closed = 0; rest = ""
+      for (i = 1; i <= n; i++) {
+        if (!(p == gp[i] || index(p, gp[i] "/") == 1)) continue
+        c = cond[i]
+        if (match(c, /^DOC_TYPE (==|!=) \047[a-z]+\047/)) {
+          t = substr(c, 1, RLENGTH); after = substr(c, RLENGTH + 1)
+          if (after == "" || after ~ /^ and /) {
+            k = t; sub(/^DOC_TYPE (==|!=) \047/, "", k); sub(/\047$/, "", k)
+            if ((t ~ /==/) != (k == kind)) { closed = 1; break }
+            c = after; sub(/^ and /, "", c)
+          }
+        }
+        m = split(c, term, " and "); keep = ""
+        for (j = 1; j <= m; j++) {
+          x = term[j]
+          if (store != "" && x ~ /^\(?DATA_STORE( \| default\(\047[a-z]+\047\))?\)? == \047[a-z]+\047$/) {
+            v = x; sub(/^.*== \047/, "", v); sub(/\047$/, "", v)
+            if (v != store) { closed = 1; break }
+            continue
+          }
+          keep = keep (keep == "" ? "" : " and ") x
+        }
+        if (closed) break
+        if (keep != "") rest = rest (rest == "" ? "" : " and ") keep
+      }
+      if (closed) print "closed\t" p
+      else if (rest != "") print "only\t" p "\t" rest
+      else print "ships\t" p
+    }' <(if [ -f "$1" ]; then read_ship_gates "$1"; fi) -
+}
+
 # ── The data root (DESIGN.md Section 8, D50) ──────────────────────────────────
 # A fresh copy defaults DATA_STORE to external, but an adopted repository usually tracks its
 # binaries, so every printed copy passes --data DATA_STORE=repo. Not where another syntek
@@ -1433,22 +1498,32 @@ fi
 
 heading "Template files the copy will REPLACE (review them in git diff afterwards)"
 if [ -d "$TEMPLATE_DIR" ]; then
+  # A path whose _exclude gate the kind (or the store the copy takes) shuts is never written,
+  # so it is not listed; one whose gate depends on an answer is listed with that gate.
   pairs=0
+  gated_pairs=0
   others=0
-  while IFS= read -r p; do
-    p=${p#./}
-    [ -e "$p" ] || continue
-    is_seed "$p" && continue
-    if is_dataroot_ignore "$p" && [ "$STORE" != external ]; then continue; fi # the data-root section names it
+  while IFS=$'\t' read -r v p c; do
+    [ "$v" = closed ] && continue
     case "${p##*/}" in
-      CONTEXT.md | CLAUDE.md) pairs=$((pairs + 1)) ;;
-      *) item replace "$p"; others=$((others + 1)) ;;
+      CONTEXT.md | CLAUDE.md) if [ "$v" = only ]; then gated_pairs=$((gated_pairs + 1)); else pairs=$((pairs + 1)); fi ;;
+      *) if [ "$v" = only ]; then item replace "$p, only if the answers give: $c"; else item replace "$p"; fi
+         others=$((others + 1)) ;;
     esac
-  done < <(cd "$TEMPLATE_DIR" && find . -type f ! -name '.copier-answers.syntek-author.yml' | LC_ALL=C sort)
+  done < <( (cd "$TEMPLATE_DIR" && find . -type f ! -name '.copier-answers.syntek-author.yml') | sed 's#^\./##' | LC_ALL=C sort \
+             | while IFS= read -r p; do
+                 [ -e "$p" ] || continue
+                 is_seed "$p" && continue
+                 if is_dataroot_ignore "$p" && [ "$STORE" != external ]; then continue; fi # the data-root section names it
+                 printf '%s\n' "$p"
+               done | ship_verdicts "$COPIER_YML" "$KIND" "$STORE")
   if [ "$pairs" -gt 0 ]; then
     item replace "$pairs governance file(s) (CONTEXT.md and CLAUDE.md) at template paths"
   fi
-  [ $((pairs + others)) -gt 0 ] || item clean "none: nothing at a template path yet"
+  if [ "$gated_pairs" -gt 0 ]; then
+    item replace "$gated_pairs more governance file(s) at template paths an option or family gates, only if the answers open it"
+  fi
+  [ $((pairs + gated_pairs + others)) -gt 0 ] || item clean "none: nothing at a template path yet"
 else
   item skipped "no template/ beside this script: run it from a clone of syntek-author to see this list"
 fi
