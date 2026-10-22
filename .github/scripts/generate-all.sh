@@ -27,7 +27,10 @@
 #                                on the answer and not only on the fantasy default;
 #                   for the provider (DESIGN.md D53), one render per other DATA_PROVIDER value
 #                   (theology onedrive and nas, fiction dropbox, business other-cloud), business
-#                   Google Drive under the external store (no .github/), and two traps that pass
+#                   Google Drive under the external store (no .github/) and at repo as the twin
+#                   of business repo (.github/ ships, and the two answers files differ only in
+#                   DATA_PROVIDER, so byte-identity.sh check 3 judges the Drive gate on real
+#                   renders), and two traps that pass
 #                   DATA_PROVIDER=google-drive DATA_STORE=repo to a book, once by --data and once
 #                   through a scratch settings file (no .github/ either: the gate is business);
 #                   for the data root (DESIGN.md D50), a copy beside a sibling answers file from
@@ -213,6 +216,7 @@ business-all-on      INCLUDE_REFERENCES=true DATA_PROVIDER=google-drive DATA_STO
 business-minimal     INCLUDE_REFERENCES=false DATA_PROVIDER=none BUSINESS_FAMILIES=[business]
 business-adoption    SEED_EXAMPLES=false
 business-repo        DATA_STORE=repo
+business-repo-gd     DATA_STORE=repo DATA_PROVIDER=google-drive
 business-gd-external DATA_PROVIDER=google-drive
 theology-onedrive    DATA_PROVIDER=onedrive
 theology-nas         DATA_PROVIDER=nas

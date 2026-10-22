@@ -135,10 +135,13 @@
 #                       nothing.
 #                   42. A stranded hold is fixed: an update that stops between the stages (a
 #                       refused DOC_TYPE change, in a clone) leaves the link held as
-#                       .agents.syntek-held and prints the hand fix 'mv .agents.syntek-held
-#                       .agents'; run as printed, the fix leaves the clone's work tree clean
+#                       .agents.syntek-held and prints the hand fix, whose last step is
+#                       'mv .agents.syntek-held .agents' (this stop leaves .agents absent, so
+#                       step 1 finds nothing there, step 2 has nothing to remove, and that mv
+#                       alone runs); run as printed, the fix leaves the clone's work tree clean
 #                       and the link's target unchanged; and so does the script's own restore
-#                       after a hold left by hand.
+#                       after a hold left by hand. The script's --self-test runs the whole fix
+#                       after the stops that leave .agents put back.
 #                   43. The control: a real .agents/ folder whose skills link points outside the
 #                       project updates with exit 0, the link untouched.
 #
@@ -240,7 +243,8 @@
 #                   66. D54: an owner's differing entry is kept and reported once: one line on
 #                       the update, none on the next.
 #                   67. D54: a git-ignored .mcp.json keeps its bytes and mtime, and the update
-#                       says so in exactly one line.
+#                       says so in exactly one line; the report never lists it under a section
+#                       whose commands would compare or take it (D42: it was never read).
 #                   68. D54: where the owner allows mcp__scrapling__*, no Scrapling ask is
 #                       added (the other rules are, and the allow is kept), and each one left
 #                       out is reported 'because you allow it'.
@@ -291,7 +295,43 @@
 #                   84. D53: a second update of the Drive project changes nothing.
 #                   85. D53: the v0.5.0 migration lists a Drive workflow the answers no longer
 #                       manage and a seed line that names INCLUDE_DRIVE_SYNC, and lists no
-#                       workflow the answers still manage.
+#                       workflow the answers still manage; on the crossing update that turns
+#                       external (the settings trap), it lists the pre-guard workflow the update
+#                       deleted, which the report offers to restore, and tells the owner to
+#                       delete the README line rather than giving it the google-drive text.
+#
+#                  A discarded update, the --write line and an ignored settings.json (DESIGN.md
+#                  D51). Checks 86–88, 90 and 91 run once per run on the report fixture: two
+#                  projects copied at v0.2.0 and updated to v0.3.0, each update then discarded
+#                  and run again, and a third whose owner keeps .claude/settings.json out of git,
+#                  updated to v0.3.0 and then to v0.4.0; and, on a second build of the fixture
+#                  whose v0.2.0 already offers the hook, autoCompactEnabled, the D54 deny and
+#                  asks and the two servers, a project copied at v0.1.0 and updated to v0.2.0,
+#                  that update discarded, then updated to v0.3.0, beside one updated from v0.1.0
+#                  to v0.3.0 directly. Check 89 reads the D54 flow above.
+#                   86. An update discarded with git reset --hard and git clean -fd, then run
+#                       again, delivers what the first run did: every path it changed, with the
+#                       same status and bytes, and the record chained on the one HEAD committed.
+#                   87. The same for an update discarded with git stash -u.
+#                   88. A hand rerun of the update stage over either redo's uncommitted tree,
+#                       whose files still hold its writes, changes nothing (files and refs).
+#                   89. D51: where the owner allows mcp__scrapling__*, the update says once,
+#                       naming Scrapling, that it waits for asks .claude/settings.json does not
+#                       hold, with both ways in (add the asks and run --write, or add the server
+#                       by hand), and no --write line promises Scrapling to the next update; the
+#                       catch-all project's --write line names opencode.json and never
+#                       .codex/config.toml, to which the lane gave every prompt table.
+#                   90. D51: a git-ignored .claude/settings.json keeps its bytes and mtime
+#                       through both updates, each of which names the entries to add by hand in
+#                       exactly one line, and the record lists none as offered.
+#                   91. D51: an update discarded with git reset --hard and git clean -fd, then an
+#                       update to a later release, gives what a direct update gives: every path
+#                       with the same status and bytes (the D54 deny and asks, the threshold
+#                       hook and autoCompactEnabled in settings.json, the servers in .mcp.json,
+#                       the refreshed and the arrived shared skills), the record listing the
+#                       same offers and written blobs, chained on the one HEAD committed. The
+#                       discarded update must have offered those entries, and the direct one
+#                       delivered them, or the comparison proves nothing.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -300,11 +340,13 @@
 #                  Numbers are stable identifiers. Append, never renumber.
 #
 #                  What it CANNOT check: an upgrade from any release but v0.1.0 (and v0.3.0 for
-#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85), or a migration
+#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85 and 89), or a migration
 #                  the update does not reach (a later release's script needs its own flow here,
 #                  written with the release that moves the folder: DESIGN.md D26, D44); a real
 #                  syntek-media beside it (an invented sibling answers file stands in: the
-#                  coexistence test runs both templates); whether a client honours the files.
+#                  coexistence test runs both templates), or a sibling's update discarded
+#                  (family-update.py's own --self-test judges that); whether a client honours
+#                  the files.
 #
 # SELF-TEST. --self-test runs the whole flow against a fixture template written at runtime,
 #            proves the result clean, then mutates the result once per check and asserts
@@ -316,9 +358,11 @@
 #            predates its agent questions, stands in for v0.3.0. For checks 40–43 the fixture
 #            is given the real migrations/agents-outside-link.py and the real family-shared
 #            migrations block of copier.yml, and every update runs for real. The report
-#            fixture runs the real D54 lane (checks 47 and 59). Checks 60–85 need the real
-#            template, so the self-test writes the trees, logs and statuses a clean run leaves
-#            (dt_synth) and mutates one input per probe, which proves every judge too.
+#            fixture runs the real D54 lane (checks 47 and 59), and the discarded updates
+#            and the ignored settings.json run on it too (checks 86–88, 90 and 91). Checks 60–85 and
+#            89 need the real template, so the self-test writes the trees, logs and statuses
+#            a clean run leaves (dt_synth) and mutates one input per probe, which proves every
+#            judge too.
 #
 # Requirements: bash 4+, git, rsync, Python 3.11+ (tomllib), uvx (or COPIER_CMD), and the
 #               v0.1.0, v0.3.0 and v0.4.0 tags in the template repository (CI checks out with
@@ -1111,9 +1155,11 @@ tpl_file() { # $1 = template repo, $2 = ref, $3 = path under template/, $4 = des
 
 # Three tagged releases of the fixture with the real update script: each section of the
 # report gets one planted file (RP_WANT), and the shared set gets a refresh, an owner edit and
-# an arrival.
-report_fixture() { # $1 = dest
-  local t="$1"
+# an arrival. With $2 = early (check 91), release 2 already offers what release 3 offers in the
+# settings and MCP lanes, and the D54 deny and asks too: the hook entry, autoCompactEnabled,
+# the nine rules and the two servers, so an update to it that is discarded has offered them.
+report_fixture() { # $1 = dest, $2 = early (optional)
+  local t="$1" early="${2:-}"
   sa_fixture_template "$t" >/dev/null
   sa_add_update "$t" syntek-author "$RP_SHARED $RP_ARRIVES" mcp || die "could not give the fixture the update script"
   # D54: the first two releases declare no MCP server in the seed .mcp.json; the third does, so
@@ -1126,6 +1172,20 @@ report_fixture() { # $1 = dest
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 1' && sa_git "$t" tag v0.1.0
   printf '\nRelease 2.\n' >> "$t/template/README.md"
   printf '\nRevision 2.\n' >> "$t/template/.claude/skills/wait-what/SKILL.md"
+  if [[ "$early" == early ]]; then
+    python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" "$SA_MCP_DENY" "$SA_MCP_ASKS" <<'PY'
+import json, sys
+path, cmd, data, deny, asks = sys.argv[1:]
+rules = {"deny": [deny], "ask": asks.split()}
+json.dump({"model": "opus", "autoCompactEnabled": False,
+           "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": cmd, "timeout": 10}]}]},
+           "permissions": rules}, open(path, "w"), indent=2)
+d = json.load(open(data, encoding="utf-8"))
+d["settings"] = {"autoCompactEnabled": False, **d["settings"], "permissions": rules}
+json.dump(d, open(data, "w", encoding="utf-8"), indent=2)
+PY
+    printf '%s' "$SA_MCP_SHARED" > "$t/template/.mcp.json"
+  fi
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'release 2' && sa_git "$t" tag v0.2.0
   printf '\nRelease 3.\n' >> "$t/template/README.md"
   printf '\nRevision 3.\n' >> "$t/template/.claude/skills/wait-what/SKILL.md"
@@ -1141,9 +1201,11 @@ report_fixture() { # $1 = dest
   printf -- '---\nname: to-questionnaire\ndescription: A shared skill.\n---\n\n# Skill: to-questionnaire\n' > "$t/template/$RP_ARRIVES"
   python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" <<'PY'
 import json, sys
-json.dump({"model": "opus", "autoCompactEnabled": False,
-           "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}]}},
-          open(sys.argv[1], "w"), indent=2)
+# Release 2's settings kept (the early fixture's rules), the hook and the value set.
+s = json.load(open(sys.argv[1], encoding="utf-8"))
+s.update({"model": "opus", "autoCompactEnabled": False,
+          "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}]}})
+json.dump(s, open(sys.argv[1], "w"), indent=2)
 # Release 3 also offers the top-level autoCompactEnabled, as the real family-refresh.json does.
 d = json.load(open(sys.argv[3], encoding="utf-8"))
 d["settings"] = {"autoCompactEnabled": False, **d["settings"]}
@@ -1182,11 +1244,31 @@ rp_hand() { # $1 = project, then environment assignments: one hand run of the up
      python3 "$RP_TPL/migrations/family-update.py" update --src "$RP_TPL" --to "$RP_TO" --answers "$SA_ANSWERS_FILE")
 }
 
+rp_state() { # $1 = project → every path git status lists, with its status and the sha1 of its bytes
+  local p="$1" line f
+  git -C "$p" status --porcelain -uall | LC_ALL=C sort | while IFS= read -r line; do
+    f="${line:3}"
+    if [[ -f "$p/$f" ]]; then printf '%s %s\n' "$line" "$(sha1sum < "$p/$f" | cut -d' ' -f1)"; else printf '%s -\n' "$line"; fi
+  done
+}
+
 RP_TPL=""; RP_TO=""; RP_PROJ=""; RP_LOG=""; RP_REJ_LOG=""; RP_STATUS=0; RP_REJ_STATUS=0; RP_COPY=0
 RP_BEYOND=""; RP_CMD_FAILS=""; RP_CMD_COUNT=0; RP_RERUN_CHANGED=""; RP_AGAIN_STATUS=0; RP_AGAIN_DIRTY=""; RP_AGAIN_LOG=""
 RP_ONE_LINE=()
+# Checks 86–88, by how the update was discarded (reset, stash): the exit status of the flow's
+# steps, what the second run delivered differently, whether its record sits on the one HEAD
+# committed ("ok"), and what a hand rerun over its uncommitted tree changed.
+declare -A RP_REDO_ST=() RP_REDO_DIFF=() RP_REDO_CHAIN=() RP_REDO_RERUN=()
+# Check 90: a .claude/settings.json the owner keeps out of git, through two updates.
+RP_IGN_LINE=".claude/settings.json is ignored by git, so it was not read"
+RP_IGN_ST=0; RP_IGN_STAT_PRE=""; RP_IGN_STAT_POST=""; RP_IGN_N1=0; RP_IGN_N2=0; RP_IGN_REC=0
+# Check 91, on the early fixture: the flow's status, what the discarded update to v0.2.0 failed to
+# offer and what the direct update to v0.3.0 failed to deliver (so the comparison means
+# something), how the two results differ, how their records' offer and written-blob lines
+# differ, and whether the result's record sits on the one HEAD committed ("ok").
+RP_LATER_ST=0; RP_LATER_MISSING=""; RP_LATER_DIFF=""; RP_LATER_REC=""; RP_LATER_CHAIN=""
 run_report_flow() { # $1 = work dir — the fixture flow, the same in the real run and the self-test
-  local w="$1/rp" log="$1/rp-flow.log" p off rej before after k out
+  local w="$1/rp" log="$1/rp-flow.log" p off rej before after k out d st base first
   RP_RAN=true; RP_TPL="$w/tpl"; RP_PROJ="$w/proj"; RP_LOG="$w/update.log"; RP_REJ_LOG="$w/rej.log"; RP_AGAIN_LOG="$w/again.log"
   RP_STATUS=0; RP_REJ_STATUS=0; RP_COPY=0; RP_AGAIN_STATUS=0; RP_ONE_LINE=()
   mkdir -p "$w"; : > "$RP_LOG"; : > "$RP_REJ_LOG"; : > "$RP_AGAIN_LOG"
@@ -1224,7 +1306,7 @@ run_report_flow() { # $1 = work dir — the fixture flow, the same in the real r
   before="$(git -C "$p" status --porcelain; git -C "$p" for-each-ref)"
   rp_hand "$p" >>"$log" 2>&1 || true
   after="$(git -C "$p" status --porcelain; git -C "$p" for-each-ref)"
-  [[ "$before" == "$after" ]] && RP_RERUN_CHANGED="" || RP_RERUN_CHANGED="$(diff <(echo "$before") <(echo "$after") | grep '^[<>]' | head -3 | paste -sd' ' -)"
+  [[ "$before" == "$after" ]] && RP_RERUN_CHANGED="" || RP_RERUN_CHANGED="$(diff <(echo "$before") <(echo "$after") | grep '^[<>]' | head -3 | paste -sd' ' - || true)"
   sa_git "$p" checkout -q syntek-author/template -- "$RULES01" >>"$log" 2>&1 || true
   sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated to v0.3.0' >>"$log" 2>&1 || true
   rp_update "$p" v0.3.0 >"$RP_AGAIN_LOG" 2>&1 || RP_AGAIN_STATUS=$?
@@ -1239,6 +1321,128 @@ run_report_flow() { # $1 = work dir — the fixture flow, the same in the real r
     esac
     RP_ONE_LINE+=("$k"$'\t'"$?"$'\t'"$(printf '%s\n' "$out" | grep -c . || true)"$'\t'"$(printf '%s' "$out" | head -1)")
   done
+  # 86–88: an update discarded and run again delivers what the first run did, on the record HEAD
+  # committed; a hand rerun over the second run's uncommitted tree changes nothing.
+  RP_REDO_ST=(); RP_REDO_DIFF=(); RP_REDO_CHAIN=(); RP_REDO_RERUN=()
+  for k in reset stash; do
+    d="$w/discard-$k"; st=0
+    rp_copy "$RP_TPL" v0.2.0 "$d" theology >>"$log" 2>&1 || st=$?
+    if [[ "$st" -eq 0 ]]; then
+      { sa_git "$d" add -A && sa_git "$d" commit -q -m 'copied at v0.2.0'; } >>"$log" 2>&1 || st=$?
+      base="$(git -C "$d" rev-parse -q --verify refs/syntek-author/template 2>/dev/null || true)"
+      rp_update "$d" v0.3.0 >>"$log" 2>&1 || st=$?
+      first="$(rp_state "$d")"
+      if [[ "$k" == reset ]]; then
+        { sa_git "$d" reset -q --hard && sa_git "$d" clean -q -fd; } >>"$log" 2>&1 || st=$?
+      else
+        sa_git "$d" stash push -q -u >>"$log" 2>&1 || st=$?
+      fi
+      [[ -z "$(git -C "$d" status --porcelain)" ]] || st=99   # the update was not discarded
+      rp_update "$d" v0.3.0 >>"$log" 2>&1 || st=$?
+      out="$(rp_state "$d")"
+      if [[ -z "$first" ]]; then
+        RP_REDO_DIFF[$k]="the first update changed nothing"
+      else
+        RP_REDO_DIFF[$k]="$(diff <(echo "$first") <(echo "$out") | grep '^[<>]' | head -3 | paste -sd' ' - || true)"
+      fi
+      out="$(git -C "$d" rev-parse -q --verify 'refs/syntek-author/template^' 2>/dev/null || true)"
+      [[ -n "$base" && "$out" == "$base" ]] && RP_REDO_CHAIN[$k]=ok || RP_REDO_CHAIN[$k]="its parent is '${out:-none}', not '${base:-none}'"
+      before="$(git -C "$d" status --porcelain; git -C "$d" for-each-ref)"
+      rp_hand "$d" >>"$log" 2>&1 || true
+      after="$(git -C "$d" status --porcelain; git -C "$d" for-each-ref)"
+      RP_REDO_RERUN[$k]="$(diff <(echo "$before") <(echo "$after") | grep '^[<>]' | head -3 | paste -sd' ' - || true)"
+    fi
+    RP_REDO_ST[$k]="$st"
+  done
+  # 90: a settings.json the owner keeps out of git is never read or written; each update names
+  # the entries to add by hand once, and none is recorded as offered.
+  d="$w/settings-ignored"; st=0; RP_IGN_STAT_PRE=""; RP_IGN_STAT_POST=""; RP_IGN_N1=0; RP_IGN_N2=0; RP_IGN_REC=0
+  rp_copy "$RP_TPL" v0.2.0 "$d" theology >>"$log" 2>&1 || st=$?
+  if [[ "$st" -eq 0 ]]; then
+    { sa_git "$d" add -A && sa_git "$d" commit -q -m 'copied at v0.2.0'
+      printf '/.claude/settings.json\n' >> "$d/.gitignore"
+      sa_git "$d" rm -q --cached .claude/settings.json
+      sa_git "$d" add -A && sa_git "$d" commit -q -m 'my settings stay out of git'; } >>"$log" 2>&1 || st=$?
+    RP_IGN_STAT_PRE="$(dt_stat "$d/.claude/settings.json")"
+    rp_update "$d" v0.3.0 >"$w/ignored-1.log" 2>&1 || st=$?
+    { sa_git "$d" add -A && sa_git "$d" commit -q -m 'updated to v0.3.0'; } >>"$log" 2>&1 || st=$?
+    rp_update "$d" v0.4.0 >"$w/ignored-2.log" 2>&1 || st=$?
+    cat "$w/ignored-1.log" "$w/ignored-2.log" >>"$log"
+    RP_IGN_N1="$(grep -cF "$RP_IGN_LINE" "$w/ignored-1.log" || true)"
+    RP_IGN_N2="$(grep -cF "$RP_IGN_LINE" "$w/ignored-2.log" || true)"
+    RP_IGN_REC="$(git -C "$d" log -1 --format=%B refs/syntek-author/template 2>/dev/null | grep -c '^settings: ' || true)"
+    RP_IGN_STAT_POST="$(dt_stat "$d/.claude/settings.json")"
+  fi
+  RP_IGN_ST="$st"
+  run_later_flow "$w" "$log"
+}
+
+# The offer and written-blob lines of a project's newest render record.
+rp_record() { # $1 = project
+  git -C "$1" log -1 --format=%B refs/syntek-author/template 2>/dev/null \
+    | grep -E '^(settings-offered|settings|mcp-offered|mcp|written-blob): ' || true
+}
+
+# What the settings and MCP lanes owe a project of the early fixture at v0.2.0 or later: the D54
+# deny and each ask once, the threshold hook once, autoCompactEnabled false, both servers in
+# .mcp.json. Prints the missing ones, '; '-joined (nothing when all are there).
+rp_holds() { # $1 = project
+  python3 - "$1" "$RP_HOOK_CMD" "$SA_MCP_DENY" "$SA_MCP_ASKS" "$SA_MCP_SERVERS" <<'PY'
+import json, sys
+p, cmd, deny, asks, servers = sys.argv[1:]
+def load(rel):
+    try:
+        v = json.load(open(p + "/" + rel, encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return v if isinstance(v, dict) else {}
+s, m = load(".claude/settings.json"), load(".mcp.json")
+perm = s.get("permissions") if isinstance(s.get("permissions"), dict) else {}
+miss = [] if (perm.get("deny") or []).count(deny) == 1 else ["the deny " + deny]
+miss += ["the ask " + a for a in asks.split() if (perm.get("ask") or []).count(a) != 1]
+hooks = [h for e in ((s.get("hooks") or {}).get("UserPromptSubmit") or []) if isinstance(e, dict)
+         for h in (e.get("hooks") or []) if isinstance(h, dict) and h.get("command") == cmd]
+miss += [] if len(hooks) == 1 else ["the threshold hook once"]
+miss += [] if s.get("autoCompactEnabled") is False else ["autoCompactEnabled false"]
+miss += ["the server %s in .mcp.json" % x for x in servers.split() if x not in (m.get("mcpServers") or {})]
+print("; ".join(miss))
+PY
+}
+
+# 91: copied at the early fixture's first release, updated to its second, the update discarded
+# with git reset --hard and git clean -fd, then updated to its third, against a direct update from
+# the first to the third: every path git status lists, with its status and bytes, the record's
+# offers and written blobs, and the record on the one HEAD committed.
+run_later_flow() { # $1 = the report flow's work dir, $2 = its log
+  local w="$1" log="$2" t="$1/tpl-later" a="$1/later-direct" d="$1/later-discarded" st=0 base first out f
+  RP_LATER_ST=0; RP_LATER_MISSING=""; RP_LATER_DIFF=""; RP_LATER_REC=""; RP_LATER_CHAIN=""
+  report_fixture "$t" early >>"$log" 2>&1 || st=$?
+  if [[ "$st" -eq 0 ]]; then
+    rp_copy "$t" v0.1.0 "$a" theology >>"$log" 2>&1 || st=$?
+    rp_copy "$t" v0.1.0 "$d" theology >>"$log" 2>&1 || st=$?
+  fi
+  if [[ "$st" -eq 0 ]]; then
+    { sa_git "$a" add -A && sa_git "$a" commit -q -m 'copied at v0.1.0'
+      sa_git "$d" add -A && sa_git "$d" commit -q -m 'copied at v0.1.0'; } >>"$log" 2>&1 || st=$?
+    rp_update "$a" v0.3.0 >>"$log" 2>&1 || st=$?
+    base="$(git -C "$d" rev-parse -q --verify refs/syntek-author/template 2>/dev/null || true)"
+    rp_update "$d" v0.2.0 >>"$log" 2>&1 || st=$?
+    first="$(rp_holds "$d")"
+    [[ -z "$first" ]] || RP_LATER_MISSING="the discarded update to v0.2.0 did not offer $first"
+    { sa_git "$d" reset -q --hard && sa_git "$d" clean -q -fd; } >>"$log" 2>&1 || st=$?
+    [[ -z "$(git -C "$d" status --porcelain)" ]] || st=99   # the update was not discarded
+    rp_update "$d" v0.3.0 >>"$log" 2>&1 || st=$?
+    out="$(rp_holds "$a")"
+    for f in .claude/skills/wait-what/SKILL.md .claude/skills/grill-me/SKILL.md "$RP_ARRIVES"; do
+      cmp -s "$a/$f" <(git -C "$t" show "v0.3.0:template/$f") || out+="${out:+; }the shared $f at v0.3.0"
+    done
+    [[ -z "$out" ]] || RP_LATER_MISSING+="${RP_LATER_MISSING:+; }the direct update to v0.3.0 did not deliver $out"
+    RP_LATER_DIFF="$(diff <(rp_state "$a") <(rp_state "$d") | grep '^[<>]' | head -3 | paste -sd' ' - || true)"
+    RP_LATER_REC="$(diff <(rp_record "$a") <(rp_record "$d") | grep '^[<>]' | head -3 | paste -sd' ' - || true)"
+    out="$(git -C "$d" rev-parse -q --verify 'refs/syntek-author/template^' 2>/dev/null || true)"
+    [[ -n "$base" && "$out" == "$base" ]] && RP_LATER_CHAIN=ok || RP_LATER_CHAIN="its parent is '${out:-none}', not '${base:-none}'"
+  fi
+  RP_LATER_ST="$st"
 }
 
 report_checks() {
@@ -1285,6 +1489,34 @@ PY
     IFS=$'\t' read -r k rc n first <<< "$line"
     [[ "$rc" -eq 0 && "$n" -eq 1 ]] || finding "check 50 — $L $k: the update stage printed $n line(s) and exited $rc, not one line and 0 ('$first')"
   done
+  for k in reset stash; do
+    n=86; [[ "$k" == stash ]] && n=87
+    if [[ "${RP_REDO_ST[$k]:-none}" != 0 ]]; then
+      finding "check $n — $L the copy, the update, its discarding ($k) or the second run failed (status ${RP_REDO_ST[$k]:-none})"
+    elif [[ -n "${RP_REDO_DIFF[$k]:-}" ]]; then
+      finding "check $n — $L after the update was discarded ($k), the second run did not deliver what the first did: ${RP_REDO_DIFF[$k]}"
+    elif [[ "${RP_REDO_CHAIN[$k]:-}" != ok ]]; then
+      finding "check $n — $L after the update was discarded ($k), the second run's record is not on the record HEAD committed: ${RP_REDO_CHAIN[$k]:-none}"
+    fi
+    [[ -z "${RP_REDO_RERUN[$k]:-}" ]] \
+      || finding "check 88 — $L a hand rerun over the uncommitted tree of the second run ($k) changed something: ${RP_REDO_RERUN[$k]}"
+  done
+  if [[ "$RP_IGN_ST" -ne 0 ]]; then
+    finding "check 90 — $L the project whose owner keeps .claude/settings.json out of git did not copy or update (status $RP_IGN_ST)"
+  elif [[ -z "$RP_IGN_STAT_PRE" || "$RP_IGN_STAT_POST" != "$RP_IGN_STAT_PRE" || "$RP_IGN_N1" -ne 1 || "$RP_IGN_N2" -ne 1 || "$RP_IGN_REC" -ne 0 ]]; then
+    finding "check 90 — $L the git-ignored .claude/settings.json was touched, or the two updates named its entries $RP_IGN_N1 and $RP_IGN_N2 time(s), not once each, or the record lists $RP_IGN_REC as offered"
+  fi
+  if [[ "$RP_LATER_ST" -ne 0 ]]; then
+    finding "check 91 — $L the copies at v0.1.0, the update to v0.2.0, its discarding (reset and clean) or the update to v0.3.0 failed (status $RP_LATER_ST)"
+  else
+    [[ -z "$RP_LATER_MISSING" ]] || finding "check 91 — $L the comparison proves nothing: $RP_LATER_MISSING"
+    [[ -z "$RP_LATER_DIFF" ]] \
+      || finding "check 91 — $L after an update to v0.2.0 was discarded, the update to v0.3.0 did not give what a direct update from v0.1.0 gives: $RP_LATER_DIFF"
+    [[ -z "$RP_LATER_REC" ]] \
+      || finding "check 91 — $L after an update to v0.2.0 was discarded, the record of the update to v0.3.0 does not list a direct update's offers and written blobs: $RP_LATER_REC"
+    [[ "$RP_LATER_CHAIN" == ok ]] \
+      || finding "check 91 — $L after an update to v0.2.0 was discarded, the record of the update to v0.3.0 is not on the record HEAD committed: ${RP_LATER_CHAIN:-none}"
+  fi
   return 0
 }
 
@@ -1533,8 +1765,11 @@ DT_OWNER_SERVER="owner-notes"      # an invented server the owner declared befor
 DT_DIFF_LINE='kept your "scrapling" MCP server in .mcp.json'
 DT_IGNORED_LINE='.mcp.json is ignored by git, so it was not read'
 DT_ALLOW_LINE='not added to .claude/settings.json, because you allow it'
+DT_WAIT_LINE='wait for ask rules --write cannot carry, because .claude/settings.json does not ask before their tools (you allow them there)'
 DT_DRIVE_LIST="These workflows name Google Drive's API"
 DT_STALE_DRIVE="v0.5.0: DATA_PROVIDER replaces INCLUDE_DRIVE_SYNC"
+DT_STALE_DRIVE_GONE="v0.5.0: delete this line: these answers"
+DT_DRIVE_GONE="This update deleted these workflows, which name Google Drive's API"
 DT_SAME="the template did not change"
 DT_CHANGED_SEC="NOT UPDATED because you had changed them"
 DT_DELETED_SEC="DELETED by this update although you had changed them"
@@ -2007,6 +2242,9 @@ mcp_flow_checks() {
   n="$(grep -cF "$DT_IGNORED_LINE" "$MA_LOG" || true)"
   [[ "$(dt_stat "$MA_PROJ/.mcp.json")" == "$MA_STAT_PRE" && "$n" -eq 1 ]] \
     || finding "check 67 — $L the git-ignored .mcp.json was touched, or the update said so $n time(s), not once"
+  s="$(dt_section_of "$MA_LOG" .mcp.json)"
+  [[ -z "$s" || "$s" == "NOT COMPARED because git ignores them"* ]] \
+    || finding "check 67 — $L the report lists the git-ignored .mcp.json under '$s', whose commands read or overwrite it"
   v="$(ut_judge rules "$MA_PROJ/.claude/settings.json" allowed)"
   [[ "$v" == ok ]] || finding "check 68 — $L where the owner allows mcp__scrapling__*, .claude/settings.json $v"
   for s in $SA_MCP_ASKS; do
@@ -2016,6 +2254,21 @@ mcp_flow_checks() {
   done
   awk -v h="$DT_DRIVE_LIST" -v f="    $DT_PUSH" 'index($0, h) { on = 1 } on && $0 == f { ok = 1 } END { exit !ok }' "$MA_LOG" \
     || finding "check 85 — $L the v0.5.0 migration did not list the owner's own $DT_PUSH, which the answers no longer manage"
+  # 89: the asks the owner allows are said once instead of a --write promise; the --write line
+  # names only the client files that lack a rule.
+  n="$(grep -cF "$DT_WAIT_LINE" "$MA_LOG" || true)"
+  a="$(grep -F "$DT_WAIT_LINE" "$MA_LOG" | head -1 || true)"
+  if [[ "$n" -ne 1 || "$a" != *" scrapling"* || "$a" != *"and run python3 $DT_PERMS --write"* || "$a" != *"by hand"* ]]; then
+    finding "check 89 — $L where the owner allows mcp__scrapling__*, the update said $n time(s), not once, that Scrapling waits for asks .claude/settings.json does not hold, with both ways in"
+  elif grep -F "$DT_WRITE_LINE" "$MA_LOG" | grep -qE 'held back now: [^)]*scrapling'; then
+    finding "check 89 — $L the --write line promises Scrapling to the next update, though --write cannot carry the asks the owner allows"
+  fi
+  b="$(grep -F "$DT_WRITE_LINE" "$MC_LOG" | sed -nE 's/.* into (.*), run: python3 .*/\1/p' | head -1 || true)"
+  # A missing --write line is check 64's; here only a line that leaves opencode.json out.
+  [[ -z "$b" || "$b" == *opencode.json* ]] \
+    || finding "check 89 — $L the --write line does not name opencode.json ('$b'), whose catch-all allow holds none of the new asks"
+  [[ "$b" != *".codex/config.toml"* ]] \
+    || finding "check 89 — $L the --write line names .codex/config.toml ('$b'), which holds every prompt table the lane gave it"
   if [[ "$SB_ST" -ne 0 ]]; then
     finding "check 77 — $L the first update beside a sibling at external failed (exit $SB_ST)"
   else
@@ -2172,6 +2425,11 @@ drive_checks() {
   else
     v="$(answer_value DATA_STORE "$DRS_PROJ/$SA_ANSWERS_FILE")"; s="$(dr_gone_judge "$DRS_PROJ" "$DRS_LOG")"
     [[ "$v" == external && "$s" == ok ]] || finding "check 80 — $L a settings file with DATA_STORE external: the update recorded '${v:-nothing}' and $s (the hazard must show)"
+    if ! awk -v h="$DT_DRIVE_GONE" -v p="    $DT_PUSH" 'index($0, h) { on = 1; next } /^▸/ { on = 0 } on && $0 == p { f = 1 } END { exit !f }' "$DRS_LOG"; then
+      finding "check 85 — $L the crossing update to external did not list the pre-guard $DT_PUSH it deleted, which its report offers to restore"
+    elif grep -qF "$DT_STALE_DRIVE" "$DRS_LOG" || ! grep -qF "$DT_STALE_DRIVE_GONE" "$DRS_LOG"; then
+      finding "check 85 — $L under external the v0.5.0 migration gave README.md's INCLUDE_DRIVE_SYNC line the google-drive text, not 'delete this line'"
+    fi
   fi
   dr_sibling_check "$DRA_PROJ" "$DRA_ST" "the update after a fresh sibling at v0.5.0"
   dr_sibling_check "$DRB_PROJ" "$DRB_ST" "a fresh copy beside a sibling from before D50"
@@ -2313,7 +2571,7 @@ j("mc/proj/opencode.json", {**oc0, "permissions": oc0["permissions"] + oc_asks, 
 answers(f"mc/proj/{ans}", DOC_TYPE="theology", DATA_STORE="repo", DATA_PROVIDER="none")
 for d in ("mc/proj", "td/proj", "dr/v040", "dr/v030"):
     w(f"{d}/.claude/syntek-author-dataroot.py", "# the resolver\n"); w(f"{d}/.claude/syntek-author-dataroot.json", "{}\n")
-held = "▸ syntek-author: to carry the new ask and deny rules into opencode.json and .codex/config.toml, run: python3 .claude/syntek-author-permissions.py --write; the next update then adds the MCP servers to each file that holds their ask rules (held back now: opencode.json code-review-graph, scrapling)\n"
+held = "▸ syntek-author: to carry the new ask and deny rules into opencode.json, run: python3 .claude/syntek-author-permissions.py --write; the next update then adds the MCP servers to each file that holds their ask rules (held back now: opencode.json code-review-graph, scrapling)\n"
 w("mc/up.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
   "▸ syntek-author: added 1 MCP server to .mcp.json: code-review-graph\n"
   "▸ syntek-author: kept your \"scrapling\" MCP server in .mcp.json, which differs from the template's (compare: git diff syntek-author/template -- .mcp.json)\n"
@@ -2339,6 +2597,12 @@ w("mc/allowed.log", "▸ v0.5.0 migration — the data root and the provider (DE
   "▸ syntek-author: not added to .claude/settings.json, because you allow it: "
   + "; ".join("ask " + r for r in asks if r.startswith("mcp__scrapling__")) + "\n"
   "▸ syntek-author: .mcp.json is ignored by git, so it was not read and no MCP server was added to it (add them by hand): code-review-graph, scrapling\n"
+  "▸ syntek-author: to carry the new ask and deny rules into opencode.json and .gemini/settings.json, run: python3 .claude/syntek-author-permissions.py --write; "
+  "the next update then adds the MCP servers to each file that holds their ask rules (held back now: opencode.json code-review-graph; .gemini/settings.json code-review-graph)\n"
+  "▸ syntek-author: these MCP servers wait for ask rules --write cannot carry, because .claude/settings.json does not ask before their tools (you allow them there): "
+  "opencode.json scrapling; .gemini/settings.json scrapling. To add them, either add those asks to .claude/settings.json ("
+  + ", ".join(r for r in asks if r.startswith("mcp__scrapling__")) + ") and run python3 .claude/syntek-author-permissions.py --write, after which "
+  "the next update adds them; or add the servers to those files by hand (git show syntek-author/template:opencode.json; git show syntek-author/template:.gemini/settings.json).\n"
   "▸ syntek-author update report, 0.4.0 → 0.5.0\n")
 answers(f"mc/sibling/{ans}", DATA_STORE="external", DATA_AREA="Studio", DATA_SLUG="shared-probe", DATA_PROVIDER="none")
 # The update from v0.3.0.
@@ -2359,7 +2623,7 @@ w("dr/v040.log", "▸ v0.5.0 migration — the data root and the provider (DESIG
 w("dr/v030.log", "▸ syntek-author update report, 0.3.0 → 0.5.0\n")
 w("dr/again.log", "▸ syntek-author update report, 0.5.0 → 0.5.0: the template did not change.\n")
 gone = ("▸ syntek-author update report, 0.5.0 → 0.5.0\n"
-        "  DELETED by this update although you had changed them (the template retired them) (1):\n"
+        "  DELETED by this update although you had changed them (retired by the template, or by an answer that no longer ships them) (1):\n"
         "    .github/workflows/google-drive-pull.yml\n        see:     git show syntek-author/yours:.github/workflows/google-drive-pull.yml\n")
 answers(f"dr/onedrive/{ans}", DOC_TYPE="business", DATA_STORE="repo", DATA_PROVIDER="onedrive")
 w("dr/onedrive.log", gone)
@@ -2369,7 +2633,13 @@ w("dr/external.log", gone.replace("  DELETED", "  CONFLICT: both versions are in
 w("dr/index-before", ".gitignore\nlibrary/src/business/update-test-issued.pdf\n")
 w("dr/index-after", ".gitignore\nlibrary/src/.gitignore\nlibrary/src/business/update-test-issued.pdf\n")
 answers(f"dr/settings-trap/{ans}", DOC_TYPE="business", DATA_STORE="external", DATA_PROVIDER="google-drive")
-w("dr/settings-trap.log", gone)
+w("dr/settings-trap.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
+  "  This update deleted these workflows, which name Google Drive's API. Your copies\n"
+  "  predate the store guard, so one restored from the update report (git restore\n\n"
+  "    .github/workflows/google-drive-pull.yml\n    .github/workflows/google-drive-push.yml\n\n"
+  "    README.md:206  - `INCLUDE_DRIVE_SYNC=false` deletes `.github/`, the Drive push and pull workflows.\n"
+  "        v0.5.0: delete this line: these answers (DOC_TYPE business, DATA_PROVIDER google-drive, DATA_STORE external) ship no `.github/`\n"
+  + gone)
 for d in ("dr/sibling-after", "dr/sibling-first"):
     answers(f"{d}/{ans}", DOC_TYPE="business", DATA_STORE="repo", DATA_PROVIDER="google-drive")
     w(f"{d}/.github/workflows/google-drive-push.yml", "on: push\n")
@@ -2453,6 +2723,8 @@ dt_self_test() { # $1 = scratch dir
   printf '{\n  "mcpServers": {}\n}\n' > "$MA_PROJ/.mcp.json"; MA_STAT_PRE="$(dt_stat "$MA_PROJ/.mcp.json")"
   hold "$MA_LOG"; grep -vF "$DT_IGNORED_LINE" "$h" > "$MA_LOG" || true
   probe "check 67 fires when the ignored .mcp.json is not reported" "check 67"; back "$MA_LOG"
+  hold "$MA_LOG"; printf '  NOT UPDATED because you had changed them (1):\n    .mcp.json\n' >> "$MA_LOG"
+  probe "check 67 fires when the ignored .mcp.json is listed as your edit" "check 67"; back "$MA_LOG"
   hold "$MA_PROJ/.claude/settings.json"; dt_json "$MA_PROJ/.claude/settings.json" 'd["permissions"]["ask"].append("mcp__scrapling__fetch")'
   probe "check 68 fires when an allowed Scrapling ask is added" "check 68 — [theology from v0.4.0] where the owner allows"; back "$MA_PROJ/.claude/settings.json"
   hold "$MA_LOG"; sed -i 's/; ask mcp__scrapling__bulk_fetch//' "$MA_LOG"
@@ -2461,6 +2733,16 @@ dt_self_test() { # $1 = scratch dir
   probe "check 69 fires when a server reaches opencode.json before its asks" "check 69 — [theology from v0.4.0] opencode.json, whose owner allows every tool, declares scrapling"; back "$s/mc/mid/opencode.json"
   hold "$s/mc/proj/opencode.json"; dt_json "$s/mc/proj/opencode.json" 'd["permissions"] = [p for p in d["permissions"] if p["action"] != "scrapling_fetch"]'
   probe "check 69 fires when a Scrapling tool is left unprompted" "check 69 — [theology from v0.4.0] after --write and the next update, opencode.json declares scrapling but does not ask before scrapling_fetch"; back "$s/mc/proj/opencode.json"
+  hold "$MA_LOG"; grep -vF "$DT_WAIT_LINE" "$h" > "$MA_LOG" || true
+  probe "check 89 fires when the allowed server's wait is not said" "check 89 — [theology from v0.4.0] where the owner allows mcp__scrapling__*, the update said 0 time(s)"; back "$MA_LOG"
+  hold "$MA_LOG"; grep -F "$DT_WAIT_LINE" "$h" >> "$MA_LOG"
+  probe "check 89 fires when the allowed server's wait is said twice" "check 89 — [theology from v0.4.0] where the owner allows mcp__scrapling__*, the update said 2 time(s)"; back "$MA_LOG"
+  hold "$MA_LOG"; sed -i 's/(held back now: opencode.json code-review-graph;/(held back now: opencode.json code-review-graph, scrapling;/' "$MA_LOG"
+  probe "check 89 fires when the --write line promises the allowed server" "check 89 — [theology from v0.4.0] the --write line promises Scrapling"; back "$MA_LOG"
+  hold "$MC_LOG"; sed -i 's/ into opencode.json, run: python3/ into opencode.json and .codex\/config.toml, run: python3/' "$MC_LOG"
+  probe "check 89 fires when the --write line names a client file that holds every rule" "check 89 — [theology from v0.4.0] the --write line names .codex/config.toml"; back "$MC_LOG"
+  hold "$MC_LOG"; sed -i 's/ into opencode.json, run: python3/ into .gemini\/settings.json, run: python3/' "$MC_LOG"
+  probe "check 89 fires when the --write line leaves out opencode.json" "check 89 — [theology from v0.4.0] the --write line does not name opencode.json"; back "$MC_LOG"
   hold "$MC_NEXT_LOG"
   sed -i -e 's/^  NOT UPDATED because files of this kind are written once.*/  NOT UPDATED because you had changed them (1):/' -e '/^    \.agents\/mcp_config\.json$/d' "$MC_NEXT_LOG"
   probe "check 70 fires when a lane-written file counts as the owner's" "check 70 — [theology from v0.4.0] the next update lists .codex/config.toml"
@@ -2519,6 +2801,10 @@ dt_self_test() { # $1 = scratch dir
   probe "check 85 fires when a stale seed line is not listed" "check 85 — [business Drive] the v0.5.0 migration did not list the seed"; back "$DR4_LOG"
   hold "$DR4_LOG"; printf '  %s, and the recorded answers ship no .github/.\n' "$DT_DRIVE_LIST" >> "$DR4_LOG"
   probe "check 85 fires when a managed workflow is listed" "check 85 — [business Drive] the v0.5.0 migration listed"; back "$DR4_LOG"
+  hold "$DRS_LOG"; grep -vxF "    $DT_PUSH" "$h" > "$DRS_LOG" || true
+  probe "check 85 fires when the deleted pre-guard workflow is not listed" "check 85 — [business Drive] the crossing update to external"; back "$DRS_LOG"
+  hold "$DRS_LOG"; sed "s/v0.5.0: delete this line: these answers.*/$DT_STALE_DRIVE: '- Choosing …'/" "$h" > "$DRS_LOG"
+  probe "check 85 fires when the README line gets the google-drive text under external" "check 85 — [business Drive] under external"; back "$DRS_LOG"
   # The judges themselves, on shapes the mutations above do not reach.
   r=""
   [[ "$(ut_judge servers - "$s/mc/mid/.codex/config.toml" "$s/mc/tpl-mid/.codex/config.toml" .codex/config.toml)" == ok ]] || r+=" codex-servers"
@@ -2774,9 +3060,9 @@ self_test() {
   OL_CTL_AFTER="not a link"; probe "check 43 fires when the control's skills link changes" "check 43 — [theology] the update changed"; OL_CTL_AFTER="$OL_CTL_TARGET"
   OL_RAN=false
 
-  # Checks 44–50: the update report on its own three-release fixture, the same flow as the real run.
+  # Checks 44–50, 86–88, 90 and 91: the update report on its own fixture, the same flow as the real run.
   mkdir -p "$tmp/rp"; run_report_flow "$tmp/rp"
-  st_baseline "the update report on its fixture: every section, the refresh, the commands, the rerun, the limits"
+  st_baseline "the update report on its fixture: every section, the refresh, the commands, the rerun, the limits, a discarded update, an ignored settings.json, a discarded update followed by a later one"
   RP_STATUS=1; probe "check 44 fires when the update fails" "check 44 — [report fixture] the update to v0.3.0 failed"; RP_STATUS=0
   cp "$RP_LOG" "$tmp/h"; grep -vx '    \.gitignore' "$tmp/h" > "$RP_LOG"
   probe "check 44 fires when a file is not in its section" "check 44 — [report fixture] .gitignore is listed under 'nothing'"; cp "$tmp/h" "$RP_LOG"
@@ -2795,6 +3081,27 @@ self_test() {
   RP_AGAIN_DIRTY=" M README.md"; probe "check 49 fires when a second update changes a file" "check 49 — [report fixture] a second update"; RP_AGAIN_DIRTY=""
   local rp_one="${RP_ONE_LINE[0]}"; RP_ONE_LINE[0]=$'off\t0\t2\tx'
   probe "check 50 fires when the opt-out prints more than one line" "check 50 — [report fixture] off"; RP_ONE_LINE[0]="$rp_one"
+  RP_REDO_ST[reset]=1; probe "check 86 fires when the discarded update's second run fails" "check 86 — [report fixture] the copy"; RP_REDO_ST[reset]=0
+  RP_REDO_DIFF[reset]="< ?? .claude/skills/to-questionnaire/SKILL.md 0123"
+  probe "check 86 fires when the second run does not deliver what the first did" "check 86 — [report fixture] after the update was discarded (reset), the second run did not"; RP_REDO_DIFF[reset]=""
+  local rp_chain="${RP_REDO_CHAIN[reset]}"; RP_REDO_CHAIN[reset]="its parent is 'abc', not 'def'"
+  probe "check 86 fires when the second run is chained on the discarded record" "check 86 — [report fixture] after the update was discarded (reset), the second run's record"; RP_REDO_CHAIN[reset]="$rp_chain"
+  RP_REDO_DIFF[stash]="> M .claude/settings.json 0123"
+  probe "check 87 fires when the update discarded by git stash -u is not delivered again" "check 87 — [report fixture] after the update was discarded (stash)"; RP_REDO_DIFF[stash]=""
+  RP_REDO_RERUN[stash]="> refs/x"; probe "check 88 fires when a hand rerun over the second run changes something" "check 88"; RP_REDO_RERUN[stash]=""
+  local rp_ign="$RP_IGN_STAT_POST"; RP_IGN_STAT_POST="x 1 2"
+  probe "check 90 fires when the ignored settings.json is written" "check 90 — [report fixture] the git-ignored"; RP_IGN_STAT_POST="$rp_ign"
+  RP_IGN_N2=0; probe "check 90 fires when the next update does not name the entries again" "check 90 — [report fixture] the git-ignored"; RP_IGN_N2=1
+  RP_IGN_REC=1; probe "check 90 fires when an entry is recorded as offered" "check 90 — [report fixture] the git-ignored"; RP_IGN_REC=0
+  RP_LATER_ST=1; probe "check 91 fires when the flow of the later update fails" "check 91 — [report fixture] the copies at v0.1.0"; RP_LATER_ST=0
+  RP_LATER_MISSING="the discarded update to v0.2.0 did not offer the deny $SA_MCP_DENY"
+  probe "check 91 fires when the discarded update offered nothing to compare" "check 91 — [report fixture] the comparison proves nothing"; RP_LATER_MISSING=""
+  RP_LATER_DIFF="< M .claude/settings.json 0123"
+  probe "check 91 fires when the later update does not give what a direct one gives" "check 91 — [report fixture] after an update to v0.2.0 was discarded, the update to v0.3.0 did not give"; RP_LATER_DIFF=""
+  RP_LATER_REC="< settings: deny $SA_MCP_DENY"
+  probe "check 91 fires when the later record's offers are not a direct update's" "check 91 — [report fixture] after an update to v0.2.0 was discarded, the record of the update to v0.3.0 does not list"; RP_LATER_REC=""
+  local rp_later="$RP_LATER_CHAIN"; RP_LATER_CHAIN="its parent is 'abc', not 'def'"
+  probe "check 91 fires when the later record sits on the discarded one" "check 91 — [report fixture] after an update to v0.2.0 was discarded, the record of the update to v0.3.0 is not on"; RP_LATER_CHAIN="$rp_later"
   RP_RAN=false
 
   # Checks 51–54: an update across the shared set, on the same fixture (v0.1.0 to v0.3.0).
@@ -2940,7 +3247,7 @@ for doc in ${DOC_TYPES//,/ }; do
     $MIG_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: every author file moved to its family byte for byte, the collision kept and named, a second run a no-op, msp-scp honoured"
     $TRAP_RAN && log "  ✓ $doc — update from $TRAP_FROM with --defaults: AGENT_CLIENTS recorded empty, no Section 4 in rules 05, the bridge present, no client file created"
     $OL_RAN && log "  ✓ $doc — .agents linked outside the project: held and restored by the update with its target untouched, a second update a no-op, a stranded hold fixed by the printed mv and by restore, a real .agents/ with an outside skills link updated"
-    $RP_RAN && log "  ✓ $doc — the update report: every section on its fixture (inline and rej), the refresh and the owner's edit, settings add-only, every printed command run offline, a rerun and a second update quiet, the opt-out and the limits one line each"
+    $RP_RAN && log "  ✓ $doc — the update report: every section on its fixture (inline and rej), the refresh and the owner's edit, settings add-only, every printed command run offline, a rerun and a second update quiet, the opt-out and the limits one line each; an update discarded by reset and clean, or by stash, delivered again by the second run, whose hand rerun changes nothing; an update discarded and followed by one to a later release giving a direct update's result, offers and written blobs; an ignored settings.json never read, its entries named once per update"
     $SH_RAN && log "  ✓ $doc — updates from $TRAP_FROM and from $PRE_D51_REF: unedited shared files refreshed or added, the edited one kept and reported, the threshold hook wired once, add-only, a second update quiet"
     $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds autoCompactEnabled false once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"

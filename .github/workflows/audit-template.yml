@@ -21,7 +21,7 @@ name: Audit — Template Integrity
 #
 # NO DATA ROOT. SYNTEK_DATA_ROOT is never set here (DESIGN.md D50, Section 7): a fresh render
 # keeps its binaries under a data root, and no test may reach a real one. Every audit unsets it
-# when it sources _common.sh; the two Python self-tests run under `env -u SYNTEK_DATA_ROOT`, and
+# when it sources _common.sh; the three Python self-tests run under `env -u SYNTEK_DATA_ROOT`, and
 # the resolver's own self-test never reads the inherited variable. A case that needs a root
 # makes a temporary one holding its own marker.
 #
@@ -98,6 +98,12 @@ jobs:
       - name: Prove the data-root resolver
         if: always()
         run: env -u SYNTEK_DATA_ROOT python3 template/.claude/syntek-author-dataroot.py --self-test
+
+      # The family-shared outside-link migration (DESIGN.md D48): its self-test runs both stages
+      # in temporary folders and runs the printed hand fix with sh after each kind of stop.
+      - name: Prove the outside-link migration
+        if: always()
+        run: env -u SYNTEK_DATA_ROOT python3 migrations/agents-outside-link.py --self-test
 
       # Every shell script this repository runs or ships: the migrations copier update runs in an
       # author's project, the adoption scripts, these audits, and the template's hooks. Warning

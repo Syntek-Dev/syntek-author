@@ -27,8 +27,11 @@
 #
 #              Nothing here writes to the repository. Fixtures and snapshots go to mktemp.
 #              Sourcing it unsets SYNTEK_DATA_ROOT, so no audit reaches a real data root.
+#              It also hides the machine's global and system git configuration (CI's
+#              runner has no global file, and its system file is hidden too), and pins
+#              UV_PYTHON to python3 where it is unset (CI sets it).
 #
-# Requirements: bash 4+, git, grep, awk, sed. rsync and uvx only for the rendering helpers.
+# Requirements: bash 4+, git 2.32+, grep, awk, sed. rsync and uvx only for the rendering helpers.
 
 # This file is a library: its catalogue variables are read by the scripts that source it.
 # shellcheck disable=SC2034
@@ -1064,6 +1067,34 @@ if [[ -z "${SA_GIT_HOUSEKEEPING_OFF:-}" ]]; then
   export "GIT_CONFIG_KEY_$((_sa_n + 1))=maintenance.auto" "GIT_CONFIG_VALUE_$((_sa_n + 1))=false"
   export GIT_CONFIG_COUNT=$((_sa_n + 2)) SA_GIT_HOUSEKEEPING_OFF=1
   unset _sa_n
+fi
+
+# Every git the audits start, Copier's included, reads no global or system configuration, on a
+# laptop and in CI alike (the runner's /etc/gitconfig, with safe.directory '*' and git-lfs's
+# filter, is hidden too). A machine's global and system files (an LFS filter marked required,
+# core.autocrlf, merge.conflictStyle, a global ignore rule) change what a scratch commit stores,
+# how a conflict is marked and what check-ignore says, so a local run could pass where CI fails,
+# or the reverse. GIT_CONFIG_GLOBAL=/dev/null is git's own empty level: no file to create or
+# remove, and `git config --global` fails rather than writing one; an inherited value is
+# replaced, as no audit sets one. Without a global file git still reads its default excludes and
+# attributes files under $XDG_CONFIG_HOME/git, so two pairs point core.excludesFile and
+# core.attributesFile at /dev/null: they rank above a repository's own config (no audit sets
+# either key there) and below a -c option. XDG_CONFIG_HOME itself is left alone: uv, Copier and
+# scrub.sh read their own settings under it. Appended once, after the housekeeping pairs.
+if [[ -z "${SA_GIT_ISOLATED:-}" ]]; then
+  export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+  _sa_n="${GIT_CONFIG_COUNT:-0}"
+  export "GIT_CONFIG_KEY_${_sa_n}=core.excludesFile" "GIT_CONFIG_VALUE_${_sa_n}=/dev/null"
+  export "GIT_CONFIG_KEY_$((_sa_n + 1))=core.attributesFile" "GIT_CONFIG_VALUE_$((_sa_n + 1))=/dev/null"
+  export GIT_CONFIG_COUNT=$((_sa_n + 2)) SA_GIT_ISOLATED=1
+  unset _sa_n
+fi
+
+# uv prefers a managed interpreter over python3, so an unpinned uvx can resolve Copier on an
+# old managed Python (9.3.1 on 3.8, below the floor). CI sets UV_PYTHON; locally, python3.
+if [[ -z "${UV_PYTHON:-}" ]] && command -v python3 >/dev/null 2>&1; then
+  UV_PYTHON="$(command -v python3)"
+  export UV_PYTHON
 fi
 
 sa_git() { # $1 = dir, then git arguments — with an identity, so CI needs no global config

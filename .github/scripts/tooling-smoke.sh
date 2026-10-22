@@ -125,16 +125,25 @@
 #                    Each case that needs a root makes one beside the render's copy, outside its
 #                    repository, holding its own .syntek-data-root marker, and passes it to that
 #                    command alone; everything else runs with SYNTEK_DATA_ROOT unset, as
-#                    _common.sh leaves it. Checks 39–49, 51–55 and 60–68 need Python 3.11 or
+#                    _common.sh leaves it. Checks 39–49, 51–55 and 60–69 need Python 3.11 or
 #                    later (the resolver's floor) and are skipped by name below it.
 #                     39. With the root unset, empty, relative, a missing folder, a folder without
-#                         its marker, a marked folder inside the repository, and a marked folder
-#                         holding it: `make flags` and `make lint` pass in each, and so does a proof
-#                         under the unmarked one (business `make pdf FILE=…`, whose TeX lookup asks
-#                         the resolver, where XeLaTeX exists; books `make docx`, skipped as check 7
-#                         is in an adoption render). Under external the resolver's `path`,
-#                         `add`, `verify`, `pull` and `plan` each exit 2, and `status`, which needs
-#                         no root, does not. Nothing is written in the project or in those folders.
+#                         its marker, a marked folder inside the repository, a marked folder
+#                         holding it, and a marker above it with the variable unset: `make flags`
+#                         and `make lint` pass in each, and so does a proof under the unmarked one
+#                         (business `make pdf FILE=…`, whose TeX lookup asks the resolver, where
+#                         XeLaTeX exists; books `make docx`, skipped as check 7 is in an adoption
+#                         render). Under external the resolver's `path`, `add`, `verify`, `pull`
+#                         and `plan` each exit 2, and `status`, which needs no root, does not.
+#                         Under repo, which reads no root, `path`, `add --role generated` and `add`
+#                         with a map role marked "repo": "skip" exit 2 with nothing on stdout in the
+#                         last three states (the root and the repository contain one another, or a
+#                         marker sits above it; checks 55 and 67 prove the two `add` calls answer
+#                         with a valid root outside the repository, and the resolver's self-test
+#                         proves all three with an empty, an unmarked and a valid root, and `path`
+#                         and both `add` calls with the variable unset), and `status` exits 0 or 1
+#                         in each state, warning in those three that it did not check the copies.
+#                         Nothing is written in the project or in those folders.
 #                     40. Business under external: `make pdf FILE=… ISSUE=1` with a marked root files
 #                         the PDF at <root>/<area>/<docs kind>/<slug>/<FILE's folder>/<stem>.pdf, as
 #                         the one current `issued` row of external.toml, its source FILE, and writes
@@ -239,6 +248,11 @@
 #                         aiff, opus and pcm under audio, and webm, mxf, m4v, mts, m2ts, avi, braw
 #                         and r3d under videos, in a folder whose kind no map fixes; an unknown
 #                         extension goes under docs.
+#                     69. Business under external: with the copy's DATA_AREA holding $(…) and a
+#                         backquote (both of which Copier's validator accepts) and a stub xelatex
+#                         first on PATH that records TEXINPUTS, `make pdf FILE=<a .tex>` exits 0,
+#                         runs no command from the answers (no file appears) and hands TeX the
+#                         data-root folder with the area exactly as written. Needs no TeX.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -259,7 +273,7 @@
 #
 # SELF-TEST. --self-test writes a fixture render at runtime with a Makefile whose targets can be
 #            told to fail one at a time, proves it clean, then fails each target in turn and
-#            asserts exactly one finding each. For checks 39–68 the fixture carries the real
+#            asserts exactly one finding each. For checks 39–69 the fixture carries the real
 #            resolver from template/ behind a stand-in of the same name, which runs it unchanged
 #            unless SMOKE_DR switches on one misbehaviour; the stand-in Makefile's data-root
 #            targets take switches of their own. Those probes need Python 3.11 or later, and are
@@ -343,7 +357,7 @@ mk() { # $1 = dir, $2 = target, then make arguments → sets RES[target]
 }
 
 # Which groups a run covers: all, or (the self-test's probes only) legacy, checks 1–38, or
-# dataroot, checks 39–68. A group not run leaves its checks skipped, never passed.
+# dataroot, checks 39–69. A group not run leaves its checks skipped, never passed.
 SMOKE_GROUPS=all
 
 smoke() { # $1 = a COPY of a render
@@ -922,7 +936,7 @@ smoke_print() { # $1 = a COPY of a book render
   return 0
 }
 
-# ── The data root (DESIGN.md D50 and D53; checks 39–68) ─────────────────────
+# ── The data root (DESIGN.md D50 and D53; checks 39–69) ─────────────────────
 #
 # Every case runs the render's own resolver and Makefile from the copy's top. A case that needs
 # a root makes one in the copy's scratch folder (outside its repository) holding its own marker
@@ -953,7 +967,7 @@ DR_PYC=""               # the self-test's compiled copy of the real resolver
 DR_SIBLING=".copier-answers.syntek-smoke.yml"     # a second template's answers file
 DR_SIBLING_MAP=".claude/syntek-smoke-dataroot.json" # and its map
 declare -A DR_WHAT=(
-  [39]="a root state broke text work, or a data command did not refuse it, or something was written"
+  [39]="a root state broke text work, or a data command did not refuse it (under repo, path and add refuse only a root containing the repository or lying inside it, or a marker above it), or something was written"
   [40]="make pdf ISSUE=1 under external did not file the issued copy as D50 Section 5.4 says"
   [41]="a second make pdf ISSUE=1 under external was not refused before the build"
   [42]="make pdf ISSUE=1 FORCE=1 under external did not file a new copy and keep the superseded one"
@@ -983,6 +997,7 @@ declare -A DR_WHAT=(
   [66]="a \"rows\": \"none\" folder was listed, or a stray file outside every map folder was not"
   [67]="a map role marked \"repo\": \"skip\" did not exit 0 and write nothing under repo"
   [68]="an extension syntek-media added did not choose its kind"
+  [69]="make pdf ran a command from the answers, or did not hand TeX the data-root folder as written"
 )
 # Check 68's table: syntek-media's seventeen extensions (B0.4, A9) and their kinds, half given
 # in upper case, since the resolver reads an extension in any letter case; and one it does not
@@ -1235,18 +1250,18 @@ dr_unignore() { # $1 = copy: .git/info/exclude as it was
   else rm -f -- "$1/.git/info/exclude"; fi
 }
 
-smoke_dataroot() { # $1 = a COPY of a render: checks 39–68
+smoke_dataroot() { # $1 = a COPY of a render: checks 39–69
   local d="$1" w n g why
   w="$(dirname "$d")"
   DR=()
   if [[ ! -f "$d/$DR_PY" ]]; then
-    for n in {39..68}; do DR[$n]="skip: no data-root resolver in this render (one from before D50)"; done; return 0
+    for n in {39..69}; do DR[$n]="skip: no data-root resolver in this render (one from before D50)"; done; return 0
   fi
   dr_parse "$d"
   why=""
   if ! $HAVE_ANSWERS; then why="no $SA_ANSWERS_FILE"
   elif [[ "$A_STORE" != external && "$A_STORE" != repo ]]; then why="DATA_STORE '$A_STORE' is not a value this release offers"; fi
-  if [[ -n "$why" ]]; then for n in {39..58} {60..68}; do DR[$n]="skip: $why"; done; return 0; fi
+  if [[ -n "$why" ]]; then for n in {39..58} {60..69}; do DR[$n]="skip: $why"; done; return 0; fi
   g="$w/dr-root-guard"; dr_root "$g"; mkdir -p "$g/business/docs"
   dr_guard "$d" "$g"
   dr_hook "$d" "$w" "$g"
@@ -1254,11 +1269,11 @@ smoke_dataroot() { # $1 = a COPY of a render: checks 39–68
   dr_env "$d" "$w"
   rm -rf -- "${g:?}"
   if ! $HAVE_PY311; then
-    for n in {39..49} {51..55} {60..68}; do DR[$n]="skip: python3 is below 3.11, where every data command refuses"; done; return 0
+    for n in {39..49} {51..55} {60..69}; do DR[$n]="skip: python3 is below 3.11, where every data command refuses"; done; return 0
   fi
   DR_FOLDER="$(drh folders "$d/$SA_DATAROOT_MAP" "$d" 2>/dev/null | cut -f1 | awk '$0 == "research/src" { r = $0 } NR == 1 { f = $0 } END { print (r != "" ? r : f) }' || true)"
   if [[ -z "$DR_FOLDER" ]]; then
-    for n in {39..49} {51..55} {60..68}; do DR[$n]="skip: $SA_DATAROOT_MAP names no folder this render has"; done; return 0
+    for n in {39..49} {51..55} {60..69}; do DR[$n]="skip: $SA_DATAROOT_MAP names no folder this render has"; done; return 0
   fi
   DR_FOLDER_KIND="$(drh folders "$d/$SA_DATAROOT_MAP" "$d" 2>/dev/null | awk -F'\t' -v p="$DR_FOLDER" '$1 == p { print $2 }' || true)"
   dr_keep "$d" "$w"
@@ -1267,10 +1282,11 @@ smoke_dataroot() { # $1 = a COPY of a render: checks 39–68
   dr_names "$d"
   dr_states "$d" "$w"
   if [[ ! -d "$d/library/src" ]]; then
-    for n in 40 41 42 43; do DR[$n]="skip: no issued documents in a book render"; done
+    for n in 40 41 42 43 69; do DR[$n]="skip: no issued documents in a book render"; done
   elif [[ "$A_STORE" != external ]]; then
     for n in 40 41 42 43; do DR[$n]="skip: DATA_STORE repo issues beside the source (checks 23 and 24)"; done
-  else dr_issue "$d" "$w"; fi
+    DR[69]="skip: DATA_STORE repo gives TeX no data-root folder"
+  else dr_issue "$d" "$w"; dr_quote "$d" "$w"; fi
   if [[ "$A_STORE" == external ]]; then dr_verify "$d" "$w"; dr_case "$d" "$w"
   else for n in 44 45 47 52; do DR[$n]="skip: DATA_STORE repo files nothing under a data root"; done; fi
   dr_answers "$d" "$w"
@@ -1281,6 +1297,40 @@ smoke_dataroot() { # $1 = a COPY of a render: checks 39–68
   else for n in {60..66} 68; do DR[$n]="skip: DATA_STORE repo files nothing under a data root"; done; fi
   dr_skip "$d" "$w"
   dr_reset "$d"
+}
+
+# Check 69: the data-root folder TeX searches comes from the answers file (DATA_AREA, the kinds),
+# whose validators accept $, brackets and a backquote; the shell must get it single-quoted.
+dr_quote() { # $1 = copy, $2 = its scratch folder
+  local d="$1" w="$2" dir tex r bin="$2/dr-69-bin" seen="$2/dr-69-texinputs" ans="$1/$SA_ANSWERS_FILE" why="" f
+  local area='Smoke $(touch smoke-dr-69-dollar) `touch smoke-dr-69-tick` Area'
+  dir=library/src/business; [[ -d "$d/$dir" ]] || dir=library/src
+  tex="$dir/smoke-dr-69.tex"
+  printf '\\documentclass{article}\n\\begin{document}\nA document.\n\\end{document}\n' > "$d/$tex"
+  cp -p -- "$ans" "$w/dr-69-answers.yml"
+  awk -v a="$area" '/^DATA_AREA:/ { print "DATA_AREA: '\''" a "'\''"; next } { print }' "$w/dr-69-answers.yml" > "$ans"
+  mkdir -p "$bin"; rm -f -- "$seen"
+  cat > "$bin/xelatex" <<'STUB'
+#!/bin/sh
+# tooling-smoke check 69: a stand-in xelatex that records TEXINPUTS and writes the PDF xelatex would.
+printf '%s\n' "$TEXINPUTS" >> "$SMOKE_TEXINPUTS_OUT"
+out=.; job=texput
+for a in "$@"; do case "$a" in -output-directory=*) out="${a#*=}" ;; -jobname=*) job="${a#*=}" ;; esac; done
+mkdir -p "$out" && printf '%%PDF-1.4 smoke\n' > "$out/$job.pdf"
+STUB
+  chmod +x "$bin/xelatex"
+  r="$w/dr-root-69"; dr_root "$r"
+  DR_ENV=("SYNTEK_DATA_ROOT=$r" "PATH=$bin:$PATH" "SMOKE_TEX_STUB=1" "SMOKE_TEXINPUTS_OUT=$seen")
+  drm "$d" 69 pdf "FILE=$tex"
+  [[ $DR_RC -eq 0 ]] || why+=" exit $DR_RC ($(dr_last "$d/.smoke-dr-69.log"));"
+  for f in smoke-dr-69-dollar smoke-dr-69-tick; do
+    if [[ -e "$d/$f" || -e "$d/$dir/$f" ]]; then why+=" it ran 'touch $f' from DATA_AREA;"; fi
+  done
+  if [[ ! -s "$seen" ]]; then why+=" xelatex was never run;"
+  elif ! grep -qF "/$area/" "$seen"; then why+=" TeX was not given the data-root folder with the area as written ($(head -n 1 "$seen" | cut -c1-100));"; fi
+  dr_set 69 "$why"
+  cp -p -- "$w/dr-69-answers.yml" "$ans"
+  rm -rf -- "${d:?}/$tex" "$d/smoke-dr-69-dollar" "$d/smoke-dr-69-tick" "$d/$dir/smoke-dr-69-dollar" "$d/$dir/smoke-dr-69-tick" "${r:?}" "${bin:?}"
 }
 
 # Check 59: an old python3 must be able to compile the file to reach the guard's wrapper.
@@ -1421,9 +1471,11 @@ dr_names() { # $1 = copy
 }
 
 # Check 39: every way the root can be wrong. Text work never needs it; a data command that
-# cannot use it refuses with exit 2 before it writes anything, anywhere.
+# cannot use it refuses with exit 2 before it writes anything, anywhere. Under repo, which reads
+# no root, path and add refuse only a root inside the repository or holding it, or a marker
+# above it, and refuse it before any shortcut.
 dr_states() { # $1 = copy, $2 = its scratch folder
-  local d="$1" w="$2" st why="" c s before after proof="" doc="" src="$2/dr-39-source.pdf" made=""
+  local d="$1" w="$2" st why="" c s before after proof="" doc="" src="$2/dr-39-source.pdf" made="" want said
   printf '%%PDF-1.4 smoke\n' > "$src"
   if [[ -d "$d/library/src" ]]; then
     if $SKIP_PDF || ! $HAVE_XELATEX; then SKIPS+=("check 39's proof (no xelatex, or --skip-pdf)")
@@ -1435,7 +1487,7 @@ dr_states() { # $1 = copy, $2 = its scratch folder
   elif [[ -z "$(cd "$d" && find manuscript/src -type f -name '*.md' ! -name CONTEXT.md ! -name CLAUDE.md ! -name README.md ! -path '*/drafts/*' 2>/dev/null | head -1 || true)" ]]; then
     SKIPS+=("check 39's proof (no unit under manuscript/src: an adoption render)")
   else proof=docx; fi
-  for st in unset empty relative missing unmarked inside holding; do
+  for st in unset empty relative missing unmarked inside holding above; do
     case "$st" in
       unset)    DR_ENV=(-u SYNTEK_DATA_ROOT) ;;
       empty)    DR_ENV=("SYNTEK_DATA_ROOT=") ;;
@@ -1444,6 +1496,7 @@ dr_states() { # $1 = copy, $2 = its scratch folder
       unmarked) made="$w/dr-39-unmarked"; rm -rf -- "${made:?}"; mkdir -p "$made"; DR_ENV=("SYNTEK_DATA_ROOT=$made") ;;
       inside)   made="$d/smoke-dr-39-inside"; dr_root "$made"; DR_ENV=("SYNTEK_DATA_ROOT=$made") ;;
       holding)  made=""; : > "$w/$DR_MARK"; DR_ENV=("SYNTEK_DATA_ROOT=$w") ;;
+      above)    made=""; : > "$w/$DR_MARK"; DR_ENV=(-u SYNTEK_DATA_ROOT) ;;
     esac
     before="$(dr_listing "$d" "$w")"
     for c in flags lint; do
@@ -1476,12 +1529,51 @@ dr_states() { # $1 = copy, $2 = its scratch folder
       done
       s="$(cat "$d/.smoke-dr-39-$st-status.rc" 2>/dev/null || echo '?')"
       [[ "$s" == 0 || "$s" == 1 ]] || why+=" status exited $s with the root $st, though it needs none;"
+    else
+      # Under repo no command reads the root, but where the root and the repository contain one
+      # another or a marker sits above it, path and every add refuse it first, the shortcuts of
+      # add --role generated and a "repo": "skip" role (a sibling map's, written for these calls
+      # alone) included. With a valid root they answer, which checks 55 and 67 prove; the
+      # resolver's self-test covers the other states.
+      case "$st" in inside|holding|above) want=2 ;; *) want="" ;; esac
+      [[ -z "$want" ]] || printf '%s\n' '{"format": 1, "folders": [], "roles": [{"name": "smoke-take", "evidence": true, "repo": "skip"}]}' > "$d/$DR_SIBLING_MAP"
+      for c in path generated skip status; do
+        case "$c" in
+          path)      set -- path "$DR_FOLDER/smoke-dr-39.pdf" ;;
+          generated) set -- add "$DR_FOLDER/smoke-dr-39.pdf" --role generated ;;
+          skip)      set -- add "$DR_FOLDER/smoke-dr-39.pdf" --role smoke-take ;;
+          *)         set -- "$c" ;;
+        esac
+        [[ -n "$want" || "$c" == status ]] || continue
+        ( cd "$d" || exit 0; s=0
+          env "${DR_ENV[@]}" timeout 120 python3 "$DR_PY" "$@" </dev/null >"$d/.smoke-dr-39-$st-$c.out" 2>"$d/.smoke-dr-39-$st-$c.err" || s=$?
+          printf '%s\n' "$s" > "$d/.smoke-dr-39-$st-$c.rc" ) &
+      done
+      wait
+      rm -f -- "$d/$DR_SIBLING_MAP"
+      if [[ -n "$want" ]]; then
+        for c in path generated skip; do
+          s="$(cat "$d/.smoke-dr-39-$st-$c.rc" 2>/dev/null || echo '?')"
+          case "$c" in
+            path)      said="path" ;;
+            generated) said="add --role generated" ;;
+            skip)      said="add --role smoke-take (\"repo\": \"skip\")" ;;
+          esac
+          if [[ "$s" != 2 ]]; then why+=" under repo, $said exited $s with the root $st, not 2;"
+          elif [[ -s "$d/.smoke-dr-39-$st-$c.out" ]]; then why+=" under repo, $said refused with the root $st but still answered on stdout;"; fi
+        done
+      fi
+      s="$(cat "$d/.smoke-dr-39-$st-status.rc" 2>/dev/null || echo '?')"
+      [[ "$s" == 0 || "$s" == 1 ]] || why+=" under repo, status exited $s with the root $st, though it needs none;"
+      if [[ -n "$want" ]] && ! grep -q 'were not checked' "$d/.smoke-dr-39-$st-status.err" 2>/dev/null; then
+        why+=" under repo, status did not warn that it left the copies unchecked with the root $st;"
+      fi
     fi
     after="$(dr_listing "$d" "$w")"
     [[ "$before" == "$after" ]] \
       || why+=" with the root $st, it wrote $(LC_ALL=C comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") 2>/dev/null | head -n 1 | sed "s|^$w/||" || true);"
     case "$st" in
-      holding) rm -f -- "${w:?}/$DR_MARK" ;;
+      holding|above) rm -f -- "${w:?}/$DR_MARK" ;;
       relative|unmarked|inside) rm -rf -- "${made:?}" ;;
     esac
   done
@@ -2159,7 +2251,7 @@ run_checks() {
       fi
       case "${STE[legal]:-}" in skip:*) SKIPS+=("STE legal exclusion (${STE[legal]#skip: })") ;; esac ;;
   esac
-  for n in {39..68}; do
+  for n in {39..69}; do
     r="${DR[$n]:-skip: not run}"
     case "$r" in
       skip:*) SKIPS+=("check $n (${r#skip: })") ;;
@@ -2195,6 +2287,7 @@ write_fixture() { # $1 = dir, $2 = DATA_STORE (external by default), $3 = DOC_TY
 -include tooling/project.mk
 BRAND_DIRS ?= standards/brand
 DR = python3 .claude/syntek-author-dataroot.py
+TEX_DIR = $(shell $(DR) path '$(patsubst %/,%,$(dir $(FILE)))' 2>/dev/null)
 FAIL ?=
 NOIGNORE ?=
 LAX ?=
@@ -2254,6 +2347,7 @@ pdf: | build/.gitignore
 	  if [ -e "$$dest" ] && [ -z "$(FORCE)$(DR_CLOBBER)" ]; then echo "error: $$dest is issued; FORCE=1 files a new copy"; exit 1; fi; fi
 	@echo x > build/manuscript__src.pdf
 	@[ -z "$(FILE)" ] || echo "built $$(date +%s) $(FORCE)" > 'build/$(subst /,__,$(basename $(FILE))).pdf'
+	$(if $(SMOKE_TEX_STUB),@case '$(FILE)' in (*.tex) mkdir -p build/latex; $(if $(TEX_UNQUOTED),TEXINPUTS="$(TEX_DIR):",TEXINPUTS='$(TEX_DIR):') xelatex -output-directory=build/latex -jobname=smoke '$(FILE)' ;; esac)
 	@if [ -n "$(FILE)" ] && grep -q 'houseclassification{' '$(FILE)'; then \
 	  [ -z "$(FAIL_CLASS)" ] || { echo "failing on the classification"; exit 1; }; \
 	  if [ -n "$(HEADLESS)" ]; then printf 'body\fbody\f'; \
@@ -2436,6 +2530,9 @@ code, out, err = r.returncode, r.stdout, r.stderr
 root = os.environ.get("SYNTEK_DATA_ROOT", "")
 if MUT == "lenient-root" and code == 2 and "holds no .syntek-data-root marker" in err:
     done(0)
+if MUT == "repo-shortcut" and CMD in ("path", "add") and code == 2 and answer("DATA_STORE") == "repo" and (
+        "inside a data root" in err or "inside this repository" in err or "holds this repository" in err):
+    done(0, ARGS[1] + "\n" if CMD == "path" else "not filed: the fault: a shortcut taken over the root\n")
 if MUT == "writes-on-refusal" and CMD == "add" and code == 2 and "holds no .syntek-data-root marker" in err:
     with open(os.path.join(root, "smoke-written.pdf"), "w") as f:
         f.write("written\n")
@@ -2596,11 +2693,11 @@ self_test() {
   st_finish "working tooling from broken tooling"
 }
 
-# Checks 39–68: each fault is one SMOKE_DR switch of the stand-in resolver, one switch of the
+# Checks 39–69: each fault is one SMOKE_DR switch of the stand-in resolver, one switch of the
 # stand-in Makefile, or one change to a fixture file (FX_PREP), and exactly one check must name
 # it. Called by self_test, whose fresh_business it uses.
 self_test_dataroot() {
-  if ! $HAVE_PY311; then log "  · checks 39–68 skipped: python3 is below 3.11 (the resolver's floor)"; return 0; fi
+  if ! $HAVE_PY311; then log "  · checks 39–69 skipped: python3 is below 3.11 (the resolver's floor)"; return 0; fi
   [[ -f "$SA_ROOT/template/$DR_PY" ]] || die "the self-test needs template/$DR_PY"
   FX_STORE=external; SMOKE_GROUPS=all; fresh_business
   probe_clean "a business render under external, with a resolver whose every case works, is clean"
@@ -2637,7 +2734,9 @@ self_test_dataroot() {
   dr_probe "check 66 fires when a \"rows\": \"none\" folder is read as a filing folder" "named a file in the working-output folder" rows-ignored
   dr_probe "check 66 fires when a stray file outside every map folder is not reported" "without naming it as such" stray-blind
   dr_probe "check 68 fires when the extension table lacks syntek-media's seventeen" "check 68 — [fixture] an extension syntek-media added did not choose its kind: .PSD went to" a9-unknown
+  dr_probe "check 69 fires when the TeX search path reaches the shell double-quoted" "check 69 — [fixture] make pdf ran a command from the answers" "" TEX_UNQUOTED=1
   FX_STORE=repo
+  dr_probe "check 39 fires when path or add under repo takes its shortcut over a marker above the repository" "under repo, path exited 0 with the root above, not 2" repo-shortcut
   dr_probe "check 55 fires when a generated file is written under repo" "it wrote world/src/external.toml under repo" generated-writes
   dr_probe "check 67 fires when a \"repo\": \"skip\" role is refused under repo" "check 67 — [fixture] a map role marked" skip-refused
   FX_STORE=external

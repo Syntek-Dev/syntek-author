@@ -32,7 +32,8 @@
 #                         ships and the other does not (D53). The one exception is the gate
 #                         the provider opens: where one render is business with google-drive
 #                         and repo and the other is not, `.github/` ships in that render alone
-#                         and the spine files that name it may differ. DATA_SLUG defaults to
+#                         and a spine file may differ between the two only in hunks that name
+#                         `.github` (each changed hunk of a line diff must). DATA_SLUG defaults to
 #                         the render folder's name, so it is set aside with DATA_PROVIDER, and
 #                         each render's slug is read as one placeholder in its spine files.
 #                         Shared files need no such reading: a slug in one fails check 1.
@@ -55,7 +56,8 @@
 #                    proving that needs a line-level map from render to source that Jinja does
 #                    not provide. check-template-tokens.sh keeps the spine set small instead.
 #                    For the same reason, where the drive gate differs between two renders,
-#                    check 3 cannot tell which spine lines name `.github/`. And a slug that is
+#                    check 3 reads the diff, not the source: a gated line that is not about
+#                    `.github/` passes where it sits in one hunk with a line that is. And a slug that is
 #                    also a word of a spine file is read as the slug there too; generate-all.sh
 #                    names its folders <variant>-<profile>, which no spine text carries.
 #
@@ -66,7 +68,8 @@
 #            clean, then applies one mutation per check and asserts exactly one finding each:
 #            check 2 also with the ignore file made a seed (still check 2 alone), check 3 on a
 #            spine file, on the text either side of a slug, on a file one provider alone ships,
-#            and on `.github/` outside the Drive gate and a file outside `.github/` inside it.
+#            on `.github/` outside the Drive gate and a file outside `.github/` inside it, and on
+#            a Drive-only line in a spine file that does not name `.github/`.
 #
 # Requirements: bash 4+, sha1sum, awk, sed, grep, find. No network.
 #
@@ -209,6 +212,10 @@ PROVIDER_AWK='
         }
         if (nv > 1) { out = ""; for (v = 1; v <= nv; v++) out = out (v > 1 ? "|" : "") vm[v]; print "D\t" rel "\t" out }
       }
+      # Across the gate: one render of each state, for the shell to diff line by line.
+      to = ""; ts = ""
+      for (x = 1; x <= m; x++) { t = mem[x]; if (drv[t] == 1 && to == "") to = t; if (drv[t] != 1 && ts == "") ts = t }
+      if (to != "" && ts != "" && h[to SUBSEP rel] != h[ts SUBSEP rel]) print "X\t" rel "\t" to "\t" ts
     }
   }'
 
@@ -218,6 +225,25 @@ PROVIDER_AWK='
 slug_hash() { # $1 = file, $2 = slugs joined by |
   sed -E -e ':a' -e "s/(^|[^A-Za-z0-9_-])($2)([^A-Za-z0-9_-]|\$)/\\1${SLUG_PLACEHOLDER}\\3/" -e 'ta' "$1" \
     | sha1sum | cut -c1-40
+}
+
+# The hunks of a spine file that differ across the Drive gate without naming .github/ (check 3):
+# each changed hunk of the Drive render against the other must name it, so a line the gate adds
+# that is about anything else is found. The slugs are read as one placeholder first.
+drive_hunks() { # $1 = the file where the gate is open, $2 = where it is shut, $3 = slugs joined by |
+  local d f i=0
+  d="$(mktemp -d "${TMPDIR:-/tmp}/byte-identity-XXXXXX")"
+  for f in "$1" "$2"; do
+    i=$((i + 1))
+    if [[ -n "$3" ]]; then
+      sed -E -e ':a' -e "s/(^|[^A-Za-z0-9_-])($3)([^A-Za-z0-9_-]|\$)/\1${SLUG_PLACEHOLDER}\3/" -e 'ta' "$f"
+    else
+      cat "$f"
+    fi > "$d/$i"
+  done
+  diff "$d/2" "$d/1" | awk '/^[0-9]/ { if (n && !ok) bad = bad " " h; h = $0; n = 1; ok = 0; next }
+    /^[<>]/ && index($0, ".github") { ok = 1 } END { if (n && !ok) bad = bad " " h; printf "%s", bad }' || true
+  rm -rf "$d"
 }
 
 provider_axis() { # $1 = the records of every tree
@@ -265,11 +291,13 @@ provider_axis() { # $1 = the records of every tree
   done
   [[ "$PROVIDER_GROUPS" -gt 0 ]] || return 0
 
-  local kind a b
+  local kind a b hunks
   while IFS=$'\t' read -r kind rel a b; do
     case "$kind" in
       P) finding "check 3 — $rel ships in {$(idx_names "$a")} and not in {$(idx_names "$b")}, whose answers differ only in DATA_PROVIDER" ;;
       D) finding "check 3 — $rel differs between renders whose answers differ only in DATA_PROVIDER: $(group_names "$a")" ;;
+      X) hunks="$(drive_hunks "${TREES[$a]}/$rel" "${TREES[$b]}/$rel" "$(printf '%s\n' "${tslug[$a]}" "${tslug[$b]}" | sed '/^$/d' | sort -u | paste -sd'|')")"
+         [[ -z "$hunks" ]] || finding "check 3 — $rel differs across the Drive gate in lines that do not name .github/ ($(idx_names "$a") against $(idx_names "$b"), at$hunks): only the gate's own lines may differ" ;;
     esac
   done < <({ printf '%s' "$stream"
              for rel in "${!SPINE[@]}"; do if [[ "${SPINE[$rel]}" == 1 ]]; then printf 'S\t%s\n' "$rel"; fi; done
@@ -406,6 +434,11 @@ EOF
   probe "check 3 fires on a file outside .github/ that only the Drive render ships" \
     "check 3 — library/src/drive-notes.md ships in {business-gd-repo} and not in {business-repo}"
   rm -rf "$tmp/business-gd-repo/library"
+
+  printf -- '- Drive keeps a second copy of the library\n' >> "$tmp/business-gd-repo/$r09"
+  probe "check 3 fires on a Drive-only spine line that does not name .github/" \
+    "check 3 — $r09 differs across the Drive gate in lines that do not name .github/ (business-gd-repo against business-repo, at 3a4)"
+  sed -i '$d' "$tmp/business-gd-repo/$r09"
 
   mkdir -p "$tmp/business-repo/.github/workflows"; printf 'name: Stray\n' > "$tmp/business-repo/.github/workflows/stray.yml"
   probe "check 3 fires on .github/ where the Drive gate is shut" \

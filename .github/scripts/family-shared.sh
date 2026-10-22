@@ -34,9 +34,13 @@
 #                    'every .claude/syntek-*-agents.md' instead). A shared skill, hook or
 #                    handoffs file holds no delimiter at all (D51): the refresh compares bytes.
 #
-#                    Twenty-six checks:
+#                    Twenty-seven checks:
 #                      1. family-shared.json exists, is JSON, and has format 1, owner
-#                         syntek-author and release 'unreleased' or 'v' + VERSION.
+#                         syntek-author and release 'unreleased' or 'v' + VERSION: 'v' +
+#                         VERSION on the commit that tag names and on a commit whose VERSION
+#                         no tag has yet (the release commit), 'unreleased' once that tag is
+#                         an ancestor of HEAD; either where git cannot tell (no repository at
+#                         the root, no tags). --write sets it where git can tell.
 #                      2. Its files are exactly the shared set below, each with its source,
 #                         kind and scope ("scope" absent means "project"; the two migration
 #                         scripts are "repository"), sorted by path: the data-root resolver is
@@ -53,7 +57,8 @@
 #                         or the permissions script, the data-root resolver, the migration
 #                         scripts, the rules-web-tools block and every shared skill, hook and
 #                         handoffs file hold any delimiter at all.
-#                      6. A shared file, or a block, names syntek-author.
+#                      6. A shared file, or a block, names syntek-author in any spelling
+#                         (any case; -, _, a space or nothing between the words).
 #                      7. A block's file (copier.yml; rules 06 for rules-web-tools) holds each
 #                         of its marker lines exactly once, BEGIN before END.
 #                      8. The question block's top-level keys are exactly its fifteen keys (the
@@ -66,8 +71,9 @@
 #                     10. --sibling DIR: the sibling template's copies of the shared sources
 #                         and its four blocks (rules-web-tools at its destination, under the
 #                         sibling's own name) match ours byte for byte.
-#                     11. A migration script, the data-root resolver or a block names another
-#                         template (syntek-<name> in any spelling, syntek_<name> or
+#                     11. A shared file (the agent files, the permissions script, the resolver,
+#                         the shared skills, hooks and handoffs pair, the migration scripts) or
+#                         a block names another template (syntek-<name> in any case, syntek_<name> or
 #                         Syntek<Name>, other than its held name, the syntek-* pattern and the
 #                         names that are not templates: SYNTEK_UPDATE_*, and the data root's
 #                         SYNTEK_DATA_ROOT, .syntek-data-root marker and .syntek-tmp suffix,
@@ -127,7 +133,12 @@
 #                         server is in each listed file at its key path.
 #                     23. The store's equality rule (D50): a Jinja expression in copier.yml or
 #                         under template/ compares the DATA_STORE identifier by != or not in
-#                         with a literal, tests it bare, gives a block whose if (or an earlier
+#                         with a literal (or by the tests is ne, is !=, is not eq, is not
+#                         equalto, is not sameas, is not ==), negates an == or in test of it
+#                         with not (directly, through brackets, or over a group that holds
+#                         one; only a copier.yml _exclude item of the house form
+#                         "<: if not (GATE) :>/path<: endif :>" may, because it excludes), tests
+#                         it bare, gives a block whose if (or an earlier
 #                         elif) tests it an else or elif arm, or tests it in an inline
 #                         if … else. Each else and elif pairs with its own if; a
 #                         .get('DATA_STORE') read is a string, not the identifier, and a shell
@@ -141,18 +152,52 @@
 #                         with at least one underscore) is one of the fifteen keys, or one of
 #                         exactly two 'INCLUDE_DRIVE_SYNC' literals, both in DATA_PROVIDER's
 #                         default. The shared block reads no other template's answer by name.
-#                     26. The data-root resolver names a top-level folder of template/ other
+#                     26. The data-root resolver names a top-level folder of template/ (and,
+#                         with --sibling, of the sibling's template/) other
 #                         than .claude, .agents, .codex and .gemini: as a path (name/, not
 #                         after a word character, a dot or a hyphen) or a quoted name, case
 #                         kept. A bare English word ('a library') is not a folder.
+#                     27. A shared file or a block names a path only one template ships (D48):
+#                         a top-level entry of template/ that is neither a family path (the
+#                         shared set's, and .claude, .agents, .codex, .gemini and handoffs) nor
+#                         a house file every family template's root holds (CONTEXT.md, CLAUDE.md,
+#                         README.md, .gitignore), less, with --sibling, every top-level entry of
+#                         the sibling's template/; with --sibling, also a top-level entry only
+#                         the sibling's template/ holds (its answers file apart), reported as
+#                         the sibling's. A use counts only where it is path-like: name/ (not
+#                         after a word character, a dot or a hyphen), …/name ending a path, a
+#                         quoted name, resource or glob, or, for a name holding a dot, the name
+#                         itself. A URL is never read, nor a path under a family folder
+#                         (.claude/skills/<name>/ is no top-level path). In Markdown (a shared
+#                         .md and the rules-web-tools block), two plain words joined by one
+#                         slash outside quotes ('people/world') are prose, and a quoted name
+#                         counts only with a slash or a glob after it; in code a bare quoted name
+#                         counts. The one exception: opencode.json's three edit denies, '*.pdf',
+#                         'build/*' and 'typeset/src/units/.base/*', each a top-level
+#                         permissions entry of exactly that action, resource and effect; the
+#                         same resource anywhere else counts. A resolver folder check 26 already
+#                         reported is not reported again, and a name holding the owner's is
+#                         check 6's.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
 #                    What it CANNOT check: that the rendered files are identical in a project
 #                    that took both templates (coexist-test.sh renders that), that the
 #                    sibling's manifest is current (its own audit checks that), that the
-#                    pinned versions still exist (it runs offline), or a DATA_STORE test made
-#                    through an alias (<: set s = DATA_STORE :> and a later bare s).
+#                    pinned versions still exist (it runs offline), a DATA_STORE test made
+#                    through an alias (<: set s = DATA_STORE :> and a later bare s), or one
+#                    whose negation hides in a test of the in test (is not in) or a macro;
+#                    another template named with a space ('Syntek Media'), which ordinary prose
+#                    ('a syntek template') shares, so only the owner's own name is caught that
+#                    way. Check 27 cannot see a path below a family folder that only one
+#                    template ships (a skill of its own under .claude/skills/), a path its
+#                    tooling makes but never ships (build/), a folder named as a bare word ('the
+#                    research folder', 'the Makefile'), a path inside a URL, or, in Markdown, a
+#                    two-word path written without quotes or a trailing slash (manuscript/src)
+#                    or quoted bare ('research'); it still reads as paths, and so reports, a
+#                    word/word in code comments ('data/research') and a quoted bare name in
+#                    code (('library', 'assets')), which a maintainer rewords rather than
+#                    weakening the check.
 #
 # SELF-TEST. --self-test writes a fixture repository at runtime, writes its manifest, proves it
 #            clean, then applies one mutation per check and asserts exactly one finding each.
@@ -271,7 +316,7 @@ fs_py() {
   FS_REFRESH_DATA="$FS_REFRESH_DATA" FS_HELD="$FS_HELD" FS_MANIFEST="$FS_MANIFEST" \
   FS_MODE_FILES="$SA_MODE_FILES" FS_SIBLING_MODE_RE="$SA_SIBLING_MODE_RE" \
   python3 -I - "$@" <<'PY'
-import hashlib, json, os, re, sys, tomllib
+import hashlib, json, os, re, subprocess, sys, tomllib
 from pathlib import Path
 
 mode, root, sibling = sys.argv[1], Path(sys.argv[2]), sys.argv[3]
@@ -353,16 +398,46 @@ try:
 except OSError:
     version = ""
 releases = {"unreleased"} | ({f"v{version}"} if version else set())
+
+def release_wanted():
+    """The release values the manifest may name, and why, from the repository's tags: 'v' +
+    VERSION on the commit that tag names, and on an untagged commit whose VERSION no tag has
+    yet (the release commit, before its tag); 'unreleased' on later work, once that tag is an
+    ancestor; either where git cannot tell (no repository at the root, no tags fetched)."""
+    if not version:
+        return releases, ""
+    def g(*args):
+        r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+        return r.returncode, r.stdout.strip()
+    code, top = g("rev-parse", "--show-toplevel")
+    if code or Path(top).resolve() != root.resolve():
+        return releases, ""
+    tag = "v" + version
+    code, tagged = g("rev-parse", "-q", "--verify", f"refs/tags/{tag}^{{commit}}")
+    if code:
+        code, tags = g("tag", "-l", "v[0-9]*")
+        return ({tag}, f"VERSION is {version} and no tag {tag} exists yet, so this is its release commit") if not code and tags else (releases, "")
+    code, head = g("rev-parse", "-q", "--verify", "HEAD^{commit}")
+    if code:
+        return releases, ""
+    if tagged == head:
+        return {tag}, f"HEAD is tagged {tag}"
+    code, _ = g("merge-base", "--is-ancestor", tagged, head)
+    return ({"unreleased"}, f"{tag} is already released, so later work is unreleased until the next release") if code == 0 else (releases, "")
+
+wanted, wanted_why = release_wanted()
 blks = {name: block_lines(root / src, b, e) for name, src, _, b, e, _, _ in BLOCKS}
 
 if mode == "write":
     release = "unreleased"
     try:
         old = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if old.get("release") in releases:
+        if old.get("release") in wanted:
             release = old["release"]
     except (OSError, ValueError, AttributeError):
         pass
+    if len(wanted) == 1:
+        release = next(iter(wanted))
     for name, *_ in BLOCKS:
         if blks[name][0] is None:
             print(blks[name][1], file=sys.stderr); sys.exit(2)
@@ -389,8 +464,9 @@ except FileNotFoundError:
 except (OSError, ValueError) as err:
     finding(1, f"{manifest_path.name} is not JSON ({err})")
 if man is not None:
-    if not isinstance(man, dict) or man.get("format") != 1 or man.get("owner") != OWNER or man.get("release") not in releases:
-        finding(1, f"{manifest_path.name} must hold format 1, owner {OWNER} and release one of {sorted(releases)}")
+    if not isinstance(man, dict) or man.get("format") != 1 or man.get("owner") != OWNER or man.get("release") not in wanted:
+        finding(1, f"{manifest_path.name} must hold format 1, owner {OWNER} and release one of {sorted(wanted)}"
+                   + (f" ({wanted_why}; family-shared.sh --write sets it)" if wanted_why else ""))
         man = None
 
 listed = {}
@@ -422,9 +498,12 @@ ident = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 # the data root's variable SYNTEK_DATA_ROOT, marker .syntek-data-root and temporary suffix
 # .syntek-tmp, which the pattern finds as SYNTEK_DATA, syntek-data-root and syntek-tmp.
 template_name = re.compile(r"syntek[-_]?[a-z][a-z0-9]*(?:-[a-z0-9]+)*", re.I)
-NOT_TEMPLATES = (OWNER, "syntek-held", "SYNTEK_DATA", "syntek-data-root", "syntek-tmp")
+NOT_TEMPLATES = ("syntek-held", "SYNTEK_DATA", "syntek-data-root", "syntek-tmp")
+# The owner's own name in any spelling: case, -, _, a space or none (Syntek Author, SyntekAuthor).
+OWN_ANY = re.compile(r"syntek[-_ ]?" + re.escape(OWNER.removeprefix("syntek-")) + r"(?![A-Za-z0-9])", re.I)
 def other_templates(text):
-    return sorted({n for n in template_name.findall(re.sub(r"SYNTEK_UPDATE_[A-Z]+", "", text)) if n not in NOT_TEMPLATES})
+    return sorted({n for n in template_name.findall(re.sub(r"SYNTEK_UPDATE_[A-Z]+", "", text))
+                   if n not in NOT_TEMPLATES and not OWN_ANY.match(n)})
 decision = re.compile(r"\bD\d+\b")
 section = re.compile(r"\bSections? \d|§")
 def foreign_keys(text, keyset, extra=()):
@@ -473,10 +552,10 @@ for path, source, scope in sorted(files):
         finding(5, f"{source} holds a template delimiter; it is run from the template clone and never rendered")
     elif bad:
         finding(5, f"{source} uses {', '.join(bad)} — a shared file may use only the seven shared keys")
-    if OWNER in text:
-        finding(6, f"{source} names {OWNER}; say 'every .claude/syntek-*-agents.md' or 'the project's rules in .claude/'")
-    if scope == "repository" or path == resolver:
-        names_check(source, text)
+    own = OWN_ANY.search(text)
+    if own:
+        finding(6, f"{source} names {own.group(0)}; say 'every .claude/syntek-*-agents.md' or 'the project's rules in .claude/'")
+    names_check(source, text)
     if path == MIGRATION:
         helds = re.findall(r"^HELD = '([^']*)'$", text, re.M)
         if helds != [held]:
@@ -528,8 +607,9 @@ for name, source, dest, begin, end, keyset, extra in BLOCKS:
         bad = foreign_keys(btext, keyset, extra=extra)
         if bad:
             finding(5, f"the D48 {name} block uses {', '.join(bad)} — only {'its fifteen keys' if name == 'questions' else 'the seven shared keys'} and {', '.join(extra)}")
-    if OWNER in btext:
-        finding(6, f"the D48 {name} block names {OWNER}; it is copied verbatim into the other template")
+    own = OWN_ANY.search(btext)
+    if own:
+        finding(6, f"the D48 {name} block names {own.group(0)}; it is copied verbatim into the other template")
     mb = mblocks.get(name)
     if man is not None and isinstance(mb, dict):
         be = block_entry(name, source, dest, begin, end, blk)
@@ -925,9 +1005,26 @@ def tests_store(toks):
 def literal_at(toks, j):
     return j < len(toks) and (toks[j][0] == "str" or (toks[j] in (("op", "["), ("op", "(")) and j + 1 < len(toks) and toks[j + 1][0] == "str"))
 
-def store_problems(toks, is_cond):
-    """What a Jinja expression's tests of the DATA_STORE identifier break, if anything."""
+def match_open(toks, j):
+    depth = 0
+    for i in range(j, -1, -1):
+        if toks[i][0] == "op" and toks[i][1] in CLOSE:
+            depth += 1
+        elif toks[i][0] == "op" and toks[i][1] in OPEN:
+            depth -= 1
+            if depth == 0:
+                return i
+    return 0
+
+# Jinja's tests that compare: by equality, and the ones that negate it.
+EQ_TESTS = {("name", "eq"), ("name", "equalto"), ("name", "sameas"), ("op", "==")}
+NE_TESTS = {("name", "ne"), ("op", "!=")}
+
+def store_problems(toks, is_cond, allow_not=False):
+    """What a Jinja expression's tests of the DATA_STORE identifier break, if anything.
+    allow_not: a copier.yml _exclude item of the house form, whose not (GATE) excludes."""
     probs, n = [], len(toks)
+    positive = []   # (start, end) of each comparison that tests DATA_STORE by == or in
     regions = [(0, n)] if is_cond else []
     for k, t in enumerate(toks):
         if t != ("name", "if"):
@@ -973,15 +1070,43 @@ def store_problems(toks, is_cond):
         after = toks[e][1] if e < n and toks[e][0] == "op" and toks[e][1] in CMP else None
         before = toks[s - 1][1] if s > 0 and toks[s - 1][0] == "op" and toks[s - 1][1] in CMP else None
         if after:
-            if after in ("!=", "not in") and literal_at(toks, e + 1):
+            test = toks[e + 1] if after in ("is", "is not") and e + 1 < n else None
+            lit = literal_at(toks, e + 2 if test else e + 1)
+            if after in ("!=", "not in") and lit:
                 probs.append(f"compares DATA_STORE by {after} with a literal, which means 'not that value'")
+            elif test and lit and ((after == "is" and test in NE_TESTS) or (after == "is not" and test in EQ_TESTS)):
+                probs.append(f"compares DATA_STORE by {after} {test[1]} with a literal, which means 'not that value'")
+            elif after in ("==", "in") or (test and ((after == "is" and test in EQ_TESTS) or (after == "is not" and test in NE_TESTS))):
+                positive.append((s, e))
         elif before:
             lit = s > 1 and (toks[s - 2][0] == "str" or (toks[s - 2] in (("op", "]"), ("op", ")")) and s > 2 and toks[s - 3][0] == "str"))
             if before in ("!=", "not in") and lit:
                 probs.append(f"compares DATA_STORE by {before} with a literal, which means 'not that value'")
+            elif before in ("==", "in"):
+                positive.append((match_open(toks, s - 2) if toks[s - 2] in (("op", "]"), ("op", ")")) else s - 2, e))
         elif ((s > 0 and toks[s - 1] in (("name", "not"), ("name", "and"), ("name", "or")))
               or (e < n and toks[e] in (("name", "and"), ("name", "or"))) or (s, e) in regions):
             probs.append("tests DATA_STORE bare, which any value passes")
+    # A not over an equality test of the store (directly, through brackets, or over a group
+    # that holds one) means 'not that value' as surely as != does. Jinja's not takes the
+    # comparison after it, up to the next and, or, if, else or comma outside brackets.
+    for k in range(n):
+        if toks[k] != ("name", "not") or allow_not:
+            continue
+        j, depth = k + 1, 0
+        while j < n:
+            ty, v = toks[j]
+            if ty == "op" and v in OPEN:
+                depth += 1
+            elif ty == "op" and v in CLOSE:
+                if depth == 0:
+                    break
+                depth -= 1
+            elif depth == 0 and (toks[j] in (("name", "and"), ("name", "or"), ("name", "if"), ("name", "else"), ("op", ","))):
+                break
+            j += 1
+        if any(k < a and b <= j for a, b in positive):
+            probs.append("negates an equality test of DATA_STORE with not, which means 'not that value'")
     return probs
 
 def store_findings(rel, text, copier):
@@ -1003,12 +1128,19 @@ def store_findings(rel, text, copier):
         line = text.count("\n", 0, m.start()) + 1
         start = text.rfind("\n", 0, m.start()) + 1
         is_cond = (not stmt and copier and re.match(r"\s*when:", text[start:m.start()]) is not None)
+        house = False
+        if copier and kw == "if" and toks[1:2] == [("name", "not")]:
+            end = text.find("\n", m.end())
+            item = text[start:end if end >= 0 else len(text)]
+            keys = re.findall(r"^([A-Za-z_][A-Za-z0-9_]*):", text[:start], re.M)
+            house = (bool(keys) and keys[-1] == "_exclude"
+                     and re.fullmatch(r'\s*-\s*"<: if not \(.*\) :>/[^"<]*<: endif :>"\s*', item) is not None)
         probs = []
         if stmt:
             expr = toks[1:]
             if kw == "set":
                 expr = toks[next((j for j, t in enumerate(toks) if t == ("op", "=")), len(toks) - 1) + 1:]
-            probs += store_problems(expr, kw in ("if", "elif"))
+            probs += store_problems(expr, kw in ("if", "elif"), house)
             if kw in ("if", "for"):
                 stack.append([kw, kw == "if" and tests_store(expr)])
             elif kw in ("elif", "else") and stack and stack[-1][0] == "if":
@@ -1072,20 +1204,111 @@ if qblk is not None:
     if count != 2:
         finding(25, f"the D48 question block holds {count} '{retired}' literal(s) in DATA_PROVIDER's default; exactly two map the retired answer")
 
-# ── 26. The resolver names no top-level folder of template/ (D50) ──
+# ── 26. The resolver names no top-level folder of template/, nor of the sibling's (D50) ──
 src = next((s for p, s, _ in files if p == resolver), None)
+hits26 = set()
 if src and (root / src).is_file() and tpl.is_dir():
     rtext = (root / src).read_text(encoding="utf-8", errors="replace")
     shared_dirs = {".claude", ".agents", ".codex", ".gemini"}
     hits = []
-    for d in sorted(os.listdir(tpl)):
-        if d in shared_dirs or not (tpl / d).is_dir() or (tpl / d).is_symlink():
+    stpl = Path(sibling) / "template" if sibling else None
+    folders = {d for t in (tpl, stpl) if t is not None and t.is_dir() for d in os.listdir(t)
+               if (t / d).is_dir() and not (t / d).is_symlink()}
+    for d in sorted(folders):
+        if d in shared_dirs:
             continue
         q = re.escape(d)
         if re.search(rf"(?<![\w.-]){q}/|(['\"`]){q}\1", rtext):
             hits.append(d)
+    hits26 = set(hits)
     if hits:
         finding(26, f"{src} names the template folder(s) {', '.join(hits)}; each template's filing folders live in its own .claude/syntek-<template>-dataroot.json")
+
+# ── 27. No shared file or block names a path only this template ships (D48) ──
+# This template's own paths are the top-level entries of template/ that are neither family
+# paths nor the house files every family template's root holds; with --sibling, less every
+# top-level entry of the sibling's template/, and the sibling's own such entries are judged the
+# same way. A use counts only where it is path-like, so 'the research skill' is a word and
+# 'research/src/' a path; a path under a family folder (.claude/skills/<name>/) is not a
+# top-level path; in Markdown prose, two plain words joined by a slash ('people/world') are
+# prose, and a quoted name counts only with a slash or a glob after it ('research' is a word,
+# 'research/' a path). The one stated exception is opencode.json's three edit denies, inert
+# where the path is absent: each is passed over only while every entry of exactly that edit
+# deny in the file is a top-level permissions entry.
+FAMILY_TOP = {".claude", ".agents", ".codex", ".gemini", "handoffs"} | {p.split("/")[0] for p, _, sc in files if sc == "project"}
+FAMILY_DIRS = (".claude", ".agents", ".codex", ".gemini", "handoffs")
+HOUSE_ROOT = {"CONTEXT.md", "CLAUDE.md", "README.md", ".gitignore"}
+OC_EXEMPT = ("*.pdf", "build/*", "typeset/src/units/.base/*")
+URL = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"`<>()\[\]]*")
+UNDER_FAMILY = re.compile(r"(?<![\w.-])(?:\./)?(?:" + "|".join(re.escape(d) for d in FAMILY_DIRS) + r")/[^\s'\"`<>()\[\]{},;]*")
+WORD_SLASH = re.compile(r"(?<![\w./`'\"-])[A-Za-z]+/[A-Za-z]+(?![\w/`'\"-]|\.\w)")
+own27, sib27 = set(), set()
+if tpl.is_dir():
+    own27 = {n for n in os.listdir(tpl) if n not in FAMILY_TOP | HOUSE_ROOT and not OWN_ANY.search(n)}
+    stpl27 = Path(sibling) / "template" if sibling else None
+    if stpl27 is not None and stpl27.is_dir():
+        sentries = set(os.listdir(stpl27))
+        sib27 = {n for n in sentries - set(os.listdir(tpl)) - FAMILY_TOP - HOUSE_ROOT
+                 if not n.startswith(".copier-answers.")}
+        own27 -= sentries
+
+def blank(text, start, end):
+    return text[:start] + re.sub(r"[^\n]", " ", text[start:end]) + text[end:]
+
+def path_uses(text, names, prose=False):
+    """{name: first line} for each name the text uses as a path; a URL is never read, nor a path
+    under a family folder. prose: Markdown, where word/word is prose and a quoted bare name a word."""
+    for rx in (URL, UNDER_FAMILY) + ((WORD_SLASH,) if prose else ()):
+        for m in reversed(list(rx.finditer(text))):
+            text = blank(text, m.start(), m.end())
+    hits = {}
+    quoted = r"([\'\"`]){q}[/*][^\'\"`\s]*\1" if prose else r"([\'\"`]){q}(?:[/*][^\'\"`\s]*)?\1"
+    for n in sorted(names):
+        q = re.escape(n)
+        pat = rf"(?<![\w.-]){q}/|(?<=/){q}(?![\w-]|\.\w)|" + quoted.replace("{q}", q)
+        if "." in n:
+            pat += rf"|(?<![\w.-]){q}(?![\w-]|\.\w)"
+        m = re.search(pat, text)
+        if m:
+            hits[n] = text.count("\n", 0, m.start()) + 1
+    return hits
+
+def oc_exempt(text):
+    """opencode.json's text with each exempt edit deny blanked, where every such object in the
+    text is a top-level permissions entry of exactly that action, resource and effect."""
+    top = parsed.get("opencode.json")
+    perms = top.get("permissions") if isinstance(top, dict) else None
+    perms = perms if isinstance(perms, list) else []
+    for r in OC_EXEMPT:
+        want = {"action": "edit", "resource": r, "effect": "deny"}
+        obj = re.compile(r'\{\s*"action"\s*:\s*"edit"\s*,\s*"resource"\s*:\s*"' + re.escape(r) + r'"\s*,\s*"effect"\s*:\s*"deny"\s*\}')
+        found = list(obj.finditer(text))
+        if found and len(found) == sum(1 for p in perms if p == want):
+            for m in reversed(found):
+                text = blank(text, m.start(), m.end())
+    return text
+
+scan27 = []
+names27 = own27 | sib27
+for path, source, scope in sorted(files):
+    if path in links or not (root / source).is_file():
+        continue
+    text = (root / source).read_text(encoding="utf-8", errors="replace")
+    if path == "opencode.json":
+        text = oc_exempt(text)
+    # The resolver's folders that check 26 already reported are not reported twice.
+    scan27.append((source, text, names27 - hits26 if path == resolver else names27, "", 0, source.endswith(".md")))
+for name, source, _, begin, *_ in BLOCKS:
+    if blks[name][0] is not None:
+        first = (root / source).read_text(encoding="utf-8").splitlines().index(begin) + 1
+        scan27.append((f"the D48 {name} block", "\n".join(blks[name][0]), names27, f"{source} ", first, source.endswith(".md")))
+for label, text, names, where, first, prose in scan27:
+    hits = path_uses(text, names, prose)
+    for who, group in (("this template", own27), ("the sibling", sib27)):
+        mine = {n: l for n, l in hits.items() if n in group}
+        if mine:
+            finding(27, f"{label} names {', '.join(f'{n} ({where}line {first + l})' for n, l in sorted(mine.items()))} as a path, which only "
+                        f"{who} ships; family-shared text names no such path (describe it, as 'the content layer', and let the project's rules name it)")
 
 if sibling:
     sroot = Path(sibling)
@@ -1161,7 +1384,8 @@ oc = {"$schema": "https://opencode.ai/config.json", "compaction": {"auto": False
       "mcp": {"servers": {"code-review-graph": {"type": "local", "command": ["uvx"] + crg_args, "environment": env},
                           "scrapling": {"type": "local", "command": ["uvx"] + scr_args}}},
       "permissions": [{"action": f"{s}_{t}", "resource": "*", "effect": "ask"} for s, t in parts]
-                     + [{"action": "edit", "resource": "build/*", "effect": "deny"}, {"action": f"{ds}_{dt}", "resource": "*", "effect": "deny"}]}
+                     + [{"action": "edit", "resource": r, "effect": "deny"} for r in ("*.pdf", "build/*", "typeset/src/units/.base/*")]
+                     + [{"action": f"{ds}_{dt}", "resource": "*", "effect": "deny"}]}
 body = json.dumps(oc, indent=2)
 w("template/opencode.json", "{\n<: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER == 'named' :>  \"model\": <% OPENCODE_MODEL | tojson %>,\n<: endif :>" + body[2:] + "\n")
 q = lambda v: "[" + ", ".join(f"'{x}'" for x in v) + "]"
@@ -1218,6 +1442,8 @@ JSON
     "# A SharePoint library folder, or ~/Library/CloudStorage on macOS: see .claude/syntek-*-dataroot.json." \
     > "$t/template/.claude/syntek-author-dataroot.py"
   printf '# Library\n' > "$t/template/library/src/README.md"
+  # Folders only this template ships (check 27); typeset/ is named by opencode.json's exempt deny.
+  for p in manuscript/src research/src typeset/src/units/.base; do mkdir -p "$t/template/$p"; printf '# %s\n' "$p" > "$t/template/$p/README.md"; done
   ln -s ../.claude/skills "$t/template/.agents/skills"
   fixture_mcp "$t"
   printf '%s\n' "# 06 — global rules" "" "## 13. Web and code tools" "" "$FS_RULES_BEGIN" \
@@ -1288,6 +1514,16 @@ self_test() {
 
   cp "$m" "$tmp/m"
   sed -i 's/"release": "unreleased"/"release": "v9.9.9"/' "$m";                probe "check 1 fires on a release that is neither unreleased nor VERSION" "check 1"
+  # The release the tags decide: the tagged commit, later work, and the release commit.
+  cp "$tmp/m" "$m"; sa_git "$SA_ROOT" init -q; sa_git "$SA_ROOT" add -A; sa_git "$SA_ROOT" commit -q -m 'v0.3.0'; sa_git "$SA_ROOT" tag v0.3.0
+  probe "check 1 fires when the commit tagged with VERSION records unreleased" "check 1 — $FS_MANIFEST must hold format 1, owner syntek-author and release one of ['v0.3.0'] (HEAD is tagged v0.3.0"
+  sed -i 's/"release": "unreleased"/"release": "v0.3.0"/' "$m";                 probe_clean "the commit tagged with VERSION naming its release passes"
+  sa_git "$SA_ROOT" commit -q --allow-empty -m 'later work'
+  probe "check 1 fires when later work still names the last release" "check 1 — $FS_MANIFEST must hold format 1, owner syntek-author and release one of ['unreleased'] (v0.3.0 is already released"
+  cp "$tmp/m" "$m";                                                              probe_clean "later work recording unreleased passes"
+  printf '0.4.0\n' > "$SA_ROOT/VERSION"
+  probe "check 1 fires when the release commit still records unreleased" "check 1 — $FS_MANIFEST must hold format 1, owner syntek-author and release one of ['v0.4.0'] (VERSION is 0.4.0 and no tag v0.4.0 exists yet"
+  printf '0.3.0\n' > "$SA_ROOT/VERSION"; rm -rf "$SA_ROOT/.git"
   cp "$tmp/m" "$m"; sed -i '/"path": "GEMINI.md"/d' "$m"
   probe "check 2 fires when a shared file is not listed" "check 2"
   cp "$tmp/m" "$m"; rm "$g";                                                      probe "check 3 fires when a shared source is missing" "check 3 — template/GEMINI.md"
@@ -1303,6 +1539,13 @@ self_test() {
   printf 'shared text\n' > "$SA_ROOT/template/.claude/syntek-author-permissions.py"
   printf 'Read .claude/syntek-author-agents.md.\n' > "$g"; fs_py write "$SA_ROOT" ""
   probe "check 6 fires when a shared file names syntek-author" "check 6 — template/GEMINI.md"
+  printf 'Read the Syntek Author rules.\n' > "$g"; fs_py write "$SA_ROOT" ""
+  probe "check 6 fires on the owner's name in another spelling" "check 6 — template/GEMINI.md names Syntek Author"
+  printf 'Read the syntek-media rules.\n' > "$g"; fs_py write "$SA_ROOT" ""
+  probe "check 11 fires when a project-scope shared file names another template" "check 11 — template/GEMINI.md names syntek-media"
+  printf 'shared text for GEMINI.md\n' > "$g"; printf '# as syntek-media says\n' > "$SA_ROOT/template/.claude/syntek-author-permissions.py"; fs_py write "$SA_ROOT" ""
+  probe "check 11 fires when the permissions script names another template" "check 11 — template/.claude/syntek-author-permissions.py names syntek-media"
+  printf 'shared text\n' > "$SA_ROOT/template/.claude/syntek-author-permissions.py"
   printf 'shared text for GEMINI.md\n' > "$g"; fs_py write "$SA_ROOT" ""; cp "$c" "$tmp/c"
   printf '%s\n' "$FS_END" >> "$c";                                               probe "check 7 fires on a second END marker" "check 7"
   cp "$tmp/c" "$c"; sed -i "s/^$FS_END\$/DATE:\n  type: str\n$FS_END/" "$c"; fs_py write "$SA_ROOT" ""
@@ -1436,6 +1679,19 @@ PY
   cp "$SA_ROOT/copier.yml" "$sib/copier.yml"
   sed -i 's/^- Use the plainest tool that does the job\.$/- Use any tool./' "$sib/template/.claude/rules/syntek-media/06-global-rules.md"
   probe "check 10 fires when a sibling's rules-web-tools block drifts" "check 10 — the sibling's D48 rules-web-tools block (template/.claude/rules/syntek-media/06-global-rules.md)"
+  cp "$SA_ROOT/$FS_RULES_SOURCE" "$sib/template/.claude/rules/syntek-media/06-global-rules.md"
+  cp "$SA_ROOT/template/.claude/syntek-author-dataroot.py" "$tmp/resolver.held"; mkdir -p "$sib/template/production"
+  printf '%s\n' 'X = "production/src/"' >> "$SA_ROOT/template/.claude/syntek-author-dataroot.py"; fs_py write "$SA_ROOT" ""
+  cp "$SA_ROOT/template/.claude/syntek-author-dataroot.py" "$sib/template/.claude/syntek-author-dataroot.py"
+  probe "check 26 fires when the resolver names a folder of the sibling's template" "check 26 — template/.claude/syntek-author-dataroot.py names the template folder(s) production"
+  cp "$tmp/resolver.held" "$SA_ROOT/template/.claude/syntek-author-dataroot.py"; cp "$tmp/resolver.held" "$sib/template/.claude/syntek-author-dataroot.py"; fs_py write "$SA_ROOT" ""
+  # Check 27 with --sibling: a path both templates ship passes; one only the sibling ships fires.
+  cp "$SA_ROOT/template/GEMINI.md" "$tmp/gemini.held"
+  printf '%s\n' "Draft in manuscript/src/ first." > "$SA_ROOT/template/GEMINI.md"; cp "$SA_ROOT/template/GEMINI.md" "$sib/template/GEMINI.md"; fs_py write "$SA_ROOT" ""
+  probe_clean "with --sibling, a path both templates ship passes check 27"
+  printf '%s\n' "Render into production/renders/." > "$SA_ROOT/template/GEMINI.md"; cp "$SA_ROOT/template/GEMINI.md" "$sib/template/GEMINI.md"; fs_py write "$SA_ROOT" ""
+  probe "check 27 fires when a shared file names a path only the sibling ships" "check 27 — template/GEMINI.md names production (line 1) as a path, which only the sibling ships"
+  cp "$tmp/gemini.held" "$SA_ROOT/template/GEMINI.md"; cp "$tmp/gemini.held" "$sib/template/GEMINI.md"; fs_py write "$SA_ROOT" ""
   SIBLING=""
 
   SA_ROOT="$real_root"
@@ -1523,6 +1779,43 @@ PY
   probe_clean "the resolver may name the shared folders .claude and .agents"
   st_restore "$res"
 
+  # A path only this template ships (check 27): path-like uses only, and opencode.json's three
+  # edit denies the one exception.
+  local gem="$SA_ROOT/template/GEMINI.md" agents="$SA_ROOT/template/AGENTS.md" oc="$SA_ROOT/template/opencode.json"
+  cp "$gem" "$tmp/v050.gem"; cp "$agents" "$tmp/v050.agents"
+  printf '%s\n' "Draft in manuscript/src/ first." > "$gem"; fs_py write "$SA_ROOT" ""
+  probe "check 27 fires when a shared file names a path only this template ships" "check 27 — template/GEMINI.md names manuscript (line 1)"
+  printf '%s\n' "Ask the project's research skill about the manuscript; read each folder's CONTEXT.md, README.md" \
+    "and .gitignore; see https://example.org/research/notes and 'https://example.org/typeset/'." > "$gem"; fs_py write "$SA_ROOT" ""
+  probe_clean "a template folder named as a word, the house files every family template ships and a URL's path pass"
+  printf '%s\n' "Weigh the research/planning question, and people/world. Ask the 'research' skill, or \`research\`;" \
+    "its folder is .claude/skills/research/SKILL.md." > "$gem"; fs_py write "$SA_ROOT" ""
+  probe_clean "Markdown prose passes: word/word, a quoted bare name, a path under a family folder"
+  printf '%s\n' "Save each page under \`research/src\`." > "$gem"; fs_py write "$SA_ROOT" ""
+  probe "check 27 fires on a quoted two-word path in Markdown" "check 27 — template/GEMINI.md names research (line 1)"
+  cp "$tmp/v050.gem" "$gem"; printf '%s\n' "Never edit 'typeset/src/units/.base/*'." > "$agents"; fs_py write "$SA_ROOT" ""
+  probe "check 27 fires on an exempt resource outside opencode.json" "check 27 — template/AGENTS.md names typeset (line 1)"
+  cp "$tmp/v050.agents" "$agents"
+  python3 - "$oc" <<'PY'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+pat = r'"action": "edit",(\s*)"resource": "typeset/src/units/\.base/\*"'
+assert len(re.findall(pat, t)) == 1
+open(p, "w").write(re.sub(pat, r'"action": "read",\1"resource": "typeset/src/units/.base/*"', t))
+PY
+  fs_py write "$SA_ROOT" ""
+  probe "check 27 fires on an exempt resource in opencode.json outside an edit deny" "check 27 — template/opencode.json names typeset"
+  st_restore "$oc"
+  sed -i 's/^- Use the plainest tool that does the job\.$/- Save each page under research\/src\/./' "$rules"; fs_py write "$SA_ROOT" ""
+  probe "check 27 fires when a block names a path only this template ships" "check 27 — the D48 rules-web-tools block names research ($FS_RULES_SOURCE line"
+  st_restore "$rules"
+  printf '%s\n' "# copies land under data/research" >> "$res"; fs_py write "$SA_ROOT" ""
+  probe "check 27 reads the resolver for a path check 26 does not see" "check 27 — template/.claude/syntek-author-dataroot.py names research (line"
+  st_restore "$res"; cp "$SA_ROOT/template/.claude/syntek-author-permissions.py" "$tmp/perms.held"
+  printf '%s\n' "LAYERS = ('library', 'assets')" >> "$SA_ROOT/template/.claude/syntek-author-permissions.py"; fs_py write "$SA_ROOT" ""
+  probe "check 27 still reads a bare quoted name in code" "check 27 — template/.claude/syntek-author-permissions.py names library (line"
+  cp "$tmp/perms.held" "$SA_ROOT/template/.claude/syntek-author-permissions.py"; fs_py write "$SA_ROOT" ""
+
   # The MCP files (D54): pins, the tool list, the blank keys, the rules, the lane data.
   sed -i 's/code-review-graph==2\.3\.9/code-review-graph==2.3.8/' "$SA_ROOT/template/opencode.json"; fs_py write "$SA_ROOT" ""
   probe "check 18 fires on a changed pin" "check 18 — template/opencode.json"
@@ -1596,9 +1889,24 @@ PY
   probe "check 23 fires on an inline if … else" "check 23 — template/README.md:7 tests DATA_STORE in an inline if"
   st_restore "$readme"; readme_add "<: if DATA_STORE != p :>x<: endif :><% 'a' if DATA_STORE == 'external' %><: set s = DATA_STORE :>Store <% DATA_STORE %>.<: if (_external_data.peer or {}).get('DATA_STORE') != 'repo' :>y<: endif :>"
   probe_clean "another answer compared by !=, an inline if without else, an assignment, the printed value and a .get('DATA_STORE') string pass"
+  st_restore "$readme"; readme_add "<: if not (DATA_STORE == 'external') :>x<: endif :>"
+  probe "check 23 fires on not over a bracketed equality" "check 23 — template/README.md:7 negates an equality test of DATA_STORE with not"
+  st_restore "$readme"; readme_add "<: if not DATA_STORE == 'external' :>x<: endif :>"
+  probe "check 23 fires on not over a bare equality" "check 23 — template/README.md:7 negates an equality test of DATA_STORE with not"
+  st_restore "$readme"; readme_add "<: if not (DOC_TYPE == 'business' and DATA_STORE in ['repo']) :>x<: endif :>"
+  probe "check 23 fires on not over a group that holds an in test" "check 23 — template/README.md:7 negates an equality test of DATA_STORE with not"
+  st_restore "$readme"; readme_add "<: if DATA_STORE is ne 'repo' :>x<: endif :>"
+  probe "check 23 fires on the ne test" "check 23 — template/README.md:7 compares DATA_STORE by is ne"
+  st_restore "$readme"; readme_add "<: if DATA_STORE is not eq 'repo' :>x<: endif :>"
+  probe "check 23 fires on a negated eq test" "check 23 — template/README.md:7 compares DATA_STORE by is not eq"
+  st_restore "$readme"; readme_add "<: if not INCLUDE_PROPOSAL and DATA_STORE == 'repo' :>x<: endif :><: if DATA_STORE is equalto 'repo' and not (DOC_TYPE == 'business') :>y<: endif :>"
+  probe_clean "a not over another answer beside a store equality, and the equalto test, pass"
   st_restore "$readme"
   sed -i "0,/^  when: \"<% DATA_STORE == 'external' %>\"$/s//  when: \"<% DATA_STORE %>\"/" "$c"; fs_py write "$SA_ROOT" ""
   probe "check 23 fires on a bare when: in copier.yml" "check 23 — copier.yml"
+  st_restore "$c"
+  sed -i "0,/^  when: \"<% DATA_STORE == 'external' %>\"$/s//  when: \"<% not (DATA_STORE == 'repo') %>\"/" "$c"; fs_py write "$SA_ROOT" ""
+  probe "check 23 fires on a negated when: in copier.yml (only _exclude's house form may negate)" "check 23 — copier.yml"
   st_restore "$c"
 
   # The peer key (check 24).
@@ -1633,7 +1941,7 @@ if $WRITE; then
 fi
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
-  bold "✓ ${#FS_FILES[@]} shared file(s) and the four blocks match $FS_MANIFEST and stay template-neutral; the update entry closes _migrations, its baseline task closes _tasks, $FS_REFRESH_DATA refreshes exactly the shared working practice, the MCP files hold one set of pins, tools, keys and asks, and the store is tested by equality only."
+  bold "✓ ${#FS_FILES[@]} shared file(s) and the four blocks match $FS_MANIFEST and stay template-neutral; the update entry closes _migrations, its baseline task closes _tasks, $FS_REFRESH_DATA refreshes exactly the shared working practice, the MCP files hold one set of pins, tools, keys and asks, the store is tested by equality only, and no shared file or block names a path only one template ships."
   exit 0
 fi
 bold "✗ ${#FINDINGS[@]} finding(s):"

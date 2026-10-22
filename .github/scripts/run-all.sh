@@ -2,16 +2,17 @@
 #
 # run-all.sh — Run every audit and test in DESIGN.md Section 7, rendering the template once.
 #
-#              Eighteen scripts, three kinds of input: the template source (tokens, mode
+#              Seventeen scripts, three kinds of input: the template source (tokens, mode
 #              excludes, pairs, line cap, scrub, isolation, seeds, skills, the family-shared
 #              set), the renders (shipped variants, byte identity, references, pairs, seeds,
 #              skills, tooling), and their own scratch projects (update, adoption, coexistence).
 #              Rendering is the expensive part, so it happens once, and every per-tree audit
-#              reads the same renders. The self-tests also run the --self-test of two Python
+#              reads the same renders. The self-tests also run the --self-test of three Python
 #              scripts no audit renders a project to judge alone: migrations/family-update.py
-#              (DESIGN.md D52: its classes, refresh and printed commands) and the data-root
+#              (DESIGN.md D52: its classes, refresh and printed commands), the data-root
 #              resolver, template/.claude/syntek-author-dataroot.py (D50, D53: its own
-#              temporary roots only).
+#              temporary roots only), and migrations/agents-outside-link.py (D48: the hand fix
+#              run as printed after each kind of stop).
 #
 #              The environment (DESIGN.md D50, Section 7). A fresh render keeps its binaries
 #              under a data root, and a maintainer's own SYNTEK_DATA_ROOT may be set, so no step
@@ -41,7 +42,7 @@
 #
 #              Numbers are stable identifiers. Append, never renumber.
 #
-#              What it CANNOT check: anything the eighteen cannot. Its one check of the
+#              What it CANNOT check: anything the seventeen cannot. Its one check of the
 #              template is the floor (check 4); otherwise it only refuses to let one of theirs
 #              go unrun or unread. The floor renders prove the profiles they render, on Linux,
 #              with the dependencies uvx resolves today, not every answer on every Copier
@@ -71,6 +72,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 SCRIPTS="$SA_SCRIPTS_DIR"
 UPDATE_PY="$SA_ROOT/migrations/family-update.py"
 DATAROOT_PY="$SA_ROOT/template/$SA_DATAROOT_PY"
+OUTSIDE_PY="$SA_ROOT/migrations/agents-outside-link.py"
 COPIER_YML="$SA_ROOT/copier.yml"
 OUT=""
 KEEP=false
@@ -110,6 +112,7 @@ while [[ $# -gt 0 ]]; do
     --skip-pdf)         SMOKE_ARGS+=(--skip-pdf); shift ;;
     --root)             [[ $# -gt 1 ]] || die "--root needs a value"; SA_ROOT="$(cd "$2" && pwd)" || die "no such directory: $2"
                         UPDATE_PY="$SA_ROOT/migrations/family-update.py"; DATAROOT_PY="$SA_ROOT/template/$SA_DATAROOT_PY"
+                        OUTSIDE_PY="$SA_ROOT/migrations/agents-outside-link.py"
                         COPIER_YML="$SA_ROOT/copier.yml"; shift 2 ;;
     --quiet|-q)         QUIET=true; shift ;;
     --self-test)        SELF_TEST=true; shift ;;
@@ -163,6 +166,7 @@ run_checks() {
     for s in "${ALL_SCRIPTS[@]}"; do step "$s --self-test" bash "$SCRIPTS/$s.sh" --self-test; done
     step "family-update.py --self-test" python3 "$UPDATE_PY" --self-test
     step "syntek-author-dataroot.py --self-test" python3 "$DATAROOT_PY" --self-test
+    step "agents-outside-link.py --self-test" python3 "$OUTSIDE_PY" --self-test
   fi
 
   section "The template source"
@@ -317,14 +321,14 @@ fi
 exit 0
 EOF
   done
-  for s in family-update syntek-author-dataroot; do
+  for s in family-update syntek-author-dataroot agents-outside-link; do
     printf 'import os, sys\nif "SYNTEK_DATA_ROOT" in os.environ:\n    print("%s: saw SYNTEK_DATA_ROOT"); sys.exit(2)\nsys.exit(1 if os.environ.get("STUB_FAIL") == "%s:self:1" else 0)\n' \
       "$s" "$s" > "$d/$s.py"
   done
 }
 
 self_test() {
-  local tmp real_scripts="$SCRIPTS" real_py="$UPDATE_PY" real_dr="$DATAROOT_PY" real_yml="$COPIER_YML"
+  local tmp real_scripts="$SCRIPTS" real_py="$UPDATE_PY" real_dr="$DATAROOT_PY" real_ol="$OUTSIDE_PY" real_yml="$COPIER_YML"
   bold "▸ $SCRIPT_NAME --self-test"; log ""
   tmp="$(sa_mktemp)"
   # shellcheck disable=SC2064
@@ -332,6 +336,7 @@ self_test() {
   write_stubs "$tmp/stubs"
   printf '_min_copier_version: "9.11.0"\n' > "$tmp/copier.yml"
   SCRIPTS="$tmp/stubs"; UPDATE_PY="$tmp/stubs/family-update.py"; DATAROOT_PY="$tmp/stubs/syntek-author-dataroot.py"
+  OUTSIDE_PY="$tmp/stubs/agents-outside-link.py"
   COPIER_YML="$tmp/copier.yml"; OUT="$tmp/out"; STEP_SINK="$tmp/sink"
   export STUB_FAIL=""
   st_baseline "a run of stubs that all pass"
@@ -343,6 +348,8 @@ self_test() {
   STUB_FAIL="family-update:self:1"; probe "check 3 fires when the update script's self-test fails" "check 3 — family-update.py --self-test"
   STUB_FAIL="syntek-author-dataroot:self:1"
   probe "check 3 fires when the data-root resolver's self-test fails" "check 3 — syntek-author-dataroot.py --self-test"
+  STUB_FAIL="agents-outside-link:self:1"
+  probe "check 3 fires when the outside-link script's self-test fails" "check 3 — agents-outside-link.py --self-test"
   STUB_FAIL="generate-all:floor:1"
   probe "check 4 fires when a render fails on the declared floor" "check 4 — a render fails on Copier 9.11.0, the floor copier.yml declares"
   STUB_FAIL="generate-all:floor:tree"
@@ -360,7 +367,7 @@ self_test() {
   export SYNTEK_DATA_ROOT="$tmp/decoy"
   probe_clean "no step sees a SYNTEK_DATA_ROOT the runner itself holds"
   unset SYNTEK_DATA_ROOT
-  SCRIPTS="$real_scripts"; UPDATE_PY="$real_py"; DATAROOT_PY="$real_dr"; COPIER_YML="$real_yml"; OUT=""; STEP_SINK=""
+  SCRIPTS="$real_scripts"; UPDATE_PY="$real_py"; DATAROOT_PY="$real_dr"; OUTSIDE_PY="$real_ol"; COPIER_YML="$real_yml"; OUT=""; STEP_SINK=""
   st_finish "a run that reports every failure from one that hides them"
 }
 

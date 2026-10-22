@@ -152,8 +152,13 @@
 #                  40. Business: the report named the kept .github/workflows/google-drive-push.yml
 #                      in the DATA_PROVIDER wording (DESIGN.md D53), and never the retired
 #                      INCLUDE_DRIVE_SYNC.
+#                  41. Business, moving (advisory, on the same library): the REPLACE list reads
+#                      copier.yml's _exclude gates, so the kept Drive workflow, which the
+#                      printed copy writes only under google-drive, is listed with that gate
+#                      ('only if the answers give'), never as plainly replaced; and the run
+#                      wrote nothing (check 17's judge covers both runs).
 #                 Checks 31–32 need a migrations/family-refresh.json that lists MCP servers,
-#                 checks 33–39 a copier.yml that asks DATA_STORE, and check 40 one that asks
+#                 checks 33–39 a copier.yml that asks DATA_STORE, and checks 40–41 one that asks
 #                 DATA_PROVIDER; otherwise each is skipped, by name. A copy-time preview is
 #                 read through COPIER_CMD: adopt.sh renders with it, and a wrapper here keeps
 #                 the answers the preview recorded.
@@ -234,6 +239,8 @@ BIZ_RAN=false; BIZ_PROJ=""; BIZ_STATUS=0; BIZ_REPORT=""; BIZ_CHANGED=""
 FAMILY_NOTE="unticking msp-scp in BUSINESS_FAMILIES later deletes these files of yours:"
 FAMILY_FILE=".claude/skills/msp-scp-documents/SKILL.md"
 DRIVE_NOTE=".github/workflows/google-drive-push.yml is kept as yours"
+DRIVE_REPLACE="replace     .github/workflows/google-drive-push.yml"   # check 41: the moving report's line
+BIZ_MOVING=""
 DRAFTS_NOTE=".github/workflows/publish.yml mentions library/src/: the copy adds drafts/ folders"
 SIGNPOST_NOTE="to library/src/business/, which already holds"
 OWN_STANDARD="library/docs/business-standards.md"
@@ -501,9 +508,12 @@ run_business() { # $1 = template repo, $2 = work dir — fills the business stat
   tree_sums "$BIZ_PROJ" > "$2/business.before"
   printf 'PROJECT_NAME: "%s"\nPROJECT_DESCRIPTION: "%s"\nAUTHOR_NAME: "%s"\nDATE: "%s"\nBUSINESS_FAMILIES:\n  - business\n  - msp-scp\nDATA_PROVIDER: none\n' \
     "$SA_RENDER_NAME" "$SA_RENDER_DESCRIPTION" "$SA_RENDER_AUTHOR" "$SA_RENDER_DATE" > "$answers"
+  BIZ_MOVING="$2/business-moving.log"; : > "$BIZ_MOVING"
   if [[ -f "$tpl/adopt/business.sh" ]]; then
     bash "$tpl/adopt/business.sh" --additive --answers "$answers" "$BIZ_PROJ" >"$BIZ_REPORT" 2>&1 || BIZ_STATUS=$?
     cat "$BIZ_REPORT" >>"$log"
+    bash "$tpl/adopt/business.sh" "$BIZ_PROJ" >"$BIZ_MOVING" 2>&1 || true   # advisory: writes nothing
+    cat "$BIZ_MOVING" >>"$log"
   else
     BIZ_STATUS=127; printf 'no adopt/business.sh in %s\n' "$tpl" >"$BIZ_REPORT"
   fi
@@ -841,6 +851,10 @@ business_checks() {
     elif grep -qF INCLUDE_DRIVE_SYNC "$BIZ_REPORT" 2>/dev/null; then
       finding "check 40 — the report names the retired INCLUDE_DRIVE_SYNC: $(grep -m1 -F INCLUDE_DRIVE_SYNC "$BIZ_REPORT")"
     fi
+    line="$(grep -F "$DRIVE_REPLACE" "$BIZ_MOVING" 2>/dev/null | head -1 || true)"
+    if [[ -z "$line" || "$line" != *"only if the answers give"* ]]; then
+      finding "check 41 — the moving report lists the kept .github/workflows/google-drive-push.yml as '${line:-nothing}', not as replaced only if the answers open its gate"
+    fi
   fi
 }
 
@@ -1088,6 +1102,8 @@ PY
     probe "check 40 fires when the kept Drive workflow is not named in the DATA_PROVIDER wording" "check 40 — the report names the kept"
     cp "$tmp/h" "$BIZ_REPORT"; printf '  report      answer INCLUDE_DRIVE_SYNC=true\n' >> "$BIZ_REPORT"
     probe "check 40 fires when the report names the retired key" "check 40 — the report names the retired INCLUDE_DRIVE_SYNC"; cp "$tmp/h" "$BIZ_REPORT"
+    cp "$BIZ_MOVING" "$tmp/h"; sed -i 's/, only if the answers give: .*$//' "$BIZ_MOVING"
+    probe "check 41 fires when the moving report lists a gated workflow as plainly replaced" "check 41 — the moving report lists"; cp "$tmp/h" "$BIZ_MOVING"
   fi
   BIZ_RAN=false
 
@@ -1152,8 +1168,8 @@ if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   else log "  (checks 31–32 not exercised: migrations/family-refresh.json lists no MCP server)"; fi
   if $DR_ASKED; then log "  data root: both adoptions recorded DATA_STORE repo, every tracked binary still tracked; the reports named the file at a data-root ignore path; beside a sibling at external, the printed copies left the store out, the reports named it, the preview met the peer rule and both copies took the sibling's layout"
   else log "  (checks 33–39 not exercised: copier.yml asks no DATA_STORE)"; fi
-  if $PROVIDER_ASKED; then log "  provider: the kept Drive workflow was named in the DATA_PROVIDER wording"
-  else log "  (check 40 not exercised: copier.yml asks no DATA_PROVIDER)"; fi
+  if $PROVIDER_ASKED; then log "  provider: the kept Drive workflow was named in the DATA_PROVIDER wording, and the moving report listed it with its gate"
+  else log "  (checks 40–41 not exercised: copier.yml asks no DATA_PROVIDER)"; fi
   rm -rf "$work"
   bold "✓ Adoption leaves every piece of the author's work as it was."
   exit 0
