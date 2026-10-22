@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Changed
+
+- **`README.md`** shows an MIT licence badge beside the version and Copier badges, linking to `LICENSE` (D55). Development only, nothing ships.
+
 ## [0.5.0] - 22/10/2026
 
 A new project now keeps its binary files (scans, signed and issued copies, archived email, large images, generated audio) outside the repository, under one data root per machine that the owner names in `SYNTEK_DATA_ROOT`, each file listed with its checksum in a committed manifest, so Git keeps the text (D50). An existing project keeps its files in the repository on the update to this release and opts in when it chooses; nothing is moved for it.

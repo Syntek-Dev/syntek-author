@@ -4,6 +4,7 @@
 
 ![Version](https://img.shields.io/badge/version-0.5.0-blue)
 ![Template: Copier](https://img.shields.io/badge/template-copier-blue)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
 ```bash
 uvx copier copy --trust gh:Syntek-Dev/syntek-author my-book
