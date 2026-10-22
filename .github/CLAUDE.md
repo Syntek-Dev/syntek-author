@@ -46,5 +46,9 @@ here, on every push, before any author meets the failure.
 
 - **Hand-written:** kebab-case `.sh` scripts named as `DESIGN.md` Section 7 names them; one
   workflow, `audit-template.yml`.
+- **GitHub's community files (D55):** `ISSUE_TEMPLATE/` (two forms and `config.yml`; no
+  `CONTEXT.md` and `CLAUDE.md` pair, since GitHub reads every file there),
+  `PULL_REQUEST_TEMPLATE.md` and `CODEOWNERS` keep the names and places GitHub reads; no audit
+  checks them.
 - **Generated (never commit):** renders, logs and scratch projects go under `${TMPDIR:-/tmp}`,
   never into this repository.

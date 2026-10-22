@@ -1,0 +1,121 @@
+name: Bug report
+description: Something in the template is broken — a copy or update fails, a render is wrong, a script or audit misbehaves, or a file says something the template does not do
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. **If this is a security vulnerability, stop**: report it
+        [privately](https://github.com/Syntek-Dev/syntek-author/security/advisories/new) instead,
+        as [SECURITY.md](https://github.com/Syntek-Dev/syntek-author/blob/main/SECURITY.md) says.
+
+        This repository is the template. A problem with the writing in your own project belongs
+        in that project, not here. **Never paste manuscript text or anybody's personal data**:
+        shorten paths, replace names with invented ones, and reproduce the problem in a fresh
+        project where you can.
+
+  - type: input
+    id: template-version
+    attributes:
+      label: Template version
+      description: "`_commit` in your project's `.copier-answers.syntek-author.yml`, the release you generated from, or the release or branch of the file you read."
+      placeholder: v0.4.0
+    validations:
+      required: true
+
+  - type: input
+    id: copier-version
+    attributes:
+      label: Copier version
+      description: The output of `uvx copier --version` (or `copier --version`). Leave it blank if no command was involved, such as a mistake in the README or a shipped file.
+      placeholder: copier 9.11.0
+    validations:
+      required: false
+
+  - type: input
+    id: git-version
+    attributes:
+      label: git version
+      description: The output of `git --version`. Leave it blank if no command was involved.
+      placeholder: git version 2.50.0
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: The system and its version, and the shell if it matters. Leave it blank if no command was involved.
+      placeholder: Ubuntu 24.04, macOS 15, Windows 11 with WSL
+    validations:
+      required: false
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: DOC_TYPE
+      description: The variant of the project, as `DOC_TYPE` records it in the answers file.
+      options:
+        - theology
+        - fiction
+        - business
+        - Not about a generated project (the template repository, its audits or adoption scripts)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: second-template
+    attributes:
+      label: Is a second template applied to the same project?
+      description: For example syntek-media, with its own `.copier-answers.syntek-media.yml`.
+      options:
+        - "No"
+        - "Yes: syntek-media"
+        - "Yes: another template"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong
+      description: What happened, or what the file says, with the path (and line) of the file or the step where it happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: The command you ran
+      description: The exact command or commands, from the directory you ran them in, with every flag. Leave it blank if you ran none.
+      render: shell
+      placeholder: |
+        uvx copier update --trust -a .copier-answers.syntek-author.yml
+    validations:
+      required: false
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Full output
+      description: Everything the command printed, including the error and any update report. Remove anything personal first. Leave it blank if you ran no command.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: What should have happened (for a mistake in a file, what it should say), and where the README or a shipped file says so, if it does.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have pasted no manuscript text and no personal data (names, credentials, client or health details, absolute paths that name a person).
+          required: true

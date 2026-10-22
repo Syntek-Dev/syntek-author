@@ -2,12 +2,13 @@
 
 The template repository's own continuous integration: the audits and tests that prove
 syntek-author still generates what `DESIGN.md` promises, and the workflow that runs them on every
-push. Nothing here is rendered — `_subdirectory: template` keeps the repository root out of every
-generated project — so nothing here ships, and nothing here may assume it will. The business
-variant's Google Drive workflows are a different thing entirely: they live in `template/.github/`,
-and ship only to a business project that answers `DATA_PROVIDER` google-drive and keeps its files
-in the repository (`DATA_STORE` repo); a store guard step in each stops it if the project's
-answers record any other store (DESIGN.md D37, D53).
+push; and the repository's GitHub community files, the issue forms, the pull-request template and
+the code owners. Nothing here is rendered — `_subdirectory: template` keeps the repository root
+out of every generated project — so nothing here ships, and nothing here may assume it will. The
+business variant's Google Drive workflows are a different thing entirely: they live in
+`template/.github/`, and ship only to a business project that answers `DATA_PROVIDER` google-drive
+and keeps its files in the repository (`DATA_STORE` repo); a store guard step in each stops it if
+the project's answers record any other store (DESIGN.md D37, D53).
 
 ## Directory Tree
 
@@ -16,7 +17,10 @@ answers record any other store (DESIGN.md D37, D53).
 ├── CONTEXT.md        ← this file
 ├── CLAUDE.md         ← operating rules for the audits and their workflow
 ├── scripts/          ← one script per DESIGN.md Section 7 audit, the runner, and the shared library
-└── workflows/        ← audit-template.yml: every audit, every push, no path filter
+├── workflows/        ← audit-template.yml: every audit, every push, no path filter
+├── ISSUE_TEMPLATE/   ← two issue forms (bug report, template improvement); config.yml: no blank issues
+├── PULL_REQUEST_TEMPLATE.md   ← the pull-request summary, decision and checklist
+└── CODEOWNERS        ← @Syntek-Studio on every path, with the closer reads named
 ```
 
 ## What's here
@@ -28,6 +32,15 @@ answers record any other store (DESIGN.md D37, D53).
   changes `_common.sh` in the same commit.**
 - `workflows/` — `audit-template.yml`, three parallel jobs (template source, renders, update and
   adoption) that run every self-test before every real run.
+- `ISSUE_TEMPLATE/` — GitHub issue forms: a bug report and a template improvement, each warning
+  against pasting manuscript text or personal data; `config.yml` turns blank issues off and links
+  private security reporting and the README. No `CONTEXT.md` and `CLAUDE.md` pair: GitHub reads
+  every file there as a form or its configuration.
+- `PULL_REQUEST_TEMPLATE.md` — the summary, the decision cited or approved, and the checklist
+  (`run-all.sh`, the `CHANGELOG.md` entry, `DESIGN.md` only with approval, `family-shared.sh
+  --write` for shared bytes, no rendered output, no personal data, British English).
+- `CODEOWNERS` — `@Syntek-Studio` on every path, with closer reads named for the contract, the
+  migrations, the family-shared manifest and the governance files, as in syntek-base.
 
 ## Why the audits exist
 
