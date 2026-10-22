@@ -28,9 +28,14 @@ the project. It must be an absolute path to a folder holding the marker file
 the tools never do: a volume that is not mounted is an empty folder, and the missing marker
 gives it away. Presence is enough; a marker holding a 'format = N' line newer than this tool
 knows is refused. A value that is set but invalid (empty, relative, not a folder, without the
-marker, inside this repository or holding it) stops every data command with exit 2 and is
-never passed over for a later source, so a later release can add file sources after it; so
-does a marker at or above the repository, because a sync service corrupts Git.
+marker, inside this repository or holding it) stops every data command but status with exit 2
+and is never passed over for a later source, so a later release can add file sources after it;
+so does a marker at or above the repository, because a sync service corrupts Git. Under
+'repo', which files nothing under the root, the root and the repository containing one another,
+or a marker above it, still stops path and every add with exit 2 before they answer; the other
+invalid values do not. status, which needs no root, never refuses for one: it checks the work
+tree and warns that it did not check the copies under the root (under 'repo' too, where the
+root and the repository contain one another or a marker sits above it).
 
 The layout. <root>/<DATA_AREA>/<kind folder>/<DATA_SLUG>/<project-relative path>: the path
 under the root mirrors the path in the repository, so references keep their paths. The kind
@@ -93,16 +98,22 @@ Subcommands (exit 0 done, 1 a check failed, 2 it cannot act):
   root                 the root, its origin, the marker, the store, the layout per kind and
                        the provider's checklist; exit 2 when the root is set but invalid
   store                each answers file's store; exit 2 while two that record one disagree
-  path REL [--kind K]  one line, where REL lives: the work tree under 'repo'; under
-                       'external' the work-tree file if there is one, else its place under the
-                       root (a listed file where its row says, else the mirror path)
+  path REL [--kind K]  one line, where REL lives: the work tree under 'repo' (exit 2 where the
+                       root and the repository contain one another or a marker sits above it);
+                       under 'external' the work-tree file if there is one, else its place under
+                       the root (a listed file where its row says, else the mirror path)
   add FILE --role R [--as REL] [--source S] [--label L] [--force]
                        file a copy under the root: copy to a temporary name, fsync, rename,
                        hash again, then write the row. Never overwrites: --force supersedes a
                        row that is not protected, keeping the listed copy under the root as
-                       <stem>.superseded-DD-MM-YYYY<ext>, which the new row's replaces names.
+                       <stem>.superseded-DD-MM-YYYY<ext>, which the new row's replaces names;
+                       only while that copy still hashes as its row says (exit 1 otherwise),
+                       and only once the new copy is written and checked; an interrupt is
+                       undone. REL is a file: never a filing folder or a folder.
                        Under 'repo' it refuses ('commit the file instead'), except --role
-                       generated and a map role with "repo": "skip", which write nothing
+                       generated and a map role with "repo": "skip", which write nothing and
+                       exit 0; where the root and the repository contain one another or a
+                       marker sits above it, every add refuses with that error first (exit 2)
   verify [GLOB] [--hydrate]   hash every current row; list missing, changed and unlisted
                        files; fail on a row committed at HEAD that was removed or changed
                        (but for its state, from current), and on a tracked external.toml that
@@ -110,7 +121,10 @@ Subcommands (exit 0 done, 1 a check failed, 2 it cannot act):
   status               what is at risk: binaries Git ignores that no row lists, files over a
                        map's warn_over_kib, folders holding rows that differ from the
                        answers, unlisted files under the root (with conflict-copy hints),
-                       those outside every map folder included; roles maps define differently
+                       those outside every map folder included; roles maps define differently.
+                       With no valid root it warns that it did not check the copies (under
+                       repo, only where the root and the repository contain one another or a
+                       marker sits above it), and the root never makes it exit 2
   pull [GLOB]          copy listed files into the work tree, verifying each; never replaces
   plan [--copy]        tracked binaries, their destinations, roles and conflicts; --copy files
                        them (a copy: never a move, never an untrack)
@@ -125,7 +139,8 @@ a check of the others failed (exit 1).
 
 The guard. The hook passes the call as JSON on stdin. For Edit, Write, MultiEdit,
 NotebookEdit, Grep and Glob, a target at or under a data root (named by SYNTEK_DATA_ROOT, or
-any folder above it holding the marker) exits 2 with one line naming the rules; anything else,
+any folder above it holding the marker) exits 2 with one line naming the rules; a Glob call is
+also judged by the folder an absolute pattern names, where the client searches; anything else,
 and any error of its own, exits 0. Read is never blocked. On macOS, Linux and WSL Claude Code
 searches through Bash, which the guard does not read, so there the rules alone keep searches
 out of the root. The guard runs on Python 3.8 or later; everything else needs 3.11 or later.
@@ -152,8 +167,8 @@ GUARD_BLOCK = ("This path is under the data root; records there are filed with t
                "data-root commands (see the bridge, .claude/syntek-*-agents.md), never edited "
                "in place.")
 GUARD_INSIDE = ("This repository lies under a data root (a .syntek-data-root marker above it), "
-                "and a sync service corrupts Git: move the repository or the marker; the "
-                "data-root commands refuse until then.")
+                "and a sync service corrupts Git: move the repository or the marker; until then "
+                "every data command but status refuses, and status warns.")
 
 
 def within(path, top):
@@ -166,8 +181,24 @@ def within(path, top):
         return False
 
 
+def glob_base(pattern):
+    """The folder an absolute glob pattern searches, as the client takes it (it searches there
+    and ignores the call's path): the part before the first wildcard, cut back to the last
+    separator; the pattern's own folder where it holds no wildcard."""
+    import os
+    import re
+    m = re.search(r"[*?\[{]", pattern)
+    if not m:
+        return os.path.dirname(pattern) or pattern
+    head = pattern[:m.start()]
+    cut = max(head.rfind("/"), head.rfind(os.sep))
+    return head[:cut] if cut > 0 else head[:1] if cut == 0 else head
+
+
 def guard(text, environ, project, cwd=None):
-    """Judge one PreToolUse call: (2, reason) for a target at or under a data root, else (0, '')."""
+    """Judge one PreToolUse call: (2, reason) for a target at or under a data root, else (0, '').
+    A Glob call is judged by its path and, where its pattern is absolute, by the folder the
+    pattern names, which is where the client searches."""
     import json
     import os
     try:
@@ -180,9 +211,28 @@ def guard(text, environ, project, cwd=None):
     if not isinstance(tool, str) or tool not in GUARD_FIELDS:
         return 0, ""
     given = data.get("tool_input")
-    target = given.get(GUARD_FIELDS[tool]) if isinstance(given, dict) else None
-    if not isinstance(target, str) or not target:
+    if not isinstance(given, dict):
         return 0, ""
+    targets = []
+    target = given.get(GUARD_FIELDS[tool])
+    if isinstance(target, str) and target:
+        targets.append(target)
+    pattern = given.get("pattern") if tool == "Glob" else None
+    if isinstance(pattern, str) and pattern:
+        pattern = os.path.expanduser(pattern)
+        if os.path.isabs(pattern):
+            targets.append(glob_base(pattern))
+    found = (0, "")
+    for target in targets:
+        found = guard_one(target, data, environ, project, cwd)
+        if found[0] == 2:
+            return found
+    return found
+
+
+def guard_one(target, data, environ, project, cwd):
+    """(2, reason) where one target lies at or under a data root, else (0, '')."""
+    import os
     base = data.get("cwd")
     if not isinstance(base, str) or not os.path.isabs(base):
         base = cwd or os.getcwd()
@@ -254,6 +304,7 @@ import platform  # noqa: E402
 import re  # noqa: E402
 import shlex  # noqa: E402
 import shutil  # noqa: E402
+import stat as stat_mod  # noqa: E402
 import subprocess  # noqa: E402
 import tempfile  # noqa: E402
 import unicodedata  # noqa: E402
@@ -396,16 +447,22 @@ class CopyMismatch(Exception):
     """A copy did not hash equal to what it was meant to be."""
 
 
+def printable(text):
+    """text as any output can show it: a name that is not UTF-8 (a surrogate escape) is written
+    as its backslash escape, never an error halfway through a report."""
+    return text.encode("utf-8", "backslashreplace").decode("utf-8")
+
+
 def say(line=""):
-    print(line)
+    print(printable(line))
 
 
 def warn(message):
-    print("warning: " + message, file=sys.stderr)
+    print("warning: " + printable(message), file=sys.stderr)
 
 
 def refuse(message, code=2):
-    print("refused: " + message, file=sys.stderr)
+    print("refused: " + printable(message), file=sys.stderr)
     return code
 
 
@@ -481,6 +538,10 @@ def name_problem(name, cap=None):
     """Why one path component is not safe on Windows (and so on NTFS, SMB and APFS), or None."""
     if not name:
         return "is empty"
+    try:
+        name.encode("utf-8")
+    except UnicodeEncodeError:
+        return "is not valid UTF-8: rename it"
     bad = sorted({c for c in name if c in RESERVED})
     if bad:
         return "holds the reserved character " + " ".join(bad)
@@ -692,10 +753,11 @@ class Root:
 
 
 class RootInvalid:
-    def __init__(self, reason, origin, marker):
+    def __init__(self, reason, origin, marker, contained=False):
         self.reason = reason
         self.origin = origin
         self.marker = marker
+        self.contained = contained   # the root and the repository contain one another
 
 
 # Each source returns None when it is not set, or (value, origin) when it is. A source that
@@ -752,10 +814,10 @@ def check(project, value, origin):
     real, mine = os.path.realpath(path), os.path.realpath(str(project))
     if within(real, mine):
         return RootInvalid(f"the data root {path} lies inside this repository, where Git would commit "
-                           "or ignore its files by accident: move it out", origin, "present")
+                           "or ignore its files by accident: move it out", origin, "present", True)
     if within(mine, real):
         return RootInvalid(f"the data root {path} holds this repository, and a sync service corrupts "
-                           "Git: move the repository out of it", origin, "present")
+                           "Git: move the repository out of it", origin, "present", True)
     return Root(path, origin)
 
 
@@ -891,6 +953,7 @@ class Context:
         self.skip_roles = set()          # map roles that every defining map marks "repo": "skip"
         self.root = None
         self.root_error = None
+        self.contained = False
         self.origin = None
         self.marker = "not checked"
         self.cache = {}
@@ -1088,6 +1151,9 @@ class Context:
         if found is not None:
             self.origin = found.origin
         above = marker_above(self.project)
+        # The repository and a data root contain one another: status warns of it under either
+        # store, and says it did not check the copies; under repo, path and add refuse it.
+        self.contained = bool(above) or (isinstance(found, RootInvalid) and found.contained)
         if above:
             self.root_error = (f"a {MARKER} marker in {above} puts this repository inside a data root, "
                                "and a sync service corrupts Git: move the repository or the marker")
@@ -1217,6 +1283,37 @@ def parse_map(data):
     return folders, roles
 
 
+def row_problem(r, folder):
+    """Why one row is not one a manifest of folder may hold (the text after 'row <n>'), or None.
+    The reader refuses such a manifest, and add checks the row it plans by the same rules, so it
+    never writes a row it would then refuse."""
+    if not isinstance(r, dict):
+        return " is not a table"
+    for f in REQUIRED:
+        if not isinstance(r.get(f), str) or not r.get(f):
+            return f" has no {f}"
+    for f in FIELDS:
+        if f in r and f not in NOT_TEXT and not isinstance(r[f], str):
+            return f"'s {f} is not a string"
+    if "bytes" in r and (isinstance(r["bytes"], bool) or not isinstance(r["bytes"], int) or r["bytes"] < 0):
+        return "'s bytes is not a whole number"
+    if "evidence" in r and not isinstance(r["evidence"], bool):
+        return "'s evidence is not true or false"
+    why = rel_problem(r["path"])
+    if why or not r["path"].startswith(folder.path + "/"):
+        return f"'s path '{r['path']}' {why or 'lies outside ' + folder.path}"
+    parts = r["filed_under"].split("/")
+    if len(parts) != 3 or any(name_problem(p) or p in (".", "..") for p in parts):
+        return f"'s filed_under '{r['filed_under']}' is not <area>/<kind folder>/<slug>"
+    if r["kind"] not in KINDS:
+        return f"'s kind '{r['kind']}' is not one of {', '.join(KINDS)}"
+    if not SHA.fullmatch(r["sha256"]):
+        return "'s sha256 is not 64 lower-case hex digits"
+    if r["state"] not in STATES:
+        return f"'s state '{r['state']}' is not one of {', '.join(STATES)}"
+    return None
+
+
 def parse_manifest(text, folder, ctx):
     import tomllib
     where = f"{folder.path}/{MANIFEST}"
@@ -1237,30 +1334,9 @@ def parse_manifest(text, folder, ctx):
     rows = []
     for i, r in enumerate(raw_rows):
         n = i + 1
-        if not isinstance(r, dict):
-            raise Unreadable(f"{where}: row {n} is not a table")
-        for f in REQUIRED:
-            if not isinstance(r.get(f), str) or not r.get(f):
-                raise Unreadable(f"{where}: row {n} has no {f}")
-        for f in FIELDS:
-            if f in r and f not in NOT_TEXT and not isinstance(r[f], str):
-                raise Unreadable(f"{where}: row {n}'s {f} is not a string")
-        if "bytes" in r and (isinstance(r["bytes"], bool) or not isinstance(r["bytes"], int) or r["bytes"] < 0):
-            raise Unreadable(f"{where}: row {n}'s bytes is not a whole number")
-        if "evidence" in r and not isinstance(r["evidence"], bool):
-            raise Unreadable(f"{where}: row {n}'s evidence is not true or false")
-        why = rel_problem(r["path"])
-        if why or not r["path"].startswith(folder.path + "/"):
-            raise Unreadable(f"{where}: row {n}'s path '{r['path']}' {why or 'lies outside ' + folder.path}")
-        parts = r["filed_under"].split("/")
-        if len(parts) != 3 or any(name_problem(p) or p in (".", "..") for p in parts):
-            raise Unreadable(f"{where}: row {n}'s filed_under '{r['filed_under']}' is not <area>/<kind folder>/<slug>")
-        if r["kind"] not in KINDS:
-            raise Unreadable(f"{where}: row {n}'s kind '{r['kind']}' is not one of {', '.join(KINDS)}")
-        if not SHA.fullmatch(r["sha256"]):
-            raise Unreadable(f"{where}: row {n}'s sha256 is not 64 lower-case hex digits")
-        if r["state"] not in STATES:
-            raise Unreadable(f"{where}: row {n}'s state '{r['state']}' is not one of {', '.join(STATES)}")
+        why = row_problem(r, folder)
+        if why:
+            raise Unreadable(f"{where}: row {n}{why}")
         if r["role"] not in ctx.roles:
             note = f"{where}: row {n}'s role '{r['role']}' is defined by no map here: it is treated as evidence"
             if note not in ctx.warnings:
@@ -1665,7 +1741,20 @@ def cmd_path(ctx, args):
     reasons = ctx.blocked([rel])
     if reasons:
         return refuse_all(reasons)
+    # A folder whose manifest cannot be read refuses the path, as a bad map's folder does,
+    # whether or not the work tree holds the file.
+    folder = ctx.folder_for(rel)
+    rows = []
+    if folder and folder.takes_rows:
+        try:
+            rows = ctx.manifest(folder)[1]
+        except Unreadable as err:
+            return refuse(str(err))
     if ctx.store == "repo":
+        if ctx.contained:
+            # No root is used under repo, but a sync service corrupts Git, and a root inside the
+            # repository mixes its files with the project's: refuse first, as under external.
+            return refuse(ctx.root_error)
         say(os.path.join(str(ctx.project), *[p for p in rel.split("/") if p]))
         return 0
     if not ctx.root:
@@ -1674,12 +1763,7 @@ def cmd_path(ctx, args):
     if rel and os.path.isfile(here):
         say(here)
         return 0
-    folder = ctx.folder_for(rel)
     if folder:
-        try:
-            rows = ctx.manifest(folder)[1] if folder.takes_rows else []
-        except Unreadable as err:
-            return refuse(str(err))
         for r in rows:
             if r.path == rel and r.state == "current":
                 say(ctx.at(r))
@@ -1719,6 +1803,8 @@ def cmd_add(ctx, args):
     if args.role not in ctx.roles:
         return refuse(f"'{args.role}' is not a role here: use one of {', '.join(ctx.roles)}")
     if ctx.store == "repo":
+        if ctx.contained:
+            return refuse(ctx.root_error)   # before the roles that write nothing, as cmd_path
         if args.role == "generated":
             say("not filed: generated files stay git-ignored in the work tree (this project keeps its files in the repository)")
             return 0
@@ -1745,6 +1831,10 @@ def cmd_add(ctx, args):
     if not folder.takes_rows:
         return refuse(f"{rel} is in {folder.path}, which .claude/{folder.source}-dataroot.json marks as working "
                       "output (\"rows\": \"none\"): it never takes rows, so nothing is filed from it")
+    if any(f.path == rel or f.path.startswith(rel + "/") for f in ctx.folders):
+        return refuse(f"{rel} is a filing folder, not a file: name the file with --as {rel}/<name>")
+    if os.path.isdir(os.path.join(str(ctx.project), *rel.split("/"))):
+        return refuse(f"{rel} is a folder in the work tree, not a file: name a file inside it with --as {rel}/<name>")
     source = ""
     if args.source:
         source = project_rel(ctx, args.source)
@@ -1801,12 +1891,31 @@ def file_one(ctx, src, rel, folder, role, source, label, force, former):
                       "add never creates the second spelling; rename the folder under the data root, "
                       "or re-answer to match it")
     stale_folders(ctx, rows)
+    inside = [r.path for r in rows if r.path.startswith(rel + "/")]
+    if inside:
+        return refuse(f"{listed} lists files inside {rel} ({inside[0]}): {rel} is a folder there, not a file")
+    if os.path.isdir(dest):
+        return refuse(f"{dest} is a folder under the data root, not a file: name a file inside it with --as")
+    up = os.path.dirname(dest)
+    while up and not os.path.lexists(up) and os.path.dirname(up) != up:
+        up = os.path.dirname(up)
+    if up and not os.path.isdir(up):
+        return refuse(f"{up} under the data root is a file where {rel} needs a folder: add never replaces it")
     old = current[0] if current else None
     old_loc = kept = kept_rel = None
     if old:
         old_loc = ctx.at(old)
         if not os.path.isfile(old_loc):
             return refuse(f"the listed copy of {rel} is missing at {old_loc}: restore it first (verify lists what is missing)")
+        # The copy kept as superseded must be the one the row lists: a changed copy is a failure
+        # for verify to report, never one for --force to keep and so hide.
+        if file_online_only(old_loc):
+            return refuse(f"the listed copy of {rel} at {old_loc} is online only: run verify --hydrate on it first, "
+                          "so add --force can check it is unchanged before keeping it as superseded")
+        if sha256_file(old_loc) != old.sha256:
+            return refuse(f"the listed copy of {rel} at {old_loc} no longer hashes as its row says (verify lists it "
+                          "as changed): add --force never keeps a changed copy as the superseded one; restore it "
+                          "from a backup first, or file the new copy under its own name", code=1)
         where, name = os.path.split(old_loc)
         kept_name = superseded_name(name, today().strftime("%d-%m-%Y"),
                                     lambda n: os.path.lexists(os.path.join(where, n)))
@@ -1815,33 +1924,65 @@ def file_one(ctx, src, rel, folder, role, source, label, force, former):
     if os.path.lexists(dest) and not (old and os.path.normpath(dest) == os.path.normpath(old_loc)):
         return refuse(f"{dest} already exists under the data root and no current row lists it there: "
                       "compare it first (status lists it); add never overwrites")
-    if old:
-        os.rename(old_loc, kept)
-
-    def undo():
-        if old:
-            with contextlib.suppress(OSError):
-                os.rename(kept, old_loc)
-
+    plan = {"path": rel, "kind": kind, "filed_under": under, "role": role, "evidence": ctx.evidence(role),
+            "sha256": "0" * 64, "bytes": 0, "filed": today().strftime("%d/%m/%Y"), "state": "current",
+            "source": source, "replaces": kept_rel or "", "label": label, "former_name": former, "notes": ""}
+    why = row_problem(plan, folder)
+    if why:
+        return refuse(f"the row add would write{why}, which {listed} may not hold: nothing was filed")
+    # The new copy is written and checked first, while the listed copy is still where its row
+    # says; a superseding copy is staged beside it. Only then are the two swapped and the row
+    # written, and anything that stops that (an interrupt included) is undone.
+    staged = (dest + TMP_SUFFIX) if old else None
+    placed = renamed = False
+    if staged and os.path.lexists(staged):
+        if os.path.islink(staged) or not os.path.isfile(staged):
+            return refuse(f"could not copy {src} to {dest}: {staged} is in the way")
+        with contextlib.suppress(OSError):
+            os.unlink(staged)   # this tool's own temporary name, left by a run that stopped
     try:
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        sha, size = copy_verified(src, dest)
+        sha, size = copy_verified(src, staged or dest)
+        placed = not old
     except CopyMismatch as err:
-        undo()
         return refuse(str(err), code=1)
     except OSError as err:
-        undo()
         return refuse(f"could not copy {src} to {dest}: {err}")
-    row = {"path": rel, "kind": kind, "filed_under": under, "role": role, "evidence": ctx.evidence(role),
-           "sha256": sha, "bytes": size, "filed": today().strftime("%d/%m/%Y"), "state": "current",
-           "source": source, "replaces": kept_rel or "", "label": label, "former_name": former, "notes": ""}
-    try:
-        write_manifest(mpath, text, rows, row, old.index if old else None)
-    except (OSError, Unwritable) as err:
+    except BaseException:
         with contextlib.suppress(OSError):
-            os.unlink(dest)
-        undo()
-        return refuse(f"could not write {listed}: {err}; nothing was filed")
+            if os.path.lexists(staged or dest):   # an interrupt after the copy was put in place
+                os.unlink(staged or dest)
+        raise
+    row = dict(plan, sha256=sha, bytes=size)
+
+    def ours():
+        if placed:
+            return True
+        with contextlib.suppress(OSError):
+            return bool(staged) and os.path.lexists(dest) and os.path.samefile(dest, staged)
+        return False
+
+    try:
+        if old:
+            os.rename(old_loc, kept)
+            renamed = True
+            put_in_place(staged, dest)   # a link: never over a file, and dest is free now
+            placed = True
+            fsync_dir(os.path.dirname(dest))
+        write_manifest(mpath, text, rows, row, old.index if old else None)
+    except BaseException as err:
+        if ours():
+            with contextlib.suppress(OSError):
+                os.unlink(dest)
+        if staged:
+            with contextlib.suppress(OSError):
+                os.unlink(staged)
+        if renamed:
+            with contextlib.suppress(OSError):
+                os.rename(kept, old_loc)
+        if isinstance(err, (OSError, Unwritable)):
+            return refuse(f"could not write {listed}: {err}; nothing was filed")
+        raise
     ctx.cache.pop(folder.path, None)
     say(f"filed: {rel} -> {dest} ({role}, {size} bytes, sha256 {sha[:12]})")
     if old:
@@ -2023,7 +2164,14 @@ def cmd_status(ctx, args):
             for rel in walk_files(ctx, f):
                 if not judged(rel):
                     continue
-                size = os.path.getsize(ctx.project / rel)
+                try:
+                    st = os.lstat(ctx.project / rel)
+                except OSError as err:
+                    warn(f"{rel} could not be read ({err.strerror or err}), so its size was not checked")
+                    continue
+                if not stat_mod.S_ISREG(st.st_mode):
+                    continue   # a link (a dangling one included) is judged by what it is, never followed
+                size = st.st_size
                 if size > f.warn_over:
                     warn(f"{rel} is {human(size)}, over the {human(f.warn_over)} the map sets for {f.path}: "
                          "keep a large file under the data root")
@@ -2039,6 +2187,10 @@ def cmd_status(ctx, args):
             say_unlisted(extra, unjudged)
         else:
             warn(ctx.no_root() + "; the copies under the data root were not checked")
+    elif ctx.contained:
+        # Under repo too: whatever the store, a sync service corrupts Git, and a root inside the
+        # repository mixes its files with the project's.
+        warn(ctx.root_error + "; the copies under the data root were not checked")
     at_risk = not_filed + len(extra)
     say(f"status: {not_filed} not filed, {len(extra)} unlisted under the data root, {online} online only"
         + (f"; folders left alone {len(left)}" if left else ""))
@@ -2319,6 +2471,8 @@ def main(argv=None, cwd=None, environ=None, version=None):
         return refuse(str(err))
     except OSError as err:
         return refuse(f"{err}")
+    except UnicodeError as err:
+        return refuse(f"a name or a file here is not valid UTF-8 ({err}): rename it")
 
 
 # ── Self-test (temporary folders only; the inherited root is never read) ──────────────────
@@ -2659,6 +2813,9 @@ def self_test_projects(check, base, json, tomllib):
     (inside / MARKER).write_text("", encoding="utf-8")
     found = resolve(p, {ROOT_ENV: str(inside)})
     check("root: inside the repository -> invalid", isinstance(found, RootInvalid) and "inside this repository" in found.reason)
+    code, _, err = run(["status"], p, {ROOT_ENV: str(inside)})
+    check("status: a root inside the repository warns that it did not check the copies, and never exits 2",
+          code in (0, 1) and "inside this repository" in err and "were not checked" in err)
     (inside / MARKER).unlink()
     (base / MARKER).write_text("", encoding="utf-8")
     found = resolve(p, {ROOT_ENV: str(base)})
@@ -2668,6 +2825,9 @@ def self_test_projects(check, base, json, tomllib):
           code == 2 and "puts this repository inside a data root" in err and "root: invalid" in out)
     code, _, err = run(["path", "papers/src/a.pdf"], p, env)
     check("path: a marker above the repository refuses the data commands", code == 2)
+    code, _, err = run(["status"], p, env)
+    check("status: a marker above the repository warns that it did not check the copies, and never exits 2",
+          code in (0, 1) and "puts this repository inside a data root" in err and "were not checked" in err)
     (base / MARKER).unlink()
 
     # ── The self-test reads no inherited root: commands use only the environment they are given ──
@@ -2873,6 +3033,146 @@ def self_test_projects(check, base, json, tomllib):
     raw = crlf.read_bytes()
     check("add --force on a CRLF manifest keeps CRLF on every line",
           code == 0 and raw.count(b"\n") == raw.count(b"\r\n") and len(tomllib.loads(raw.decode())["file"]) == 2)
+
+    # add never files a folder, and --force never keeps a changed copy or half a supersede.
+    pf = project({ONE: EXTERNAL})
+    rf, env_f = own_root("root-force")
+    mirror_f = rf / "business/docs/demo-project/notes/src"
+    (pf / "loose.pdf").write_bytes(b"loose")
+    code, _, err = run(["add", "loose.pdf", "--role", "archive", "--as", "notes/src"], pf, env_f)
+    check("add --as the filing folder itself: exit 2, nothing written, the manifest still readable",
+          code == 2 and "is a filing folder" in err and not (pf / "notes/src" / MANIFEST).exists() and not mirror_f.exists())
+    (pf / "notes/src/sub").mkdir()
+    code, _, err = run(["add", "loose.pdf", "--role", "archive", "--as", "notes/src/sub"], pf, env_f)
+    check("add --as a folder of the work tree: exit 2, nothing written",
+          code == 2 and "is a folder in the work tree" in err and not mirror_f.exists())
+    (pf / "notes/src/c.pdf").write_bytes(b"first")
+    run(["add", "notes/src/c.pdf", "--role", "archive"], pf, env_f)
+    mf = pf / "notes/src" / MANIFEST
+    (mirror_f / "c.pdf").write_bytes(b"CORRUPTED")
+    (pf / "notes/src/c.pdf").write_bytes(b"second")
+    before = mf.read_bytes()
+    code, _, err = run(["add", "notes/src/c.pdf", "--role", "archive", "--force"], pf, env_f)
+    check("add --force over a listed copy that no longer hashes as its row: exit 1, nothing kept or written",
+          code == 1 and "no longer hashes" in err and mf.read_bytes() == before
+          and (mirror_f / "c.pdf").read_bytes() == b"CORRUPTED" and not list(mirror_f.glob("c.superseded-*")))
+    code, out, _ = run(["verify"], pf, env_f)
+    check("and verify still reports the change (exit 1)", code == 1 and "changed: notes/src/c.pdf" in out)
+    (pf / "notes/src/i.pdf").write_bytes(b"one")
+    run(["add", "notes/src/i.pdf", "--role", "archive"], pf, env_f)
+    (pf / "notes/src/i.pdf").write_bytes(b"two")
+    before = mf.read_bytes()
+    for name in ("copy_verified", "write_manifest"):
+        real = globals()[name]
+
+        def stop(*a, **k):
+            raise KeyboardInterrupt
+
+        globals()[name] = stop
+        try:
+            run(["add", "notes/src/i.pdf", "--role", "archive", "--force"], pf, env_f)
+            stopped = False
+        except KeyboardInterrupt:
+            stopped = True
+        finally:
+            globals()[name] = real
+        check(f"add --force interrupted in {name}: the listed copy is where its row says, nothing kept, no temporary left",
+              stopped and (mirror_f / "i.pdf").read_bytes() == b"one" and mf.read_bytes() == before
+              and not list(mirror_f.glob("i.superseded-*")) and not any(TMP_SUFFIX in s for s in tree(rf)))
+    code, _, _ = run(["add", "notes/src/i.pdf", "--role", "archive", "--force"], pf, env_f)
+    check("add --force after an interrupt: the retry keeps the listed bytes as the superseded copy",
+          code == 0 and (mirror_f / "i.pdf").read_bytes() == b"two"
+          and [k.read_bytes() for k in mirror_f.glob("i.superseded-*")] == [b"one"])
+    mf.write_text(mf.read_text(encoding="utf-8").replace("format = 1", "format = 2", 1), encoding="utf-8")
+    code, out, err = run(["path", "notes/src/i.pdf"], pf, env_f)
+    check("path: a folder whose manifest is newer refuses even where the work tree holds the file (exit 2)",
+          code == 2 and out == "" and "needs a newer template" in err)
+    mf.write_text(mf.read_text(encoding="utf-8").replace("format = 2", "format = 1", 1), encoding="utf-8")
+    try:
+        os.symlink("/nonexistent/logo.png", str(pf / "pictures/logo-link.png"))
+        code, out, err = run(["status"], pf, env_f)
+        dangling = code in (0, 1) and "status: " in out and "refused" not in err
+    except (OSError, NotImplementedError):
+        dangling = True
+    check("status: a dangling link in a folder with warn_over_kib is passed over, the report completes", dangling)
+    with contextlib.suppress(OSError):
+        os.unlink(str(pf / "pictures/logo-link.png"))
+    try:
+        with open(os.fsencode(str(pf / "papers/src")) + b"/bad\xffname.pdf", "wb") as f:
+            f.write(b"x")
+        odd = True
+    except (OSError, ValueError):
+        odd = False   # a file system that holds only UTF-8 names (APFS, NTFS)
+    if odd:
+        code, out, err = run(["check-names"], pf, env_f)
+        check("check-names: a name that is not UTF-8 is reported unsafe (exit 1), never a crash",
+              code == 1 and "is not valid UTF-8" in out and "\\udcff" in out)
+        code, _, err = run(["add", "papers/src/bad\udcffname.pdf", "--role", "archive"], pf, env_f)
+        check("add: a name that is not UTF-8 refuses (exit 2)", code == 2 and "not valid UTF-8" in err)
+        if has_git:
+            done = subprocess.run([sys.executable, "-I", str(Path(__file__)), "status"], cwd=str(pf), capture_output=True,
+                                  env=dict(env_f, PATH=os.environ.get("PATH", ""), PYTHONIOENCODING="utf-8:strict"))
+            check("status: a name that is not UTF-8 is printed escaped, and the report completes",
+                  done.returncode in (0, 1) and b"Traceback" not in done.stderr and b"status: " in done.stdout)
+        with contextlib.suppress(OSError):
+            os.unlink(os.fsencode(str(pf / "papers/src")) + b"/bad\xffname.pdf")
+    marked_repo = base / "marked-store" / "proj"
+    (marked_repo / ".claude").mkdir(parents=True)
+    (marked_repo.parent / MARKER).write_text("", encoding="utf-8")
+    (marked_repo / f".copier-answers.{ONE}.yml").write_text(answers_text({"DATA_STORE": "repo"}), encoding="utf-8")
+    (marked_repo / ".claude" / f"{ONE}-dataroot.json").write_text(json.dumps(MAP_ONE), encoding="utf-8")
+    code, _, err = run(["status"], marked_repo, {})
+    check("status under repo with a marker above the repository warns that a sync service corrupts Git",
+          "puts this repository inside a data root" in err)
+    check("status under repo with a marker above says it did not check the copies, and never exits 2",
+          code in (0, 1) and "were not checked" in err)
+    repo_in = project({ONE: {"DATA_STORE": "repo"}})
+    (repo_in / "inner-root").mkdir()
+    (repo_in / "inner-root" / MARKER).write_text("", encoding="utf-8")
+    code, _, err = run(["status"], repo_in, {ROOT_ENV: str(repo_in / "inner-root")})
+    check("status under repo with the root inside the repository warns that it did not check the copies, never exit 2",
+          code in (0, 1) and "lies inside this repository" in err and "were not checked" in err)
+    # Under repo, path and add use no root, but they refuse one that contains the repository or
+    # lies inside it, and a marker above it, before any shortcut (exit 2, nothing written).
+    (marked_repo / ".claude" / f"{TWO}-dataroot.json").write_text(json.dumps(MAP_TWO), encoding="utf-8")
+    repo_two = project({ONE: {"DATA_STORE": "repo"}}, {ONE: MAP_ONE, TWO: MAP_TWO})
+    (repo_two / "inner-root").mkdir()
+    (repo_two / "inner-root" / MARKER).write_text("", encoding="utf-8")
+    env_in = {ROOT_ENV: str(repo_two / "inner-root")}
+    (repo_two / "footage/src/take.wav").write_bytes(b"take")
+    (repo_two / "sounds/src/g.mp3").write_bytes(b"ID3 generated")
+    for where, proj, env_c, says in (("a marker above the repository", marked_repo, {}, "puts this repository inside a data root"),
+                                     ("the root inside the repository", repo_two, env_in, "lies inside this repository")):
+        before = tree(proj)
+        code, out, err = run(["path", "notes/src/x.pdf"], proj, env_c)
+        check(f"path under repo with {where}: exit 2 with the root error, nothing on stdout",
+              code == 2 and out == "" and says in err)
+        for role, rel in (("generated", "sounds/src/g.mp3"), ("take", "footage/src/take.wav")):
+            code, out, err = run(["add", rel, "--role", role], proj, env_c)
+            check(f"add --role {role} under repo with {where} (a role never filed there): exit 2 with the "
+                  "root error before its shortcut, nothing written",
+                  code == 2 and out == "" and says in err and "not filed" not in out and tree(proj) == before)
+        code, _, err = run(["add", "notes/src/x.pdf", "--role", "archive"], proj, env_c)
+        check(f"add --role archive under repo with {where}: the root error first (exit 2)",
+              code == 2 and says in err and "commit the file instead" not in err)
+        code, _, err = run(["check-names"], proj, env_c)
+        check(f"check-names under repo with {where} still runs (never the root error)", code in (0, 1) and says not in err)
+        code, _, err = run(["status"], proj, env_c)
+        check(f"status under repo with {where} still warns and never exits 2", code in (0, 1) and says in err)
+    (marked_repo.parent / MARKER).unlink()
+    unmarked = data_root("repo-unmarked", marker=None)
+    valid = data_root("repo-valid")   # a marked root outside the repository, as an owner sets one
+    for what, env_c in (("an unmarked", {ROOT_ENV: str(unmarked)}), ("an empty", {ROOT_ENV: ""}),
+                        ("a valid, marked", {ROOT_ENV: str(valid)})):
+        code, out, _ = run(["path", "notes/src/x.pdf"], repo_two, env_c)
+        check(f"path under repo with {what} root that does not hold the repository: the work-tree path, exit 0",
+              code == 0 and out == str(repo_two / "notes/src/x.pdf") + "\n")
+        code, out, _ = run(["add", "sounds/src/g.mp3", "--role", "generated"], repo_two, env_c)
+        code2, out2, _ = run(["add", "footage/src/take.wav", "--role", "take"], repo_two, env_c)
+        check(f"add --role generated and a \"repo\": \"skip\" role under repo with {what} root: exit 0, nothing written",
+              code == 0 and code2 == 0 and out.startswith("not filed: ") and out2.startswith("not filed: ")
+              and not (repo_two / "sounds/src" / MANIFEST).exists()
+              and not (repo_two / "footage/src" / MANIFEST).exists() and tree(valid) == [MARKER])
     for name in ("a:b.pdf", "trail."):
         bad = p / "notes/src" / name
         bad.write_bytes(b"x")
@@ -3122,6 +3422,15 @@ def self_test_projects(check, base, json, tomllib):
     check("guard: NotebookEdit's notebook_path under the root -> 2", judge("NotebookEdit", "notebook_path", str(root / "n.ipynb"))[0] == 2)
     check("guard: Grep at the root itself -> 2", judge("Grep", "path", str(root))[0] == 2)
     check("guard: Glob under the root -> 2", judge("Glob", "path", str(root / "business"))[0] == 2)
+    check("guard: Glob with an absolute pattern under the root and no path -> 2",
+          judge("Glob", "pattern", str(root / "business" / "**" / "*.pdf"))[0] == 2)
+    check("guard: Glob with an absolute pattern under the root and a path in the project -> 2 (the client searches the pattern's folder)",
+          guard(json.dumps({"tool_name": "Glob", "tool_input": {"pattern": str(root) + "/*.pdf", "path": str(p)}}), {}, str(p))[0] == 2)
+    check("guard: Glob with a relative pattern and a path in the project -> 0",
+          guard(json.dumps({"tool_name": "Glob", "tool_input": {"pattern": "**/*.pdf", "path": str(p)}}), env, str(p))[0] == 0)
+    check("guard: glob_base takes the folder before the first wildcard",
+          glob_base("/a/b/**/*.pdf") == "/a/b" and glob_base("/a/b/c.pdf") == "/a/b" and glob_base("/*.pdf") == "/"
+          and glob_base("/a/b*/c") == "/a")
     check("guard: Read under the root is allowed -> 0", judge("Read", "file_path", str(dest))[0] == 0)
     check("guard: a write in the project -> 0", judge("Write", "file_path", str(p / "notes.md"), env)[0] == 0)
     check("guard: Grep with no path (the working folder) -> 0", guard(json.dumps({"tool_name": "Grep", "tool_input": {"pattern": "x"}}), env, str(p))[0] == 0)
@@ -3346,6 +3655,17 @@ def self_test_role_rules(check, base, json, tomllib, project, run, own_root, git
           code == 0 and out.startswith("not filed: ") and not (pk / "footage/src" / MANIFEST).exists())
     check("repo: a map role without it still says to commit the file (exit 2)",
           code2 == 2 and "commit the file instead" in err2)
+    # add --role generated under repo with the root unset: its shortcut needs no root.
+    (pk / "sounds/src/g.mp3").write_bytes(b"ID3 generated")
+
+    def work_tree(proj):
+        return {str(x.relative_to(proj)): (x.read_bytes() if x.is_file() and not x.is_symlink() else None)
+                for x in proj.rglob("*") if ".git" not in x.relative_to(proj).parts}
+    before = work_tree(pk)
+    code, out, err = run(["add", "sounds/src/g.mp3", "--role", "generated"], pk, {})
+    check("repo: add --role generated with the root unset exits 0, writes nothing and says 'not filed:'",
+          code == 0 and out.startswith("not filed: ") and "refused:" not in err and work_tree(pk) == before
+          and not (pk / "sounds/src" / MANIFEST).exists())
     write_map(pk, ONE, dict(MAP_ONE, roles=[{"name": "take", "evidence": True}]))
     code, _, err = run(["add", "footage/src/take.wav", "--role", "take"], pk, {})
     check("repo: a role one map skips and another does not is not skipped (exit 2)",

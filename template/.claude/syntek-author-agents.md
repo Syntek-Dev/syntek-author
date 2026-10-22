@@ -50,10 +50,29 @@ provenance, the two flags and never fabricating; nothing in a client's settings 
   beneath it, `--exclude` included, so the link alone is moved aside and put back; its target is
   never touched. Every update does this itself: it renames the link to `.agents.syntek-held`
   before the render and back afterwards. If an update stops before it ends (a refused answer,
-  Ctrl-C at a question), the link stays held and the next update refuses the changed tree: run
-  `mv .agents.syntek-held .agents` from the project root, then update again. A copy runs no
-  migration, so before a `copier copy` run `mv .agents .agents.syntek-held`, copy with
-  `--exclude /.agents`, then run `mv .agents.syntek-held .agents`.
+  Ctrl-C at a question, or Copier failing as it cleans up after the render), the link stays held
+  as `.agents.syntek-held`, and the next update refuses the changed tree; where the link is
+  committed and the update stopped after its render, Copier has already put an identical
+  `.agents` link back. Put the link back from the project root, in a POSIX shell (Terminal on
+  macOS and Linux, Git Bash on Windows; never PowerShell's `rm`), before anything else, and
+  before discarding the stopped update with `git reset --hard` and `git clean -fd`, which would
+  delete a held link Git does not track. First check what stands at `.agents`:
+  `ls -ld .agents .agents.syntek-held`. Where it shows no `.agents.syntek-held`, nothing is
+  held: stop here and change nothing. Where `.agents` is a link (its line shows `->`), remove
+  that link alone with `rm .agents` (never `rm -r`, never a trailing slash); where it is a
+  folder or a file, move it aside to a name nothing holds yet (`ls -ld .agents.from-update`
+  finds nothing) with `mv .agents .agents.from-update` (no trailing slash), which holds what the
+  update wrote (check it, and delete nothing in it that is yours). Then, once `ls -ld .agents`
+  finds nothing, run `mv .agents.syntek-held .agents` (no trailing slash). Never run that `mv`
+  while `.agents` stands: it would put the held link inside it, and inside the folder outside
+  the project where `.agents` is a link. Then update again; where `git status` still shows
+  changes (a stop after the render), discard the stopped update first: run `git clean -n -d`, a
+  dry run, move out of the project anything of yours it lists, then
+  `git reset --hard && git clean -fd`. Where the held link was committed beside an identical
+  `.agents` link, the next update moves nothing, says so, and asks you to remove the held link
+  (`rm .agents.syntek-held`), commit, and update again. A copy runs no migration, so before a
+  `copier copy` run `mv .agents .agents.syntek-held`, copy with `--exclude /.agents`, then run
+  `mv .agents.syntek-held .agents`.
 - Where a file says to run a skill (`the handoff skill`, `Skill(draft-section)`), use this
   client's skill mechanism with the same name; if it has none, read the `SKILL.md` and follow it.
   A skill marked to run as a background or forked agent runs inline where the client has none.
@@ -138,8 +157,9 @@ anything that decides meaning; when in doubt, the work is substantive.
   Use them as `.claude/rules/syntek-author/06-global-rules.md` Section 13 says: ask the author
   before each of the six asked browser tools, and never run `code-review-graph install` or
   `scrapling install`. Codex and Gemini CLI start them only in a trusted project; OpenCode
-  starts them when it opens the project. The first start downloads them through `uvx`, and a
-  client may give up waiting once. The author runs these in their own terminal; a session never
+  starts them when it opens the project, and runs every tool the project does not ask for
+  without a prompt, so there the rules of Section 13 are the only gate. The first start
+  downloads them through `uvx`, and a client may give up waiting once. The author runs these in their own terminal; a session never
   runs them. They warm the cache and download the Chromium that Scrapling drives, without
   administrator rights:
 
@@ -172,9 +192,24 @@ this file and the model table in the rules up to date for the clients the answer
 name. On the update that first asks which clients you use, the answer defaults to none. To add
 a client later:
 
-1. Record it: `copier update -a .copier-answers.syntek-author.yml --data 'AGENT_CLIENTS=[…]'`,
+1. Record it, with Git's automatic housekeeping off for the run:
+
+   ```bash
+   GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \
+     uvx copier update --trust -a .copier-answers.syntek-author.yml --data 'AGENT_CLIENTS=[…]'
+   ```
+
    listing every client you keep as well as the new one. That brings the model table and
-   nothing else. Never edit the answers file by hand.
+   nothing else. Never edit the answers file by hand. The five variables (bash, zsh and other
+   POSIX shells) stop Git's background housekeeping in the temporary repositories Copier
+   commits in, which can stop an update with `OSError: [Errno 39] Directory not empty` under a
+   `copier._main.old_copy` or `copier._main.new_copy` folder. Never commit what such an update
+   left. To recover, from the project root and with the author's agreement: put back a held
+   `.agents` link first (the Skills section above), run `git clean -n -d`, a dry run, and move
+   out of the project anything of the author's it lists, then run
+   `git reset --hard && git clean -fd` (the project must be its own repository: it discards
+   every uncommitted change in it) and the command above again. syntek-author's own
+   `README.md`, at the source the answers file records, explains it under 'Updating a project'.
 2. Generate a fresh project into a temporary folder from the source and version the answers
    file records, with that answers file as `--data-file`. Never run another copy over the real
    project.
@@ -196,4 +231,4 @@ a client later:
    `python3 .claude/syntek-author-permissions.py --check`, and `--write` if the author agrees.
    Restart the client and confirm that it reads this file, the rules, the memory and the skills.
 6. Record the added client in `.claude/MEMORY.md`. Later updates still need
-   `-a .copier-answers.syntek-author.yml`.
+   `-a .copier-answers.syntek-author.yml`, and the five variables of step 1.

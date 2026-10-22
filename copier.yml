@@ -1557,10 +1557,13 @@ UNIT_NOUN:
 # resolves outside the project BEFORE it reads _exclude (9.17.1, _main.py:810-812), so an
 # .agents link to a folder outside the project fails every update; hold renames that link to
 # .agents.syntek-held before the render (after Copier's dirty check) and prints the hand fix
-# first, and restore, declared before every other after-stage entry, renames it back. The
+# first (check what stands at .agents, and stop where nothing is held; remove a link Copier
+# put back alone, never rm -r, or move a folder or a file aside; then move the held link
+# back), and restore, declared before every other after-stage entry, renames it back. The
 # link's target is never touched, and both stages always exit 0. The pair stays at the TOP of
 # the list. No migration runs on `copier copy`: the copy recipe is in the bridge,
-# .claude/syntek-author-agents.md, and in README.md. update-test.sh checks 40–43 prove it.
+# .claude/syntek-author-agents.md, and in README.md. update-test.sh checks 40–43 and the
+# script's own --self-test prove it.
 #
 # A `version:` entry runs only when the update crosses that version, which Copier reads from
 # the template's git tags (PEP 440): an update to an untagged HEAD that is still numbered
@@ -1762,6 +1765,10 @@ _message_before_update: |
   records it, and under external a business project's Drive workflows are deleted, edits
   included. Never set DATA_STORE or DATA_SLUG there; set DATA_AREA or a kind there only where
   it equals every other template's recorded answer.
+
+  If this update stops with OSError: [Errno 39] Directory not empty, never commit what it
+  left: README.md 'Updating a project', at the template's source, gives the recovery and the
+  command to use.
 
 # ── After an update (DESIGN.md D50, D52, D53) ───────────────────────────────
 #

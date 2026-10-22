@@ -22,14 +22,24 @@ types in the filing folders that hold records. Section 6 gives the commands.
 <: endif :><: if DATA_STORE == 'repo' :>**This project keeps its binary files in the repository** (`DATA_STORE` repo), committed beside
 their sources, as before. The data-root commands file nothing here: `make files-add` refuses and
 says to commit the file instead, except for a generated file such as pronunciation audio, which
-stays git-ignored in the work tree, and `make root` shows the state.
+stays git-ignored in the work tree, and `make root` shows the state. Where a data root and this
+repository contain one another, or a marker sits above the repository, every data command but
+`make files-status`, which warns, stops with exit 2, filing a generated file included: the
+author moves the repository or the marker.
 
 **Moving them out** is the author's decision, never a session's. The author re-answers through
-`copier update -a .copier-answers.syntek-author.yml --data DATA_STORE=external` (`README.md`,
-"Updating from the template"), which delivers the ignore files and asks for the layout answers.
-Then, on each machine, the author sets `SYNTEK_DATA_ROOT`, creates the marker and runs
-`make root`. After that, `make files-plan` lists the binaries still tracked and where each would
-go, and `make files-plan COPY=1` files a copy of each one without a conflict. A copy never
+an update with Git's automatic housekeeping off for the run, as `.claude/syntek-author-agents.md`
+('Enabling a client', step 1) explains:
+
+```bash
+GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \
+  uvx copier update --trust -a .copier-answers.syntek-author.yml --data DATA_STORE=external
+```
+
+It delivers the ignore files and asks for the layout answers (`README.md`, "Updating from the
+template"). Then, on each machine, the author sets `SYNTEK_DATA_ROOT`, creates the marker
+and runs `make root`. After that, `make files-plan` lists the binaries still tracked and where
+each would go, and `make files-plan COPY=1` files a copy of each one without a conflict. A copy never
 untracks a file: the author removes the tracked ones from Git once `make files-verify` passes.
 This file then describes the external store.
 <: endif :>
@@ -106,7 +116,8 @@ absence is how the tool notices a disk that is not mounted; the tool never write
 
 **A root that is set but not valid** (empty, relative, not a folder, without the marker, inside
 this repository or holding it, or with a marker in a folder above the repository) stops every
-data command with exit 2 and the reason, and is never passed over for another. With no root at
+data command with exit 2 and the reason, except `make files-status`, which warns that it did not
+check the copies; such a root is never passed over for another. With no root at
 all, text work runs as usual (drafting, lint, flags, proofs, the comparison), while filing<: if DOC_TYPE == 'business' :>
 and issuing<: endif :> stop with exit 2 and never fall back to writing into the repository.
 

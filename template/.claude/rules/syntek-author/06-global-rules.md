@@ -226,6 +226,10 @@ breaks the checksum that proves a record unchanged.
 fetches web pages, and `code-review-graph`, a local map of a repository's code. Use them only
 as this section says.
 
+- **Give every `scrapling` tool only an `http://` or `https://` address**: never `file://` or
+  any other scheme (ftp, gopher, dict, smb, telnet, tftp), which reads this machine's files or
+  reaches local services. In OpenCode and Codex the plain tools and `screenshot` run without
+  asking.
 - **Ask the author before each of `scrapling`'s six asked browser tools**: `stealthy_fetch`,
   `bulk_stealthy_fetch`, `open_session`, `session_fetch`, `fetch` and `bulk_fetch`. Say which
   site, why, and which tool. Claude Code asks before each of them by itself; in a client that
@@ -241,7 +245,10 @@ as this section says.
   Never send any of the three to a loopback, private or link-local address (localhost,
   127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, or a browser's
   DevTools port), and never set `follow_redirects` to true, `verify` to false, or a `proxy`.
-  Codex runs these three without asking, because the server marks them read-only.
+  Codex runs these three without asking, because the server marks them read-only. OpenCode
+  runs, without a prompt, every tool it is not told to ask before: these three, `screenshot`,
+  `open_request_session` and every `code-review-graph` tool but the two that write, so there
+  these rules are the only gate.
 - **Never set `real_chrome`, `cdp_url` or `executable_path` without the author's word for that
   call**, and never use a stealth tool to get past a sign-in, a paywall, a challenge page or a
   site that refuses automated access: whether that is allowed is the author's decision, not the
@@ -272,6 +279,6 @@ and to get through anti-bot protection, so a site cannot tell them from a visito
 this machine or another; `executable_path` launches whatever program it names. Every request
 comes from the machine and network address of the browser that sends it, the author's or the
 one `cdp_url` names: what a session fetches is the author's act, not the tool's.
-`code-review-graph`'s installer replaces the pinned, keyless entries with an unpinned one that
-offers the cloud-embedding tool.
+`code-review-graph`'s installer adds an unpinned entry that offers the cloud-embedding tool
+beside the pinned ones, and writes the agent files and the home folder's configuration.
 <!-- END family-shared rules: web and code tools -->

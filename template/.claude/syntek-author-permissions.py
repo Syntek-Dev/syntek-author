@@ -14,8 +14,11 @@ permissions.{allow, ask, deny} from .claude/settings.json and, for each client:
     or reorders a rule, and never writes outside the project.
 
 Drift is a mapped rule missing from an existing client file, or one a later, less strict
-rule overrides. Rules a client file holds beyond the mapped ones belong to the project's
-owner and are never flagged or removed.
+rule overrides: in opencode.json that includes an agent's own rules (agents.<id>.permissions),
+which OpenCode applies after the file's, so --write cannot outweigh them and only reports
+them. Rules a client file holds beyond the mapped ones belong to the project's owner and are
+never flagged or removed. Rules OpenCode reads from outside the project (the user's own
+configuration) are beyond what this script can see.
 
 What is written (version 1: deny and ask rules only):
 
@@ -370,6 +373,19 @@ def opencode_state(rules: list, want: dict) -> str:
     return "ok"
 
 
+def agent_overrides(data: dict, rules: list, want: dict) -> list[str]:
+    """The agents whose own permissions array overrides one wanted rule. OpenCode appends an
+    agent's rules (agents.<id>.permissions) after the file's own, and the last match wins, so a
+    less strict rule there outweighs anything the top-level array holds."""
+    agents = data.get("agents")
+    if not isinstance(agents, dict):
+        return []
+    base = rules if opencode_state(rules, want) == "ok" else rules + [want]
+    return [str(name) for name, agent in agents.items()
+            if isinstance(agent, dict) and isinstance(agent.get("permissions"), list)
+            and opencode_state(base + agent["permissions"], want) == "overridden"]
+
+
 def apply_opencode(path: Path, plan: Plan, write: bool, out: list[str]) -> int:
     data = load_json(path)
     if "permissions" not in data and "permission" in data:
@@ -378,23 +394,33 @@ def apply_opencode(path: Path, plan: Plan, write: bool, out: list[str]) -> int:
     rules = data.get("permissions", [])
     if not isinstance(rules, list):
         raise Unreadable(f"{path}: 'permissions' is not a list")
-    drift = 0
+    drift = stuck = 0
     for _effect, want, src in plan.wanted:
         state = opencode_state(rules, want)
-        if state == "ok":
+        if state != "ok":
+            drift += 1
+            if write:
+                rules.append(dict(want))
+                out.append(f"  + {src} -> {json.dumps(want)} (was {state}; appended)")
+            else:
+                out.append(f"  ✗ {src} -> {json.dumps(want)} is {state}")
+        # An agent's own rules come after the file's, so --write cannot outweigh them: they are
+        # the owner's, reported and never changed.
+        agents = agent_overrides(data, rules, want)
+        if agents:
+            stuck += 1
+            out.append(f"  ✗ {src} -> {json.dumps(want)} is overridden by "
+                       + ", ".join(f"agents.{a}.permissions" for a in agents)
+                       + ", which OpenCode applies after these rules: change that rule by hand")
+        elif state == "ok":
             out.append(f"  ✓ {src} -> {json.dumps(want)}")
-            continue
-        drift += 1
-        if write:
-            rules.append(dict(want))
-            out.append(f"  + {src} -> {json.dumps(want)} (was {state}; appended)")
-        else:
-            out.append(f"  ✗ {src} -> {json.dumps(want)} is {state}")
-    if write and drift:
-        data["permissions"] = rules
-        dump_json(path, data)
-        return 0
-    return drift
+    if write:
+        if drift:
+            data["permissions"] = rules
+            dump_json(path, data)
+        return stuck
+    return drift + sum(1 for _e, want, _s in plan.wanted
+                       if opencode_state(rules, want) == "ok" and agent_overrides(data, rules, want))
 
 
 def toml_key(k: str) -> str:
@@ -584,8 +610,8 @@ def self_test() -> int:
     check("Edit(build/**) -> build/*", edit_resources("build/**") == (["build/*"], ""))
     check("Edit(**/generated/**) -> generated/* and */generated/*",
           edit_resources("**/generated/**") == (["generated/*", "*/generated/*"], ""))
-    check("Edit(typeset/src/units/.base/**) -> typeset/src/units/.base/*",
-          edit_resources("typeset/src/units/.base/**") == (["typeset/src/units/.base/*"], ""))
+    check("Edit(sample/src/parts/.base/**) -> sample/src/parts/.base/*",
+          edit_resources("sample/src/parts/.base/**") == (["sample/src/parts/.base/*"], ""))
     check("Edit(/out/x.txt) -> out/x.txt", edit_resources("/out/x.txt") == (["out/x.txt"], ""))
     check("Edit(**/secret.txt) -> secret.txt and */secret.txt",
           edit_resources("**/secret.txt") == (["secret.txt", "*/secret.txt"], ""))
@@ -681,6 +707,22 @@ def self_test() -> int:
         quiet(r + ["--write", "--client", "opencode"])
         code, _ = quiet(r + ["--check", "--client", "opencode"])
         check("--write re-asserts an overridden deny after the broad allow", code == 0)
+        data = load_json(root / "opencode.json")
+        data["agents"] = {"build": {"permissions": [{"action": "voice_*", "resource": "*", "effect": "allow"}]}}
+        dump_json(root / "opencode.json", data)
+        code, text = quiet(r + ["--check", "--client", "opencode"])
+        check("OpenCode: an agent's own allow that overrides an ask is drift, named",
+              code == 1 and "agents.build.permissions" in text and "voice_speak" in text)
+        code, text = quiet(r + ["--write", "--client", "opencode"])
+        check("OpenCode: --write cannot outweigh an agent's rule: exit 1, and the agent's rule is kept",
+              code == 1 and load_json(root / "opencode.json")["agents"] == data["agents"])
+        data["agents"] = {"build": {"permissions": [{"action": "voice_*", "resource": "*", "effect": "allow"},
+                                                     {"action": "voice_speak", "resource": "*", "effect": "ask"}]}}
+        dump_json(root / "opencode.json", data)
+        code, _ = quiet(r + ["--check", "--client", "opencode"])
+        check("OpenCode: an agent whose own later ask restores the prompt is no drift", code == 0)
+        del data["agents"]
+        dump_json(root / "opencode.json", data)
         (root / ".gemini" / "settings.json").write_text("{ // a comment\n}\n", encoding="utf-8")
         code, _ = quiet(r + ["--check"])
         check("an unreadable client file exits 2", code == 2)

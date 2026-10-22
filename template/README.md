@@ -232,9 +232,16 @@ To add a client later, follow 'Enabling a client in an existing project' in
 The template improves over time. To take its changes, commit or stash your own work first, then:
 
 ```sh
-uvx copier update --trust -a .copier-answers.syntek-author.yml
+GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \
+  uvx copier update --trust -a .copier-answers.syntek-author.yml
 git diff                  # review every change before committing
 ```
+
+The five `GIT_CONFIG_*` variables (bash, zsh and other POSIX shells) turn Git's background
+housekeeping off for that one command, which can otherwise stop an update with
+`OSError: [Errno 39] Directory not empty`; give them to every update command below too. Never
+commit what such an update left: syntek-author's own `README.md`, 'Updating a project', gives
+the recovery.
 
 Copier may print a `MissingFileWarning` about `.copier-answers.syntek-author.yml`, and another
 about `.copier-answers.syntek-media.yml`. Both are expected and harmless: the template reads

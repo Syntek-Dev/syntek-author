@@ -30,7 +30,12 @@
 <: endif -:>
 <: if DOC_TYPE == 'business' -:>
 #   make pdf FILE=library/src/<family>/<file>.tex   # one document, as a PDF proof
+<: if DATA_STORE == 'repo' -:>
 #   make pdf FILE=… ISSUE=1                         # and a copy beside its source, for issue
+<: endif -:>
+<: if DATA_STORE == 'external' -:>
+#   make pdf FILE=… ISSUE=1                         # and a copy filed under the data root, for issue
+<: endif -:>
 #   make section-check FILE=….tex SECTION=<slug> DRAFT=<draft>.md   # a promoted section's words
 <: endif -:>
 #   make flags                                      # every open AUTHOR TO CONFIRM and VERIFY
@@ -321,10 +326,13 @@ FILE_STEM       = $(subst /,__,$(patsubst .%,dot-%,$(basename $(patsubst ./%,%,$
 # filed under the data root instead of kept in the work tree. TeX looks in the document's own
 # folder first and then at the same folder below the root; Pandoc looks in the project first and
 # then at the same place below the root. With no valid root they look in the work tree alone.
+# The search path is passed to the shell single-quoted, so a name in the answers that holds $,
+# a backquote or a space reaches TeX as it is; a root whose path holds a colon, which TeX reads
+# as a separator, is left out of it.
 DR_DIR          = $(shell $(DR) path $(call DR_Q,$(patsubst %/,%,$(dir $(FILE)))) 2>/dev/null)
 DR_TOP          = $(shell $(DR) path . --kind docs 2>/dev/null)
 <: endif -:>
-TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):<: if DATA_STORE == 'external' :>$(if $(DR_DIR),$(DR_DIR):)<: endif :>tooling/latex//:assets//:
+TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):<: if DATA_STORE == 'external' :>$(if $(DR_DIR),$(if $(findstring :,$(DR_DIR)),,$(DR_DIR):))<: endif :>tooling/latex//:assets//:
 MD_REFS         = <: if INCLUDE_REFERENCES :>$(MAKE) --no-print-directory refs && <: endif :>
 
 define need_file
@@ -332,6 +340,7 @@ define need_file
 @test -f "$(FILE)" || { echo "error: $(FILE) not found"; exit 1; }
 endef
 
+<: if DATA_STORE == 'repo' -:>
 # ISSUE=1 also copies the PDF beside its source, where it is committed as the issued copy;
 # otherwise it stays in build/. It issues only a document whose status is one of
 # ISSUE_STATUSES (tooling/project.mk; final unless the project says otherwise) and that holds no
@@ -339,6 +348,18 @@ endef
 # comments), and it never replaces an issued copy: an issued document is a record, and a new
 # issue is a new version under its own name. FORCE=1 replaces one on purpose, and overrides
 # nothing else. All of it is checked before anything is built.
+<: endif -:>
+<: if DATA_STORE == 'external' -:>
+# ISSUE=1 also files the PDF under the data root as the issued copy, with its row in the
+# external.toml of its filing folder (make files-add's route), never beside its source;
+# otherwise it stays in build/. It issues only a document whose status is one of
+# ISSUE_STATUSES (tooling/project.mk; final unless the project says otherwise) and that holds no
+# open item (the scan make flags runs: AUTHOR TO CONFIRM, VERIFY and FLAG_EXTRA_RE, outside %
+# comments), and it never replaces an issued copy: an issued document is a record, and a new
+# issue is a new version under its own name. FORCE=1 files a new copy on purpose and keeps the
+# old one under the data root as superseded, and overrides nothing else. All of it is checked
+# before anything is built.
+<: endif -:>
 # ISSUE and FORCE are switches: 1, yes or true turns one on, and empty leaves it off. Any other
 # value is refused, so ISSUE=0 can never issue and FORCE=0 can never replace.
 ISSUE      ?=
@@ -396,7 +417,7 @@ pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….m
 	@mkdir -p $(BUILD)/latex
 	@case "$(FILE)" in \
 	  *.tex) for pass in $$(seq $(LATEX_PASSES)); do \
-	           $(TEX_ENV) TEXINPUTS="$(TEXINPUTS_HOUSE)" xelatex -interaction=nonstopmode -halt-on-error \
+	           $(TEX_ENV) TEXINPUTS=$(call DR_Q,$(TEXINPUTS_HOUSE)) xelatex -interaction=nonstopmode -halt-on-error \
 	             -output-directory=$(BUILD)/latex -jobname=$(FILE_STEM) "$(FILE)" >/dev/null \
 	           || { echo "error: xelatex failed on pass $$pass; see $(BUILD)/latex/$(FILE_STEM).log"; exit 1; }; \
 	         done; \
@@ -411,7 +432,7 @@ pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….m
 	  cp $(BUILD)/$(FILE_STEM).pdf "$(ISSUE_COPY)" && echo "$$verb $(ISSUE_COPY) (commit it with its source)"; fi
 <: endif :><: if DATA_STORE == 'external' :>	@if [ -n "$(ISSUE_ON)" ]; then \
 	  $(DR) add $(BUILD)/$(FILE_STEM).pdf --as "$(ISSUE_COPY)" --role issued --source "$(FILE)"$(if $(FORCE_ON), --force) \
-	  && echo "issued $(ISSUE_COPY) under the data root (commit library/src/external.toml with its source)"; fi
+	  && echo "issued $(ISSUE_COPY) under the data root (commit the external.toml of its filing folder with its source)"; fi
 <: endif :>
 docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_CONVERTER (no lossy conversion)
 	$(need_file)
@@ -657,8 +678,9 @@ script-sample: | $(BUILD)/.gitignore ## render TEXT in the language's script to 
 # (.claude/rules/syntek-author/09-data-root.md): it checks the root SYNTEK_DATA_ROOT names and
 # its .syntek-data-root marker, files a copy there, lists it with its checksum in its folder's
 # external.toml and reports what is at risk. Under repo these targets say so and file nothing;
-# with no valid root they stop (exit 2) and never fall back to the repository, and text work
-# never needs one. The root is each machine's: never set SYNTEK_DATA_ROOT in tooling/project.mk.
+# with no valid root they stop (exit 2), but files-status, which warns that it did not check
+# the copies, and never fall back to the repository, and text work never needs one. The root
+# is each machine's: never set SYNTEK_DATA_ROOT in tooling/project.mk.
 # FORCE, COPY and HYDRATE are switches; FILE, AS, SOURCE, LABEL and GLOB reach the tool quoted.
 # GNU make predefines AS (the assembler) and a build environment may export it, so only an AS
 # given on the make command line counts.
