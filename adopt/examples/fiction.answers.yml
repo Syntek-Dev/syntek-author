@@ -30,6 +30,14 @@ CODEX_MODEL: ""
 # named: a model OpenCode already knows, written provider/model; no address or context.
 OPENCODE_PROVIDER: named
 OPENCODE_MODEL: example-provider/example-model
+# Where binary files are kept (DESIGN.md D50). An adopted repository keeps its scans, figures
+# and issued copies in Git, as before: repo (a fresh copy defaults to external). Delete this
+# line where another syntek template's answers file in the repository already records
+# DATA_STORE: the copy then takes that store, and refuses a different one (adopt.sh says so).
+# With external, DATA_AREA, DATA_SLUG and the four DATA_KIND_* folders are asked too.
+DATA_STORE: repo
+# The service that keeps a copy of the data root once files move there; none until then.
+DATA_PROVIDER: none
 MODEL_MECHANICAL: sonnet
 TIMEZONE: Europe/London
 DATE: 03/10/2026

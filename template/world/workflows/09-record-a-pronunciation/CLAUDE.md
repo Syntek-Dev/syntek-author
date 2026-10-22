@@ -26,8 +26,9 @@ language, at a cost the author has agreed.
   IPA → state the cost and wait → generate → fall back if needed → name, listen and log → hand
   back.
 - **Definition of done:** the audio the author asked for exists in the language's audio folder,
-  made with the recorded narrator and model; the cost was stated before it was spent; the log
-  row is written; the IPA is unchanged.
+  made with the recorded narrator and model, and each kept file has been through
+  `make files-add … ROLE=generated`; the cost was stated before it was spent; the log row is
+  written; the IPA is unchanged.
 
 ## Guardrails
 
@@ -40,10 +41,12 @@ language, at a cost the author has agreed.
 - **The IPA is never changed to suit a voice.** If the result is wrong, regenerate or note it.
   The surface form is built for each request and never stored.
 - **Audio is derived and git-ignored** (`world/src/.gitignore`). Never commit it, never force it
-  past that rule, and never treat it as the record.
+  past that rule, and never treat it as the record. It is written into the work tree, never
+  straight under the data root; under the `external` store `make files-add` then files a copy
+  there (`.claude/rules/syntek-author/09-data-root.md`).
 - **If the `elevenlabs` server is not configured, say so and offer the fallback** only when
   `command -v espeak-ng` finds it; with neither, give the setup steps in
-  `world/docs/reference/pronunciation.md` and stop. The project adds nothing to `.mcp.json`; the
+  `world/docs/reference/pronunciation.md` and stop. The project never adds it to `.mcp.json`; the
   server is configured at user scope, by the author.
 
 ## Output & naming
@@ -51,5 +54,6 @@ language, at a cost the author has agreed.
 - **Produces:** `<headword>.mp3` (or `<headword>.wav` from the fallback) in the language's audio
   folder; a sentence is named for its first three headwords joined by hyphens.
 - **Also writes:** the narrator record, the first time, and a log row in the language's
-  `pronunciation.md`.
+  `pronunciation.md`; under the `external` store, through `make files-add`, a copy of each kept
+  file under the data root and its row in `external.toml`.
 - **Does not touch:** the lexicon, the names register, or any IPA.

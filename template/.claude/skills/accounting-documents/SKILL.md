@@ -165,6 +165,11 @@ section naming the source of the data and every assumption.
 - **Payment details.** The business's own details and bank details live only in the invoice
   template, entered there by the author; this skill never types them from memory, another document
   or a chat, and a missing one stays `\fillme`. Time worked is shown as the standard sets it.
+- **Records received.** Bank statements, ledgers, identity documents and supplier receipts holding
+  bank or personal details never enter Git. Under the `external` store the author files one under
+  the data root with role `received`, from wherever it is, so no copy lands in the repository:
+  `make files-add FILE=<file> AS=library/src/accounting/<path> ROLE=received`. Under `repo` it
+  stays outside the repository. This skill never searches, reads or quotes one.
 
 ## How to create an accounting document
 
@@ -210,8 +215,10 @@ section naming the source of the data and every assumption.
 7. **Register it and hand back.** Add its row through `planning/workflows/08-update-the-register/`
    and list it in its folder's `CONTEXT.md`. Put the number, the amounts, the tax line and the due
    date to the author explicitly; issue only on their word: `make pdf FILE=<path>.tex ISSUE=1`
-   writes the PDF beside the source and refuses to overwrite an issued one. Hand back the totals as
-   recomputed, every open flag, and the next step (send, file, or pass to the accountant).
+   issues the PDF at the source's path, in the project's store (beside it, or filed under the
+   data root: `.claude/rules/syntek-author/09-data-root.md`), and refuses to overwrite an issued
+   one. Hand back the totals as recomputed, every open flag, and the next step (send, file, or
+   pass to the accountant).
    *Complete when:* the register row is written and the author has the hand-back.
 
 ## Pre-issue checklist

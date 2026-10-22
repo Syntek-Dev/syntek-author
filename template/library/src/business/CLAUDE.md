@@ -54,4 +54,5 @@ promise the business must be able to keep, and the one record of each client's f
 - **Hand-written:** `.tex` deliverables in `client-docs/<client-slug>/` or at the family root, named
   to the patterns in `library/docs/reference/business-standards.md`; section drafts in
   `drafts/<unit-slug>/`; client folder pairs.
-- **Generated (never hand-edit):** the issued PDF beside each `.tex`.
+- **Generated (never hand-edit):** the issued PDF of each `.tex`, under its basename: beside it,
+  or filed under the data root at the same path (`.claude/rules/syntek-author/09-data-root.md`).

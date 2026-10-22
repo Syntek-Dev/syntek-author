@@ -24,7 +24,8 @@ through the loop and the review to an approved `final`, or fill a report from it
 - **Definition of done:** the document carries the structure its type requires, its classification
   in its Document Control block and header, its review-date notice and its version history; every
   rule is auditable; every framework reference is verified; a policy is Active only with its
-  approval recorded; its issue PDF sits beside the `.tex`.
+  approval recorded; its issue PDF is where the project's store keeps it (beside the `.tex`, or
+  filed under the data root).
 
 ## Guardrails
 

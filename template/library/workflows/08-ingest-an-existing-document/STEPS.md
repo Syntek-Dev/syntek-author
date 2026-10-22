@@ -43,24 +43,32 @@ exists; if one does, stop and ask. _Mechanical._
 
 > **Skill:** — · **Guide:** `library/docs/reference/document-anatomy.md`
 
-Copy the original into place, byte for byte. Never open and re-save it. Add it to the folder's
-`CONTEXT.md` listing, with its original filename if it was renamed. _Mechanical._
+Copy the original into place, byte for byte. Never open and re-save it. Then keep it as the
+project's store says (`.claude/rules/syntek-author/09-data-root.md`). Under `repo` it is committed
+with the folder. Under `external` a binary original (a PDF, a Word file, a scan) is git-ignored
+where it lands, so file it at once with `make files-add FILE=<path> ROLE=ingested`, which copies
+it under the data root and lists it in `external.toml`; then `make files-status` lists nothing
+unfiled. A `.tex` or `.md` original is text and is committed under either store. Add it to the
+folder's `CONTEXT.md` listing, with its original filename if it was renamed. _Mechanical._
 
 ## 4. Make the reading copy
 
 > **Skill:** `adapt-section` · **Guide:** `library/docs/reference/latex-deliverables.md`
 
-Beside the original, under the same basename with the suffix `.reading.md`:
+Beside the original, under the same basename with the suffix `.reading.md`. Convert the original
+from the path `python3 .claude/syntek-author-dataroot.py path <file>` prints: the work-tree file,
+or, where only the data root holds it, its filed copy there, which is read and never edited:
 
 ```sh
 pandoc <name>.docx -t markdown -o <name>.reading.md
 pdftotext -layout <name>.pdf <name>.reading.md
 ```
 
-The suffix marks it as derived, never issued: Drive sync, where the project has it, never pushes
-or pulls a `.reading.md` file. A `.tex` or `.md` original is already text and needs no reading
-copy. If the tool is missing, say so and stop. A scanned PDF with no text layer yields an empty
-file: delete it, and ask the author for a text source; never retype from an image. _Mechanical._
+The suffix marks it as derived, never issued: the Google Drive workflows, where the project has
+them, never push or pull a `.reading.md` file. A `.tex` or `.md` original is already text and
+needs no reading copy. If the tool is missing, say so and stop. A scanned PDF with no text layer
+yields an empty file: delete it, and ask the author for a text source; never retype from an image.
+_Mechanical._
 
 ## 5. Check the reading copy against the original
 
@@ -122,6 +130,7 @@ _Substantive._
 
 > **Skill:** `adapt-section` · **Guide:** `library/docs/reference/versioning-and-the-register.md`
 
-Report where the original and its reading copy were filed, every conversion loss, and then either
+Report where the original and its reading copy were filed (the original as `ext:<path>` where it
+is filed under the data root), every conversion loss, and then either
 the register row written (a record) or the brief and drafts created, the claims flagged and the
 next procedure (a working source or template seed). _Substantive._

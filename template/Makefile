@@ -30,21 +30,30 @@
 <: endif -:>
 <: if DOC_TYPE == 'business' -:>
 #   make pdf FILE=library/src/<family>/<file>.tex   # one document, as a PDF proof
+<: if DATA_STORE == 'repo' -:>
 #   make pdf FILE=… ISSUE=1                         # and a copy beside its source, for issue
+<: endif -:>
+<: if DATA_STORE == 'external' -:>
+#   make pdf FILE=… ISSUE=1                         # and a copy filed under the data root, for issue
+<: endif -:>
 #   make section-check FILE=….tex SECTION=<slug> DRAFT=<draft>.md   # a promoted section's words
 <: endif -:>
 #   make flags                                      # every open AUTHOR TO CONFIRM and VERIFY
 #   make provenance                                 # the AI-disclosure table, per unit
 #   make compare UNIT=<unit>                        # each section's original, AI edit and final
+#   make root                                       # this machine's data root, and the layout
+#   make files-status                               # binaries at risk: on this machine only
 #
 <: if DOC_TYPE != 'business' -:>
 # What differs from one project to the next (logo folders, typefaces, extra open-item marks) is
-# set in tooling/project.mk, the project's own file. No target here reads a file git ignores.
+# set in tooling/project.mk, the project's own file. No target here reads a file git ignores,
+# apart from the data-root targets, which read only a file you name or a manifest lists.
 <: endif -:>
 <: if DOC_TYPE == 'business' -:>
 # What differs from one project to the next (logo folders, typefaces, extra open-item marks, the
 # brand folders make flags reads, the Word converter, the statuses a document may be issued at)
-# is set in tooling/project.mk, the project's own file. No target here reads a file git ignores.
+# is set in tooling/project.mk, the project's own file. No target here reads a file git ignores,
+# apart from the data-root targets, which read only a file you name or a manifest lists.
 <: endif :>
 PY       := python3
 BUILD    := build
@@ -73,6 +82,10 @@ ISSUE_STATUSES ?= final
 EMPTY          :=
 SPACE          := $(EMPTY) $(EMPTY)
 LOGO_TEXINPUTS  = $(subst $(SPACE),,$(addsuffix :,$(LOGO_DIRS)))
+
+# A switch (ISSUE, FORCE, COPY, HYDRATE) takes 1, yes or true and is off when left out:
+# $(call SWITCH,NAME) gives on, nothing, or bad for any other value, which the target refuses.
+SWITCH          = $(if $(strip $($(1))),$(if $(and $(filter 1,$(words $($(1)))),$(filter 1 yes true,$($(1)))),on,bad))
 
 # Every PDF Pandoc makes: the project's typefaces (Pandoc's own when unset) and the symbol
 # fallback, so a check mark, ballot box or box-drawing line the text font lacks is drawn by an
@@ -151,7 +164,7 @@ FLAG_RE := (^|[^`])(<!--[[:space:]]*|\\dnote\{)(AUTHOR TO CONFIRM|VERIFY):
 FLAG_EXTRA_SCAN = scan '(^|[^`])($(strip $(FLAG_EXTRA_RE)))'
 
 .DEFAULT_GOAL := help
-.PHONY: help clean flags lint provenance compare docx pdf<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
+.PHONY: help clean flags lint provenance compare docx pdf root files-add files-verify files-status files-pull files-plan<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
 
 help: ## show every target with its description
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -308,7 +321,18 @@ print: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## set t
 FILE           ?=
 LATEX_PASSES   ?= 2
 FILE_STEM       = $(subst /,__,$(patsubst .%,dot-%,$(basename $(patsubst ./%,%,$(FILE)))))
-TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):tooling/latex//:assets//:
+<: if DATA_STORE == 'external' -:>
+# Under the external store a file a document reads (a scanned signature, a photograph) may be
+# filed under the data root instead of kept in the work tree. TeX looks in the document's own
+# folder first and then at the same folder below the root; Pandoc looks in the project first and
+# then at the same place below the root. With no valid root they look in the work tree alone.
+# The search path is passed to the shell single-quoted, so a name in the answers that holds $,
+# a backquote or a space reaches TeX as it is; a root whose path holds a colon, which TeX reads
+# as a separator, is left out of it.
+DR_DIR          = $(shell $(DR) path $(call DR_Q,$(patsubst %/,%,$(dir $(FILE)))) 2>/dev/null)
+DR_TOP          = $(shell $(DR) path . --kind docs 2>/dev/null)
+<: endif -:>
+TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):<: if DATA_STORE == 'external' :>$(if $(DR_DIR),$(if $(findstring :,$(DR_DIR)),,$(DR_DIR):))<: endif :>tooling/latex//:assets//:
 MD_REFS         = <: if INCLUDE_REFERENCES :>$(MAKE) --no-print-directory refs && <: endif :>
 
 define need_file
@@ -316,6 +340,7 @@ define need_file
 @test -f "$(FILE)" || { echo "error: $(FILE) not found"; exit 1; }
 endef
 
+<: if DATA_STORE == 'repo' -:>
 # ISSUE=1 also copies the PDF beside its source, where it is committed as the issued copy;
 # otherwise it stays in build/. It issues only a document whose status is one of
 # ISSUE_STATUSES (tooling/project.mk; final unless the project says otherwise) and that holds no
@@ -323,11 +348,22 @@ endef
 # comments), and it never replaces an issued copy: an issued document is a record, and a new
 # issue is a new version under its own name. FORCE=1 replaces one on purpose, and overrides
 # nothing else. All of it is checked before anything is built.
+<: endif -:>
+<: if DATA_STORE == 'external' -:>
+# ISSUE=1 also files the PDF under the data root as the issued copy, with its row in the
+# external.toml of its filing folder (make files-add's route), never beside its source;
+# otherwise it stays in build/. It issues only a document whose status is one of
+# ISSUE_STATUSES (tooling/project.mk; final unless the project says otherwise) and that holds no
+# open item (the scan make flags runs: AUTHOR TO CONFIRM, VERIFY and FLAG_EXTRA_RE, outside %
+# comments), and it never replaces an issued copy: an issued document is a record, and a new
+# issue is a new version under its own name. FORCE=1 files a new copy on purpose and keeps the
+# old one under the data root as superseded, and overrides nothing else. All of it is checked
+# before anything is built.
+<: endif -:>
 # ISSUE and FORCE are switches: 1, yes or true turns one on, and empty leaves it off. Any other
 # value is refused, so ISSUE=0 can never issue and FORCE=0 can never replace.
 ISSUE      ?=
 FORCE      ?=
-SWITCH      = $(if $(strip $($(1))),$(if $(and $(filter 1,$(words $($(1)))),$(filter 1 yes true,$($(1)))),on,bad))
 ISSUE_ON    = $(filter on,$(call SWITCH,ISSUE))
 FORCE_ON    = $(filter on,$(call SWITCH,FORCE))
 ISSUE_OK    = $(or $(strip $(ISSUE_STATUSES)),final)
@@ -361,11 +397,18 @@ define need_issuable
     printf '%s\n' "$$open" | sed 's/^/  /'; \
     echo "       clear the open items first (make flags SCOPE=$(FILE)). FORCE=1 does not override this."; exit 1; \
   fi; \
-  if [ -e "$(ISSUE_COPY)" ] && [ -z "$(FORCE_ON)" ]; then \
+<: if DATA_STORE == 'repo' :>  if [ -e "$(ISSUE_COPY)" ] && [ -z "$(FORCE_ON)" ]; then \
     echo "error: $(ISSUE_COPY) is already issued, and ISSUE=1 never replaces an issued copy."; \
     echo "       Issue a new version under its own name, or add FORCE=1 to replace this one on purpose."; exit 1; \
   fi; \
-fi
+<: endif :><: if DATA_STORE == 'external' :>  dest=$$($(DR) path "$(ISSUE_COPY)") || { \
+    echo "error: ISSUE=1 files the issued copy under the data root, and it cannot be used (the line"; \
+    echo "       above says why; make root checks it). Without ISSUE=1 the proof still builds."; exit 2; }; \
+  if [ -e "$$dest" ] && [ -z "$(FORCE_ON)" ]; then \
+    echo "error: $(ISSUE_COPY) is already issued ($$dest), and ISSUE=1 never replaces an issued copy."; \
+    echo "       Issue a new version under its own name, or add FORCE=1 to file a new copy and keep this one as superseded."; exit 1; \
+  fi; \
+<: endif :>fi
 endef
 
 pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….md (Pandoc) to PDF; ISSUE=1 to issue
@@ -374,20 +417,23 @@ pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….m
 	@mkdir -p $(BUILD)/latex
 	@case "$(FILE)" in \
 	  *.tex) for pass in $$(seq $(LATEX_PASSES)); do \
-	           $(TEX_ENV) TEXINPUTS="$(TEXINPUTS_HOUSE)" xelatex -interaction=nonstopmode -halt-on-error \
+	           $(TEX_ENV) TEXINPUTS=$(call DR_Q,$(TEXINPUTS_HOUSE)) xelatex -interaction=nonstopmode -halt-on-error \
 	             -output-directory=$(BUILD)/latex -jobname=$(FILE_STEM) "$(FILE)" >/dev/null \
 	           || { echo "error: xelatex failed on pass $$pass; see $(BUILD)/latex/$(FILE_STEM).log"; exit 1; }; \
 	         done; \
 	         cp $(BUILD)/latex/$(FILE_STEM).pdf $(BUILD)/$(FILE_STEM).pdf ;; \
 	  *.md)  $(MD_REFS)$(TEX_ENV) pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) $(PANDOC_PDF) "$(FILE)" \
-	           -o $(BUILD)/$(FILE_STEM).pdf || exit 1 ;; \
+	           <: if DATA_STORE == 'external' :>$(if $(DR_TOP),--resource-path=.:$(call DR_Q,$(DR_TOP)) )<: endif :>-o $(BUILD)/$(FILE_STEM).pdf || exit 1 ;; \
 	  *)     echo "error: FILE must be a .tex or .md document"; exit 1 ;; \
 	esac
 	@echo "wrote $(BUILD)/$(FILE_STEM).pdf"
-	@if [ -n "$(ISSUE_ON)" ]; then \
+<: if DATA_STORE == 'repo' :>	@if [ -n "$(ISSUE_ON)" ]; then \
 	  if [ -e "$(ISSUE_COPY)" ]; then verb=replaced; else verb=issued; fi; \
 	  cp $(BUILD)/$(FILE_STEM).pdf "$(ISSUE_COPY)" && echo "$$verb $(ISSUE_COPY) (commit it with its source)"; fi
-
+<: endif :><: if DATA_STORE == 'external' :>	@if [ -n "$(ISSUE_ON)" ]; then \
+	  $(DR) add $(BUILD)/$(FILE_STEM).pdf --as "$(ISSUE_COPY)" --role issued --source "$(FILE)"$(if $(FORCE_ON), --force) \
+	  && echo "issued $(ISSUE_COPY) under the data root (commit the external.toml of its filing folder with its source)"; fi
+<: endif :>
 docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_CONVERTER (no lossy conversion)
 	$(need_file)
 	@case "$(FILE)" in \
@@ -625,5 +671,44 @@ script-sample: | $(BUILD)/.gitignore ## render TEXT in the language's script to 
 	$(CONLANG) tooling/script.py render $(LANG_SLUG) $(if $(TEXT),"$(TEXT)",--sample) --out $(BUILD)/script-sample-$(LANG_SLUG).svg
 
 <: endif -:>
+# ── The data root ───────────────────────────────────────────────────────────────────────
+# Binary files (scans, signed and received copies, archives, issued copies, images, audio) are
+# kept where the project's DATA_STORE answer says: outside the repository, under each machine's
+# data root (external), or in the repository (repo). The data-root tool does every step
+# (.claude/rules/syntek-author/09-data-root.md): it checks the root SYNTEK_DATA_ROOT names and
+# its .syntek-data-root marker, files a copy there, lists it with its checksum in its folder's
+# external.toml and reports what is at risk. Under repo these targets say so and file nothing;
+# with no valid root they stop (exit 2), but files-status, which warns that it did not check
+# the copies, and never fall back to the repository, and text work never needs one. The root
+# is each machine's: never set SYNTEK_DATA_ROOT in tooling/project.mk.
+# FORCE, COPY and HYDRATE are switches; FILE, AS, SOURCE, LABEL and GLOB reach the tool quoted.
+# GNU make predefines AS (the assembler) and a build environment may export it, so only an AS
+# given on the make command line counts.
+DR   = $(PY) .claude/syntek-author-dataroot.py
+DR_Q = '$(subst ','\'',$(1))'
+
+root: ## show this machine's data root, the project's layout under it and the provider's checklist
+	@$(DR) root
+
+files-add: ## file a copy under the data root: FILE= ROLE= (AS=, SOURCE=, LABEL=, FORCE=1)
+	@test -n "$(FILE)" || { echo "error: name the file: make files-add FILE=<path> ROLE=<role> (AS=, SOURCE=, LABEL=, FORCE=1)"; exit 2; }
+	@test -n "$(ROLE)" || { echo "error: name its role: make files-add FILE=$(FILE) ROLE=<role> ($(DR) --help lists them)"; exit 2; }
+	@case '$(call SWITCH,FORCE)' in bad) echo "error: FORCE takes 1, yes or true; leave it out to keep a filed copy"; exit 2 ;; esac
+	@$(DR) add $(call DR_Q,$(FILE)) --role $(call DR_Q,$(ROLE))$(if $(and $(filter command line,$(origin AS)),$(AS)), --as $(call DR_Q,$(AS)))$(if $(SOURCE), --source $(call DR_Q,$(SOURCE)))$(if $(LABEL), --label $(call DR_Q,$(LABEL)))$(if $(filter on,$(call SWITCH,FORCE)), --force)
+
+files-verify: ## hash every filed copy against its manifest row (GLOB= narrows it; HYDRATE=1 reads online-only copies)
+	@case '$(call SWITCH,HYDRATE)' in bad) echo "error: HYDRATE takes 1, yes or true; leave it out to skip online-only copies"; exit 2 ;; esac
+	@$(DR) verify$(if $(GLOB), $(call DR_Q,$(GLOB)))$(if $(filter on,$(call SWITCH,HYDRATE)), --hydrate)
+
+files-status: ## the loss check: binaries git ignores that no manifest lists, and copies under the root none lists
+	@$(DR) status
+
+files-pull: ## copy filed copies into the work tree, checking each hash (GLOB= narrows it)
+	@$(DR) pull$(if $(GLOB), $(call DR_Q,$(GLOB)))
+
+files-plan: ## list the binaries still tracked, where each would be filed and every conflict (COPY=1 files them)
+	@case '$(call SWITCH,COPY)' in bad) echo "error: COPY takes 1, yes or true; leave it out to list the plan only"; exit 2 ;; esac
+	@$(DR) plan$(if $(filter on,$(call SWITCH,COPY)), --copy)
+
 clean: ## remove build/ (never touches a source, the ledger or the reference database)
 	rm -rf $(BUILD)

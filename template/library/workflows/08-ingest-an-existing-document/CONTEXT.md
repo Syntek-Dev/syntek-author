@@ -36,10 +36,12 @@ brief).
 - **The original, unchanged,** in its family: at the family root, in
   `library/src/<family>/templates/`, or in `library/src/<family>/client-docs/<client-slug>/`,
   renamed only to the house kebab-case pattern; the email family files by correspondent instead
-  (its folder's CONTEXT.md sets the layout).
+  (its folder's CONTEXT.md sets the layout). Under the `external` store a binary original is filed
+  under the data root at that path, with a row in `external.toml`
+  (`.claude/rules/syntek-author/09-data-root.md`).
 - **A Markdown reading copy** beside it, `<name>.reading.md` (same basename), with an internal
-  note listing anything the conversion lost. The suffix keeps it out of Drive sync: it is derived,
-  never issued.
+  note listing anything the conversion lost. The suffix keeps it out of the Google Drive
+  workflows: it is derived, never issued.
 - **For a record:** a register row (and an approval record if it was executed).
 - **For a working source or a template seed:** a unit brief, one section draft per planned section
   at `author-draft`, and a ledger entry for each with an empty `## AI original` and the copied

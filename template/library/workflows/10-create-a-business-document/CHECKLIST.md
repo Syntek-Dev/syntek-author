@@ -45,11 +45,11 @@ model: opus
 
 **Hand-back**
 
-- [ ] Issue PDF beside the `.tex`; document listed in its client folder's `CONTEXT.md`. · _sonnet_
+- [ ] Issue PDF where the store keeps it (beside the `.tex`, or filed under the data root); document listed in its client folder's `CONTEXT.md`. · _sonnet_
 - [ ] Handed back: path, register ID, status, anything outstanding, any step waived and why. · _opus_
 
 ## Done When
 
 - [ ] **The document is `final` on the author's word, at its named path, with every part its type requires.** · _opus_
 - [ ] Every section came through the loop and has its ledger entry. · _sonnet_
-- [ ] The register row exists and the issue PDF sits beside the `.tex`. · _sonnet_
+- [ ] The register row exists and the issue PDF is where the store keeps it. · _sonnet_

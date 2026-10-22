@@ -16,6 +16,8 @@
 #                - copier.yml readers: list items, registered keys, gated paths, gate negation;
 #                - the DESIGN.md catalogue: skills, mode files, gated paths, seeds, examples,
 #                  pair-only folders, the spine set;
+#                - the two MCP servers of D54 (the shared bytes, pins, tool list, rules, the
+#                  install markers) and the data root of D50 (its paths, the guard command);
 #                - a reader for a rendered tree's answers file, and a gate evaluator;
 #                - the rendering helpers (snapshot a working tree, render with Copier) and the
 #                  minimal fixture template the integration self-tests run against.
@@ -24,14 +26,25 @@
 #              changes in the same commit; every audit that reads it then moves together.
 #
 #              Nothing here writes to the repository. Fixtures and snapshots go to mktemp.
+#              Sourcing it unsets SYNTEK_DATA_ROOT, so no audit reaches a real data root.
+#              It also hides the machine's global and system git configuration (CI's
+#              runner has no global file, and its system file is hidden too), and pins
+#              UV_PYTHON to python3 where it is unset (CI sets it).
 #
-# Requirements: bash 4+, git, grep, awk, sed. rsync and uvx only for the rendering helpers.
+# Requirements: bash 4+, git 2.32+, grep, awk, sed. rsync and uvx only for the rendering helpers.
 
 # This file is a library: its catalogue variables are read by the scripts that source it.
 # shellcheck disable=SC2034
 
 [[ -n "${_SA_COMMON_LOADED:-}" ]] && return 0
 _SA_COMMON_LOADED=1
+
+# No audit sees a machine's data root (DESIGN.md D50, Section 7). A fresh render defaults to
+# DATA_STORE external, so an inherited SYNTEK_DATA_ROOT would let a test file copies into a real
+# root once its marker exists. Unset on first load: every script sources this file, and every
+# process it starts inherits the unset environment. A case that needs a root makes a mktemp one
+# holding its own marker and passes it per command, after this file is sourced.
+unset SYNTEK_DATA_ROOT
 
 SA_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SA_ROOT="${SA_ROOT:-$(cd "$SA_SCRIPTS_DIR/../.." && pwd)}"
@@ -181,11 +194,27 @@ exclude_gates() { # $1 = copier.yml
 }
 
 # The SHIPPING gate of an exclusion condition: `not (G)` → G; `A == 'x' or not B` →
-# `A != 'x' and B`. Returns 1 for a shape it cannot negate textually.
+# `A != 'x' and B`. Returns 1 for a shape it cannot negate textually. G may hold balanced
+# parentheses, as the .github gate's `(KEY | default('v'))` terms do (DESIGN.md Section 3.5,
+# D53), but the parenthesis after `not` must close at the very end: `not (A) and not (B)` is
+# not one negation. A parenthesis inside a quoted string is text.
 negate_gate() {
-  local c out="" atom rest
+  local c out="" atom rest inner ch i depth=1 quoted=false
   c="$(norm_expr "$1")"
-  if [[ "$c" =~ ^not\ \(([^()]*)\)$ ]]; then printf '%s' "${BASH_REMATCH[1]}"; return 0; fi
+  if [[ "$c" == 'not ('*')' ]]; then
+    inner="${c:5:${#c}-6}"
+    for (( i = 0; i < ${#inner}; i++ )); do
+      ch="${inner:i:1}"
+      if [[ "$ch" == "'" ]]; then
+        if $quoted; then quoted=false; else quoted=true; fi
+      elif ! $quoted && [[ "$ch" == '(' ]]; then
+        depth=$((depth + 1))
+      elif ! $quoted && [[ "$ch" == ')' ]]; then
+        depth=$((depth - 1)); [[ $depth -eq 0 ]] && break
+      fi
+    done
+    if [[ $depth -eq 1 ]] && ! $quoted; then norm_expr "$inner"; return 0; fi
+  fi
   [[ "$c" == *'('* || "$c" == *' and '* ]] && return 1
   rest="$c"
   while :; do
@@ -205,10 +234,14 @@ negate_gate() {
 #
 # Gates are written in a small vocabulary so a tree's answers can be tested against them:
 #   always · optional · theology · fiction · business · books · wb · conlang · refs ·
-#   proposal · sensitive · drive · seed · fam-<family> — joined with & for "and". Each carries
-#   its DOC_TYPE test (DESIGN.md Section 2), exactly as Section 3.5 writes it. A fam-<family>
-#   gate is one business document family chosen in BUSINESS_FAMILIES (D39); the `business`
-#   family is always chosen, so its paths carry the plain `business` gate.
+#   proposal · sensitive · drive · ext · biz-ext · prop-ext · seed · fam-<family> — joined
+#   with & for "and". Each carries its DOC_TYPE test (DESIGN.md Section 2), exactly as Section
+#   3.5 writes it. A fam-<family> gate is one business document family chosen in
+#   BUSINESS_FAMILIES (D39); the `business` family is always chosen, so its paths carry the plain
+#   `business` gate. `drive` is the .github gate of D53, with the `| default()` terms Section 3.5
+#   gives a path an earlier release shipped. ext, biz-ext and prop-ext are the three data-root
+#   ignore files' gates (D50), each testing DATA_STORE by equality, so a later store value opens
+#   nothing.
 
 declare -A SA_GATE_EXPR=(
   [theology]="DOC_TYPE == 'theology'"
@@ -220,7 +253,10 @@ declare -A SA_GATE_EXPR=(
   [refs]="INCLUDE_REFERENCES"
   [proposal]="DOC_TYPE != 'business' and INCLUDE_PROPOSAL"
   [sensitive]="DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT"
-  [drive]="DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC"
+  [drive]="DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo'"
+  [ext]="DATA_STORE == 'external'"
+  [biz-ext]="DOC_TYPE == 'business' and DATA_STORE == 'external'"
+  [prop-ext]="DOC_TYPE != 'business' and INCLUDE_PROPOSAL and DATA_STORE == 'external'"
   [fam-legal]="DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES"
   [fam-email]="DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES"
   [fam-accounting]="DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES"
@@ -320,6 +356,8 @@ modes_list() { # TFB → THEOLOGY.md FICTION.md BUSINESS.md
 # not rows here. kind: d = a real directory (never a link), f = file, l = a link whose target is
 # exactly $SA_AGENTS_LINK_TARGET (the one link the template ships, D47: .agents/skills, never a
 # copy of the skills and never a link at .agents itself, which breaks Codex's Linux sandbox).
+# D50 adds the resolver and its map (always, template-owned), rules 09 (always), and the three
+# data-root ignore files, which ship only under DATA_STORE external.
 SA_AGENTS_LINK_TARGET="../.claude/skills"
 SA_PATHS=$(cat <<'EOF'
 always             f  .copier-answers.syntek-author.yml
@@ -343,6 +381,8 @@ agents             d  .agents
 agents             l  .agents/skills
 always             f  .claude/syntek-author-agents.md
 always             f  .claude/syntek-author-permissions.py
+always             f  .claude/syntek-author-dataroot.py
+always             f  .claude/syntek-author-dataroot.json
 agents-md          f  AGENTS.md
 gemini-md          f  GEMINI.md
 cl-codex           f  .codex/config.toml
@@ -360,6 +400,7 @@ always             f  .claude/rules/syntek-author/05-model-allocation.md
 always             f  .claude/rules/syntek-author/06-global-rules.md
 always             f  .claude/rules/syntek-author/07-session-boundaries.md
 always             f  .claude/rules/syntek-author/08-naming-and-memory.md
+always             f  .claude/rules/syntek-author/09-data-root.md
 always             f  .claude/rules/syntek-author/00-project.md
 always             d  handoffs
 always             d  learning
@@ -595,6 +636,9 @@ books              f  typeset/docs/reference/the-fidelity-check.md
 books              f  typeset/docs/reference/semantic-markdown.md
 conlang            f  typeset/docs/reference/conlang-in-print.md
 drive              d  .github
+biz-ext            f  library/src/.gitignore
+ext                f  research/src/.gitignore
+prop-ext           f  proposal/src/.gitignore
 books&seed         d  manuscript/src/01-example-chapter
 books&seed         f  planning/src/units/01-example-chapter.md
 theology&seed      f  planning/src/arguments/01-example-chapter.md
@@ -651,9 +695,115 @@ SA_SHARED_HOOKS=".claude/hooks/pre-compact-handoff.sh .claude/hooks/context-thre
 # update: Copier 9.17.1 creates an EMPTY folder on an update that crosses the release which
 # introduced it, even when every path inside it is excluded.
 SA_COPY_ONLY_DIRS=".agents .codex .gemini"
-# Antigravity's MCP file, byte for byte what syntek-media 0.4.2 ships (D47, D48): 23 bytes.
-SA_AGENTS_MCP=$'{\n  "mcpServers": {}\n}\n'
 SA_COPY_ONLY_GATE="_copier_operation == 'update'"
+
+# ── The MCP servers (DESIGN.md D54) ──────────────────────────────────────────
+#
+# Every family template declares the same two servers, pinned, in .mcp.json and in each client
+# file it ships. The audits and the integration tests compare against these, never against a
+# copy of their own. The servers in the order every file declares them, and the five files that
+# declare them (the paths migrations/family-refresh.json lists under its "mcp" key).
+SA_MCP_SERVERS="code-review-graph scrapling"
+SA_MCP_FILES=".mcp.json .agents/mcp_config.json .codex/config.toml .gemini/settings.json opencode.json"
+# The pins, one word each. One word holds [ai], a glob: split it with read -ra, or under set -f.
+SA_MCP_PINS="code-review-graph==2.3.9 scrapling[ai]==0.4.15 playwright==1.63.0 patchright==1.63.0"
+# code-review-graph's --tools value: 29 names, comma-joined, 636 characters, and never
+# embed_graph_tool. The tool validates none of it: an unknown name is ignored, a misspelt one
+# silently drops that tool, and an empty value exposes all 30.
+_sa_crg_tools=(
+  build_or_update_graph_tool run_postprocess_tool get_minimal_context_tool get_impact_radius_tool
+  query_graph_tool get_review_context_tool semantic_search_nodes_tool list_graph_stats_tool
+  get_docs_section_tool find_large_functions_tool list_flows_tool get_flow_tool
+  get_affected_flows_tool list_communities_tool get_community_tool get_architecture_overview_tool
+  detect_changes_tool refactor_tool apply_refactor_tool generate_wiki_tool get_wiki_page_tool
+  get_hub_nodes_tool get_bridge_nodes_tool get_knowledge_gaps_tool get_surprising_connections_tool
+  get_suggested_questions_tool traverse_graph_tool list_repos_tool cross_repo_search_tool
+)
+SA_CRG_TOOLS="$(IFS=,; printf '%s' "${_sa_crg_tools[*]}")"
+unset _sa_crg_tools
+# The keys of code-review-graph's env (OpenCode: environment), in order, each "": no key is
+# shipped and no cloud embedding is accepted. Scrapling has no env.
+SA_CRG_BLANK_KEYS="GOOGLE_API_KEY VOYAGE_API_KEY MINIMAX_API_KEY CRG_OPENAI_API_KEY CRG_OPENAI_BASE_URL CRG_ACCEPT_CLOUD_EMBEDDINGS"
+# Their permission rules, as the seed settings.json and family-refresh.json hold them: the eight
+# asks in this order, and the one deny (the seed's last deny).
+SA_MCP_ASKS="mcp__scrapling__stealthy_fetch mcp__scrapling__bulk_stealthy_fetch mcp__scrapling__open_session mcp__scrapling__session_fetch mcp__scrapling__fetch mcp__scrapling__bulk_fetch mcp__code-review-graph__apply_refactor_tool mcp__code-review-graph__generate_wiki_tool"
+SA_MCP_DENY="mcp__code-review-graph__embed_graph_tool"
+# template/.mcp.json and template/.agents/mcp_config.json, byte for byte (one set of bytes, D48):
+# 1308 bytes, its trailing newline included.
+SA_MCP_SHARED="$(cat <<EOF
+{
+  "mcpServers": {
+    "code-review-graph": {
+      "command": "uvx",
+      "args": [
+        "code-review-graph==2.3.9",
+        "serve",
+        "--tools",
+        "$SA_CRG_TOOLS"
+      ],
+      "env": {
+        "GOOGLE_API_KEY": "",
+        "VOYAGE_API_KEY": "",
+        "MINIMAX_API_KEY": "",
+        "CRG_OPENAI_API_KEY": "",
+        "CRG_OPENAI_BASE_URL": "",
+        "CRG_ACCEPT_CLOUD_EMBEDDINGS": ""
+      }
+    },
+    "scrapling": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "scrapling[ai]==0.4.15",
+        "--with",
+        "playwright==1.63.0",
+        "--with",
+        "patchright==1.63.0",
+        "scrapling",
+        "mcp"
+      ]
+    }
+  }
+}
+EOF
+)"$'\n'
+# What a project that took syntek-media 0.4.x first still holds at .agents/mcp_config.json: 23
+# bytes and no server. coexist-test.sh's dummy sibling and the media-first scenario write it.
+SA_MEDIA04_AGENTS_MCP=$'{\n  "mcpServers": {}\n}\n'
+# What code-review-graph's install writes (its CLAUDE.md section, its Git pre-commit hook), one
+# marker per line. Each is built from two halves, so this file never holds a marker whole and a
+# scan of every tracked file never matches its own constant.
+SA_CRG_INSTALL_MARKERS="$(printf '%s\n' \
+  '<!-- code-review-graph'" MCP tools -->" \
+  '# >>> code-review-graph'" pre-commit hook >>>")"
+
+# ── The data root (DESIGN.md D50, D53) ───────────────────────────────────────
+#
+# The resolver and its map (template-owned, in every project), the marker an owner creates at a
+# root, the three ignore files (under DATA_STORE external only) and the sibling's answers file,
+# which copier.yml reads as _external_data.peer.
+SA_DATAROOT_PY=".claude/syntek-author-dataroot.py"
+SA_DATAROOT_MAP=".claude/syntek-author-dataroot.json"
+SA_DATAROOT_MARKER=".syntek-data-root"
+SA_DATAROOT_IGNORES="library/src/.gitignore research/src/.gitignore proposal/src/.gitignore"
+SA_PEER_ANSWERS_FILE=".copier-answers.syntek-media.yml"
+# The guard (D50 Section 6): the seed settings.json's one PreToolUse entry, its command exactly
+# as Claude Code receives it (JSON-decoded), its matcher and timeout, and the line the resolver's
+# guard prints when it blocks. Seed-only: family-refresh.json never lists it.
+SA_GUARD_MATCHER="Edit|Write|MultiEdit|NotebookEdit|Grep|Glob"
+SA_GUARD_TIMEOUT=10
+SA_GUARD_CMD="$(cat <<'EOF'
+bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; for f in "$ROOT"/.claude/syntek-*-dataroot.py; do [ -f "$f" ] && exec python3 "$f" guard; done; exit 0'
+EOF
+)"
+SA_GUARD_LINE="This path is under the data root; records there are filed with the project's data-root commands (see the bridge, .claude/syntek-*-agents.md), never edited in place."
+# The seed .gitignore: the code-review-graph line (D54, every project), and the heading line of
+# the data-root pointer, present once under external and absent under repo.
+SA_CRG_IGNORE_LINE="/.code-review-graph/"
+SA_GITIGNORE_DATAROOT_LINE="# Binary records — filed under the data root (DATA_STORE external); none ignored here"
+# The store guard step both Drive workflows hold (D53), after 'Checkout repository' and before
+# 'Authenticate to Google Cloud'.
+SA_DRIVE_GUARD_STEP="Stop unless the documents are kept in the repository"
 
 # The root spine (DESIGN.md Section 2, Token discipline), plus the answers file, which differs
 # between every pair of renders by construction.
@@ -777,7 +927,14 @@ is_allowed_gate() {
 # ── A rendered tree's answers, and the gate evaluator ────────────────────────
 
 A_DOC_TYPE=""; A_PROPOSAL=false; A_REFS=false; A_SENSITIVE=false; A_WB=false
-A_CONLANG=false; A_DRIVE=false; A_SEED=true; A_FAMILIES=""; A_CLIENTS=""
+A_CONLANG=false; A_SEED=true; A_FAMILIES=""; A_CLIENTS=""
+# The store and the provider (DESIGN.md D50, D53), as a tree's answers make them: a record
+# without DATA_STORE (made before v0.5.0) is repo; one without DATA_PROVIDER maps a recorded
+# INCLUDE_DRIVE_SYNC, true to google-drive and anything else to none. Any other value is kept
+# as recorded, so a gate's equality test fails on it. The layout answers are asked only under
+# external, so they are empty under repo: A_AREA, A_SLUG and the four kind folders.
+A_STORE=repo; A_PROVIDER=none; A_AREA=""; A_SLUG=""
+A_KIND_DOCS=""; A_KIND_PHOTOS=""; A_KIND_AUDIO=""; A_KIND_VIDEOS=""
 
 answer_value() { # $1 = key, $2 = answers file → raw value, unquoted
   awk -v key="$1" '
@@ -809,7 +966,15 @@ load_answers() { # $1 = answers file. Returns 1 if absent or carries no DOC_TYPE
   bool() { case "$(answer_value "$1" "$f")" in true|True|yes) echo true ;; *) echo "${2:-false}" ;; esac; }
   A_PROPOSAL=$(bool INCLUDE_PROPOSAL); A_REFS=$(bool INCLUDE_REFERENCES)
   A_SENSITIVE=$(bool INCLUDE_SENSITIVE_CONTENT); A_WB=$(bool INCLUDE_WORLDBUILDING)
-  A_CONLANG=$(bool INCLUDE_CONLANG); A_DRIVE=$(bool INCLUDE_DRIVE_SYNC)
+  A_CONLANG=$(bool INCLUDE_CONLANG)
+  v="$(answer_value DATA_STORE "$f")"; A_STORE="${v:-repo}"
+  A_PROVIDER="$(answer_value DATA_PROVIDER "$f")"
+  if [[ -z "$A_PROVIDER" ]]; then
+    if [[ "$(bool INCLUDE_DRIVE_SYNC)" == true ]]; then A_PROVIDER=google-drive; else A_PROVIDER=none; fi
+  fi
+  A_AREA="$(answer_value DATA_AREA "$f")"; A_SLUG="$(answer_value DATA_SLUG "$f")"
+  A_KIND_DOCS="$(answer_value DATA_KIND_DOCS "$f")"; A_KIND_PHOTOS="$(answer_value DATA_KIND_PHOTOS "$f")"
+  A_KIND_AUDIO="$(answer_value DATA_KIND_AUDIO "$f")"; A_KIND_VIDEOS="$(answer_value DATA_KIND_VIDEOS "$f")"
   v="$(answer_value SEED_EXAMPLES "$f")"
   case "$v" in false|False|no) A_SEED=false ;; *) A_SEED=true ;; esac
   A_FAMILIES=""
@@ -840,7 +1005,11 @@ gate_true() { # $1 = gate in the catalogue vocabulary
       refs)      [[ "$A_REFS" == true ]] || return 1 ;;
       proposal)  [[ "$A_DOC_TYPE" != business && "$A_PROPOSAL" == true ]] || return 1 ;;
       sensitive) [[ "$A_DOC_TYPE" != business && "$A_SENSITIVE" == true ]] || return 1 ;;
-      drive)     [[ "$A_DOC_TYPE" == business && "$A_DRIVE" == true ]] || return 1 ;;
+      drive)     [[ "$A_DOC_TYPE" == business && "$A_PROVIDER" == google-drive && "$A_STORE" == repo ]] || return 1 ;;
+      # The data root (DESIGN.md D50): each tests the store by equality, as copier.yml does.
+      ext)       [[ "$A_STORE" == external ]] || return 1 ;;
+      biz-ext)   [[ "$A_DOC_TYPE" == business && "$A_STORE" == external ]] || return 1 ;;
+      prop-ext)  [[ "$A_DOC_TYPE" != business && "$A_PROPOSAL" == true && "$A_STORE" == external ]] || return 1 ;;
       fam-*)     [[ "$A_DOC_TYPE" == business && " $A_FAMILIES " == *" ${atom#fam-} "* ]] || return 1 ;;
       seed)      [[ "$A_SEED" == true ]] || return 1 ;;
       # The other coding agents (DESIGN.md D47, Section 3.5): AGENT_CLIENTS, which every variant asks.
@@ -898,6 +1067,34 @@ if [[ -z "${SA_GIT_HOUSEKEEPING_OFF:-}" ]]; then
   export "GIT_CONFIG_KEY_$((_sa_n + 1))=maintenance.auto" "GIT_CONFIG_VALUE_$((_sa_n + 1))=false"
   export GIT_CONFIG_COUNT=$((_sa_n + 2)) SA_GIT_HOUSEKEEPING_OFF=1
   unset _sa_n
+fi
+
+# Every git the audits start, Copier's included, reads no global or system configuration, on a
+# laptop and in CI alike (the runner's /etc/gitconfig, with safe.directory '*' and git-lfs's
+# filter, is hidden too). A machine's global and system files (an LFS filter marked required,
+# core.autocrlf, merge.conflictStyle, a global ignore rule) change what a scratch commit stores,
+# how a conflict is marked and what check-ignore says, so a local run could pass where CI fails,
+# or the reverse. GIT_CONFIG_GLOBAL=/dev/null is git's own empty level: no file to create or
+# remove, and `git config --global` fails rather than writing one; an inherited value is
+# replaced, as no audit sets one. Without a global file git still reads its default excludes and
+# attributes files under $XDG_CONFIG_HOME/git, so two pairs point core.excludesFile and
+# core.attributesFile at /dev/null: they rank above a repository's own config (no audit sets
+# either key there) and below a -c option. XDG_CONFIG_HOME itself is left alone: uv, Copier and
+# scrub.sh read their own settings under it. Appended once, after the housekeeping pairs.
+if [[ -z "${SA_GIT_ISOLATED:-}" ]]; then
+  export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+  _sa_n="${GIT_CONFIG_COUNT:-0}"
+  export "GIT_CONFIG_KEY_${_sa_n}=core.excludesFile" "GIT_CONFIG_VALUE_${_sa_n}=/dev/null"
+  export "GIT_CONFIG_KEY_$((_sa_n + 1))=core.attributesFile" "GIT_CONFIG_VALUE_$((_sa_n + 1))=/dev/null"
+  export GIT_CONFIG_COUNT=$((_sa_n + 2)) SA_GIT_ISOLATED=1
+  unset _sa_n
+fi
+
+# uv prefers a managed interpreter over python3, so an unpinned uvx can resolve Copier on an
+# old managed Python (9.3.1 on 3.8, below the floor). CI sets UV_PYTHON; locally, python3.
+if [[ -z "${UV_PYTHON:-}" ]] && command -v python3 >/dev/null 2>&1; then
+  UV_PYTHON="$(command -v python3)"
+  export UV_PYTHON
 fi
 
 sa_git() { # $1 = dir, then git arguments — with an identity, so CI needs no global config
@@ -963,9 +1160,10 @@ sa_jinja_init() {
 # file, the D17 seeds, the copy-only examples, one variant gate, and the D35 guard — the
 # previous answers read through _external_data, DOC_TYPE's validator and the option-off
 # message — so every integration self-test also proves it tolerates the MissingFileWarning
-# a fresh copy prints. The integration tests'
-# self-tests run their whole flow against it, so the harness is proven independently of the
-# real template's state — which, mid-build, may not render at all.
+# a fresh copy prints. Its .mcp.json and .agents/mcp_config.json are the real template's bytes
+# ($SA_MCP_SHARED, D54), so a self-test meets the two servers as a project does. The integration
+# tests' self-tests run their whole flow against it, so the harness is proven independently of
+# the real template's state — which, mid-build, may not render at all.
 
 sa_fixture_template() { # $1 = dest (created, git-initialised and committed)
   local t="$1" d
@@ -983,7 +1181,8 @@ _message_before_update: |
     INCLUDE_CONLANG=false
     INCLUDE_REFERENCES=false
     INCLUDE_SENSITIVE_CONTENT=false
-    INCLUDE_DRIVE_SYNC=false
+    DATA_PROVIDER other than google-drive, or DATA_STORE external
+    DATA_STORE=repo
     BUSINESS_FAMILIES, a family unticked
 _templates_suffix: ""
 _envops:
@@ -1070,7 +1269,7 @@ EOF
   printf '# <%%PROJECT_NAME%%>\n\nA fixture project.\n' > README.md
   printf '# CONTEXT.md — <%%PROJECT_NAME%%>\n' > CONTEXT.md
   printf 'build/\n' > .gitignore
-  printf '{"mcpServers": {}}\n' > .mcp.json
+  printf '%s' "$SA_MCP_SHARED" > .mcp.json
   printf '# CLAUDE.md — <%%PROJECT_NAME%%>\n\n## 3. Project-specific rules\n' > .claude/CLAUDE.md
   for d in .claude .claude/skills .claude/hooks manuscript/src library/src planning/src/units; do
     printf '# CONTEXT.md — %s/\n' "$d" > "$d/CONTEXT.md"
@@ -1103,7 +1302,7 @@ EOF
   printf "project_doc_fallback_filenames = ['CLAUDE.md']\n" > .codex/config.toml
   printf '{"model": "local/<%%OPENCODE_MODEL%%>"}\n' > opencode.json
   ln -s "$SA_AGENTS_LINK_TARGET" .agents/skills
-  printf '%s' "$SA_AGENTS_MCP" > .agents/mcp_config.json
+  printf '%s' "$SA_MCP_SHARED" > .agents/mcp_config.json
   printf '# Shared instructions for coding agents\n\nTemplate-owned.\n' > .claude/syntek-author-agents.md
   cat > .claude/rules/syntek-author/05-model-allocation.md <<'EOF'
 # 05 — model allocation
@@ -1132,11 +1331,14 @@ EOF
 # family-refresh.json of its own: $2 is the template's name, $3 the shared paths it refreshes.
 # Each shared path gets its anchored _skip_if_exists line and its _exclude line gated on the
 # update; a shared path the template does not hold yet is written token-free (a hook, 755).
-# Commits nothing: the caller commits and tags.
+# With $4 = mcp, that family-refresh.json also takes the real file's "mcp" key (D54), so the
+# update runs the MCP lane against the fixture's .mcp.json and client files; without it the lane
+# stays off, as it is for a v0.4.0 template. Commits nothing: the caller commits and tags.
 SA_UPD_BEGIN='# BEGIN family-shared update (D48)'
 SA_UPD_END='# END family-shared update (D48)'
-sa_add_update() { # $1 = template repo, $2 = template name, $3 = shared paths (space-separated)
-  local t="$1" name="$2" paths="$3" p
+sa_add_update() { # $1 = template repo, $2 = template name, $3 = shared paths, $4 = mcp (optional)
+  local t="$1" name="$2" paths="$3" lane="${4:-}" p
+  [[ -z "$lane" || "$lane" == mcp ]] || return 1
   mkdir -p "$t/migrations"
   cp "$SA_ROOT/migrations/family-update.py" "$t/migrations/family-update.py" || return 1
   grep -qF "$SA_UPD_END" "$SA_ROOT/copier.yml" || return 1
@@ -1164,12 +1366,14 @@ PY
     printf '_tasks:\n  - command: "[ -d .git ] || git init --initial-branch=main"\n    when: "<%% _copier_operation == %s %%>"\n' "'copy'"
     grep -A1 -F 'migrations/family-update.py" baseline' "$SA_ROOT/copier.yml"
   } >> "$t/copier.yml"
-  python3 - "$t/migrations/family-refresh.json" "$name" "$paths" <<'PY'
+  python3 - "$t/migrations/family-refresh.json" "$name" "$paths" "$lane" "$SA_ROOT/migrations/family-refresh.json" <<'PY'
 import json, sys
-json.dump({"format": 1, "template": sys.argv[2], "refresh": sys.argv[3].split(),
-           "settings": {"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command",
-               "command": "bash -c 'exec bash .claude/hooks/context-threshold-handoff.sh'", "timeout": 10}]}]},
-                        "permissions": {"deny": [], "ask": []}}},
-          open(sys.argv[1], "w", encoding="utf-8"), indent=2)
+data = {"format": 1, "template": sys.argv[2], "refresh": sys.argv[3].split(),
+        "settings": {"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command",
+            "command": "bash -c 'exec bash .claude/hooks/context-threshold-handoff.sh'", "timeout": 10}]}]},
+                     "permissions": {"deny": [], "ask": []}}}
+if sys.argv[4] == "mcp":
+    data["mcp"] = json.load(open(sys.argv[5], encoding="utf-8"))["mcp"]
+json.dump(data, open(sys.argv[1], "w", encoding="utf-8"), indent=2)
 PY
 }

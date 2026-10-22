@@ -53,4 +53,4 @@ model: opus
 
 - [ ] **The document carries the structure its type requires, and says only what the business actually does.** · _opus_
 - [ ] A policy is Active only with its approval recorded. · _sonnet_
-- [ ] Its issue PDF sits beside the `.tex`. · _sonnet_
+- [ ] Its issue PDF is where the store keeps it (beside the `.tex`, or filed under the data root). · _sonnet_

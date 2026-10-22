@@ -47,4 +47,5 @@ person in them there by permission.
 
 - **Hand-written:** plans, calendars and guides (`.tex`); profiles and campaign copy (`.md`);
   section drafts; named to the patterns in `library/docs/reference/social-media-standards.md`.
-- **Generated (never hand-edit):** issued PDFs beside each `.tex`.
+- **Generated (never hand-edit):** the issued PDF of each `.tex`, under its basename: beside it,
+  or filed under the data root at the same path (`.claude/rules/syntek-author/09-data-root.md`).

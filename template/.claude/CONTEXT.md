@@ -16,18 +16,21 @@ which is which.
 ├── settings.local.json     ← your machine-only overrides, if any (git-ignored; never committed)
 ├── syntek-author-agents.md       ← the bridge for Codex, Gemini CLI, Antigravity and OpenCode (template-owned)
 ├── syntek-author-permissions.py  ← passes settings.json's denies and asks to the other clients' files (template-owned)
+├── syntek-author-dataroot.py     ← the data-root resolver and guard: make root and make files-* (template-owned)
+├── syntek-author-dataroot.json   ← this template's filing folders and the kind each fixes (template-owned)
 ├── hooks/                  ← context-threshold-handoff.sh, pre-compact-handoff.sh and the pair (all shared)
 ├── rules/                  ← rules loaded at launch, one folder per template (no pair here)
 │   └── syntek-author/      ← the template's rules, loaded at launch
 │       ├── 00-project.md   ← this project's settings: brief, paths, memory headings, aliases, overrides (yours)
-│       ├── 01-layout-and-routing.md   ← 01 to 08: template-owned; never edit
+│       ├── 01-layout-and-routing.md   ← 01 to 09: template-owned; never edit
 │       ├── 02-skills.md
 │       ├── 03-authorship.md
 │       ├── 04-build-pipeline.md
 │       ├── 05-model-allocation.md
 │       ├── 06-global-rules.md
 │       ├── 07-session-boundaries.md
-│       └── 08-naming-and-memory.md
+│       ├── 08-naming-and-memory.md
+│       └── 09-data-root.md
 └── skills/                 ← one folder per skill (template-owned) and the folder's pair (yours)
 ```
 
@@ -41,7 +44,7 @@ which is which.
   headings, workflow aliases and overrides of template rules. Written once from the Copier
   answers and never overwritten; it outranks everything else in the rules folder and
   `CLAUDE.md`'s project rules.
-- `rules/syntek-author/` — the template's rules, `01-…` to `08-…`. Claude Code loads every
+- `rules/syntek-author/` — the template's rules, `01-…` to `09-…`. Claude Code loads every
   Markdown file under `rules/` at launch with the same weight as `CLAUDE.md`, which is why this
   folder holds no `CONTEXT.md` or `CLAUDE.md` of its own. Another template applied to this
   project would add its own folder beside it.
@@ -49,11 +52,12 @@ which is which.
   `00-project.md` maps each to the heading this project uses. It splits into `memory/<topic>.md`
   files once it passes 300 lines, unless an override keeps it whole.
 - `settings.json` — `"model": "opus"`, `"autoCompactEnabled": false`, the `UserPromptSubmit`
-  window hook and the `PreCompact` hook, and a short allow and deny list. It is committed and
-  shared; personal overrides (such as `CLAUDE_CONTEXT_WINDOW` under `"env"`, for a larger
-  window) belong in `settings.local.json`. A copy over an existing file, and every update, may
-  add a hook entry or deny or ask rule the template lists and has not offered before, into the
-  file's own text, and never removes or changes one.
+  window hook, the `PreCompact` hook and the `PreToolUse` data-root guard, a short allow and
+  deny list, and the asks before the shipped MCP servers' browser and writing tools. It is
+  committed and shared; personal overrides (such as `CLAUDE_CONTEXT_WINDOW` under `"env"`, for
+  a larger window) belong in `settings.local.json`. A copy over an existing file, and every
+  update, may add a hook entry or deny or ask rule the template lists and has not offered
+  before, into the file's own text, and never removes or changes one.
 - `hooks/` and `skills/` — see each folder's own `CONTEXT.md`.
 - `syntek-author-agents.md` — how the other coding agents reach this folder: the read order
   they must follow by hand, the `skills` link in `.agents`, the model tiers, each client's
@@ -61,6 +65,9 @@ which is which.
 - `syntek-author-permissions.py` — run with `python3` (3.11 or later): `--check` reports which
   of `settings.json`'s denies and asks each other client's file carries, and `--write` adds the
   missing ones to client files that already exist. Template-owned; it never creates a file.
+- `syntek-author-dataroot.py` and its map `syntek-author-dataroot.json` — the data-root
+  resolver, run as `make root` and `make files-*` (Python 3.11 or later), and the guard the
+  `PreToolUse` hook calls. Template-owned.
 
 ## Cross-references
 

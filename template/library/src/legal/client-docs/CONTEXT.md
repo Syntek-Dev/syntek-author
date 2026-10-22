@@ -24,8 +24,9 @@ library/src/legal/client-docs/
   holds the rules particular to this client, such as a required format or a standing instruction.
 - **Every version stays.** A revised document is a new file beside the old one; the register and
   the Document Control block say which is current.
-- **Signed copies stay beside their source.** The executed PDF, as received, is filed beside its
-  `.tex` with `-signed` before the extension, and is never edited or re-rendered.
+- **Signed copies keep their source's name.** The executed PDF, as received, is filed under its
+  `.tex`'s basename with `-signed` before the extension, beside the `.tex` or under the data root
+  as the project's store says, and is never edited or re-rendered.
 
 ## Cross-references
 

@@ -99,7 +99,9 @@ the disclaimer where the class carries one. _Substantive._
 
 > **Skill:** `business-documents` · **Guide:** `library/docs/reference/business-standards.md`
 
-Confirm the issue PDF made at the end of the review sits beside the `.tex`, and list the document
-in its client folder's `CONTEXT.md`. Report its path, register ID, status, anything outstanding and
-any step waived with the author's reason. Sending, signing and publishing are the author's acts;
-where the project syncs with Google Drive, only the issued copy is ever pushed. _Mechanical._
+Confirm the issue PDF made at the end of the review is where the project's store keeps it
+(beside the `.tex`, or filed under the data root: `.claude/rules/syntek-author/09-data-root.md`),
+and list the document in its client folder's `CONTEXT.md`. Report its path, register ID, status,
+anything outstanding and any step waived with the author's reason. Sending, signing and publishing
+are the author's acts; with the Google Drive workflows, where the project has them, only the
+issued copy is ever pushed. _Mechanical._

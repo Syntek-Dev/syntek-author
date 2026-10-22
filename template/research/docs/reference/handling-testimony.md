@@ -56,7 +56,11 @@ name a source of help from memory; any one named in print is checked first.
   generic prose destroys what the material is for.
 - **Private by default.** This folder is committed to git, and history keeps what a later edit
   removes. Write nothing here the author would not want in the repository's history; what they
-  want kept out of it stays outside the repository.
+  want kept out of it stays outside the repository. Under the `external` store a recording or scan
+  of testimony is filed under the data root only on the author's word, because whatever service
+  keeps a copy of the root holds it too (`make root` names it):
+  `make files-add FILE=<file> AS=research/src/testimony/<name> ROLE=evidence`. Under `repo` it is
+  never committed unless they say so.
 - **Never overwrite a note;** supersede it with a dated addition.
 - **Proofreading is supportive:** a report, never a rewrite, and never of the voice.
 

@@ -2,14 +2,27 @@
 #
 # run-all.sh — Run every audit and test in DESIGN.md Section 7, rendering the template once.
 #
-#              Eighteen scripts, three kinds of input: the template source (tokens, mode
+#              Seventeen scripts, three kinds of input: the template source (tokens, mode
 #              excludes, pairs, line cap, scrub, isolation, seeds, skills, the family-shared
 #              set), the renders (shipped variants, byte identity, references, pairs, seeds,
 #              skills, tooling), and their own scratch projects (update, adoption, coexistence).
 #              Rendering is the expensive part, so it happens once, and every per-tree audit
-#              reads the same twenty-two renders. The self-tests also run the --self-test of
-#              migrations/family-update.py (DESIGN.md D52), the one Python script whose
-#              classes, refresh and printed commands no audit renders a project to judge alone.
+#              reads the same renders. The self-tests also run the --self-test of three Python
+#              scripts no audit renders a project to judge alone: migrations/family-update.py
+#              (DESIGN.md D52: its classes, refresh and printed commands), the data-root
+#              resolver, template/.claude/syntek-author-dataroot.py (D50, D53: its own
+#              temporary roots only), and migrations/agents-outside-link.py (D48: the hand fix
+#              run as printed after each kind of stop).
+#
+#              The environment (DESIGN.md D50, Section 7). A fresh render keeps its binaries
+#              under a data root, and a maintainer's own SYNTEK_DATA_ROOT may be set, so no step
+#              may inherit it: _common.sh unsets it when this script sources it, and every step
+#              is started with `env -u SYNTEK_DATA_ROOT` as well, so a step never sees one
+#              however the runner was started. A case that needs a root makes its own.
+#
+#              The Copier floor (DESIGN.md D2; copier.yml's _min_copier_version). Every render
+#              above uses the newest Copier (uvx, or COPIER_CMD). The floor is a promise too:
+#              a few profiles are rendered again on exactly the declared version and compared.
 #
 #              Discipline, from SB: every script's --self-test runs FIRST, because a detector
 #              nobody has seen fail is a detector nobody knows works (rule 38); failures
@@ -17,22 +30,32 @@
 #              another (rule 43); and a script that could not run is an error, never a pass
 #              (rule 49).
 #
-#              Three checks, on the run itself:
+#              Four checks, on the run itself:
 #                1. An audit or test reported findings (exit 1).
 #                2. An audit or test could not run (exit 2, or any other failure).
 #                3. A self-test no longer separates good input from bad.
+#                4. The declared Copier floor holds: copier.yml names a _min_copier_version,
+#                   the floor profiles (each variant's defaults, and business-all-on, which
+#                   ships .github/) render on exactly that version, and each is the newest
+#                   Copier's render byte for byte, its answers file apart from _commit and
+#                   _src_path (and .git, which records the run).
 #
 #              Numbers are stable identifiers. Append, never renumber.
 #
-#              What it CANNOT check: anything the eighteen cannot. It adds no check of its own
-#              to the template; it only refuses to let one of theirs go unrun or unread.
+#              What it CANNOT check: anything the seventeen cannot. Its one check of the
+#              template is the floor (check 4); otherwise it only refuses to let one of theirs
+#              go unrun or unread. The floor renders prove the profiles they render, on Linux,
+#              with the dependencies uvx resolves today, not every answer on every Copier
+#              between the floor and the newest.
 #
 # SELF-TEST. --self-test points the runner at stub scripts written at runtime, proves an
 #            all-green run is green, then breaks one stub per check and asserts exactly one
-#            finding naming it.
+#            finding naming it. Every stub fails if it sees SYNTEK_DATA_ROOT, and one probe
+#            exports a decoy into the runner itself: no step may see it.
 #
-# Requirements: those of the scripts it runs (bash, git, rsync, uvx, python3, make; pandoc and
-#               xelatex optional).
+# Requirements: those of the scripts it runs (bash, git, rsync, uvx, python3 3.11+, make;
+#               pandoc and xelatex optional), GNU diff (check 4), and the network the first
+#               time uvx fetches the floor's Copier.
 #
 # Usage: run-all.sh [--out DIR] [--keep] [--no-self-test] [--skip-integration]
 #                   [--require-pandoc] [--skip-pdf] [--quiet] [--self-test] [--help]
@@ -48,6 +71,9 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_common.sh"
 
 SCRIPTS="$SA_SCRIPTS_DIR"
 UPDATE_PY="$SA_ROOT/migrations/family-update.py"
+DATAROOT_PY="$SA_ROOT/template/$SA_DATAROOT_PY"
+OUTSIDE_PY="$SA_ROOT/migrations/agents-outside-link.py"
+COPIER_YML="$SA_ROOT/copier.yml"
 OUT=""
 KEEP=false
 SELF_TESTS=true
@@ -84,7 +110,10 @@ while [[ $# -gt 0 ]]; do
     --skip-integration) INTEGRATION=false; shift ;;
     --require-pandoc)   SMOKE_ARGS+=(--require-pandoc); shift ;;
     --skip-pdf)         SMOKE_ARGS+=(--skip-pdf); shift ;;
-    --root)             [[ $# -gt 1 ]] || die "--root needs a value"; SA_ROOT="$(cd "$2" && pwd)" || die "no such directory: $2"; UPDATE_PY="$SA_ROOT/migrations/family-update.py"; shift 2 ;;
+    --root)             [[ $# -gt 1 ]] || die "--root needs a value"; SA_ROOT="$(cd "$2" && pwd)" || die "no such directory: $2"
+                        UPDATE_PY="$SA_ROOT/migrations/family-update.py"; DATAROOT_PY="$SA_ROOT/template/$SA_DATAROOT_PY"
+                        OUTSIDE_PY="$SA_ROOT/migrations/agents-outside-link.py"
+                        COPIER_YML="$SA_ROOT/copier.yml"; shift 2 ;;
     --quiet|-q)         QUIET=true; shift ;;
     --self-test)        SELF_TEST=true; shift ;;
     --help|-h)          usage; exit 0 ;;
@@ -99,6 +128,9 @@ INTEGRATED=(update-test adopt-test coexist-test)
 ALL_SCRIPTS=(check-template-tokens gen-mode-excludes generate-all shipped-variants byte-identity docs-pairing
              doc-references shipped-seeds skill-conformance line-cap update-test adopt-test coexist-test
              tooling-smoke scrub dev-isolation family-shared)
+# Check 4's profiles: each variant as a fresh copy makes it (DATA_STORE external), and
+# business-all-on, which DESIGN.md Section 7 renders at repo with Google Drive, so .github/ ships.
+FLOOR_RENDERS=(theology-defaults fiction-defaults business-defaults business-all-on)
 
 RESULTS=()   # "name<TAB>status"
 ERRORS=0
@@ -110,7 +142,7 @@ section() { if [[ -n "$STEP_SINK" ]]; then emit "━━ $1"; else bold "━━ $
 step() { # $1 = label, then the command — runs it, records it, never stops the run
   local label="$1" s=0 out
   shift
-  out="$("$@" 2>&1)" || s=$?
+  out="$(env -u SYNTEK_DATA_ROOT "$@" 2>&1)" || s=$?
   if [[ "$s" -eq 0 ]]; then
     $QUIET || emit "$out" ""
     RESULTS+=("$label"$'\t'"pass")
@@ -133,6 +165,8 @@ run_checks() {
     section "Self-tests"
     for s in "${ALL_SCRIPTS[@]}"; do step "$s --self-test" bash "$SCRIPTS/$s.sh" --self-test; done
     step "family-update.py --self-test" python3 "$UPDATE_PY" --self-test
+    step "syntek-author-dataroot.py --self-test" python3 "$DATAROOT_PY" --self-test
+    step "agents-outside-link.py --self-test" python3 "$OUTSIDE_PY" --self-test
   fi
 
   section "The template source"
@@ -147,7 +181,11 @@ run_checks() {
   section "Rendering"
   out="$OUT"
   [[ -n "$out" ]] || out="$(sa_mktemp)/renders"
-  mapfile -t trees < <(bash "$SCRIPTS/generate-all.sh" "$out" --root "$SA_ROOT" --quiet 2>"$out.gen-err") || gen=$?
+  # Into a file, never `mapfile < <(…)`: a process substitution's exit status is lost, and a
+  # failed render would read as a pass.
+  env -u SYNTEK_DATA_ROOT bash "$SCRIPTS/generate-all.sh" "$out" --root "$SA_ROOT" --quiet \
+    >"$out.trees" 2>"$out.gen-err" || gen=$?
+  mapfile -t trees < "$out.trees"
   case "$gen" in
     0) RESULTS+=("generate-all"$'\t'"pass") ;;
     1) RESULTS+=("generate-all"$'\t'"findings"); emit "$(cat "$out.gen-err")"; finding "check 1 — generate-all: a render failed" ;;
@@ -155,6 +193,7 @@ run_checks() {
        finding "check 2 — generate-all could not run (exit $gen)" ;;
   esac
   $QUIET || emit "  ${#trees[@]} render(s) in $out" ""
+  floor_check "$out"
 
   if [[ ${#trees[@]} -gt 0 ]]; then
     section "The renders"
@@ -178,7 +217,60 @@ run_checks() {
   fi
 
   if [[ -z "$OUT" ]] && ! $KEEP; then rm -rf "$(dirname "$out")"; fi
-  rm -f "$out.gen-err" 2>/dev/null || true
+  rm -f "$out.gen-err" "$out.trees" "${out%/}-floor.gen-err" 2>/dev/null || true
+}
+
+# copier.yml's _min_copier_version (quoted or bare), or nothing.
+copier_floor() {
+  local line
+  line="$(grep -m1 -E '^_min_copier_version:' "$COPIER_YML" 2>/dev/null)" || return 0
+  [[ "$line" =~ ^_min_copier_version:[[:space:]]*[\"\']?([0-9]+(\.[0-9]+)*)[\"\']?[[:space:]]*(#.*)?$ ]] \
+    && printf '%s' "${BASH_REMATCH[1]}"
+  return 0
+}
+
+# Check 4: the floor profiles again, on exactly the declared Copier, beside the newest's renders
+# in $1. Only the answers file's _commit and _src_path (each run renders its own snapshot) and
+# .git (the record of the run) may differ.
+floor_check() {
+  local out="$1" floor fout s=0 n label only
+  floor="$(copier_floor)"
+  if [[ -z "$floor" ]]; then
+    RESULTS+=("copier floor"$'\t'"findings")
+    finding "check 4 — copier.yml declares no _min_copier_version — no floor is promised, so none is proven"
+    return 0
+  fi
+  label="generate-all (Copier $floor, the floor)"
+  fout="${out%/}-floor"
+  only="$(IFS=,; printf '%s' "${FLOOR_RENDERS[*]}")"
+  env -u SYNTEK_DATA_ROOT COPIER_CMD="uvx copier==$floor" \
+    bash "$SCRIPTS/generate-all.sh" "$fout" --root "$SA_ROOT" --only "$only" --quiet >/dev/null 2>"$fout.gen-err" || s=$?
+  case "$s" in
+    0) ;;
+    1) RESULTS+=("$label"$'\t'"findings"); emit "$(cat "$fout.gen-err")"
+       finding "check 4 — a render fails on Copier $floor, the floor copier.yml declares"; return 0 ;;
+    *) RESULTS+=("$label"$'\t'"ERROR (exit $s)"); ERRORS=$((ERRORS + 1)); emit "$(cat "$fout.gen-err" 2>/dev/null)"
+       finding "check 2 — $label could not run (exit $s)"; return 0 ;;
+  esac
+  local before=${#FINDINGS[@]} d
+  for n in "${FLOOR_RENDERS[@]}"; do
+    [[ -d "$out/$n" ]] || continue   # the newest render failed: check 1 already says so
+    if [[ ! -d "$fout/$n" ]]; then
+      finding "check 4 — $n did not render on Copier $floor, the declared floor"; continue
+    fi
+    d="$(diff -rq --no-dereference --exclude=.git --exclude="$SA_ANSWERS_FILE" "$out/$n" "$fout/$n" 2>&1 | head -1)" || true
+    [[ -z "$d" ]] || finding "check 4 — $n renders differently on Copier $floor, the floor, than on the newest Copier: $d"
+    d="$(diff <(grep -vE '^(_commit|_src_path):' "$out/$n/$SA_ANSWERS_FILE" 2>&1) \
+              <(grep -vE '^(_commit|_src_path):' "$fout/$n/$SA_ANSWERS_FILE" 2>&1) | grep -m1 -E '^[<>]')" || true
+    [[ -z "$d" ]] || finding "check 4 — $n records other answers on Copier $floor, the floor, than on the newest Copier: $d"
+  done
+  if [[ ${#FINDINGS[@]} -eq "$before" ]]; then
+    RESULTS+=("$label"$'\t'"pass")
+    $QUIET || emit "  ${#FLOOR_RENDERS[@]} render(s) on Copier $floor, the declared floor, identical to the newest Copier's" ""
+  else
+    RESULTS+=("$label"$'\t'"findings")
+  fi
+  $KEEP || [[ -n "$OUT" ]] || rm -rf "$fout"
 }
 
 summary() {
@@ -191,41 +283,91 @@ summary() {
 
 # ── Self-test ────────────────────────────────────────────────────────────────
 
-write_stubs() { # $1 = dir. Each stub obeys STUB_FAIL="<name>:<run|self>:<code>".
+write_stubs() { # $1 = dir. Each stub obeys STUB_FAIL="<name>:<run|self|floor>:<code>".
   local d="$1" s
   mkdir -p "$d"
   for s in "${ALL_SCRIPTS[@]}"; do
-    cat > "$d/$s.sh" <<EOF
-#!/usr/bin/env bash
-mode=run; for a in "\$@"; do [ "\$a" = --self-test ] && mode=self; done
-if [ "\${STUB_FAIL:-}" = "$s:\$mode:1" ]; then echo "$s: a finding"; exit 1; fi
-if [ "\${STUB_FAIL:-}" = "$s:\$mode:2" ]; then echo "$s: cannot run"; exit 2; fi
-if [ "$s" = generate-all ] && [ "\$mode" = run ]; then
-  out="\$1"; mkdir -p "\$out/theology-defaults" "\$out/fiction-defaults"
-  echo "\$out/theology-defaults"; echo "\$out/fiction-defaults"
+    printf '#!/usr/bin/env bash\nname=%s\n' "$s" > "$d/$s.sh"
+    cat >> "$d/$s.sh" <<'EOF'
+# A step that inherits SYNTEK_DATA_ROOT could reach a real data root: the stub cannot run.
+if [ -n "${SYNTEK_DATA_ROOT+set}" ]; then echo "$name: saw SYNTEK_DATA_ROOT"; exit 2; fi
+mode=run; only=""; prev=""
+for a in "$@"; do
+  [ "$a" = --self-test ] && mode=self
+  [ "$prev" = --only ] && only="$a"
+  prev="$a"
+done
+# generate-all run with a COPIER_CMD is the floor's render (check 4).
+[ "$mode" = run ] && [ -n "${COPIER_CMD:-}" ] && mode=floor
+if [ "${STUB_FAIL:-}" = "$name:$mode:1" ]; then echo "$name: a finding"; exit 1; fi
+if [ "${STUB_FAIL:-}" = "$name:$mode:2" ]; then echo "$name: cannot run"; exit 2; fi
+if [ "$name" = generate-all ] && [ "$mode" != self ]; then
+  out="$1"; names="theology-defaults fiction-defaults business-defaults business-all-on"
+  [ -n "$only" ] && names="$(printf '%s' "$only" | tr ',' ' ')"
+  for n in $names; do
+    mkdir -p "$out/$n/.git"
+    printf 'a render\n' > "$out/$n/README.md"
+    printf '%s run\n' "$mode" > "$out/$n/.git/HEAD"
+    printf '_commit: %s\n_src_path: %s\nDOC_TYPE: %s\n' "$mode" "$out" "${n%%-*}" > "$out/$n/.copier-answers.syntek-author.yml"
+    echo "$out/$n"
+  done
+  if [ "$mode" = floor ] && [ "${STUB_FAIL:-}" = "generate-all:floor:tree" ]; then
+    printf 'another render\n' > "$out/business-defaults/README.md"
+  fi
+  if [ "$mode" = floor ] && [ "${STUB_FAIL:-}" = "generate-all:floor:answers" ]; then
+    printf '_commit: floor\nDOC_TYPE: fiction\n' > "$out/business-defaults/.copier-answers.syntek-author.yml"
+  fi
 fi
 exit 0
 EOF
   done
-  printf 'import os, sys\nsys.exit(1 if os.environ.get("STUB_FAIL") == "family-update:self:1" else 0)\n' > "$d/family-update.py"
+  for s in family-update syntek-author-dataroot agents-outside-link; do
+    printf 'import os, sys\nif "SYNTEK_DATA_ROOT" in os.environ:\n    print("%s: saw SYNTEK_DATA_ROOT"); sys.exit(2)\nsys.exit(1 if os.environ.get("STUB_FAIL") == "%s:self:1" else 0)\n' \
+      "$s" "$s" > "$d/$s.py"
+  done
 }
 
 self_test() {
-  local tmp real_scripts="$SCRIPTS" real_py="$UPDATE_PY"
+  local tmp real_scripts="$SCRIPTS" real_py="$UPDATE_PY" real_dr="$DATAROOT_PY" real_ol="$OUTSIDE_PY" real_yml="$COPIER_YML"
   bold "▸ $SCRIPT_NAME --self-test"; log ""
   tmp="$(sa_mktemp)"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   write_stubs "$tmp/stubs"
-  SCRIPTS="$tmp/stubs"; UPDATE_PY="$tmp/stubs/family-update.py"; OUT="$tmp/out"; STEP_SINK="$tmp/sink"
+  printf '_min_copier_version: "9.11.0"\n' > "$tmp/copier.yml"
+  SCRIPTS="$tmp/stubs"; UPDATE_PY="$tmp/stubs/family-update.py"; DATAROOT_PY="$tmp/stubs/syntek-author-dataroot.py"
+  OUTSIDE_PY="$tmp/stubs/agents-outside-link.py"
+  COPIER_YML="$tmp/copier.yml"; OUT="$tmp/out"; STEP_SINK="$tmp/sink"
   export STUB_FAIL=""
   st_baseline "a run of stubs that all pass"
   STUB_FAIL="scrub:run:1";         probe "check 1 fires when an audit reports findings" "check 1 — scrub reported findings"
   STUB_FAIL="byte-identity:run:2"; probe "check 2 fires when an audit cannot run" "check 2 — byte-identity (renders) could not run"
+  STUB_FAIL="generate-all:run:1";  probe "check 1 fires when a render fails" "check 1 — generate-all: a render failed"
+  STUB_FAIL="generate-all:run:2";  probe "check 2 fires when the renderer cannot run" "check 2 — generate-all could not run (exit 2)"
   STUB_FAIL="line-cap:self:1";     probe "check 3 fires when a self-test stops separating" "check 3 — line-cap --self-test"
   STUB_FAIL="family-update:self:1"; probe "check 3 fires when the update script's self-test fails" "check 3 — family-update.py --self-test"
+  STUB_FAIL="syntek-author-dataroot:self:1"
+  probe "check 3 fires when the data-root resolver's self-test fails" "check 3 — syntek-author-dataroot.py --self-test"
+  STUB_FAIL="agents-outside-link:self:1"
+  probe "check 3 fires when the outside-link script's self-test fails" "check 3 — agents-outside-link.py --self-test"
+  STUB_FAIL="generate-all:floor:1"
+  probe "check 4 fires when a render fails on the declared floor" "check 4 — a render fails on Copier 9.11.0, the floor copier.yml declares"
+  STUB_FAIL="generate-all:floor:tree"
+  probe "check 4 fires when the floor renders another tree" "check 4 — business-defaults renders differently on Copier 9.11.0"
+  STUB_FAIL="generate-all:floor:answers"
+  probe "check 4 fires when the floor records other answers" "check 4 — business-defaults records other answers on Copier 9.11.0"
   STUB_FAIL=""
-  SCRIPTS="$real_scripts"; UPDATE_PY="$real_py"; OUT=""; STEP_SINK=""
+  printf '# no floor here\n' > "$tmp/copier.yml"
+  probe "check 4 fires when copier.yml declares no floor" "check 4 — copier.yml declares no _min_copier_version"
+  printf "_min_copier_version: '9.11.0' # quoted, with a comment\n" > "$tmp/copier.yml"
+  probe_clean "check 4 reads a single-quoted floor with a comment"
+  # The runner's own environment holds a decoy root (as if _common.sh had not unset it): every
+  # stub exits 2 if it sees it, so a clean run proves each step starts without it.
+  mkdir -p "$tmp/decoy"; : > "$tmp/decoy/$SA_DATAROOT_MARKER"
+  export SYNTEK_DATA_ROOT="$tmp/decoy"
+  probe_clean "no step sees a SYNTEK_DATA_ROOT the runner itself holds"
+  unset SYNTEK_DATA_ROOT
+  SCRIPTS="$real_scripts"; UPDATE_PY="$real_py"; DATAROOT_PY="$real_dr"; OUTSIDE_PY="$real_ol"; COPIER_YML="$real_yml"; OUT=""; STEP_SINK=""
   st_finish "a run that reports every failure from one that hides them"
 }
 

@@ -42,23 +42,24 @@ live in `.claude/MEMORY.md`.
 
 ## 2. Where the rules live
 
-The rules are the nine files in `.claude/rules/syntek-author/`. Claude Code loads them at
+The rules are the ten files in `.claude/rules/syntek-author/`. Claude Code loads them at
 launch, alongside this file, so there is no need to open them before working; open one when a
 task turns on its subject.
 
 | File | Owns |
 |---|---|
-| `.claude/rules/syntek-author/00-project.md` | **this project's settings**: the brief's settings, paths, memory headings, workflow aliases and overrides. Yours to edit; it outranks the eight files below |
+| `.claude/rules/syntek-author/00-project.md` | **this project's settings**: the brief's settings, paths, memory headings, workflow aliases and overrides. Yours to edit; it outranks the nine files below |
 | `.claude/rules/syntek-author/01-layout-and-routing.md` | the layers, the content layer and the unit, the folder pair, routing frontmatter, ownership, read order, precedence |
 | `.claude/rules/syntek-author/02-skills.md` | the skill roster and the mode-file contract |
 | `.claude/rules/syntek-author/03-authorship.md` | who decides what, the authoring loop, never fabricate, the two flags, provenance<: if DOC_TYPE != 'business' :>, typesetting without retyping a word<: endif :> |
 | `.claude/rules/syntek-author/04-build-pipeline.md` | the build and its `make` targets<: if DOC_TYPE != 'business' :>, from the quick proof to the printed book<: else :>, issuing<: endif :>, and the build settings in `tooling/project.mk` |
 | `.claude/rules/syntek-author/05-model-allocation.md` | which model does which work |
-| `.claude/rules/syntek-author/06-global-rules.md` | locale, route not restate, never self-edit, never overwrite, proofreading, what Git ignores |
+| `.claude/rules/syntek-author/06-global-rules.md` | locale, route not restate, never self-edit, never overwrite, proofreading, what Git ignores, the web and code tools |
 | `.claude/rules/syntek-author/07-session-boundaries.md` | hand off, never compact, and the context-window thresholds (50% advise, 75% hand off) |
 | `.claude/rules/syntek-author/08-naming-and-memory.md` | naming patterns, and what goes in `.claude/MEMORY.md` |
+| `.claude/rules/syntek-author/09-data-root.md` | where binary records live: the store, the data root and its marker, the layout and kinds, the manifests, the loss check, the `files-*` targets and the sync provider |
 
-**The eight numbered files from `01-` on are template-owned: never edit them.** `copier update`
+**The nine numbered files from `01-` on are template-owned: never edit them.** `copier update`
 replaces them, so an edit there is lost or turned into a conflict. `00-project.md` is a seed:
 written once and never overwritten, so change it freely. To change a setting, a path or a
 template rule for this project, use `00-project.md`; to add a rule of the project's own, write

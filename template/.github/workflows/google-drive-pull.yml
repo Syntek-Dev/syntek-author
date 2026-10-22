@@ -22,6 +22,16 @@
 #
 # Authentication uses Workload Identity Federation: no service-account key is stored.
 #
+# Why this file exists, and what deletes it: the template ships it only to a business project
+# that answers DATA_PROVIDER google-drive and keeps its documents in the repository (DATA_STORE
+# repo). A GitHub runner has no data root, so under the external store this pull would download
+# binaries that Git then ignores, and its push partner would bin the Drive copy of every file the
+# move untracks. Answering another provider, or the external store, deletes it on the next copier
+# update, your edits included. A copy kept or restored after that is stopped by the step 'Stop
+# unless the documents are kept in the repository', after checkout and before authentication,
+# unless the project's answers record DATA_STORE repo or no store at all (a project from before
+# the data root).
+#
 # Required GitHub Actions secrets (setup: .github/workflows/CONTEXT.md):
 #   WORKLOAD_IDENTITY_PROVIDER   the provider's resource name (projects/…/providers/…)
 #   SERVICE_ACCOUNT_EMAIL        the service account, a Content manager of the shared drive
@@ -61,6 +71,19 @@ jobs:
         with:
           # Use GITHUB_TOKEN so the subsequent push is authorised.
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stop unless the documents are kept in the repository
+        # The data-root store guard: a copy of this workflow kept after the project moved its
+        # binaries out of Git would otherwise act on a tree that no longer holds them.
+        run: |
+          store=""
+          if [ -f .copier-answers.syntek-author.yml ]; then
+            store="$(sed -n 's/^DATA_STORE: *//p' .copier-answers.syntek-author.yml | tr -d "\"'\r")"
+          fi
+          if [ -n "$store" ] && [ "$store" != repo ]; then
+            echo "::error::DATA_STORE is '$store': these workflows work only while documents are kept in the repository. Nothing was uploaded, downloaded or binned. Delete .github/workflows/google-drive-*.yml, or answer DATA_STORE=repo."
+            exit 1
+          fi
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

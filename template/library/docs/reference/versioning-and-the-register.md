@@ -43,7 +43,9 @@ it. The issue date the reader sees lives in the Document Control block.
 To open a new version: copy the issued `.tex` to its new versioned name; raise the Version in the
 Document Control block and the brief's `version` (vMAJOR.MINOR); add a row to the version history
 table; set the leading status block, and the brief's `status`, to `draft`. The previous file and
-its issued PDF are never edited again. Revised sections go through the loop into the new file.
+its issued PDF (beside it, or filed under the data root with its row in `external.toml`) are never
+edited, replaced or issued again: the new version is issued under its own name. Revised
+sections go through the loop into the new file.
 
 ## What the register records
 

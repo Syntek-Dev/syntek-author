@@ -221,10 +221,12 @@ family; otherwise it is written here, as an internal policy.
 7. **Register it and hand back.** Add or update its row through
    `planning/workflows/08-update-the-register/`, its review date in
    `planning/src/review-schedule.md` if it has one, and its listing in its folder's `CONTEXT.md`.
-   Issue only on the author's word: `make pdf
-   FILE=<path>.tex ISSUE=1` writes the PDF beside the source and refuses to overwrite an issued
-   one. Hand back what was made, every open flag and the next step. *Complete when:* the register
-   row is written and the author has the hand-back.
+   Issue only on the author's word: `make pdf FILE=<path>.tex ISSUE=1` issues the PDF at the
+   source's path, in the project's store (beside it, or filed under the data root:
+   `.claude/rules/syntek-author/09-data-root.md`), and refuses to overwrite an issued one; then
+   `make files-status` lists any binary neither in Git nor filed. Hand back what was made, every
+   open flag and the next step. *Complete when:* the register row is written and the author has
+   the hand-back.
 
 ## Pre-issue checklist
 

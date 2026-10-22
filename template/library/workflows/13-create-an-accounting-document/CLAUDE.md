@@ -23,7 +23,8 @@ loop, with every figure traced to its source and every total recalculated.
   are the form route; steps 7 and 8 the report route.
 - **Definition of done:** every field or part the type requires is present; every figure traces to
   the author, an agreed document or the books; every total recalculates; the tax line is stated;
-  the author has confirmed the document; its issue PDF sits beside the `.tex`.
+  the author has confirmed the document; its issue PDF is where the project's store keeps it
+  (beside the `.tex`, or filed under the data root).
 
 ## Guardrails
 

@@ -25,8 +25,10 @@ library/src/legal/
   (master-services-agreement, nda, data-processing-agreement, service-level-agreement and so on).
 - **Negotiation copies** — `<doc-type>-<client-slug>-redline-v<major>-<minor>-<DD-MM-YYYY>.tex`,
   carrying `\ins`, `\del` and `\cmt` marks; never the version that is signed.
-- **Signed copies** — the executed PDF as received, beside its `.tex`, with `-signed` before the
-  extension. It is the record of execution and is never edited or re-rendered.
+- **Signed copies** — the executed PDF as received, under its `.tex`'s basename with `-signed`
+  before the extension: beside the `.tex`, or filed under the data root as the project's store
+  says (`library/docs/reference/legal-standards.md`). It is the record of execution and is never
+  edited or re-rendered.
 - **Letters under an instrument** — `<letter-type>-<client-slug>-<DD-MM-YYYY>.tex`, unversioned.
 - **The business's own instruments** (its standard terms, its privacy notice) at the family root.
 - **Types, parts, naming and review cycles** are in

@@ -1,0 +1,60 @@
+name: Template improvement
+description: Propose a change to what the template ships or how it is built — a skill, a workflow, a question, a default, an audit or a migration
+title: "[Improvement]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Open this **before** writing the change for anything beyond a typo. `DESIGN.md` is the
+        template's contract and wins over every other file; a change to it needs the maintainer's
+        approval first, so it is cheaper to settle here than in a pull request that has to be
+        unpicked. See
+        [CONTRIBUTING.md](https://github.com/Syntek-Dev/syntek-author/blob/main/CONTRIBUTING.md).
+
+        **Never paste manuscript text or anybody's personal data.** Use invented examples.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What goes wrong today, in concrete terms, and for whom. 'Every business project I
+        generate needs X fixed by hand' is a problem; 'it would be nice to have Y' is not, yet.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: What the template would ship or do instead, and what a generated project would then look like.
+    validations:
+      required: true
+
+  - type: input
+    id: design
+    attributes:
+      label: The DESIGN.md decision or section it touches, if you know it
+      description: A decision number or a section, so the reasoning behind today's behaviour can be checked.
+      placeholder: D47, or Section 3.5
+
+  - type: checkboxes
+    id: variants
+    attributes:
+      label: Variants affected
+      description: Tick every variant whose generated projects would change.
+      options:
+        - label: theology
+        - label: fiction
+        - label: business
+        - label: None (the template repository only, such as its audits or adoption scripts)
+
+  - type: textarea
+    id: existing-projects
+    attributes:
+      label: Effect on existing projects
+      description: >
+        Projects already generated take changes with `copier update`. Would this conflict for
+        them, move an author's work (which needs a migration), or pass through cleanly? Leave it
+        blank if you are not sure.

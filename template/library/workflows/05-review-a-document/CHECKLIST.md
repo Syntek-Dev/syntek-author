@@ -61,7 +61,8 @@ model: opus
 - [ ] **The author's word, in words: final.** · _opus_
 - [ ] V6 (line-edit → final), V6.1 and V6.2 dated; `final` set in the brief and the `.tex` block; Document Control Status as the author confirmed. · _sonnet_
 - [ ] The author's word, dated, added to `.claude/MEMORY.md` `## Status`. · _sonnet_
-- [ ] Issue PDF placed beside the `.tex`, same basename (`make pdf FILE=<path>.tex ISSUE=1`, never `FORCE=1` without the author's word); none for an authored email. · _sonnet_
+- [ ] Issue PDF made under the `.tex`'s basename with `make pdf FILE=<path>.tex ISSUE=1`, in the project's store (beside the `.tex` under `repo`; under the data root, with its `external.toml` row, under `external`), never `FORCE=1` without the author's word; none for an authored email. · _sonnet_
+- [ ] `make files-status` run after the issue, and anything it lists reported. · _sonnet_
 - [ ] Approval recorded via `planning/workflows/07-record-an-approval/` where the document is approved or executed; the register Status moved on from `Draft` only on the author's word. · _sonnet_
 - [ ] Handed back: status, paths, register ID, review file, corrections, reopened sections, waivers; sending left to the author. · _opus_
 
@@ -69,5 +70,5 @@ model: opus
 
 - [ ] **Every gate from `draft` to `final` has passed in order and is dated in the brief.** · _opus_
 - [ ] The author made the document `final` in words, and zero flags remain. · _opus_
-- [ ] The issue PDF sits beside the `.tex`, and the register records the document. · _sonnet_
+- [ ] The issue PDF is where the project's store keeps it (beside the `.tex`, or filed under the data root), and the register records the document. · _sonnet_
 - [ ] Nothing has been sent, signed or published on the author's behalf. · _opus_

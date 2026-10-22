@@ -37,7 +37,8 @@ another family (that family's create procedure, where this project has it).
   the client is new.
 - **The document,** at `library/src/business/client-docs/<client-slug>/` (a client's), the family
   root (the business's own) or `library/src/business/templates/`, built section by section through
-  the loop, reviewed to `final`, registered, with its issue PDF beside it.
+  the loop, reviewed to `final`, registered, with its issue PDF beside it or filed under the data
+  root, as the project's store says.
 - **A hand-back** at each pause: what is settled, every flag, the next procedure.
 
 ## The failure this procedure exists to prevent

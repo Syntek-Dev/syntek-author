@@ -80,6 +80,8 @@ defined once and the brand changes in one place.
   comparison and its working files in `build/compare/`.
 <: endif :><: if DOC_TYPE == 'business' :>- **Hand-written:** `house-preamble.tex`, `skeleton.tex`, `symbol-fallback.tex`, `compare.tex`,
   this pair; the author's `house-brand.tex`.
-- **Generated (never hand-edit):** the PDF in `build/`, and the issued copy beside its source when
-  `ISSUE=1` is used; the comparison in `build/compare/`, which is never issued.
+- **Generated (never hand-edit):** the PDF in `build/`, and the issued copy at its source's path
+  when `ISSUE=1` is used (beside it, or filed under the data root:
+  `.claude/rules/syntek-author/09-data-root.md`); the comparison in `build/compare/`, which is
+  never issued.
 <: endif :>

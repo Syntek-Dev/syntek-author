@@ -5,7 +5,11 @@ shared drive. Push sends the repository's **issued** documents to Drive; pull br
 added on Drive into the repository and commits them, and never overwrites a file the repository
 already holds. Both authenticate with Workload Identity Federation, so no service-account key is
 ever stored, and both share one concurrency group, so a push and a pull never run at the same
-time.
+time. They ship only to a business project that answers `DATA_PROVIDER` google-drive and keeps its
+documents in the repository (`DATA_STORE` repo): a GitHub runner has no data root, so under the
+external store the push would find nothing to issue and bin the Drive copy of every file the move
+untracks, and the pull would download binaries Git then ignores. Another provider, or the
+external store, deletes both on the next `copier update`, edits included.
 
 ## Directory Tree
 
@@ -19,6 +23,11 @@ time.
 
 ## What's here
 
+- **The store guard, in both.** The step 'Stop unless the documents are kept in the repository'
+  runs after checkout and before authentication. It reads `DATA_STORE` from
+  `.copier-answers.syntek-author.yml` and stops with an error, uploading, downloading and binning
+  nothing, unless the answer is `repo` or there is none (a project from before the data root).
+  It protects a copy you keep or restore after the template stopped managing these files.
 - `google-drive-push.yml` — uploads only issued artefacts under `library/src/` to the same folder
   path on Drive, creating folders as needed:
   - the PDF beside a `.tex` whose leading comment block reads `% status: final`;
@@ -51,7 +60,8 @@ time.
 3. Add repository secrets: `WORKLOAD_IDENTITY_PROVIDER` (the provider's resource name),
    `SERVICE_ACCOUNT_EMAIL`, `GOOGLE_DRIVE_FOLDER_ID` (the folder in the shared drive), and, for
    pull's commits, `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`.
-4. Run each workflow once by hand from the Actions tab and check its log.
+4. Run each workflow once by hand from the Actions tab and check its log: the store guard step
+   passes while `DATA_STORE` is `repo`.
 
 ## Cross-references
 

@@ -24,7 +24,9 @@ with the email's brief. Nothing above the rule is ever sent; a paste copy strips
 **Status:** Draft, not yet sent
 ```
 
-`**Status:**` moves from Draft to sent only on the author's word.
+`**Status:**` moves from Draft to sent only on the author's word. An attachment filed under the
+data root is named `ext:<path>` on the `**Attachment:**` line
+(`.claude/rules/syntek-author/08-naming-and-memory.md`).
 
 **The internal note** is the working record and the most valuable part of the file. It carries:
 the drafting decisions and why; every source checked, with the date checked; every authorised
@@ -40,7 +42,8 @@ unsent email). Be blunt in it: it is never sent.
 - The stem is exactly as long as the subject and changes only when the subject does: settle the
   subject, then name the file. A renamed email has every reference to it updated, the register
   row's path included.
-- An archived thread keeps its export name, and is never renamed to this pattern.
+- An archived thread keeps its export name, and is never renamed to this pattern; an export of a
+  binary type is evidence, filed as `email-standards.md` says for the project's store.
 - A derived paste copy (HTML or rich text) takes the same stem and is regenerated, never edited.
 
 ## Markdown that survives a paste

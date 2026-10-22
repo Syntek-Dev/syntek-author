@@ -94,7 +94,8 @@ Each of the four metadata lines ends in two spaces, so they do not run together.
 `status:` is the email's writing status (the unit ladder); the `**Status:**` line is the sending
 record, and changes only when the author says the email went. Only what follows the rule is ever
 sent. The internal note is the most valuable part of the file: a departure recorded there is what
-stops a later pass correcting a deliberate choice back to the rule. Be blunt in it.
+stops a later pass correcting a deliberate choice back to the rule. Be blunt in it. An attachment
+filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
 
 ## Filing and naming
 
@@ -105,6 +106,10 @@ stops a later pass correcting a deliberate choice back to the rule. Be blunt in 
   leaf folder is made, with its folder pair, only when its first email needs it and the author
   confirms.
 - **Suppliers:** `library/src/email/supplier-emails/<matter-slug>/`, by matter.
+- **An archived thread** goes in its correspondent's folder under its export name. An export of a
+  binary type (a PDF, `.eml` or `.msg`) is evidence: committed as exported under the `repo` store,
+  or filed under the data root with `make files-add FILE=<export> ROLE=evidence` under `external`
+  (`.claude/rules/syntek-author/09-data-root.md`). Either way it is never edited or renamed.
 - **Templates** for recurring emails in `library/src/email/templates/`.
 - **A letter is not an email.** A formal notice served under a contract is an instrument; a letter
   on letterhead is a document of the family whose substance it carries. Neither is filed here.

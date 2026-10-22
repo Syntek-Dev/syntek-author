@@ -266,10 +266,12 @@ self_test() {
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
   TPL="$tmp/template"; COPIER="$tmp/copier.yml"
-  mkdir -p "$TPL/standards/method" "$TPL/handoffs" "$TPL/notes"
+  mkdir -p "$TPL/standards/method" "$TPL/handoffs" "$TPL/notes" "$TPL/research/src"
   cat > "$COPIER" <<'EOF'
 _exclude:
   - "<: if not (DOC_TYPE == 'theology') :>/planning/src/arguments<: endif :>"
+  - "<: if not (DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo') :>/.github<: endif :>"
+  - "<: if not (DATA_STORE == 'external') :>/research/src/.gitignore<: endif :>"
 _skip_if_exists:
   - /README.md
 PROJECT_NAME:
@@ -278,13 +280,23 @@ DOC_TYPE:
   type: str
 AUTHOR_NAME:
   type: str
+DATA_STORE:
+  type: str
+DATA_PROVIDER:
+  type: str
 EOF
   # Clean baseline: a token and a gate in the root spine, a gated row in an index file, an
   # identity token in a shared file, the answers file's real Jinja, and a raw block quoting
-  # every delimiter in a shared file.
+  # every delimiter in a shared file. An index file also gates a row on the store by equality
+  # (D50) and a row with the .github gate's | default() terms (D53, DESIGN.md Section 3.5).
   printf '# <%%PROJECT_NAME%%>\n\n<: if DOC_TYPE == %stheology%s :>Theology only.<: endif :>\n' "'" "'" > "$TPL/README.md"
   printf '<%% _copier_answers|to_nice_yaml -%%>\n' > "$TPL/$SA_ANSWERS_FILE"
   printf '# CONTEXT.md — standards/method/\n\n<: if DOC_TYPE == %stheology%s :>├── THEOLOGY.md  ← mode<: endif :>\n' "'" "'" > "$TPL/standards/method/CONTEXT.md"
+  {
+    printf '# CONTEXT.md — research/src/\n\n'
+    printf "%s\n" "<: if DATA_STORE == 'external' :>├── .gitignore  ← binaries filed under the data root<: endif :>"
+    printf "%s\n" "<: if DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo' :>The Drive workflows sit in .github/.<: endif :>"
+  } > "$TPL/research/src/CONTEXT.md"
   printf '# Notes\n\nMaintained by **<%%AUTHOR_NAME%%>**.\n\n<: raw :>Quote <%%X%%> and <: if :> freely.<: endraw :>\n' > "$TPL/notes/plain.md"
   printf '# CONTEXT.md — handoffs/\n' > "$TPL/handoffs/CONTEXT.md"
   st_baseline "the fixture template"
@@ -316,6 +328,12 @@ EOF
   printf 'INCLUDE_CONLANG:\n  type: bool\nINCLUDE_WORLDBUILDING:\n  type: bool\n' >> "$COPIER"
   SA_SETS_FOR=""
   probe "check 9 fires on an index gate that is not a shipping gate" "check 9"
+  printf '# CONTEXT.md — standards/method/\n\n<: if DOC_TYPE == %stheology%s :>├── THEOLOGY.md  ← mode<: endif :>\n' "'" "'" > "$TPL/standards/method/CONTEXT.md"
+  local store_row
+  store_row="$(cat "$TPL/research/src/CONTEXT.md")"
+  printf '%s\n%s\n' "$store_row" "<: if DATA_STORE != 'repo' :>├── .gitignore<: endif :>" > "$TPL/research/src/CONTEXT.md"
+  probe "check 9 fires on an index row gated on the store by != (D50: equality only)" "check 9 — research/src/CONTEXT.md"
+  printf '%s\n' "$store_row" > "$TPL/research/src/CONTEXT.md"
 
   TPL="$real_tpl"; COPIER="$real_copier"; SA_SETS_FOR=""
   st_finish "well-formed template syntax from broken"

@@ -5,13 +5,17 @@
 # User guide: README.md. Design contract: DESIGN.md — where this file and DESIGN.md disagree,
 # DESIGN.md wins and this file is the one that is wrong.
 
-# 9.6.0, not 9.0.0 (03/10/2026). The seed-once example gates in _exclude and the copy-only
-# _tasks below read `_copier_operation`, which did not exist until Copier 9.6.0. On anything
-# older the expression is undefined, and it fails in BOTH directions at once: the copy-only
-# tasks hold SHUT, so a fresh generation never runs `git init`, and the seed-once exclusions
-# hold OPEN, so every example an author deleted comes back on the next update. A floor that
-# admits a Copier which cannot read the file's own safety mechanism is not a floor.
-_min_copier_version: "9.6.0"
+# 9.11.0 since v0.5.0 (16/10/2026; DESIGN.md D2), 9.6.0 before it, never 9.0.0. The seed-once
+# example gates in _exclude and the copy-only _tasks below read `_copier_operation`, which did
+# not exist until Copier 9.6.0. On anything older the expression is undefined, and it fails in
+# BOTH directions at once: the copy-only tasks hold SHUT, so a fresh generation never runs
+# `git init`, and the seed-once exclusions hold OPEN, so every example an author deleted comes
+# back on the next update. A floor that admits a Copier which cannot read the file's own
+# safety mechanism is not a floor. And `UNSET`, which the data-root slug's default renders
+# where no slug can be derived (the family-shared questions block, D48, D50), did not exist
+# until 9.11.0: it is absent from 9.6.0 through 9.10.3, so syntek-media raises its floor with
+# the same block.
+_min_copier_version: "9.11.0"
 
 # Everything that ships lives at its real path under template/ (DESIGN.md D1). The repository
 # root holds the template's OWN state — DESIGN.md, this file, VERSION, CHANGELOG.md, the
@@ -45,8 +49,19 @@ _answers_file: .copier-answers.syntek-author.yml
 # _migrations). AGENT_CLIENTS reads the same record for its default (DESIGN.md D47): a recorded
 # answer is kept, a record without one (a project from before D47) gives no client, and no
 # record gives all four.
+#
+# `peer` is the sibling template's record (DESIGN.md D35, D50, D53), read in the family-shared
+# questions block for the data-root answers (DATA_*) alone, and for whether it exists at all:
+# a template's first data-root answers default to the sibling's and must equal them, and a
+# sibling record without DATA_STORE (from before the data root) makes this template's first
+# store `repo`. It sits here, outside the block, because each template names the OTHER one's
+# file. Where the sibling has never been applied, Copier prints a second MissingFileWarning,
+# for this file, and `_external_data.peer` is empty: the same accepted cost, doubled. Never
+# read it in a body, an _exclude gate or _message_before_update (which renders before any
+# answer); the block's defaults and validators and _message_after_update may read it.
 _external_data:
   prev: .copier-answers.syntek-author.yml
+  peer: .copier-answers.syntek-media.yml
 
 # Every file is a template — tokens are not confined to a suffixed subset.
 _templates_suffix: ""
@@ -132,8 +147,37 @@ _exclude:
   # already LaTeX documents in library/, so they have nothing to typeset.
   - "<: if not (DOC_TYPE != 'business') :>/typeset<: endif :>"
   # A CI workflow travels with what it runs: the Drive push and pull workflows are the whole
-  # of template/.github/, and they are meaningless without a business library to sync.
-  - "<: if not (DOC_TYPE == 'business' and INCLUDE_DRIVE_SYNC) :>/.github<: endif :>"
+  # of template/.github/, and they are meaningless without a business library to sync. They
+  # ship only for DATA_PROVIDER google-drive with DATA_STORE repo (DESIGN.md D37, D53): a
+  # GitHub runner has no data root, so under the external store the push would find nothing
+  # to issue and bin the Drive copy of every file the move untracks. Another provider, or the
+  # external store, deletes them on update, the author's edits included (D35).
+  #
+  # `(KEY | default(…))` on purpose (DESIGN.md Section 3.5): `.github/` is a path v0.4.0 and
+  # earlier shipped, and during `copier update` Copier renders the OLD version with THIS
+  # _exclude against the OLD answers (9.17.1 `_main.py:1390-1393`, 9.18.2 `:1417-1420`), which
+  # hold neither question. A bare test is false there, so `.github/` would drop out of the
+  # merge base: every changed or edited workflow would come back with conflict markers, and a
+  # gate closing in that update would leave the files on disk, unmanaged. Each default is the
+  # value under which the old release shipped the path; the old release's own gate still keeps
+  # `.github/` out of the base where it never shipped. In a new render the defaults are inert,
+  # but they are part of the verbatim gate string, here and in every index row.
+  - "<: if not (DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo') :>/.github<: endif :>"
+  #
+  # ── The data root (DESIGN.md D50, Section 3.5): the three data-root ignore files ──
+  #
+  # Template-owned, token-free and identical in every variant that ships them; each ships only
+  # under DATA_STORE external, so binary records and issued copies in its layer stay out of
+  # Git and are filed under the machine's data root instead. An ignore rule never untracks a
+  # file: binaries already tracked stay tracked until the author moves them. Each gate tests
+  # DATA_STORE by equality with a value, never by `!=`, `not in`, a bare test or an `else`
+  # arm (DESIGN.md Section 2), so a store value a later release adds opens none of them. The
+  # paths are new in v0.5.0 and absent from every old render, so they need no `| default(…)`
+  # term. DATA_STORE is never hidden, so research/src/ needs no DOC_TYPE test; the other two
+  # carry their layer's. Leaving `external` on update deletes them (_message_before_update).
+  - "<: if not (DOC_TYPE == 'business' and DATA_STORE == 'external') :>/library/src/.gitignore<: endif :>"
+  - "<: if not (DATA_STORE == 'external') :>/research/src/.gitignore<: endif :>"
+  - "<: if not (DOC_TYPE != 'business' and INCLUDE_PROPOSAL and DATA_STORE == 'external') :>/proposal/src/.gitignore<: endif :>"
   #
   # ── manuscript/ (books): variant guides and workflows (DESIGN.md Section 4.4) ──
   - "<: if not (DOC_TYPE == 'theology') :>/manuscript/docs/reference/main-text-and-footnotes.md<: endif :>"
@@ -944,7 +988,7 @@ INCLUDE_CONLANG:
   help: >-
     Add the constructed-language kit: phonology, grammar, lexicon, etymology, a writing
     system and pronunciation. Audio needs an ElevenLabs MCP server added at user scope (see
-    the syntek-author README); nothing is added to the project's .mcp.json. Turning this off
+    the syntek-author README); it is never added to the project's .mcp.json. Turning this off
     later deletes every file it generated, including your edits to them; the languages you
     built yourself stay.
   default: "<% DOC_TYPE == 'fiction' and INCLUDE_WORLDBUILDING %>"
@@ -1047,17 +1091,13 @@ BUSINESS_FAMILIES:
     client's facts, and every other family routes to it.
     <: endif :>
 
-# Ships template/.github/ — the Drive push and pull workflows — and nothing else. Off by
-# default (a new optional surface defaults false): the workflows need Google credentials as
-# repository secrets, and a workflow without its secrets is a red job on every push.
-INCLUDE_DRIVE_SYNC:
-  type: bool
-  help: >-
-    Add GitHub workflows that push the library to Google Drive and pull it back. They need
-    Google credentials stored as repository secrets before they will run. Turning this off
-    later deletes every file it generated, including your edits to them.
-  default: false
-  when: "<% DOC_TYPE == 'business' %>"
+# v0.4.0 and earlier asked here whether to ship the Drive push and pull workflows
+# (INCLUDE_DRIVE_SYNC, business only, default false). v0.5.0 retires it for DATA_PROVIDER,
+# asked in every variant at the end of the family-shared block below (DESIGN.md D53): its
+# default maps a recorded true to google-drive and false to none, so the update that first
+# asks it keeps what the project had, and Copier drops the retired key from the record (it
+# remembers only keys that are still questions). A scripted `--data INCLUDE_DRIVE_SYNC=…` is
+# accepted and ignored.
 
 # ── Options ──────────────────────────────────────────────────────────────────
 #
@@ -1131,17 +1171,28 @@ MODEL_MECHANICAL:
     - opus
   default: "<% 'opus' if DOC_TYPE == 'business' else 'sonnet' %>"
 
-# ── Coding agents (DESIGN.md D47, D48) ───────────────────────────────────────
+# ── Coding agents and the data root (DESIGN.md D47, D48, D50, D53) ──────────
 #
-# Claude Code always ships: .claude/ is the one tree every client reads. These answers choose
-# the OTHER clients and the model each one uses for substantive work. The clients' files are
-# copy-only (DESIGN.md Section 3.6), so a later change of answer re-renders the model table in
-# .claude/rules/syntek-author/05-model-allocation.md, never the client's own file.
+# Claude Code always ships: .claude/ is the one tree every client reads. The first seven
+# answers choose the OTHER clients and the model each one uses for substantive work (D47).
+# The clients' files are copy-only (DESIGN.md Section 3.6), so a later change of answer
+# re-renders the model table in .claude/rules/syntek-author/05-model-allocation.md, never the
+# client's own file. The next seven place the project's binary files: in the repository, or
+# under each machine's data root, and with what layout there (D50). The last says which
+# service keeps a copy of that root (D53); it ships nothing but the business Drive workflows.
 #
-# The seven questions between the markers below are FAMILY-SHARED (DESIGN.md D48): every
+# The fifteen questions between the markers below are FAMILY-SHARED (DESIGN.md D48): every
 # template of the family carries this block byte for byte, so it names no template, no
 # template-only path and no decision number, and family-shared.sh hashes the lines strictly
 # between the markers. Change it here first, then in every sibling template, in one release.
+# Inside the block a delimiter reads only the block's own fifteen keys, `_external_data`,
+# `_folder_name` (the slug's default) and Copier's `UNSET` (the same default, where no slug
+# can be derived; hence the 9.11.0 floor above). The one name besides them is the retired
+# INCLUDE_DRIVE_SYNC, read by DATA_PROVIDER's default inside two string literals (D48, D53).
+# The peer record those defaults read is named above, under _external_data, outside the
+# block, because each template names the other one's file. A question after the END marker
+# can read these answers in its default and validator; one placed before the block reads ''
+# under --defaults (probed on 9.17.1 and 9.18.2), so nothing outside reads them before it.
 #
 # Every validator below opens with its question's own `when:` test, and every gate and
 # content block that reads one of these answers repeats that test (DESIGN.md Section 2).
@@ -1149,7 +1200,13 @@ MODEL_MECHANICAL:
 # and validates and renders that value without recording it; without the test, a stray
 # OPENCODE_CONTEXT=999 fails a Codex-only copy. Copier still checks `choices` and `type` on a
 # hidden value before any validator runs, so a shared key keeps identical choices in every
-# template of the family.
+# template of the family. The data-root answers add a second reason: under DATA_STORE repo
+# the slug is hidden and defaults from the folder name, which differs between the two
+# temporary renders of every update, so a body that printed it without its test would
+# conflict on every update and put a false 'changed' line in the update report (D52).
+# Every gate, `when:` and content block that tests DATA_STORE does so by equality with a
+# value, one positive block per value, never `!=`, `not in`, a bare test or an `else` or
+# `elif` arm (D50), so a store a later release adds (`lfs`) opens no path written for another.
 # BEGIN family-shared questions (D48)
 # The client values are the gate strings and never change; the labels may. Gemini CLI and
 # Antigravity are two choices, not one: they share GEMINI.md and the .agents/skills link, but
@@ -1276,6 +1333,146 @@ OPENCODE_CONTEXT:
   when: "<% 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] %>"
   validator: >-
     <: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER not in ['user', 'named'] and (OPENCODE_CONTEXT | int < 1024 or OPENCODE_CONTEXT | int > 10000000) :>Use the server's context length in tokens, from 1024 to 10000000.<: endif :>
+
+# The data-root questions. Portable and path-free: each machine names its root in the
+# SYNTEK_DATA_ROOT environment variable, never in a file here, and the project's resolver
+# (.claude/syntek-*-dataroot.py) reads these answers at run time. The defaults read this
+# template's previous answers, then the sibling template's (data-root keys only), then
+# whether the project already exists (a previous record, or a sibling's record from before
+# the data root). Only a value offered here is ever taken from a record, and every gate on
+# the store tests it by equality, so a value a newer template adds opens nothing.
+#
+# So a fresh copy defaults to external, and the update that first asks this to repo, as does
+# a copy beside a sibling record that predates the data root; a store the sibling already
+# records comes first. The validator binds a first answer only (no store recorded here yet):
+# it must equal the sibling's, so one project keeps one store. A later difference is allowed,
+# reported after the update and refused by the resolver's data commands until both agree, so
+# neither template can deadlock the other. A sibling value this version does not offer is
+# refused with a message, never fed to `choices`. The `!=` there compares two answers, not an
+# answer with a value, and opens no path.
+DATA_STORE:
+  type: str
+  help: >-
+    Where are this project's binary files kept: documents, images, audio and video (scans,
+    signed copies, footage, renders, issued copies)? Outside keeps Git to text: each file is
+    filed under this machine's data root, which the SYNTEK_DATA_ROOT environment variable
+    names (never the repository), and is listed with its checksum. Inside keeps them in the
+    repository, as before. Every template in this project uses the same answer.
+  choices:
+    "Outside the repository, under this machine's data root (recommended)": external
+    "Inside the repository, as before": repo
+  default: "<% (_external_data.prev or {}).get('DATA_STORE') if (_external_data.prev or {}).get('DATA_STORE') in ['external', 'repo'] else ((_external_data.peer or {}).get('DATA_STORE') if (_external_data.peer or {}).get('DATA_STORE') in ['external', 'repo'] else ('repo' if ((_external_data.prev or {}).get('_commit') or (_external_data.peer or {})) else 'external')) %>"
+  validator: >-
+    <: set p = (_external_data.peer or {}).get('DATA_STORE') :><: set q = (_external_data.prev or {}).get('DATA_STORE') :><: if p and q not in ['external', 'repo'] and DATA_STORE != p :>One project, one store: the other template recorded '<% p %>'.<: endif :>
+
+# The layout under the root: <root>/<area>/<kind folder>/<slug>/<the file's path in the
+# repository>. Asked only under the external store. Each default reads this template's
+# previous answer, then the sibling's, then a literal; `business` is the area in every
+# variant, because nothing in this block may read the variant. A first answer (none recorded
+# here yet) must equal the sibling's exactly, case included. A later change is allowed (the
+# files already filed stay under their old folder, which the resolver names), except a
+# change of case alone, which one disk treats as the same folder and another as a second one.
+# Leaving external forgets these answers (Copier drops a hidden answer), so a return
+# re-derives them. The rules are character-set tests, without a regular expression: no
+# character Windows or a network disk refuses, no control character, no trailing dot or
+# space and no leading space (so neither . nor ..), no device name before the first dot in
+# any case, at most 64 characters.
+DATA_AREA:
+  type: str
+  help: >-
+    The first folder under this machine's data root that holds this project's files, named
+    as you want it on disk, case kept: for example business, personal or Client Work. Every
+    machine and every template in this project uses the same name.
+  default: "<% (_external_data.prev or {}).get('DATA_AREA') or (_external_data.peer or {}).get('DATA_AREA') or 'business' %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set a = DATA_AREA :><: set p = (_external_data.peer or {}).get('DATA_AREA') :><: set q = (_external_data.prev or {}).get('DATA_AREA') :><: set stem = a.split('.')[0].rstrip(' ').upper() :><: if not a :>Name the area, the first folder under the data root: for example business.<: elif a | select('in', '<>:"/\\|?*') | list | length > 0 :>Leave out < > : " / \ | ? and *: Windows and network disks refuse them in a folder name.<: elif a | select('lt', ' ') | list | length > 0 or '\x7f' in a :>Leave out tabs and other control characters: no disk keeps them safely in a folder name.<: elif a[-1] in '. ' or a[0] == ' ' :>Do not end the name with a dot or a space, or begin it with a space: Windows drops them, which is also why . and .. are refused.<: elif stem in ['CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'] or (stem | length == 4 and stem[:3] in ['COM', 'LPT'] and stem[3] in '123456789¹²³') :>Windows reserves that name in any case, before any dot (CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 and the like): choose another.<: elif a | length > 64 :>Keep the name to 64 characters or fewer.<: elif q and a != q and a | lower == q | lower :>This project's files are filed under '<% q %>'. A change of case alone makes a second folder on some disks and the same folder on others: keep '<% q %>', or choose another name.<: elif not q and p and a != p and a | lower == p | lower :>The other template files this project under '<% p %>'. A difference of case alone makes a second folder on some disks and the same folder on others: answer '<% p %>' exactly.<: elif not q and p and a != p :>One project, one layout: the other template files this project under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+# The slug's default is the project folder's name in kebab case (lower case; `_`, `.`, `-`
+# and spaces separate words; other characters dropped), cut to 64 characters with no
+# trailing hyphen. Where nothing is left, or a device name, it renders UNSET, so the question
+# has no default and must be answered: Copier validates a shown question's default before any
+# prompt, so a default that failed this validator would abort the copy. A literal fallback
+# would put every such project in one shared folder. Never renamed once files are filed.
+DATA_SLUG:
+  type: str
+  help: >-
+    This project's own folder inside each kind folder, in kebab case (a to z, 0 to 9 and
+    hyphens). Every template in this project uses the same name. Never change it once files
+    are filed under it: they stay in the old folder.
+  default: "<: set k = ((_folder_name | lower | replace('_', ' ') | replace('.', ' ') | replace('-', ' ') | select('in', 'abcdefghijklmnopqrstuvwxyz0123456789 ') | join).split() | join('-'))[:64].rstrip('-') :><% (_external_data.prev or {}).get('DATA_SLUG') or (_external_data.peer or {}).get('DATA_SLUG') or (k if k and k not in ['con', 'prn', 'aux', 'nul', 'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9', 'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9'] else UNSET) %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set s = DATA_SLUG :><: set p = (_external_data.peer or {}).get('DATA_SLUG') :><: set q = (_external_data.prev or {}).get('DATA_SLUG') :><: if not s :>Name this project's folder under each kind folder, in kebab case: for example client-documents.<: elif s | reject('in', 'abcdefghijklmnopqrstuvwxyz0123456789-') | list | length > 0 :>Use lower-case letters a to z, digits and hyphens only: for example client-documents.<: elif s[0] == '-' or s[-1] == '-' or '--' in s :>Do not begin or end the name with a hyphen, or put two hyphens together.<: elif s in ['con', 'prn', 'aux', 'nul', 'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9', 'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9'] :>Windows reserves that name (con, prn, aux, nul, com1 to com9, lpt1 to lpt9): choose another.<: elif s | length > 64 :>Keep the name to 64 characters or fewer.<: elif not q and p and s != p :>One project, one layout: the other template files this project under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+# The four kind folders under the area. Each takes the area's rules, and each must differ
+# from the kinds asked before it, ignoring case, or two kinds would share one folder on a
+# case-insensitive disk.
+DATA_KIND_DOCS:
+  type: str
+  help: >-
+    The folder under the area for documents: PDFs, Office files, archives and scans.
+  default: "<% (_external_data.prev or {}).get('DATA_KIND_DOCS') or (_external_data.peer or {}).get('DATA_KIND_DOCS') or 'docs' %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set k = DATA_KIND_DOCS :><: set p = (_external_data.peer or {}).get('DATA_KIND_DOCS') :><: set q = (_external_data.prev or {}).get('DATA_KIND_DOCS') :><: set stem = k.split('.')[0].rstrip(' ').upper() :><: if not k :>Name the folder for documents: for example docs.<: elif k | select('in', '<>:"/\\|?*') | list | length > 0 :>Leave out < > : " / \ | ? and *: Windows and network disks refuse them in a folder name.<: elif k | select('lt', ' ') | list | length > 0 or '\x7f' in k :>Leave out tabs and other control characters: no disk keeps them safely in a folder name.<: elif k[-1] in '. ' or k[0] == ' ' :>Do not end the name with a dot or a space, or begin it with a space: Windows drops them, which is also why . and .. are refused.<: elif stem in ['CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'] or (stem | length == 4 and stem[:3] in ['COM', 'LPT'] and stem[3] in '123456789¹²³') :>Windows reserves that name in any case, before any dot (CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 and the like): choose another.<: elif k | length > 64 :>Keep the name to 64 characters or fewer.<: elif q and k != q and k | lower == q | lower :>This project's documents are filed under '<% q %>'. A change of case alone makes a second folder on some disks and the same folder on others: keep '<% q %>', or choose another name.<: elif not q and p and k != p and k | lower == p | lower :>The other template files documents under '<% p %>'. A difference of case alone makes a second folder on some disks and the same folder on others: answer '<% p %>' exactly.<: elif not q and p and k != p :>One project, one layout: the other template files documents under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+DATA_KIND_PHOTOS:
+  type: str
+  help: >-
+    The folder under the area for images: photographs, artwork and image exports.
+  default: "<% (_external_data.prev or {}).get('DATA_KIND_PHOTOS') or (_external_data.peer or {}).get('DATA_KIND_PHOTOS') or 'photos' %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set k = DATA_KIND_PHOTOS :><: set p = (_external_data.peer or {}).get('DATA_KIND_PHOTOS') :><: set q = (_external_data.prev or {}).get('DATA_KIND_PHOTOS') :><: set stem = k.split('.')[0].rstrip(' ').upper() :><: if not k :>Name the folder for images: for example photos.<: elif k | select('in', '<>:"/\\|?*') | list | length > 0 :>Leave out < > : " / \ | ? and *: Windows and network disks refuse them in a folder name.<: elif k | select('lt', ' ') | list | length > 0 or '\x7f' in k :>Leave out tabs and other control characters: no disk keeps them safely in a folder name.<: elif k[-1] in '. ' or k[0] == ' ' :>Do not end the name with a dot or a space, or begin it with a space: Windows drops them, which is also why . and .. are refused.<: elif stem in ['CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'] or (stem | length == 4 and stem[:3] in ['COM', 'LPT'] and stem[3] in '123456789¹²³') :>Windows reserves that name in any case, before any dot (CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 and the like): choose another.<: elif k | length > 64 :>Keep the name to 64 characters or fewer.<: elif k | lower == DATA_KIND_DOCS | lower :>Give images a folder of their own: documents already use '<% DATA_KIND_DOCS %>', and a difference of case alone is the same folder on some disks.<: elif q and k != q and k | lower == q | lower :>This project's images are filed under '<% q %>'. A change of case alone makes a second folder on some disks and the same folder on others: keep '<% q %>', or choose another name.<: elif not q and p and k != p and k | lower == p | lower :>The other template files images under '<% p %>'. A difference of case alone makes a second folder on some disks and the same folder on others: answer '<% p %>' exactly.<: elif not q and p and k != p :>One project, one layout: the other template files images under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+DATA_KIND_AUDIO:
+  type: str
+  help: >-
+    The folder under the area for audio, such as pronunciation recordings and voiceover.
+  default: "<% (_external_data.prev or {}).get('DATA_KIND_AUDIO') or (_external_data.peer or {}).get('DATA_KIND_AUDIO') or 'audio' %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set k = DATA_KIND_AUDIO :><: set p = (_external_data.peer or {}).get('DATA_KIND_AUDIO') :><: set q = (_external_data.prev or {}).get('DATA_KIND_AUDIO') :><: set stem = k.split('.')[0].rstrip(' ').upper() :><: if not k :>Name the folder for audio: for example audio.<: elif k | select('in', '<>:"/\\|?*') | list | length > 0 :>Leave out < > : " / \ | ? and *: Windows and network disks refuse them in a folder name.<: elif k | select('lt', ' ') | list | length > 0 or '\x7f' in k :>Leave out tabs and other control characters: no disk keeps them safely in a folder name.<: elif k[-1] in '. ' or k[0] == ' ' :>Do not end the name with a dot or a space, or begin it with a space: Windows drops them, which is also why . and .. are refused.<: elif stem in ['CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'] or (stem | length == 4 and stem[:3] in ['COM', 'LPT'] and stem[3] in '123456789¹²³') :>Windows reserves that name in any case, before any dot (CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 and the like): choose another.<: elif k | length > 64 :>Keep the name to 64 characters or fewer.<: elif k | lower in [DATA_KIND_DOCS | lower, DATA_KIND_PHOTOS | lower] :>Give audio a folder of its own: documents use '<% DATA_KIND_DOCS %>' and images '<% DATA_KIND_PHOTOS %>', and a difference of case alone is the same folder on some disks.<: elif q and k != q and k | lower == q | lower :>This project's audio is filed under '<% q %>'. A change of case alone makes a second folder on some disks and the same folder on others: keep '<% q %>', or choose another name.<: elif not q and p and k != p and k | lower == p | lower :>The other template files audio under '<% p %>'. A difference of case alone makes a second folder on some disks and the same folder on others: answer '<% p %>' exactly.<: elif not q and p and k != p :>One project, one layout: the other template files audio under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+DATA_KIND_VIDEOS:
+  type: str
+  help: >-
+    The folder under the area for video, such as footage and renders.
+  default: "<% (_external_data.prev or {}).get('DATA_KIND_VIDEOS') or (_external_data.peer or {}).get('DATA_KIND_VIDEOS') or 'videos' %>"
+  when: "<% DATA_STORE == 'external' %>"
+  validator: >-
+    <: if DATA_STORE == 'external' :><: set k = DATA_KIND_VIDEOS :><: set p = (_external_data.peer or {}).get('DATA_KIND_VIDEOS') :><: set q = (_external_data.prev or {}).get('DATA_KIND_VIDEOS') :><: set stem = k.split('.')[0].rstrip(' ').upper() :><: if not k :>Name the folder for video: for example videos.<: elif k | select('in', '<>:"/\\|?*') | list | length > 0 :>Leave out < > : " / \ | ? and *: Windows and network disks refuse them in a folder name.<: elif k | select('lt', ' ') | list | length > 0 or '\x7f' in k :>Leave out tabs and other control characters: no disk keeps them safely in a folder name.<: elif k[-1] in '. ' or k[0] == ' ' :>Do not end the name with a dot or a space, or begin it with a space: Windows drops them, which is also why . and .. are refused.<: elif stem in ['CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'] or (stem | length == 4 and stem[:3] in ['COM', 'LPT'] and stem[3] in '123456789¹²³') :>Windows reserves that name in any case, before any dot (CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 and the like): choose another.<: elif k | length > 64 :>Keep the name to 64 characters or fewer.<: elif k | lower in [DATA_KIND_DOCS | lower, DATA_KIND_PHOTOS | lower, DATA_KIND_AUDIO | lower] :>Give video a folder of its own: documents use '<% DATA_KIND_DOCS %>', images '<% DATA_KIND_PHOTOS %>' and audio '<% DATA_KIND_AUDIO %>', and a difference of case alone is the same folder on some disks.<: elif q and k != q and k | lower == q | lower :>This project's video is filed under '<% q %>'. A change of case alone makes a second folder on some disks and the same folder on others: keep '<% q %>', or choose another name.<: elif not q and p and k != p and k | lower == p | lower :>The other template files video under '<% p %>'. A difference of case alone makes a second folder on some disks and the same folder on others: answer '<% p %>' exactly.<: elif not q and p and k != p :>One project, one layout: the other template files video under '<% p %>'. Answer '<% p %>' here too, or change that template's answer first.<: endif :><: endif :>
+
+# Which service keeps a copy of the data root. The values are stable; the labels may change.
+# The answer runs nothing: the owner sets up and runs the service, and the data-root tool
+# tailors its advice and checks to the answer. It is asked always and never refused: a
+# difference from the other template's answer moves no file, so the tool reports it instead.
+#
+# The default keeps a recorded answer. Failing that, it maps a retired yes-or-no answer about
+# Google Drive workflows that an older record may hold (true becomes google-drive, false
+# none), so the update that first asks this keeps what the project had; then it takes the
+# other template's recorded answer; and otherwise none. This project's own record, current or
+# retired, outranks the other template's.
+DATA_PROVIDER:
+  type: str
+  help: >-
+    Which service keeps a copy of this project's data root, the folder outside the repository
+    that holds its documents, images, audio and video? You set that service up and run it
+    yourself: the template never syncs, uploads or deletes anything there, and only tailors
+    the checks and advice of its data-root tool. Point the service at the data root, never at
+    this repository: a sync service corrupts a Git repository. While the files are kept in the
+    repository, the answer applies once you move them out. Where this template ships GitHub
+    workflows for your provider, they need the files kept in the repository; choosing another
+    provider, or keeping the files outside, later deletes them, including your edits.
+  choices:
+    "None — the data root stays on this machine only (back it up yourself)": none
+    "Google Drive — Drive for desktop, or rclone on Linux": google-drive
+    "OneDrive or SharePoint — the OneDrive sync app": onedrive
+    "Dropbox — the Dropbox app": dropbox
+    "Another cloud service — synced by a tool you run, such as rclone": other-cloud
+    "A NAS or server on your network — SMB or NFS, on the LAN or over WireGuard": nas
+  default: "<% (_external_data.prev or {}).get('DATA_PROVIDER') if (_external_data.prev or {}).get('DATA_PROVIDER') in ['none', 'google-drive', 'onedrive', 'dropbox', 'other-cloud', 'nas'] else ('google-drive' if (_external_data.prev or {}).get('INCLUDE_DRIVE_SYNC') is sameas true else ('none' if (_external_data.prev or {}).get('INCLUDE_DRIVE_SYNC') is sameas false else ((_external_data.peer or {}).get('DATA_PROVIDER') if (_external_data.peer or {}).get('DATA_PROVIDER') in ['none', 'google-drive', 'onedrive', 'dropbox', 'other-cloud', 'nas'] else 'none'))) %>"
 # END family-shared questions (D48)
 
 TIMEZONE:
@@ -1360,10 +1557,13 @@ UNIT_NOUN:
 # resolves outside the project BEFORE it reads _exclude (9.17.1, _main.py:810-812), so an
 # .agents link to a folder outside the project fails every update; hold renames that link to
 # .agents.syntek-held before the render (after Copier's dirty check) and prints the hand fix
-# first, and restore, declared before every other after-stage entry, renames it back. The
+# first (check what stands at .agents, and stop where nothing is held; remove a link Copier
+# put back alone, never rm -r, or move a folder or a file aside; then move the held link
+# back), and restore, declared before every other after-stage entry, renames it back. The
 # link's target is never touched, and both stages always exit 0. The pair stays at the TOP of
 # the list. No migration runs on `copier copy`: the copy recipe is in the bridge,
-# .claude/syntek-author-agents.md, and in README.md. update-test.sh checks 40–43 prove it.
+# .claude/syntek-author-agents.md, and in README.md. update-test.sh checks 40–43 and the
+# script's own --self-test prove it.
 #
 # A `version:` entry runs only when the update crosses that version, which Copier reads from
 # the template's git tags (PEP 440): an update to an untagged HEAD that is still numbered
@@ -1411,6 +1611,20 @@ _migrations:
   - version: v0.2.0
     command: bash "<% _copier_conf.src_path %>/migrations/v0.2.0-project-settings.sh"
     when: "<% _stage == 'after' %>"
+  # v0.5.0 adds the data root (DESIGN.md D50) and replaces INCLUDE_DRIVE_SYNC with
+  # DATA_PROVIDER (D53), and moves nothing: the update records DATA_STORE repo where no
+  # sibling template records a store, so binaries stay tracked, and an ignore rule never
+  # untracks a file. This reports, in every variant and on every run alike: the recorded store
+  # and the sibling's; the binaries tracked in each layer that files them; under repo, an
+  # author's own file at a data-root ignore path, which would conflict on opting in; whether
+  # the seed settings.json wires the data-root guard (an update never wires it: D17); the
+  # next command under external; every Drive workflow the answers no longer ship, which keeps
+  # running unmanaged; and every seed line that still names INCLUDE_DRIVE_SYNC or counts the
+  # rules as 01- to 08-. Report only (D44): idempotent, never writes, always exits 0. No
+  # DOC_TYPE test: the script reads the answers itself.
+  - version: v0.5.0
+    command: bash "<% _copier_conf.src_path %>/migrations/v0.5.0-data-root.sh"
+    when: "<% _stage == 'after' %>"
   # The update report (DESIGN.md D52) and the shared-file refresh (D51), unversioned and LAST,
   # so it runs after every other migration on every update and sees what they left. The
   # lines strictly between its markers are family-shared like the block above, and
@@ -1422,6 +1636,27 @@ _migrations:
   - command: '"<% _copier_python %>" "<% _copier_conf.src_path %>/migrations/family-update.py" update --src "<% _copier_conf.src_path %>" --to <% _copier_conf.vcs_ref_hash %> --answers "<% _copier_conf.answers_file %>"'
     when: "<% _stage == 'after' %>"
 # END family-shared update (D48)
+
+# ── After a copy (DESIGN.md D50) ─────────────────────────────────────────────
+#
+# Printed once, after a fresh copy (and an adoption) has written the project, and only under
+# the external store: what each machine needs before anything is filed. The root is never a
+# Copier answer, so this is the one place a copy can say where it comes from. A copy under
+# repo prints nothing here. An update renders its copies quietly, so this never prints there.
+_message_after_copy: |-
+  <: if DATA_STORE == 'external' :>
+  This project keeps its binary files outside the repository, under each machine's data root
+  (DATA_STORE external), in <% DATA_AREA %>/<kind folder>/<% DATA_SLUG %>/ below the root.
+  On each machine you work on, once:
+    1. Choose the data root, a folder outside every repository, and set the environment
+       variable SYNTEK_DATA_ROOT to its absolute path (in your shell profile, or in the
+       system's environment settings on Windows).
+    2. Create the empty marker file .syntek-data-root at the top of that folder: nothing is
+       filed under a folder without it, which also catches a disk that is not mounted.
+    3. Run make root here: it checks the root, and prints where each kind of file goes and
+       the checklist for the service you chose to keep a copy of it.
+  Text work (drafting, proofs, lint) needs none of this; issuing and filing a copy do.
+  <:- endif :>
 
 # ── Before an update ─────────────────────────────────────────────────────────
 #
@@ -1454,7 +1689,13 @@ _message_before_update: |
                                      harvard.csl, standards/referencing/ (references.db stays)
     INCLUDE_SENSITIVE_CONTENT=false  standards/risk/sensitive-content.md, the testimony
                                      workflow and sensitivity-pass
-    INCLUDE_DRIVE_SYNC=false         .github/, the Drive push and pull workflows
+    DATA_PROVIDER other than         .github/, the Drive push and pull workflows (business)
+    google-drive, or DATA_STORE
+    external
+    DATA_STORE=repo                  library/src/.gitignore, research/src/.gitignore and
+                                     proposal/src/.gitignore (the data-root ignore files);
+                                     files under the data root stay there, and none comes
+                                     back into the repository
     BUSINESS_FAMILIES, a family      library/src/<family>/ with its signposts (the
     unticked                         CONTEXT.md and CLAUDE.md of it and its sub-folders,
                                      drafts/README.md),
@@ -1498,11 +1739,53 @@ _message_before_update: |
   unattributed; an author-drafted one as its final alone) and says the rest were not
   recorded. Nothing is migrated: no file moves, and an older entry is never backfilled.
 
-# ── After an update (DESIGN.md D52) ─────────────────────────────────────────
+  Every project, updating from v0.4.0 or earlier: DATA_STORE, where the project's binary
+  files are kept, is asked for the first time. With --defaults it records repo, so they stay
+  in the repository as before, unless the other syntek template's answers file
+  (.copier-answers.syntek-media.yml) already records a store, which this project then takes:
+  a first answer that differs from it is refused. Choosing external delivers the data-root
+  ignore files and moves nothing; make files-plan then lists what to copy out. Where you
+  already have your own library/src/.gitignore, research/src/.gitignore or
+  proposal/src/.gitignore, choosing external brings it back with conflict markers: merge your
+  lines with the template's by hand.
+
+  DATA_STORE external to repo also forgets the data-root folder answers (DATA_AREA,
+  DATA_SLUG and the kinds): note them, and pass them again with --data if you return to
+  external. Files already filed stay where they are; the data-root tool names their folders.
+
+  Business, updating from v0.4.0 or earlier: INCLUDE_DRIVE_SYNC is replaced by DATA_PROVIDER,
+  which every variant now asks. A recorded true becomes google-drive and keeps the Drive
+  workflows; false becomes none. The workflows stay only while DATA_PROVIDER is google-drive
+  and DATA_STORE is repo: any other answer deletes .github/, your edits included. A Copier
+  settings file that sets DATA_PROVIDER replaces this mapping, and with --defaults can delete
+  live workflows. --data INCLUDE_DRIVE_SYNC=... is now ignored.
+
+  A Copier settings file that sets DATA_STORE replaces its default, the other template's
+  answer and repo on this first update included: with --defaults every existing project
+  records it, and under external a business project's Drive workflows are deleted, edits
+  included. Never set DATA_STORE or DATA_SLUG there; set DATA_AREA or a kind there only where
+  it equals every other template's recorded answer.
+
+  If this update stops with OSError: [Errno 39] Directory not empty, never commit what it
+  left: README.md 'Updating a project', at the template's source, gives the recovery and the
+  command to use.
+
+# ── After an update (DESIGN.md D50, D52, D53) ───────────────────────────────
 #
 # The update report is printed by the last _migrations entry. Copier runs no migration when it
 # cannot read a version on either side (Copier 9.17.1, _template.py:396), and then nothing
 # reports what the update kept back: this says so, after every update.
+#
+# The data-root lines follow (D50, D53). Under the external store: what each machine needs,
+# and that a changed folder answer leaves filed files where they were. Then each difference
+# from the sibling template's recorded answers, read through `_external_data.peer` (probed
+# safe here on 9.17.1 and 9.18.2): its store, its layout while both are external, and its
+# provider. A later difference is allowed and refused only by the resolver's data commands,
+# so this is where the author first hears of it. Never compare with `_external_data.prev`
+# here: Copier re-reads it after writing the new answers, so it holds them, not the old ones
+# (9.17.1 `_main.py:1449`). Every test of DATA_STORE is an equality, one positive block per
+# value (DESIGN.md Section 2). The dash that opens each block tag trims the line break before
+# it, so a closed block prints no blank line.
 _message_after_update: |
 
   If no '▸ syntek-author update report' line appears above, Copier ran no migration (it could
@@ -1512,6 +1795,54 @@ _message_after_update: |
   Its records live in .git under refs/syntek-author/: git push leaves them behind, but
   git push --mirror publishes them, and syntek-author/yours keeps your HEAD at this update
   reachable. Before rewriting history to remove a secret, delete both with git update-ref -d.
+  <:- if DATA_STORE == 'external' :>
+
+  This project keeps its binary files under each machine's data root (DATA_STORE external).
+  On a machine not yet set up: set SYNTEK_DATA_ROOT to the root's absolute path, create the
+  empty marker file .syntek-data-root at the top of the root, then run make root here. If
+  this update changed DATA_AREA, DATA_SLUG or a kind folder, files already filed stay under
+  the old folder: make files-status names it, and make files-plan lists what is still to
+  copy out of the repository.
+  <:- endif :>
+  <:- set pe = _external_data.peer or {} :>
+  <:- set ps = pe.get('DATA_STORE') :>
+  <:- set pp = pe.get('DATA_PROVIDER') :>
+  <:- if DATA_STORE == 'external' and ps == 'repo' :>
+
+  The other syntek template's answers file (.copier-answers.syntek-media.yml) records
+  DATA_STORE repo, and this one now external. One project keeps one store: until both
+  agree, the data-root commands (make files-*) refuse to act, though text work goes on.
+  Update that template with --data DATA_STORE=external, which takes this one's folder
+  answers, or this one back with --data DATA_STORE=repo.
+  <:- endif :>
+  <:- if DATA_STORE == 'repo' and ps == 'external' :>
+
+  The other syntek template's answers file (.copier-answers.syntek-media.yml) records
+  DATA_STORE external, and this one repo. One project keeps one store: until both agree,
+  the data-root commands (make files-*) refuse to act, though text work goes on. Update
+  this template with --data DATA_STORE=external, which takes the other one's folder
+  answers, or that one with --data DATA_STORE=repo.
+  <:- endif :>
+  <:- if ps and ps not in ['external', 'repo'] :>
+
+  The other syntek template's answers file (.copier-answers.syntek-media.yml) records
+  DATA_STORE '<% ps %>', which this version of syntek-author does not offer: the
+  data-root commands (make files-*) refuse to act until both templates record one store.
+  <:- endif :>
+  <:- if DATA_STORE == 'external' and ps == 'external' and [DATA_AREA, DATA_SLUG, DATA_KIND_DOCS, DATA_KIND_PHOTOS, DATA_KIND_AUDIO, DATA_KIND_VIDEOS] != [pe.get('DATA_AREA'), pe.get('DATA_SLUG'), pe.get('DATA_KIND_DOCS'), pe.get('DATA_KIND_PHOTOS'), pe.get('DATA_KIND_AUDIO'), pe.get('DATA_KIND_VIDEOS')] :>
+
+  The other syntek template's answers file (.copier-answers.syntek-media.yml) files this
+  project under a different layout: DATA_AREA, DATA_SLUG or a kind folder differs. One
+  project keeps one layout: until both agree, the data-root commands (make files-*) refuse
+  to act. Update one template with --data for each key that differs.
+  <:- endif :>
+  <:- if pp and pp != DATA_PROVIDER :>
+
+  The other syntek template's answers file (.copier-answers.syntek-media.yml) records
+  DATA_PROVIDER '<% pp %>', and this one '<% DATA_PROVIDER %>'. One data root has one
+  provider, and make root prints the checklist for this template's answer. Nothing is
+  refused: answer the same in both templates.
+  <:- endif :>
 
 # ── Post-generation ──────────────────────────────────────────────────────────
 

@@ -48,4 +48,5 @@ managed-service clients, each one something the business must be able to show it
 
 - **Hand-written:** policy, runbook and report `.tex` files, section drafts, client folder pairs,
   named to the patterns in `library/docs/reference/msp-scp-standards.md`.
-- **Generated (never hand-edit):** the issued PDF beside each `.tex`.
+- **Generated (never hand-edit):** the issued PDF of each `.tex`, under its basename: beside it,
+  or filed under the data root at the same path (`.claude/rules/syntek-author/09-data-root.md`).

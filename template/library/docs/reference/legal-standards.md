@@ -59,6 +59,11 @@ Active · Executed · Superseded · Terminated), Effective date, Owner, Next rev
   website, and recorded in the client's `## Facts` with the date checked.
 - The disclaimer for legal instruments sits at the top of every instrument and letter, copied
   unchanged from the disclaimers file `00-project.md ## Paths` names.
+- **Executed** needs the signed copy filed, in the project's store
+  (`.claude/rules/syntek-author/09-data-root.md`). Under `external` that is a `signed` row in
+  `external.toml` whose `source` is the `.tex`, written by
+  `make files-add FILE=<file> AS=<stem>-signed.pdf ROLE=signed SOURCE=<stem>.tex`; under `repo`,
+  the signed copy committed beside the `.tex`. It is evidence: never edited or replaced.
 - When a standard and the delivered documents disagree, find which one is the outlier before
   'fixing' anything: a rule nobody has followed is a defect in the rule, and issued documents are
   never re-rendered to match a new one.

@@ -55,12 +55,23 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 <: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>| `world/src/languages/<lang>/` | hill-tongue/ | a constructed language and its script |
 <: endif :><: if INCLUDE_REFERENCES :>| `authorYYYY[a-c]` | example2019, example2019b | a citation key: lower-case, **never renamed** |
 <: endif :><: if DOC_TYPE != 'business' :>| `build/<scope with / as __>.<ext>` | `build/manuscript__src.pdf` | generated output; never hand-edited |
+<: endif :><: if DATA_STORE == 'external' :>| `ext:<path in the repository>` | ext:research/src/scans/deed-1852.pdf | in prose, a file filed under the data root, named by its path in the repository (`09-data-root.md` Section 4) |
 <: endif :>
 Dates in filenames are DD-MM-YYYY. A name that other files cite (a skill, a workflow number, a
 citation key) is never changed without a migration, because every citation of it breaks silently.
 Where `00-project.md` `## Paths` gives another folder or filename form for a role (handoffs,
 decision maps, research notes<: if DOC_TYPE == 'business' :>, approvals<: endif :>), it wins over the defaults above; any other path
 moves only by a redirect line in its `## Overrides` (`01-layout-and-routing.md` Section 9).
+
+**Every name is Windows-safe**, because the project is cloned onto Windows and macOS disks and its
+binary files are synced by services that refuse what Windows refuses. A file or folder name holds
+none of `< > : " / \ | ? *` and no control character, ends in neither a dot nor a space, is not a
+name Windows reserves before its first dot in any case (`CON`, `PRN`, `AUX`, `NUL`, `COM1` to
+`COM9`, `LPT1` to `LPT9`), and differs from every other name in its folder by more than case.
+Kebab-case names pass all of these. `python3 .claude/syntek-author-dataroot.py check-names`
+checks them<: if DATA_STORE == 'external' :>, and warns where a path under the data root would pass Windows' 260
+characters. Filing a copy there refuses a name that fails; filed under a safe name, the copy's
+manifest row keeps the original as `former_name` (`09-data-root.md` Section 5)<: endif :>.
 
 ---
 

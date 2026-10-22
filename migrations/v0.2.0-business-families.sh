@@ -243,7 +243,7 @@ done <<< "$MAP"
 
 for new in "${!UNCHOSEN[@]}"; do
   list="$(printf '%s\n' "$CHOSEN" "$new" | grep -v '^$' | paste -sd, - | sed 's/,/, /g')"
-  NOTES+=("The $new family is not in this project, so the files in ${UNCHOSEN[$new]} stayed where they are. Choose it with \`uvx copier update --trust -a $ANSWERS --data 'BUSINESS_FAMILIES=[$list]'\`, commit, then run:"$'\n'"    $RERUN"$'\n'"  Or move them by hand.")
+  NOTES+=("The $new family is not in this project, so the files in ${UNCHOSEN[$new]} stayed where they are. Choose it with \`GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false uvx copier update --trust -a $ANSWERS --data 'BUSINESS_FAMILIES=[$list]'\`, commit, then run:"$'\n'"    $RERUN"$'\n'"  Or move them by hand.")
 done
 if [[ $IGNORE_RULES -gt 0 ]]; then
   NOTES+=("For each file above that git ignores where it is, add an ignore rule that covers its destination (.gitignore), commit, then run:"$'\n'"    $RERUN")

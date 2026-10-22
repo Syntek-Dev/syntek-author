@@ -47,10 +47,10 @@ model: opus
 **Execution and hand-back**
 
 - [ ] Handed back: path, register ID, status, any step waived and why. · _opus_
-- [ ] On signature by every party: signed copy filed as `-signed.pdf`; approval recorded; Executed set. · _sonnet_
+- [ ] On signature by every party: signed copy filed as `-signed.pdf` in the project's store (committed under `repo`; `make files-add … ROLE=signed SOURCE=<stem>.tex` under `external`); approval recorded; Executed set. · _sonnet_
 
 ## Done When
 
 - [ ] **The instrument is `final` on the author's word, with every part its type requires and every obligation intended.** · _opus_
-- [ ] The register row exists and the issue PDF sits beside the `.tex`. · _sonnet_
+- [ ] The register row exists and the issue PDF is where the store keeps it (beside the `.tex`, or filed under the data root). · _sonnet_
 - [ ] Executed is set only with every signature filed. · _sonnet_

@@ -45,10 +45,13 @@ library/src/<family>/**/*.tex ──► XeLaTeX, run twice so every \ref resolve
          00-project.md ## Paths; logos and images: LOGO_DIRS first, then assets/)
 library/src/<family>/**/*.md  ──► Pandoc (tooling/defaults.yaml, tooling/pandoc/house.lua,
         the fonts in tooling/project.mk, symbol fallback) ──► build/<file>.docx or .pdf
-make pdf FILE=… ISSUE=1 ──► the same PDF, issued beside its source as the record
+<: if DATA_STORE == 'repo' :>make pdf FILE=… ISSUE=1 ──► the same PDF, issued beside its source as the record
         (only at a status in ISSUE_STATUSES, only with no open item left, and never over an
          existing file without FORCE=1)
-<: if INCLUDE_REFERENCES :>tooling/references.db ──► tooling/export_refs.py ──► build/references.json (CSL-JSON, for Pandoc)
+<: endif :><: if DATA_STORE == 'external' :>make pdf FILE=… ISSUE=1 ──► the same PDF, filed under the data root as the record and listed in
+        library/src/external.toml (only at a status in ISSUE_STATUSES, only with no open item
+         left, and never over a filed copy without FORCE=1, which keeps the old one)
+<: endif :><: if INCLUDE_REFERENCES :>tooling/references.db ──► tooling/export_refs.py ──► build/references.json (CSL-JSON, for Pandoc)
 <: endif :>```
 
 **A section reaches a `.tex` word for word.** `promote-section` checks each promoted section
@@ -58,13 +61,21 @@ deliverable carries each reference written out in full
 (`.claude/rules/syntek-author/03-authorship.md` Section 10).
 
 **A proof is not an issue.** `make pdf` writes to `build/`, which is never committed. Issuing
-copies the PDF beside its source, where it is committed as the record of what was sent, so it is
-guarded three times, before anything is built: the document must be at a status in
+<: if DATA_STORE == 'repo' :>copies the PDF beside its source, where it is committed as the record of what was sent, so it is
+<: endif :><: if DATA_STORE == 'external' :>files a copy of the PDF under the data root, at the same path below it as its source has in the
+repository, and lists it in the folder's manifest, `external.toml` in `library/src/`, which is
+committed as the record of what was sent; nothing is written beside the source
+(`.claude/rules/syntek-author/09-data-root.md` Section 6). So it is
+<: endif :>guarded three times, before anything is built: the document must be at a status in
 `ISSUE_STATUSES`; it must hold no open item, by the same scan `make flags` runs (every
 `AUTHOR TO CONFIRM` and `VERIFY` flag and every `FLAG_EXTRA_RE` match outside a `%` comment, so
 a `\fillme` field too), and the refusal says to clear them first with
-`make flags SCOPE=<file>`; and an existing file there is an issued record that is never
-overwritten unless the author asks for `FORCE=1`. `FORCE=1` lifts only that last guard: an open
+`make flags SCOPE=<file>`; and <: if DATA_STORE == 'repo' :>an existing file there is an issued record that is never
+overwritten unless the author asks for `FORCE=1`<: endif :><: if DATA_STORE == 'external' :>a copy already filed for the document is an issued record that is
+never replaced unless the author asks for `FORCE=1`, which files the new copy and keeps the old
+one under the data root as `<stem>.superseded-DD-MM-YYYY.pdf`, its row marked superseded. With
+no valid data root on this machine, issuing stops before anything is built and writes nothing;
+without `ISSUE=1` the proof still builds<: endif :>. `FORCE=1` lifts only that last guard: an open
 item stops an issue whatever is forced (`.claude/rules/syntek-author/03-authorship.md` Section 5).
 A revision is a new file with a new version
 (`.claude/rules/syntek-author/08-naming-and-memory.md` Section 1).
@@ -99,8 +110,9 @@ standards/style/ledger/ (each section's record) + the brief's sections: list (th
 | `make tex-check` | Proves each styled chapter in `typeset/src/units/` carries exactly its Markdown's words, and fails on any difference; `UNIT=` narrows it to one chapter |
 | `make print` | Sets `typeset/src/book.tex` with XeLaTeX, twice, into `build/typeset/book.pdf`<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, building the script fonts first, one language at a time (a font that fails is reported and the print goes on)<: endif :>, then reports every character a font could not draw (it prints as nothing; a `final` print stops on one) |
 <: else :>| `make pdf FILE=…` | Renders one document into `build/` as a proof: a `.tex` with XeLaTeX, twice, so cross-references resolve; a `.md` with Pandoc |
-| `make pdf FILE=… ISSUE=1` | Also issues the PDF beside its source, to be committed: only when the document's status is in `ISSUE_STATUSES` (default `final`) and it holds no open item (`make flags SCOPE=<file>` lists them; `FORCE=1` never overrides this), and it refuses to overwrite an existing file there unless `FORCE=1` is given too. `ISSUE` and `FORCE` take `1`, `yes` or `true`; any other value is refused |
-| `make docx FILE=<x>.md` | Converts Markdown copy to `.docx` with Pandoc. A `.tex` converts only with `DOCX_CONVERTER` set (a lossless converter the author chose, in `tooling/project.mk` or on the command line), and otherwise refuses by design: send the PDF |
+<: if DATA_STORE == 'repo' :>| `make pdf FILE=… ISSUE=1` | Also issues the PDF beside its source, to be committed: only when the document's status is in `ISSUE_STATUSES` (default `final`) and it holds no open item (`make flags SCOPE=<file>` lists them; `FORCE=1` never overrides this), and it refuses to overwrite an existing file there unless `FORCE=1` is given too. `ISSUE` and `FORCE` take `1`, `yes` or `true`; any other value is refused |
+<: endif :><: if DATA_STORE == 'external' :>| `make pdf FILE=… ISSUE=1` | Also files the PDF under the data root as the issued copy, listed in the folder's `external.toml` (commit it): only when the document's status is in `ISSUE_STATUSES` (default `final`) and it holds no open item (`make flags SCOPE=<file>` lists them; `FORCE=1` never overrides this), and it refuses to replace a copy already filed unless `FORCE=1` is given too, which keeps the old copy as superseded. It needs this machine's data root (`make root`). `ISSUE` and `FORCE` take `1`, `yes` or `true`; any other value is refused |
+<: endif :>| `make docx FILE=<x>.md` | Converts Markdown copy to `.docx` with Pandoc. A `.tex` converts only with `DOCX_CONVERTER` set (a lossless converter the author chose, in `tooling/project.mk` or on the command line), and otherwise refuses by design: send the PDF |
 | `make section-check` | `FILE=….tex SECTION=<slug> DRAFT=….md`: proves the text between the section's marker pair carries exactly the promoted draft's words; fails on any difference |
 <: endif :>| `make flags` | Lists every `AUTHOR TO CONFIRM` and `VERIFY` flag, and every open item `FLAG_EXTRA_RE` matches<: if DOC_TYPE == 'business' :> (by default `[AWAITING USER INPUT]` and `\fillme`, the field that prints it)<: endif :>, by file and line; with no `SCOPE`, <: if DOC_TYPE == 'business' :>the brand folders `BRAND_DIRS` names (by default `standards/brand/`), <: endif :>the project brief `.claude/CLAUDE.md` and `00-project.md` too. Give `SCOPE=` for the work in hand<: if DOC_TYPE == 'business' :>; `SCOPE=<file>` lists what stops that document's issue<: endif :> |
 | `make lint` | Flags lines in `src/` that hold more than one sentence, en_US spellings<: if DOC_TYPE == 'business' :>, em dashes in client copy, and list steps over 20 words outside legal documents (ASD-STE100; a hint for technical text, see method rule 11)<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and paragraphs with more than three unglossed constructed-language words<: endif :> |
@@ -113,7 +125,13 @@ standards/style/ledger/ (each section's record) + the brief's sections: list (th
 | `make glossary` | Writes a glossary and pronunciation guide for each language into `build/` |
 | `make font` | Builds each script's font into `build/fonts/<slug>.otf`, run through `uv` |
 | `make script-sample` | Renders sample text in a language's native script into `build/` |
-<: endif :>| `make clean` | Removes `build/`; never touches a source<: if INCLUDE_REFERENCES :> or the database<: endif :> |
+<: endif :>| `make root` | Prints this machine's data root, whether its marker is there, the store, the layout under the root and the checklist for the provider that keeps a copy of it; changes nothing |
+| `make files-add FILE=… ROLE=…` | Files a copy of a binary under the data root and lists it, with its checksum, in its folder's `external.toml`: `AS=` the path it belongs at, `SOURCE=` what it was made from, `LABEL=` where else a copy is kept, `FORCE=1` to supersede a filed copy (never an evidence copy). Under the repository store it refuses (commit the file instead), except for a generated file, which stays git-ignored |
+| `make files-status` | The loss check: binaries Git ignores in a filing folder that no manifest lists (so they exist on this machine only), files over a folder's size warning, and copies under the root that no row lists |
+| `make files-verify` | Hashes every filed copy against its row and fails on a missing, changed or unlisted one; `GLOB=` narrows it, and an online-only copy is skipped unless `HYDRATE=1` |
+| `make files-pull` | Copies filed copies back into the work tree, where Git ignores them, checking each hash; never replaces a different file. `GLOB=` narrows it |
+| `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, its role and every conflict; `COPY=1` files them, and never moves or untracks one |
+| `make clean` | Removes `build/`; never touches a source<: if INCLUDE_REFERENCES :> or the database<: endif :> |
 
 <: if DOC_TYPE != 'business' :>**`SCOPE`** is any folder (the default is `manuscript/src`). The build takes every Markdown file
 under it, sorted, so the numeric folder prefixes set the running order, and leaves out
@@ -146,7 +164,9 @@ or a path that ends in it. **`SECTION=<slug>`** narrows `make compare` to one se
 - **No target reads what Git ignores.** `make flags`, `make lint` and every other scan keep only
   the files Git does not ignore (`git check-ignore`; a negation that re-includes a file counts as
   not ignored), because ignored folders hold credentials and local-only material and these
-  targets print matching lines verbatim. Outside a Git work tree they read the plain list. Never
+  targets print matching lines verbatim. Outside a Git work tree they read the plain list. The
+  data-root targets are the one exception: they hash or copy only a file the author names or a
+  manifest lists, and otherwise list an ignored binary by name and size, never its contents. Never
   work round this with a hand-run search of an ignored folder
   (`.claude/rules/syntek-author/06-global-rules.md` Section 12).
 - **Every Pandoc run passes through the house filter**, `tooling/pandoc/house.lua`, so a marked

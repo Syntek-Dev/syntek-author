@@ -42,9 +42,10 @@ model: opus
 - [ ] Files renamed to `<headword>.mp3` (or `.wav`). · _sonnet_
 - [ ] The author listened; regeneration only on the author's word; a read-aloud verdict reported to the naming procedure. · _opus_
 - [ ] Log row added: date, words, characters, voice, notes. · _sonnet_
+- [ ] Each kept file filed with `make files-add FILE=<file> ROLE=generated` (a copy under the data root under `external`; nothing written under `repo`). · _sonnet_
 
 ## Done When
 
 - [ ] **No IPA was changed, and nothing was generated beyond what the author agreed.** · _opus_
-- [ ] The audio sits in the audio folder `world/src/.gitignore` ignores, and nothing generated was committed. · _sonnet_
+- [ ] The audio sits in the audio folder `world/src/.gitignore` ignores, each kept file has been through `make files-add`, and nothing generated was committed. · _sonnet_
 - [ ] Handed back: files, characters spent, voice and model, faults heard. · _opus_

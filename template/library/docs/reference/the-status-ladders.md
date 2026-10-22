@@ -48,9 +48,9 @@ touch. Only the review procedure and the author's word make a document `final`.
 The unit brief's frontmatter in `planning/src/units/` is the record. A `.tex` deliverable has no
 frontmatter, so its first lines repeat the status in a comment block: `% unit: <unit-slug>`,
 `% status: line-edit`, `% last_updated: DD/MM/YYYY`. A Markdown deliverable (web copy) carries
-`unit:` and `status:` in its frontmatter; Drive sync, where the project has it, sends one only at
-`status: final`. Each changes with the brief; where they disagree, the brief wins. An email keeps
-its own `**Status:**` line (draft, then sent), which only the author moves.
+`unit:` and `status:` in its frontmatter; the Google Drive workflows, where the project has them,
+send one only at `status: final`. Each changes with the brief; where they disagree, the brief
+wins. An email keeps its own `**Status:**` line (draft, then sent), which only the author moves.
 
 ## The register: a third lifecycle
 

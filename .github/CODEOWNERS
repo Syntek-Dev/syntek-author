@@ -1,0 +1,23 @@
+# Every change requests a review from the maintainer.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @Syntek-Studio
+
+# The template contract and its generation mechanics — a break here breaks every
+# project generated from this repository, so these always want a close read.
+/copier.yml                     @Syntek-Studio
+/DESIGN.md                      @Syntek-Studio
+/template/.claude/              @Syntek-Studio
+
+# Code that runs in an author's project on update, and the bytes shared with
+# companion templates (DESIGN.md D44, D48) — a change here runs in every project
+# that updates across it, and every companion template must vendor the shared bytes.
+/migrations/                    @Syntek-Studio
+/family-shared.json             @Syntek-Studio
+
+# Governance
+/LICENSE                        @Syntek-Studio
+/SECURITY.md                    @Syntek-Studio
+/CONTRIBUTING.md                @Syntek-Studio
+/CODE_OF_CONDUCT.md             @Syntek-Studio
+/.github/                       @Syntek-Studio

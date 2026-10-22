@@ -23,8 +23,9 @@ on the author's word.
 - **Concrete steps:** follow `STEPS.md` in order and tick `CHECKLIST.md` as you go.
 - **Definition of done:** every gate from `draft` to `final` has passed and is dated in the brief;
   the register row was written before the issue proof; the author has made the document `final`
-  in words; zero flags remain; the issue PDF sits beside the `.tex`; where needed, the review
-  schedule and an approval record are written.
+  in words; zero flags remain; the issue PDF is where the project's store keeps it (beside the
+  `.tex`, or filed under the data root); where needed, the review schedule and an approval record
+  are written.
 
 ## Guardrails
 
@@ -49,7 +50,7 @@ on the author's word.
 ## Output & naming
 
 - **Produces:** `planning/src/reviews/REVIEW-<scope>-DD-MM-YYYY.md`; the corrected `.tex` at
-  `final`; the issue PDF beside it, same basename.
+  `final`; the issue PDF under the same basename, beside it or filed under the data root.
 - **Also writes:** evidence entries; the brief's `verified:` map and status; the `.tex` status
   block; register, review-schedule and approval rows through the planning procedures; for agreed
   corrections, the section's draft, ledger rows, revisions, a new author final and its ratio, and

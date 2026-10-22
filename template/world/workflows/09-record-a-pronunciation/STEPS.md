@@ -92,7 +92,11 @@ Rename each file to `<headword>.mp3` (or `.wav`). The author listens; a wrong re
 regenerated only on the author's word, or noted as a known fault of the voice. For a read-aloud
 test of a new name, ask whether a reader would stumble on it, and report the answer to the
 naming procedure. Add a log row to `pronunciation.md`: date, words, character count, voice,
-notes. The audio stays out of Git (`world/src/.gitignore`); never force it in. _Substantive._
+notes. The audio stays out of Git (`world/src/.gitignore`); never force it in. Then file each
+file the author keeps with `make files-add FILE=<audio folder>/<headword>.mp3 ROLE=generated`
+(or `.wav`): under the `external` store it copies the file under the data root, with a row in
+`external.toml`; under `repo` it writes nothing (`.claude/rules/syntek-author/09-data-root.md`).
+_Substantive._
 
 ## 9. Hand back
 

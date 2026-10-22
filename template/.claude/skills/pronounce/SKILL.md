@@ -5,11 +5,12 @@ description: >-
   takes the IPA from the lexicon or the names register, turns it into surface IPA with
   'python3 tooling/lexicon.py surface', and voices it through the user-scope ElevenLabs MCP server
   (Eleven v4, IPA between forward slashes, the language's recorded voice and model) into the
-  language's git-ignored audio folder, falling back to an approximate espeak-ng voice. States
-  the character count before any batch, because every call spends credits. Also the read-it-aloud
-  test for a new name. Use when the author says 'how does "hebori" sound?', 'let me hear the
-  name', 'pronounce these five words', 'choose a narrator for the hill tongue', 'read the oath
-  aloud in the language', or 'make an audio guide for the narrator'. Not the IPA itself
+  language's git-ignored audio folder, falling back to an approximate espeak-ng voice, then files
+  each kept file under the data root where the project keeps one. States the character count
+  before any batch, because every call spends credits. Also the read-it-aloud test for a new
+  name. Use when the author says 'how does "hebori" sound?', 'let me hear the name', 'pronounce
+  these five words', 'choose a narrator for the hill tongue', 'read the oath aloud in the
+  language', or 'make an audio guide for the narrator'. Not the IPA itself
   (`add-word`), not the sound system (`build-language`), not choosing a name (`create-name`).
 ---
 
@@ -53,7 +54,7 @@ are the procedure of record — do not restate them at length here.
    recorded IPA, quoted with its source.
 
 3. **Check the narrator, or choose one with the author.** The ElevenLabs tools come from a server
-   the author configures once at user scope under the name `elevenlabs`; the project adds nothing to
+   the author configures once at user scope under the name `elevenlabs`; it is never put in
    `.mcp.json`. They may be deferred: load them with ToolSearch, searching for 'elevenlabs'. If they
    are absent, run `command -v espeak-ng`: if it finds the program, tell the author and offer the
    fallback at step 7, or stop. If neither route exists, say so, give the install hint (the system
@@ -103,7 +104,14 @@ are the procedure of record — do not restate them at length here.
    stumble on it, and report the answer to the naming procedure. Add a row to the log in
    `pronunciation.md`: date, words, character count, voice, notes. Audio is git-ignored (the rule
    is in `world/src/.gitignore`): never add it to Git, and never force it past the ignore rule.
-   *Complete when:* the files are named, the author has listened and the log row exists.
+   Then file each file the author keeps with
+   `make files-add FILE=world/src/languages/<lang>/audio/<headword>.mp3 ROLE=generated` (or `.wav`;
+   the data-root resolver's `add --role generated`). Under the `external` store it copies the file
+   under the data root's audio kind, with a row in `external.toml`, so it travels with the
+   project's other records; under `repo` it writes nothing, and the audio stays local. A file
+   regenerated later replaces its filed copy only with `FORCE=1`, which keeps the old one
+   (`.claude/rules/syntek-author/09-data-root.md`). *Complete when:* the files are named, the
+   author has listened, the log row exists and each kept file has been through `make files-add`.
 
 9. **Hand back.** Report the files made, the characters spent, the voice and model used, and
    anything the voice got wrong. Confirm that no IPA was changed. *Complete when:* the author has
@@ -123,6 +131,8 @@ are the procedure of record — do not restate them at length here.
   and its ignore rule.
 - **A second narrator.** One language, one recorded voice.
 - **Committing audio.** It is regenerable from the IPA and too large for plain Git.
+- **Pointing `output_directory` at the data root.** The server would write there unfiled and
+  unchecked; write into the work tree, then file with `make files-add`.
 - **Retrying on error.** Stop at the first failure and report it.
 - **Offering a fallback that is not installed.** Check for `espeak-ng` before offering it; with
   neither route, give the setup steps and stop.
@@ -132,6 +142,7 @@ are the procedure of record — do not restate them at length here.
 - `world/src/languages/` — each language's `pronunciation.md` (narrator, settings, fallback table,
   log) and its audio folder, which `world/src/.gitignore` keeps out of Git.
 - `world/docs/reference/pronunciation.md` — the guide this skill applies.
+- `.claude/rules/syntek-author/09-data-root.md` — the data root, and how a generated file is filed.
 - `world/src/names-register.md` — the IPA of every registered name.
 - `.claude/skills/add-word/SKILL.md` — a word's IPA, when it is missing.
 - `.claude/skills/create-name/SKILL.md` — the read-it-aloud test this skill serves.

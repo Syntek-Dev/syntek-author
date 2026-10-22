@@ -22,7 +22,8 @@ documents.
   3. Tell the author what will now sync, or stop syncing, and confirm.
 - **Definition of done:** both files parse (and pass `actionlint` where it is available); their
   path filters, file types, exclusions and authentication agree; no credential is embedded; push
-  still sends only issued artefacts, and pull still never overwrites a tracked file.
+  still sends only issued artefacts, pull still never overwrites a tracked file, and both still
+  run the store guard step before authenticating.
 
 ## Guardrails
 
@@ -40,6 +41,11 @@ documents.
   push's check for it.
 - **Keep the shared concurrency group.** A push and a pull running together can each undo the
   other.
+- **Keep the store guard step first after checkout, in both.** It stops either workflow unless the
+  answers record `DATA_STORE` repo or no store. A GitHub runner has no data root: once the
+  documents are filed under it, a push bins the Drive copy of every file the move untracks, and a
+  pull brings back binaries Git ignores. Never delete it, move it after authentication, or widen
+  what it accepts.
 
 ## Output & naming
 

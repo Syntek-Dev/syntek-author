@@ -35,6 +35,9 @@ including anything that now reads awkwardly.
 suppliers. The family leaf is decided by the engagement that owns the matter, not by a fresh
 reading of the email's subject; where the call is not obvious, the internal note records it. A
 formal notice served under a contract is an instrument and is filed with the instruments.
+An exported thread (a PDF, `.eml` or `.msg`) is evidence, kept under its export name and never
+edited: committed under the `repo` store, or under `external` filed under the data root with
+`make files-add FILE=<export> ROLE=evidence` (`.claude/rules/syntek-author/09-data-root.md`).
 
 ## Subject lines, length and follow-ups
 

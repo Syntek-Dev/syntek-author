@@ -52,5 +52,5 @@ model: opus
 ## Done When
 
 - [ ] **Every figure traces to its source and every total recalculates.** · _opus_
-- [ ] The author has confirmed the document, and its issue PDF sits beside the `.tex`. · _sonnet_
+- [ ] The author has confirmed the document, and its issue PDF is where the store keeps it (beside the `.tex`, or filed under the data root). · _sonnet_
 - [ ] No issued invoice was edited, and no number reused. · _sonnet_

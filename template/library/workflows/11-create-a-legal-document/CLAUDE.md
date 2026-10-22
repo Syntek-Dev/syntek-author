@@ -24,7 +24,8 @@ loop and the review to `final` and, on the author's word, execution.
 - **Definition of done:** the instrument is `final` on the author's word with every part its type
   requires, its disclaimer at the top, every defined term defined once, every obligation intended,
   every cross-reference resolved, governing law stated, its register row written and its issue PDF
-  beside it; once signed by every party, its signed copy filed and its approval recorded.
+  where the project's store keeps it; once signed by every party, its signed copy filed and its
+  approval recorded.
 
 ## Guardrails
 

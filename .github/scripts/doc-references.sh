@@ -25,9 +25,12 @@
 #
 #                     A token is tested as a path when it has no spaces, contains a slash, and
 #                     is not a placeholder: anything with < > { } * ? [ ] … | = ( ) $ % @ # , ;
-#                     or the house placeholders NN, DD-MM-YYYY, YYYY; URLs; absolute paths
-#                     (scrub.sh's); and generated output (build/, audio/, references.db). A
-#                     trailing :N line anchor is peeled first. A path resolves if it exists
+#                     : ' " \ + ! or the house placeholders NN, DD-MM-YYYY, YYYY; URLs; absolute
+#                     paths (scrub.sh's); and generated output (build/, audio/, references.db).
+#                     The `ext:<path>` form is exempt by name (DESIGN.md D50): it names a file
+#                     filed under the data root by its path in the repository, which the work
+#                     tree does not hold, so it is never a citation of this tree.
+#                     A trailing :N line anchor is peeled first. A path resolves if it exists
 #                     from the tree root or from any ancestor of the citing file, so `src/`
 #                     inside manuscript/CLAUDE.md means manuscript/src/. An unresolved path led
 #                     by a generic folder name (`drafts/`, `docs/project/`, `workflows/local/`)
@@ -47,13 +50,15 @@
 #                     Numbers are stable identifiers. Append, never renumber.
 #
 #                     What it CANNOT check: that a path that resolves is the RIGHT one; a
-#                     citation written without backticks; or a mistyped relative path led by a
-#                     generic folder name, which reads as a class name.
+#                     citation written without backticks; a mistyped relative path led by a
+#                     generic folder name, which reads as a class name; or that an `ext:` path
+#                     names a file anyone filed (only the resolver, with a data root, can see).
 #
 # SELF-TEST. --self-test builds a small tree at runtime, proves it clean (placeholders, a fenced
-#            sample, a marker, a layer-relative path, generated output and a skill description
-#            folded over two lines all pass), then applies one mutation per check, and a second
-#            for check 4's description reading, and asserts exactly one finding each.
+#            sample, a marker, a layer-relative path, generated output, the `ext:<path>` form
+#            and a skill description folded over two lines all pass), then applies one mutation
+#            per check, and a second for check 4's description reading and for check 1 on the
+#            path an `ext:` form names, written without it, and asserts exactly one finding each.
 #
 # Requirements: bash 4+, awk, find. No network. Pass trees that generate-all.sh produced.
 #
@@ -155,6 +160,8 @@ END { flushdesc() }'
 
 is_pathlike() { # sets P to the testable path, or returns 1
   local t="$1"
+  # A file filed under the data root (D50), named by its repository path: never in this tree.
+  [[ "$t" == ext:* ]] && return 1
   [[ "$t" =~ ^(.+):[0-9]+(:[0-9]+|-[0-9]+)?$ ]] && t="${BASH_REMATCH[1]}"
   [[ "$t" == */* ]] || return 1
   case "$t" in
@@ -274,6 +281,7 @@ Placeholders are not citations: `planning/src/arcs/<slug>.md`, `NN-kebab-title/N
 `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, `world/src/*/`, `https://example.com/a/b`.
 Generated output is not a citation: `build/proof.pdf`, `tooling/references.db`.
 Commands are not citations: `make pdf SCOPE=manuscript/src/02-x`. Nor are `N/A` or `and/or`.
+Filed copies under the data root are not citations: `ext:research/src/scans/deed-1852.pdf`.
 The `flow` skill and the `research` skill both ship.
 
 ```yaml
@@ -306,6 +314,11 @@ EOF
   printf '\n## 2. Check\n\n> **Skill:** `continuity` · **Guide:** none\n' >> "$wf/STEPS.md"
   probe "check 3 fires on a Skill line naming an absent skill" "check 3"
   head -n -4 "$wf/STEPS.md" > "$tmp/s" && cat "$tmp/s" > "$wf/STEPS.md"
+
+  printf 'The scan sits at `research/src/scans/deed-1852.pdf`.\n' >> "$g"
+  probe "check 1 still fires on the path an ext: form names, written without it" \
+    "cites \`research/src/scans/deed-1852.pdf\`, which does not exist"
+  sed -i '$d' "$g"
 
   printf 'Each `drafts/` carries a README; every `docs/project/` is yours.\n' >> "$g"
   probe_clean "a generic folder-class name is not a citation"

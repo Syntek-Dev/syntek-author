@@ -11,7 +11,8 @@ and mean exactly one path.
 proposal/src/
 ├── CONTEXT.md              ← this file: the parts, and where each lives
 ├── CLAUDE.md               ← operating rules for the package
-<: if DOC_TYPE == 'theology' :>├── book-proposal/          ← the eight proposal sections, built in filename order
+<: if DOC_TYPE != 'business' and INCLUDE_PROPOSAL and DATA_STORE == 'external' :>├── .gitignore              ← keeps binary copies out of Git: they are filed under the data root
+<: endif :><: if DOC_TYPE == 'theology' :>├── book-proposal/          ← the eight proposal sections, built in filename order
 ├── endorsements/           ← tracker.md (seed) · drafts/ · received endorsements
 <: endif :><: if DOC_TYPE == 'fiction' :>├── comp-titles.md          ← seed: comparable titles, checked
 ├── query-letter.md         ← seed: the master query letter
@@ -42,7 +43,10 @@ proposal/src/
   all promoted are offered, and only those the author chose.
 - **Trackers and the sample index are seeds:** they ship empty and are never overwritten by
   `copier update`.
-
+<: if DOC_TYPE != 'business' and INCLUDE_PROPOSAL and DATA_STORE == 'external' :>- **A sent package or a received binary** (a `.docx` or PDF the author sent, a signed endorsement)
+  is git-ignored here by `.gitignore` and filed under the data root with `make files-add`, each
+  with a row in `external.toml`; the tracker names it as `ext:<path>`.
+<: endif :>
 ## Cross-references
 
 <: if DOC_TYPE == 'theology' :>- `proposal/docs/reference/book-proposal-anatomy.md` — what each section must achieve; endorsers by
