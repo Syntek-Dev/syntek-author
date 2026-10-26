@@ -55,9 +55,10 @@ The one exception is the template's worked example: an entry that opens with a
 '<!-- WORKED EXAMPLE' comment ships promoted while provenance.md ships empty, so its missing
 row is a warning, not a problem, until the author adds it or deletes the example.
 
-Standard library only. Exit codes: 0 = done (warnings may be printed);
-1 = an entry is malformed, or `check` found a disagreement; 2 = usage error, or the
-ledger cannot be read.
+Standard library only, on the Python PYTHON_MIN names (below); an older Python is refused,
+loudly, before anything runs.
+Exit codes: 0 = done (warnings may be printed); 1 = an entry is malformed, or `check` found a
+disagreement; 2 = usage error, the ledger cannot be read, or a Python older than PYTHON_MIN.
 """
 from __future__ import annotations
 
@@ -70,6 +71,21 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+# ── The Python this script needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this script's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). The file keeps to
+# Python 3.8's grammar, so an older Python still reaches this check, which runs before anything
+# that needs the newer one, and says loudly that nothing ran instead of failing on a SyntaxError.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/provenance.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LEDGER = ROOT / "standards" / "style" / "ledger"
@@ -1056,6 +1072,30 @@ def _self_test_record(verdict, probe) -> None:
         verdict(label, not soft.errors and says(soft.warnings, part), (soft.errors, soft.warnings))
 
 
+def _older_python_refused():
+    """(passed, detail), for the self-test: this file parses under Python 3.8's grammar, and run as
+    Python 3.8 (sys.version_info replaced before it starts) it prints nothing on stdout, says on
+    stderr that it did NOT run and which Python it needs, and exits 2: PYTHON_MIN's check comes
+    before anything an older Python cannot run."""
+    import ast
+    import subprocess
+    path = str(Path(__file__).resolve())
+    try:
+        ast.parse(Path(path).read_text(encoding="utf-8"), feature_version=(3, 8))
+    except SyntaxError as err:
+        return False, "no parse under Python 3.8's grammar: line %s: %s" % (err.lineno, err.msg)
+    as_38 = ("import sys; sys.version_info = (3, 8, 0, 'final', 0); "
+             "p = sys.argv[1]; sys.argv = [p, '--help']; "
+             "exec(compile(open(p, encoding='utf-8').read(), p, 'exec'), "
+             "{'__name__': '__main__', '__file__': p})")
+    proc = subprocess.run([sys.executable, "-I", "-c", as_38, path], capture_output=True, text=True,
+                          encoding="utf-8")
+    passed = (proc.returncode == 2 and not proc.stdout and "did NOT run" in proc.stderr
+              and "needs Python %d.%d or later" % PYTHON_MIN in proc.stderr)
+    return passed, "exit %s; stdout %r; stderr %r" % (proc.returncode, proc.stdout[:200],
+                                                      proc.stderr[-300:])
+
+
 def self_test() -> int:
     """Prove the decisions are read and counted as the docstring says."""
     import contextlib
@@ -1070,6 +1110,8 @@ def self_test() -> int:
             print(f"         {detail}")
 
     print("provenance.py --self-test")
+    old_ok, old_detail = _older_python_refused()
+    verdict("an older Python is refused, loudly, before anything runs", old_ok, old_detail)
     with tempfile.TemporaryDirectory() as tmp:
         ledger = Path(tmp)
         (ledger / "01-test--opening.md").write_text(SELF_TEST_ENTRY, encoding="utf-8")

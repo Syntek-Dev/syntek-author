@@ -18,7 +18,7 @@ which is which.
 ├── syntek-author-permissions.py  ← passes settings.json's denies and asks to the other clients' files (template-owned)
 ├── syntek-author-dataroot.py     ← the data-root resolver and guard: make root and make files-* (template-owned)
 ├── syntek-author-dataroot.json   ← this template's filing folders and the kind each fixes (template-owned)
-├── hooks/                  ← context-threshold-handoff.sh, pre-compact-handoff.sh and the pair (all shared)
+├── hooks/                  ← context-threshold-handoff.sh, pre-compact-handoff.sh, how-to-read-only.sh and the pair (all shared)
 ├── rules/                  ← rules loaded at launch, one folder per template (no pair here)
 │   └── syntek-author/      ← the template's rules, loaded at launch
 │       ├── 00-project.md   ← this project's settings: brief, paths, memory headings, aliases, overrides (yours)
@@ -51,23 +51,27 @@ which is which.
 - `MEMORY.md` — the durable memory every session reads second. Template files name its headings;
   `00-project.md` maps each to the heading this project uses. It splits into `memory/<topic>.md`
   files once it passes 300 lines, unless an override keeps it whole.
-- `settings.json` — `"model": "opus"`, `"autoCompactEnabled": false`, the `UserPromptSubmit`
-  window hook, the `PreCompact` hook and the `PreToolUse` data-root guard, a short allow and
-  deny list, and the asks before the shipped MCP servers' browser and writing tools. It is
-  committed and shared; personal overrides (such as `CLAUDE_CONTEXT_WINDOW` under `"env"`, for
-  a larger window) belong in `settings.local.json`. A copy over an existing file, and every
-  update, may add a hook entry or deny or ask rule the template lists and has not offered
-  before, into the file's own text, and never removes or changes one.
+- `settings.json` — `"model": "opus"`, `"autoCompactEnabled": false` and `"idleCompaction": false`
+  (no compaction on its own, as the window fills or while a session sits idle), the
+  `UserPromptSubmit` window hook, the `PreCompact` hook and its `SessionStart` note after a
+  `/compact`, the `PreToolUse` data-root guard and guide guard, a short allow and deny list
+  (`how-to/` among it), and the asks before the shipped MCP servers' browser and writing tools.
+  It is committed and shared; personal overrides (such as `CLAUDE_CONTEXT_WINDOW` under `"env"`,
+  for a larger window) belong in `settings.local.json`. A copy over an existing file, and every
+  update, may add a hook entry, a deny or ask rule, or one of those two settings where the file
+  has no such key, that the template lists and has not offered before, into the file's own text,
+  and never removes or changes one.
 - `hooks/` and `skills/` — see each folder's own `CONTEXT.md`.
 - `syntek-author-agents.md` — how the other coding agents reach this folder: the read order
   they must follow by hand, the `skills` link in `.agents`, the model tiers, each client's
   setup and how to add a client later. Template-owned and updated; Claude Code never needs it.
-- `syntek-author-permissions.py` — run with `python3` (3.11 or later): `--check` reports which
+- `syntek-author-permissions.py` — run with `python3` (3.14 or later): `--check` reports which
   of `settings.json`'s denies and asks each other client's file carries, and `--write` adds the
   missing ones to client files that already exist. Template-owned; it never creates a file.
 - `syntek-author-dataroot.py` and its map `syntek-author-dataroot.json` — the data-root
-  resolver, run as `make root` and `make files-*` (Python 3.11 or later), and the guard the
-  `PreToolUse` hook calls. Template-owned.
+  resolver, run as `make root` and `make files-*` (Python 3.14 or later), and the guard the
+  `PreToolUse` hook calls. Template-owned. On an older Python each command stops and says why,
+  and the guard lets the action through with a warning that it checked nothing.
 
 ## Cross-references
 

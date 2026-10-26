@@ -53,10 +53,12 @@ What it cannot check: maths (each formula is compared only as a placeholder), th
 the words sit in (a heading's level, a list, a table's cells, emphasis), the look of the page, or
 whether a styling choice was the author's. Read the proof for those.
 
-Standard library only; Python 3.8+. Needs pandoc for the Markdown side.
+Standard library only, on the Python PYTHON_MIN names (below); an older Python is refused,
+loudly, before anything runs.
+Needs pandoc for the Markdown side.
 Exit codes: 0 = the words match; 1 = a difference, an unresolved conflict, a broken marker pair,
-or (with --strict) a warning; 2 = usage error, a missing file or section, or pandoc missing or
-failing.
+or (with --strict) a warning; 2 = usage error, a missing file or section, pandoc missing or
+failing, or a Python older than PYTHON_MIN.
 """
 from __future__ import annotations
 
@@ -70,6 +72,21 @@ import sys
 import tempfile
 import unicodedata
 from pathlib import Path
+
+# ── The Python this script needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this script's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). The file keeps to
+# Python 3.8's grammar, so an older Python still reaches this check, which runs before anything
+# that needs the newer one, and says loudly that nothing ran instead of failing on a SyntaxError.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/texcheck.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_FILTER = HERE / "pandoc" / "house.lua"
@@ -1154,6 +1171,30 @@ LAYOUT_CASES = (
 )
 
 
+def _older_python_refused():
+    """(passed, detail), for the self-test: this file parses under Python 3.8's grammar, and run as
+    Python 3.8 (sys.version_info replaced before it starts) it prints nothing on stdout, says on
+    stderr that it did NOT run and which Python it needs, and exits 2: PYTHON_MIN's check comes
+    before anything an older Python cannot run."""
+    import ast
+    import subprocess
+    path = str(Path(__file__).resolve())
+    try:
+        ast.parse(Path(path).read_text(encoding="utf-8"), feature_version=(3, 8))
+    except SyntaxError as err:
+        return False, "no parse under Python 3.8's grammar: line %s: %s" % (err.lineno, err.msg)
+    as_38 = ("import sys; sys.version_info = (3, 8, 0, 'final', 0); "
+             "p = sys.argv[1]; sys.argv = [p, '--help']; "
+             "exec(compile(open(p, encoding='utf-8').read(), p, 'exec'), "
+             "{'__name__': '__main__', '__file__': p})")
+    proc = subprocess.run([sys.executable, "-I", "-c", as_38, path], capture_output=True, text=True,
+                          encoding="utf-8")
+    passed = (proc.returncode == 2 and not proc.stdout and "did NOT run" in proc.stderr
+              and "needs Python %d.%d or later" % PYTHON_MIN in proc.stderr)
+    return passed, "exit %s; stdout %r; stderr %r" % (proc.returncode, proc.stdout[:200],
+                                                      proc.stderr[-300:])
+
+
 def self_test() -> int:
     failures = []
 
@@ -1175,6 +1216,8 @@ def self_test() -> int:
               .replace("Tam had told", "\\looseness=-1\n% a widow fixed by hand\nTam had to\\-ld")
               .replace(r"\end{epigraph}", "\\end{epigraph}\n\\pagebreak[3]"))
     print("texcheck.py --self-test")
+    old_ok, old_detail = _older_python_refused()
+    verdict("an older Python is refused, loudly, before anything runs", old_ok, [old_detail])
     expect("the Pandoc base matches its Markdown", SAMPLE_BASE, True)
     expect("house styling changes no word", styled, True)
     expect("a changed word fails", styled.replace("louder", "loud"), False, "changed")

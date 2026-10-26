@@ -17,7 +17,9 @@ explicit one, in the order the glyphs appear in glyphs.toml, starting from U+E00
 glyph has an explicit one. Positional forms are never given code points; the font reaches
 them through its contextual alternates.
 
-Standard library only; Python 3.11+ (tomllib).
+Standard library only, on the Python PYTHON_MIN names (below); an older Python is refused,
+loudly, before anything runs. lexicon.py, script.py and font.py check their own PYTHON_MIN before
+they import it, so their message, naming them, is the one a person sees.
 """
 from __future__ import annotations
 
@@ -29,9 +31,23 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-if sys.version_info < (3, 11):
-    sys.exit("error: the conlang tooling needs Python 3.11 or later (it reads TOML with tomllib)")
-import tomllib  # noqa: E402
+# ── The Python this module needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this module's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). The file keeps to
+# Python 3.8's grammar, so an older Python still reaches this check, which runs before anything
+# that needs the newer one (tomllib, below), and says loudly that nothing ran instead of failing
+# on an import.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/conlang_common.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
+
+import tomllib  # noqa: E402  (tomllib: after the PYTHON_MIN check above)
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LANGUAGES = ROOT / "world" / "src" / "languages"

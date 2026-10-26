@@ -29,6 +29,7 @@ than restating it.
 | `handoffs/` | working | Session bridges written by the `handoff` skill; pruned once the work resumes |
 | `learning/` | working | The `teach` workspace; nothing in it is the work |
 | `assets/` | working | Images and other binaries the work uses |
+| `how-to/` | reference | The user guide: shared chapters, and this template's guides, chapters and procedures in `how-to/docs/syntek-author/`, `how-to/src/TEMPLATE-GUIDE/syntek-author/` and `how-to/workflows/syntek-author/`; read, never produced in, and read-only |
 <: if DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo' :>| `.github/` | config | The Google Drive push and pull workflows |
 <: endif :>| `build/` | generated | Everything `make` produces; git-ignored, never hand-edited |
 
@@ -44,6 +45,8 @@ than restating it.
   Nothing in `handoffs/` or `learning/` is the work; anything durable they produce graduates to
   `.claude/MEMORY.md`, a unit brief, `research/src/` or `standards/`, and the copy left behind is a
   link, not the answer.
+- **Reference folder** (`how-to/`): the user guide, shared with any companion template; read,
+  never produced in, and read-only (`06-global-rules.md` Section 3).
 - **Generated** output (`build/`) is derived from sources and never edited by hand.
 
 ---
@@ -54,7 +57,7 @@ than restating it.
 |---|---|---|
 | `docs/reference/` | Guides shipped by the template, replaced by `copier update` | how this kind of work is done |
 | `docs/project/` | The author's own guides; a same-named file here overrides the reference guide | how this project departs |
-| `src/` | The artefact: the prose, the plans, the evidence | the work itself |
+| `src/` | The artefact: the prose, the plans, the evidence (never `how-to/src/`, the template's guide) | the work itself |
 | `workflows/NN-name/` | Template procedures: `CONTEXT.md` + `CLAUDE.md` + `STEPS.md` + `CHECKLIST.md` | the steps to follow |
 | `workflows/local/NN-name/` | The author's procedures, in their own numbering; a same-slug folder overrides the template's | the author's steps |
 
@@ -99,7 +102,7 @@ Shared skills and guides say "the content layer" and "the unit"; this section is
   `library/docs/reference/<family>-standards.md`, its skill `<family>-documents`
   (`.claude/rules/syntek-author/02-skills.md` Section 5) and its workflow in `library/workflows/`.
   The families were chosen with the Copier answer `BUSINESS_FAMILIES`; one is added or removed
-  through `copier update` (`README.md`, "Updating from the template"), never by hand.
+  through `copier update` (`how-to/workflows/syntek-author/01-update-the-template/`), never by hand.
 - **A client's facts live once**, in the file `00-project.md` `## Paths` names ('Client facts'; by
   default `library/src/business/client-docs/<client-slug>/CONTEXT.md`, under `## Facts`). Every
   family reads them there. Never copy them into another family, and never create a client folder
@@ -159,12 +162,12 @@ before the template arrived may carry one; obey it there. Section drafts and uni
 
 | Class | What `copier update` does | Files |
 |---|---|---|
-| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**` (except the seven family-shared `SKILL.md` files), `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, `.claude/syntek-author-dataroot.py` and its map `.claude/syntek-author-dataroot.json`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files |
+| **Template-owned** | merges the template's changes in | `.claude/rules/syntek-author/**` (except `00-project.md`), `.claude/skills/<skill>/**` (except the seven family-shared `SKILL.md` files), `.claude/syntek-author-agents.md`, `.claude/syntek-author-permissions.py`, `.claude/syntek-author-dataroot.py` and its map `.claude/syntek-author-dataroot.json`, every `docs/reference/`, every `workflows/NN-name/`, the governance pairs (except the seeded ones below), `standards/` (except the seeds), `tooling/` (except the seeds), `Makefile`, nested `.gitignore` files, and this template's folders under `how-to/` (`how-to/docs/syntek-author/`, `how-to/src/TEMPLATE-GUIDE/syntek-author/`, `how-to/workflows/syntek-author/`), which every update also puts back where they differ (`06-global-rules.md` Section 3) |
 | **Seed-if-missing** | creates the file only if it is absent, then never touches it | listed below |
 | **Seed-once example** | ships at generation only; once deleted, stays deleted | the worked example, when one was generated |
 | **Copy-only** | never touches, adds or recreates | the other coding agents' entrypoints, `.agents` and their settings, where generated or added by hand (`.claude/syntek-author-agents.md` lists them) |
-| **Copy-only, family-shared** | never renders or merges; replaces one you have not changed, writes one new in its release that you never had (one you deleted stays deleted), keeps and reports one you edited | the working-practice files: seven skills' `SKILL.md`, both `.claude/hooks/*.sh` with the `.claude/hooks/` pair, and the `handoffs/` pair (`02-skills.md` Section 8) |
-| **Author-owned** | never touches | everything you write: `src/` content, the guides in `docs/project/`, the procedures in `workflows/local/`, and what you put in `handoffs/`, `learning/` and `assets/` (their `CONTEXT.md` and `CLAUDE.md` are template-owned, the `handoffs/` pair family-shared) |
+| **Copy-only, family-shared** | never renders or merges; replaces one you have not changed, writes one new in its release that you never had (one you deleted stays deleted), keeps and reports one you edited | the working-practice files: seven skills' `SKILL.md`, the three `.claude/hooks/*.sh` (the guide guard `how-to-read-only.sh` among them) with the `.claude/hooks/` pair, and the `handoffs/` pair, and the `how-to/` container pairs and shared chapters (every `how-to/` file is put back on update where it differs, another template's version excepted) (`02-skills.md` Section 8) |
+| **Author-owned** | never touches | everything you write: `src/` content (never `how-to/src/`), the guides in `docs/project/`, the procedures in `workflows/local/`, and what you put in `handoffs/`, `learning/` and `assets/` (their `CONTEXT.md` and `CLAUDE.md` are template-owned, the `handoffs/` pair family-shared) |
 
 **Seeds** (yours from the moment they exist; deleting one brings back the empty seed on the next
 update; turning its option off deletes it): `.claude/rules/syntek-author/00-project.md` (this
@@ -187,7 +190,8 @@ section stubs in `proposal/src/book-proposal/`, `proposal/src/endorsements/track
 `planning/src/document-register.md`, `planning/src/review-schedule.md`,
 `planning/src/precedence.md`, `standards/brand/disclaimers.md`, `standards/brand/brand-voice.md`,
 `standards/brand/brand-guide.md`<: endif :><: if INCLUDE_REFERENCES :>, `tooling/seed-refs.sql`<: endif :>.
-Before an update turns an option off, see `README.md`, "Turning an option off deletes its files".
+Before an update turns an option off, read the list the update prints before it asks, and
+`how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md`.
 
 <: if SEED_EXAMPLES :>**The worked example** (seed-once; delete it when you no longer need it):
 
@@ -208,10 +212,10 @@ Before an update turns an option off, see `README.md`, "Turning an option off de
   `research/src/setting/example-model-old-spanish.md` and
   `research/src/setting/example-model-ogham.md`<: endif :>.
 
-<: endif :>**Never edit a template-owned file.** The next update either overwrites the edit or turns it into
-a merge conflict. Override instead: a same-named guide in `docs/project/`, a same-slug workflow in
-`workflows/local/`, a row in `00-project.md` `## Workflow aliases` or `## Overrides`, or a
-project rule where `00-project.md` `## Paths` says ('Project rules').
+<: endif :>**Never edit a template-owned file.** Every update merges the template's changes into the edit,
+leaving a conflict where both changed the same lines, and under `how-to/` puts the template's text back.
+Override instead: a same-named guide in `docs/project/`, a same-slug workflow in `workflows/local/`, a row in
+`00-project.md` `## Workflow aliases` or `## Overrides`, or a project rule where `00-project.md` `## Paths` says ('Project rules').
 
 ---
 
@@ -229,9 +233,6 @@ Before editing anything, read in this order:
 
 Every folder `CLAUDE.md` repeats this chain in its own `Read order:` line, so a session that
 starts deep in the tree still climbs it.
-
-Codex, Gemini CLI, Antigravity and OpenCode load none of this by themselves:
-`.claude/syntek-author-agents.md`, where their entrypoints send them, reads this chain explicitly.
 
 ---
 
@@ -286,7 +287,7 @@ project already keeps each thing. In such a project:
 - on `copier update`, a file the project kept at a template path comes back with conflict markers
   whenever the template changed it: keep the project's version (its text governs that path), tell
   the author which files were resolved and what the template changed, and extend a file only on
-  their word;
+  their word; never under `how-to/`, which the update restores (`06-global-rules.md` Section 3);
 - <: if DOC_TYPE == 'business' :>unticking a family or <: endif :>turning an option off on update deletes the project's own files at its
   template paths too (`06-global-rules.md` Section 11): have the author copy them out first;
 - a mode file beside a project's own `SKILL.md` is ignored, because only a `SKILL.md` that carries

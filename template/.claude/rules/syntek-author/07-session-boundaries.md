@@ -6,8 +6,8 @@
 > **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
 The two session hooks, `.claude/hooks/context-threshold-handoff.sh` (`UserPromptSubmit`) and
-`.claude/hooks/pre-compact-handoff.sh` (`PreCompact`), cite this file. It is the rule they
-enforce.
+`.claude/hooks/pre-compact-handoff.sh` (`PreCompact` and `SessionStart`), cite this file. It is
+the rule they enforce.
 
 ---
 
@@ -28,9 +28,13 @@ and a fresh session starts from it with a full window.
 ## 2. How it is enforced
 
 - `.claude/settings.json` sets `"autoCompactEnabled": false`, so compaction never starts on its own
-  initiative. The seed sets it; a copy over a `settings.json` of its own, or the next update, adds
-  it once where the file has no such key. A value the author set is kept, and the copy or update
-  says once that the handoff hooks assume false; set it to false to use them (without it, the
+  initiative as the window fills, and `"idleCompaction": false`, so it never starts while a long
+  session sits idle either, even where the first is turned back on. Claude Code fires the same
+  `PreCompact` `auto` trigger for an idle compaction, so without the second a pause could end in
+  the note to hand off with the window far from full; a version older than 2.1.290 ignores the
+  key. The seed sets both; a copy over a `settings.json` of its own, or the next update, adds each
+  once where the file has no such key. A value the author set is kept, and the copy or update
+  says once that the handoff hooks assume false; set it to false to use them (without them, the
   `PreCompact` hook still blocks compaction).
 - The `UserPromptSubmit` hook runs `.claude/hooks/context-threshold-handoff.sh` before every
   prompt and measures the context window. At **50%** it advises, once a session: finish the step
@@ -38,16 +42,30 @@ and a fresh session starts from it with a full window.
   **75%** it insists, on every prompt: hand off now, with the steps below. It assumes a window of
   200,000 tokens; for a larger one, set `CLAUDE_CONTEXT_WINDOW` under `"env"` in
   `.claude/settings.local.json`. It never blocks a prompt.
-- The `PreCompact` hook runs `.claude/hooks/pre-compact-handoff.sh` on both triggers. On `auto` it
-  **blocks** compaction (exit 2) and prints the steps below; on a manual `/compact` it **warns**
-  and lets it proceed (exit 0), because a deliberate choice by the author is not overridden.
+- The `PreCompact` hook runs `.claude/hooks/pre-compact-handoff.sh` on both triggers. On `auto` (the
+  window near its limit, or the session idle) it **blocks** compaction (exit 2), and the author's
+  next prompt in that session shows 'Automatic compaction was stopped. Run /handoff to save where
+  you are, then /clear to start a fresh session. If /handoff has no room to run, run /compact
+  yourself (it is allowed), then /handoff.', with the same news for the session. On a manual
+  `/compact` it lets the compaction proceed (exit 0), because a deliberate choice by the author is
+  not overridden; once it is done, the `SessionStart` hook shows a note that a handoff gives a
+  cleaner break (next time `/handoff`, then `/clear`) and tells the session that its earlier
+  conversation is now a summary. Because Claude Code cannot be relied on to show what a
+  `PreCompact` hook prints on either path, the hook leaves a marker for the session,
+  `.claude/compaction-marker-<session_id>.tmp` (git-ignored), for that session's later hook to
+  read. Each session has its own, so one session's compaction never touches another's note; when
+  the hook leaves one, it removes any other session's marker more than seven days old (a session
+  never resumed).
 - A hook cannot write a handoff or end a turn; only the model can. This rule is what carries the
   behaviour, and the hooks are the prompt and the backstop.
 
 Hand off before the window is full, not when the compaction hook fires. **At the 75% warning,
 the handoff is the next thing written; at 50%, plan the stopping point.** Compaction that is
 blocked at the hard limit leaves the current request to fail, and a handoff written in a hurry
-is the one most likely to leave something out. Other coding agents have no such hook: there
+is the one most likely to leave something out. Where the window has no room left to write the
+handoff, say so rather than start one that cannot be finished: <%AUTHOR_FIRST_NAME%> may run
+`/compact`, which the project allows, and then `/handoff`. After a `/compact` made to make room
+for a handoff, offer the `handoff` skill at once. Other coding agents have no such hook: there
 the session watches its own window and follows the same thresholds.
 
 ---

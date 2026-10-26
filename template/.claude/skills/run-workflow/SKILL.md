@@ -39,6 +39,10 @@ This skill runs procedures; it never replaces one, and it never paraphrases one 
   project has are listed in `.claude/rules/syntek-author/01-layout-and-routing.md` Section 1.
 - Each layer's `workflows/local/CONTEXT.md` — the author's own procedures and their overrides,
   read before the template's.
+- `how-to/workflows/syntek-author/CONTEXT.md` and `CLAUDE.md` — this template's own procedures
+  for keeping the project in step with the template (updating, recovering a stopped update,
+  enabling a client, setting up the data root), read after the production layers. Never
+  another template's folder under `how-to/workflows/`.
 - `.claude/rules/syntek-author/01-layout-and-routing.md` Sections 3 and 6 — local first, frozen
   numbering, and the routing frontmatter every `STEPS.md` and `CHECKLIST.md` carries.
 - `.claude/rules/syntek-author/03-authorship.md` — who decides what, and the authoring loop that
@@ -69,6 +73,8 @@ This skill runs procedures; it never replaces one, and it never paraphrases one 
    index has no such table** (a project's own index, kept when the template was adopted into an
    existing repository), list that layer's workflow folders directly, every `NN-name` folder in
    `workflows/` and in `workflows/local/`, and read each one's `CONTEXT.md` for what it does.
+   Then read `how-to/workflows/syntek-author/CONTEXT.md` and `CLAUDE.md` the same way; that folder
+   has no `local/`, and an alias still replaces one of its procedures.
    *Complete when:* every candidate is listed by layer and full folder name, aliases and local
    procedures are marked as such, and any layer read by its folders rather than its table is
    named.

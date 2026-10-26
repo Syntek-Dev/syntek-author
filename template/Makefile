@@ -55,11 +55,15 @@
 # is set in tooling/project.mk, the project's own file. No target here reads a file git ignores,
 # apart from the data-root targets, which read only a file you name or a manifest lists.
 <: endif :>
-PY       := python3
-BUILD    := build
-DEFAULTS := tooling/defaults.yaml
-CONTENT  := <%CONTENT_LAYER%>
-STRICT   ?=
+# PY runs the tooling scripts and the data-root tool. PYTHON_MIN is the oldest Python they run on:
+# the one line to change, with each script's own PYTHON_MIN (search for PYTHON_MIN), to move to a
+# newer one. Every target that runs PY depends on python-check, which refuses an older one.
+PY         := python3
+PYTHON_MIN := 3.14
+BUILD      := build
+DEFAULTS   := tooling/defaults.yaml
+CONTENT    := <%CONTENT_LAYER%>
+STRICT     ?=
 
 # ── Project settings ────────────────────────────────────────────────────────────────────
 # tooling/project.mk is the project's own: written once, when the project was generated, and
@@ -149,7 +153,8 @@ SRC_Q    = $(call SH_QUOTE,$(SRC))
 # does pass through NOT_IGNORED like every other, wherever it is<: endif :>.
 # Without a SCOPE, flags also read the project brief and settings (.claude/CLAUDE.md and
 # .claude/rules/syntek-author/00-project.md), whose open questions are flags like any other.
-WORK_DIRS := $(wildcard */src)
+# how-to/src is the template's user guide, never the work: it is read only when SCOPE names it (DESIGN.md D56).
+WORK_DIRS := $(filter-out how-to/src,$(wildcard */src))
 FLAG_DIRS := $(WORK_DIRS)<: if DOC_TYPE == 'business' :> $(wildcard $(patsubst %/,%,$(BRAND_DIRS)))<: endif :>
 LINT_IN    = $(or $(if $(SCOPE_GIVEN),$(SCOPE_PATH),$(WORK_DIRS)),.nothing-to-scan)
 FLAGS_IN   = $(or $(if $(SCOPE_GIVEN),$(SCOPE_PATH),$(FLAG_DIRS)),.nothing-to-scan)
@@ -164,7 +169,7 @@ FLAG_RE := (^|[^`])(<!--[[:space:]]*|\\dnote\{)(AUTHOR TO CONFIRM|VERIFY):
 FLAG_EXTRA_SCAN = scan '(^|[^`])($(strip $(FLAG_EXTRA_RE)))'
 
 .DEFAULT_GOAL := help
-.PHONY: help clean flags lint provenance compare docx pdf root files-add files-verify files-status files-pull files-plan<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
+.PHONY: help python-check clean flags lint provenance compare docx pdf root files-add files-verify files-status files-pull files-plan<: if DOC_TYPE != 'business' :> epub book tex tex-check print<: endif :><: if DOC_TYPE == 'business' :> section-check<: endif :><: if INCLUDE_REFERENCES :> init refs dump<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> lexicon derive coverage family glossary font script-sample<: endif :>
 
 help: ## show every target with its description
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -175,6 +180,27 @@ help: ## show every target with its description
 $(BUILD)/.gitignore:
 	@mkdir -p $(BUILD)
 	@printf '*\n' > $@
+
+# python-check comes first among the prerequisites of every target that runs PY, so on a Python
+# older than PYTHON_MIN none of them starts: it says so loudly on stderr, with the Python it found
+# and the one it needs, and exits 2. Each script also refuses for itself when run without make.
+PY_GOALS = $(or $(MAKECMDGOALS),$(.DEFAULT_GOAL))
+python-check: ## check that python3 is new enough for the targets that run it (every one does first)
+	@if ! $(PY) -c 'import sys; sys.exit(sys.version_info < tuple(int(n) for n in sys.argv[1].split(".")))' \
+	    '$(PYTHON_MIN)' 2>/dev/null; then \
+	  if command -v $(PY) >/dev/null 2>&1; then \
+	    v=$$($(PY) -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null); \
+	    found="$(PY) here is Python $${v:-of unknown version} ($$(command -v $(PY)))"; act='Upgrade to'; \
+	  else found="$(PY) was not found"; act='Install'; fi; \
+	  rule='=============================================================================='; \
+	  { printf '\n%s\n' "$$rule"; \
+	    printf 'ERROR: make %s did NOT run.\n' $(call DR_Q,$(PY_GOALS)); \
+	    printf 'It needs Python %s or later, and %s.\n' '$(PYTHON_MIN)' "$$found"; \
+	    printf 'Nothing was read or written. %s Python %s or later, then run make %s again.\n' \
+	      "$$act" '$(PYTHON_MIN)' $(call DR_Q,$(PY_GOALS)); \
+	    printf '%s\n\n' "$$rule"; } >&2; \
+	  exit 2; \
+	fi
 
 <: if INCLUDE_REFERENCES -:>
 # ── References ──────────────────────────────────────────────────────────────────────────
@@ -193,7 +219,7 @@ init: ## build tooling/references.db from schema.sql and every seed*.sql (never 
 $(DB):
 	@echo "error: $(DB) not found; run: make init"; exit 1
 
-refs: | $(BUILD)/.gitignore $(DB) ## export the references to build/references.json (CSL-JSON)
+refs: | python-check $(BUILD)/.gitignore $(DB) ## export the references to build/references.json (CSL-JSON)
 	@$(PY) tooling/export_refs.py --db $(DB) --out $(REFS)
 <: if DOC_TYPE == 'theology' :>	@printf "nocite: '@%s'\n" '<%BIBLE_TRANSLATION%>' > $(BUILD)/nocite.yaml
 <: endif :>	@[ ! -f $(DUMP) ] || [ ! $(DB) -nt $(DUMP) ] || echo "note: $(DB) has changed since the last make dump"
@@ -267,7 +293,7 @@ tex: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## write t
 	  [ -f "$$styled" ] || echo "  not styled yet: cp $$base $$styled, then style the copy"; \
 	done
 
-tex-check: <: if INCLUDE_REFERENCES :>refs <: endif :>## prove each styled chapter carries exactly its Markdown's words (UNIT= narrows it)
+tex-check: <: if INCLUDE_REFERENCES :>refs <: endif :>| python-check ## prove each styled chapter carries exactly its Markdown's words (UNIT= narrows it)
 	@units="$(if $(UNIT),$(UNIT_NAME))"; \
 	[ -n "$$units" ] || units=$$(for f in $(UNITS)/*.tex; do [ ! -f "$$f" ] || printf '%s\n' "$$f"; done \
 	  $(NOT_IGNORED) | sed 's|^.*/||; s|\.tex$$||'); \
@@ -328,12 +354,17 @@ FILE_STEM       = $(subst /,__,$(patsubst .%,dot-%,$(basename $(patsubst ./%,%,$
 # then at the same place below the root. With no valid root they look in the work tree alone.
 # The search path is passed to the shell single-quoted, so a name in the answers that holds $,
 # a backquote or a space reaches TeX as it is; a root whose path holds a colon, which TeX reads
-# as a separator, is left out of it.
+# as a separator, is left out of it. Finding that folder runs the data-root tool, so make pdf
+# waits for python-check.
 DR_DIR          = $(shell $(DR) path $(call DR_Q,$(patsubst %/,%,$(dir $(FILE)))) 2>/dev/null)
 DR_TOP          = $(shell $(DR) path . --kind docs 2>/dev/null)
 <: endif -:>
 TEXINPUTS_HOUSE = $(LOGO_TEXINPUTS)$(dir $(FILE)):<: if DATA_STORE == 'external' :>$(if $(DR_DIR),$(if $(findstring :,$(DR_DIR)),,$(DR_DIR):))<: endif :>tooling/latex//:assets//:
 MD_REFS         = <: if INCLUDE_REFERENCES :>$(MAKE) --no-print-directory refs && <: endif :>
+<: if INCLUDE_REFERENCES -:>
+# A .md document's build runs make refs first, so pdf and docx of one wait for python-check.
+MD_PY           = $(if $(filter %.md,$(FILE)),python-check)
+<: endif -:>
 
 define need_file
 @test -n "$(FILE)" || { echo "error: name the document: make $@ FILE=library/src/<family>/<file>.tex"; exit 1; }
@@ -411,7 +442,7 @@ define need_issuable
 <: endif :>fi
 endef
 
-pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….md (Pandoc) to PDF; ISSUE=1 to issue
+pdf: | <: if DATA_STORE == 'external' :>python-check <: endif :><: if INCLUDE_REFERENCES :>$(MD_PY) <: endif :>$(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….md (Pandoc) to PDF; ISSUE=1 to issue
 	$(need_file)
 	$(need_issuable)
 	@mkdir -p $(BUILD)/latex
@@ -434,7 +465,7 @@ pdf: | $(BUILD)/.gitignore ## render FILE=….tex (XeLaTeX, twice) or FILE=….m
 	  $(DR) add $(BUILD)/$(FILE_STEM).pdf --as "$(ISSUE_COPY)" --role issued --source "$(FILE)"$(if $(FORCE_ON), --force) \
 	  && echo "issued $(ISSUE_COPY) under the data root (commit the external.toml of its filing folder with its source)"; fi
 <: endif :>
-docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_CONVERTER (no lossy conversion)
+docx: | <: if INCLUDE_REFERENCES :>$(MD_PY) <: endif :>$(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_CONVERTER (no lossy conversion)
 	$(need_file)
 	@case "$(FILE)" in \
 	  *.md)  $(MD_REFS)pandoc --defaults=$(DEFAULTS) $(PANDOC_HOUSE) "$(FILE)" -o $(BUILD)/$(FILE_STEM).docx || exit 1 ;; \
@@ -453,7 +484,7 @@ docx: | $(BUILD)/.gitignore ## FILE=….md to .docx (Pandoc); a .tex needs DOCX_
 # A section is converted into its .tex by hand, between `% section: <slug>` and
 # `% end section: <slug>`, so promote-section proves the words before it writes the ledger:
 # the text between the pair against the promoted Markdown draft (tooling/texcheck.py --section).
-section-check: ## prove FILE=….tex carries a promoted section's exact words: SECTION=<slug> DRAFT=<draft>.md
+section-check: | python-check ## prove FILE=….tex carries a promoted section's exact words: SECTION=<slug> DRAFT=<draft>.md
 	$(need_file)
 	@case "$(FILE)" in *.tex) ;; *) echo "error: FILE must be the .tex document (a Markdown deliverable is not converted)"; exit 2 ;; esac
 	@test -n "$(SECTION)" || { echo "error: name the section: make section-check FILE=$(FILE) SECTION=<slug> DRAFT=<draft>.md"; exit 2; }
@@ -550,7 +581,7 @@ export LINT_AWK
 LINT_TWO := [^[:space:].][.!?][\047’\042)]*[[:space:]]+[\047‘\042(]*[[:upper:]]
 LINT_IZE := ^[[:alpha:]][[:alpha:]][[:alpha:]]+(iz|yz)(e|es|ed|ing|er|ers|ation|ations)$$
 
-lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE == 'business' :>, em dashes and long list steps<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and dense conlang<: endif :> (SCOPE= narrows it)
+lint: <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>| python-check <: endif :>## report lines holding two sentences and en_US spellings<: if DOC_TYPE == 'business' :>, em dashes and long list steps<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and dense conlang<: endif :> (SCOPE= narrows it)
 	@all=$$($(call SCAN_FIND,$(LINT_IN)) | LC_ALL=C sort); \
 	files=$$(printf '%s\n' "$$all" $(NOT_IGNORED)); \
 	if [ -z "$$files" ]; then echo "lint: nothing to check under $(LINT_IN)"; $(UNREAD_NOTE) exit 0; fi; \
@@ -574,7 +605,7 @@ lint: ## report lines holding two sentences and en_US spellings<: if DOC_TYPE ==
 	if [ -n "$(STRICT)" ] && [ "$$total" -gt 0 ]; then exit 1; fi
 
 # ── Provenance ──────────────────────────────────────────────────────────────────────────
-provenance: ## print the per-unit AI-disclosure table from standards/style/ledger/ (UNIT= narrows it)
+provenance: | python-check ## print the per-unit AI-disclosure table from standards/style/ledger/ (UNIT= narrows it)
 	@$(PY) tooling/provenance.py table $(if $(UNIT),--unit $(UNIT_NAME))
 
 # make compare prints the ledger's record of how each section moved: every unit with entries,
@@ -592,7 +623,7 @@ COMPARE_TO     := $(if $(filter command line,$(origin FORMAT)),$(FORMAT),pdf)
 COMPARE_PANDOC  = --defaults=$(DEFAULTS) --defaults=tooling/compare.yaml $(PANDOC_HOUSE) $(PANDOC_PDF) \
                   --include-in-header=tooling/latex/compare.tex -f json -s -t latex
 
-compare: <: if INCLUDE_REFERENCES :>refs <: endif :>| $(BUILD)/.gitignore ## each section's original, AI edit and final, from the ledger, to build/compare/<unit>.pdf (UNIT=, SECTION=, FORMAT=tex)
+compare: <: if INCLUDE_REFERENCES :>refs <: endif :>| python-check $(BUILD)/.gitignore ## each section's original, AI edit and final, from the ledger, to build/compare/<unit>.pdf (UNIT=, SECTION=, FORMAT=tex)
 	@test -z "$(SECTION)" || test -n "$(UNIT)" || { echo "error: SECTION= needs its unit: make compare UNIT=<unit> SECTION=<slug>"; exit 2; }
 	@case "$(COMPARE_TO)" in pdf|tex) ;; *) echo "error: FORMAT takes pdf, or tex for the LaTeX alone"; exit 2 ;; esac
 	@units="$(if $(UNIT),$(UNIT_NAME))"; \
@@ -645,27 +676,27 @@ define need_lang
 @test -n "$(LANG_SLUG)" || { echo "error: name the language: make $@ LANG=<slug> (found: $(or $(notdir $(LANG_DIRS)),none))"; exit 1; }
 endef
 
-lexicon: ## check every language's lexicon, and the names register against them (LANG=<slug> for one)
+lexicon: | python-check ## check every language's lexicon, and the names register against them (LANG=<slug> for one)
 	$(CONLANG) tooling/lexicon.py check $(LANG_ARG)
 	$(CONLANG) tooling/lexicon.py names $(LANG_ARG)
 
-derive: ## re-derive each daughter language from its parent through its sound changes (LANG=<slug> for one)
+derive: | python-check ## re-derive each daughter language from its parent through its sound changes (LANG=<slug> for one)
 	$(CONLANG) tooling/lexicon.py derive $(LANG_ARG)
 
-coverage: ## list the core concepts and pronouns each language has no word for yet (LANG=<slug> for one)
+coverage: | python-check ## list the core concepts and pronouns each language has no word for yet (LANG=<slug> for one)
 	$(CONLANG) tooling/lexicon.py coverage $(LANG_ARG)
 
-family: ## print every language family tree, with each branch's real-world models
+family: | python-check ## print every language family tree, with each branch's real-world models
 	$(CONLANG) tooling/lexicon.py family
 
-glossary: | $(BUILD)/.gitignore ## write build/glossary-<slug>.md (glossary and pronunciation guide) for each language
+glossary: | python-check $(BUILD)/.gitignore ## write build/glossary-<slug>.md (glossary and pronunciation guide) for each language
 	$(CONLANG) tooling/lexicon.py glossary $(LANG_ARG) --out-dir $(BUILD)
 
 font: | $(BUILD)/.gitignore ## build each script's font into build/fonts/<slug>.otf with uv run (LANG=<slug> for one)
 	@command -v uv >/dev/null || { echo "error: uv not found; tooling/font.py runs with uv run, which fetches fontTools for that run only"; exit 1; }
 	uv run tooling/font.py build $(LANG_ARG)
 
-script-sample: | $(BUILD)/.gitignore ## render TEXT in the language's script to build/script-sample-<slug>.svg: LANG=<slug> TEXT="…"
+script-sample: | python-check $(BUILD)/.gitignore ## render TEXT in the language's script to build/script-sample-<slug>.svg: LANG=<slug> TEXT="…"
 	$(need_lang)
 	@$(if $(TEXT),$(CONLANG) tooling/script.py transliterate $(LANG_SLUG) "$(TEXT)",true)
 	$(CONLANG) tooling/script.py render $(LANG_SLUG) $(if $(TEXT),"$(TEXT)",--sample) --out $(BUILD)/script-sample-$(LANG_SLUG).svg
@@ -687,26 +718,26 @@ script-sample: | $(BUILD)/.gitignore ## render TEXT in the language's script to 
 DR   = $(PY) .claude/syntek-author-dataroot.py
 DR_Q = '$(subst ','\'',$(1))'
 
-root: ## show this machine's data root, the project's layout under it and the provider's checklist
+root: | python-check ## show this machine's data root, the project's layout under it and the provider's checklist
 	@$(DR) root
 
-files-add: ## file a copy under the data root: FILE= ROLE= (AS=, SOURCE=, LABEL=, FORCE=1)
+files-add: | python-check ## file a copy under the data root: FILE= ROLE= (AS=, SOURCE=, LABEL=, FORCE=1)
 	@test -n "$(FILE)" || { echo "error: name the file: make files-add FILE=<path> ROLE=<role> (AS=, SOURCE=, LABEL=, FORCE=1)"; exit 2; }
 	@test -n "$(ROLE)" || { echo "error: name its role: make files-add FILE=$(FILE) ROLE=<role> ($(DR) --help lists them)"; exit 2; }
 	@case '$(call SWITCH,FORCE)' in bad) echo "error: FORCE takes 1, yes or true; leave it out to keep a filed copy"; exit 2 ;; esac
 	@$(DR) add $(call DR_Q,$(FILE)) --role $(call DR_Q,$(ROLE))$(if $(and $(filter command line,$(origin AS)),$(AS)), --as $(call DR_Q,$(AS)))$(if $(SOURCE), --source $(call DR_Q,$(SOURCE)))$(if $(LABEL), --label $(call DR_Q,$(LABEL)))$(if $(filter on,$(call SWITCH,FORCE)), --force)
 
-files-verify: ## hash every filed copy against its manifest row (GLOB= narrows it; HYDRATE=1 reads online-only copies)
+files-verify: | python-check ## hash every filed copy against its manifest row (GLOB= narrows it; HYDRATE=1 reads online-only copies)
 	@case '$(call SWITCH,HYDRATE)' in bad) echo "error: HYDRATE takes 1, yes or true; leave it out to skip online-only copies"; exit 2 ;; esac
 	@$(DR) verify$(if $(GLOB), $(call DR_Q,$(GLOB)))$(if $(filter on,$(call SWITCH,HYDRATE)), --hydrate)
 
-files-status: ## the loss check: binaries git ignores that no manifest lists, and copies under the root none lists
+files-status: | python-check ## the loss check: binaries git ignores that no manifest lists, and copies under the root none lists
 	@$(DR) status
 
-files-pull: ## copy filed copies into the work tree, checking each hash (GLOB= narrows it)
+files-pull: | python-check ## copy filed copies into the work tree, checking each hash (GLOB= narrows it)
 	@$(DR) pull$(if $(GLOB), $(call DR_Q,$(GLOB)))
 
-files-plan: ## list the binaries still tracked, where each would be filed and every conflict (COPY=1 files them)
+files-plan: | python-check ## list the binaries still tracked, where each would be filed and every conflict (COPY=1 files them)
 	@case '$(call SWITCH,COPY)' in bad) echo "error: COPY takes 1, yes or true; leave it out to list the plan only"; exit 2 ;; esac
 	@$(DR) plan$(if $(filter on,$(call SWITCH,COPY)), --copy)
 

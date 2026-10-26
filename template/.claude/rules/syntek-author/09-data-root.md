@@ -8,8 +8,11 @@
 This file owns where the project's binary files are kept: scans, signed and received copies,
 archives, issued copies, images, audio and video. Git keeps text well and binaries badly: every
 version of a binary stays in the history for good, and no merge can compare two of them. The
-data-root tool, `.claude/syntek-author-dataroot.py` (Python 3.11 or later), does every step,
+data-root tool, `.claude/syntek-author-dataroot.py` (Python 3.14 or later), does every step,
 and its map, `.claude/syntek-author-dataroot.json`, names this template's filing folders.
+
+The steps that set up a machine and move files out: `how-to/workflows/syntek-author/04-set-up-the-data-root/`;
+why the store exists: `how-to/src/TEMPLATE-GUIDE/the-data-root.md`, where the update has added it.
 
 ---
 
@@ -33,15 +36,15 @@ an update with Git's automatic housekeeping off for the run, as `.claude/syntek-
 
 ```bash
 GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \
-  uvx copier update --trust -a .copier-answers.syntek-author.yml --data DATA_STORE=external
+  uvx --python '>=3.14' copier update --trust -a .copier-answers.syntek-author.yml --data DATA_STORE=external
 ```
 
-It delivers the ignore files and asks for the layout answers (`README.md`, "Updating from the
-template"). Then, on each machine, the author sets `SYNTEK_DATA_ROOT`, creates the marker
-and runs `make root`. After that, `make files-plan` lists the binaries still tracked and where
-each would go, and `make files-plan COPY=1` files a copy of each one without a conflict. A copy never
-untracks a file: the author removes the tracked ones from Git once `make files-verify` passes.
-This file then describes the external store.
+It delivers the ignore files and asks for the layout answers
+(`how-to/workflows/syntek-author/01-update-the-template/`). Then, on each machine, the author sets
+`SYNTEK_DATA_ROOT`, creates the marker and runs `make root`. After that, `make files-plan` lists
+the binaries still tracked and where each would go, and `make files-plan COPY=1` files a copy of
+each one without a conflict. A copy never untracks a file: the author removes the tracked ones from
+Git once `make files-verify` passes. This file then describes the external store.
 <: endif :>
 **One project, one store.** Every template applied to this project records its own answers, and
 they must agree: the same store and, outside the repository, the same area, slug and kind

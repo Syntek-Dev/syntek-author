@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.14"
 # dependencies = ["fonttools>=4.47"]
 # ///
 """font.py: compile a constructed script's glyph SVGs into an OpenType font.
@@ -38,8 +38,10 @@ horizontal metrics only, so a 'ttb' script is set horizontally; and Private Use 
 characters are left-to-right to every text engine, so an 'rtl' script is drawn in logical
 order unless the text is reversed or the engine is told the direction.
 
-Exit codes: 0 = done; 1 = problems found; 2 = usage error, a missing file, or fontTools
-missing (run it with `uv run`).
+The Python it needs is PYTHON_MIN (below), which requires-python above repeats for uv run; an
+older one is refused, loudly, before anything runs.
+Exit codes: 0 = done; 1 = problems found; 2 = usage error, a missing file, fontTools missing (run
+it with `uv run`), or a Python older than PYTHON_MIN.
 """
 from __future__ import annotations
 
@@ -47,6 +49,23 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+# ── The Python this script needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this script's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). requires-python in the
+# script block at the top says the same for uv run, which fetches that Python where it has none,
+# and moves with it. The file keeps to Python 3.8's grammar, so an older Python still reaches this
+# check, which runs before anything that needs the newer one, and says loudly that nothing ran
+# instead of failing on a SyntaxError.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/font.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from conlang_common import (DEFAULT_LANGUAGES, POSITIONS, ROOT, Fatal, advance,  # noqa: E402
