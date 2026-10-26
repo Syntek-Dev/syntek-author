@@ -46,7 +46,9 @@ on a laptop.
     migration's (`migrations/agents-outside-link.py`); then shellcheck at warning
     level over `migrations/`, `adopt/`, `.github/scripts/` and the template's hooks
     (shellcheck-py, pinned), which runs even when an audit step failed.
-  - **[2/3] Renders** — installs uv and Pandoc, renders every variant and profile once, and runs
+  - **[2/3] Renders** — installs uv and Pandoc, lifts the runner's AppArmor restriction on
+    unprivileged user namespaces so tooling-smoke check 72 can prove the guide guard on a
+    casefold disk, renders every variant and profile once, and runs
     the per-render audits over all of them, then renders four profiles again on the Copier
     floor `copier.yml` declares (`_min_copier_version`) and compares them byte for byte with the
     newest Copier's renders. XeLaTeX is not installed (too slow to be worth it here), so

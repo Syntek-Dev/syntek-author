@@ -158,6 +158,16 @@ jobs:
       - name: Install pandoc
         run: sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
 
+      # tooling-smoke check 72 proves the guide guard on a disk that ignores letter case, using a
+      # casefold tmpfs in an unprivileged user and mount namespace. Ubuntu's AppArmor restricts
+      # those namespaces on the runner (unshare: write failed /proc/self/uid_map), so the case
+      # would be a named skip. Lifted here only; where the setting is absent the case still
+      # skips by name, never passes.
+      - name: Allow the unprivileged namespaces check 72 needs
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 \
+            || echo "::notice::kernel.apparmor_restrict_unprivileged_userns not set; check 72's letter-case case will skip by name"
+
       - name: Prove the renderer
         run: bash .github/scripts/generate-all.sh --self-test
 
