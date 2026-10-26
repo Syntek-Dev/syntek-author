@@ -274,11 +274,13 @@ slug_ref() { # $1 = folder name → its slug, or nothing
 }
 
 # A sibling template's answers file from before the data root (peer:pre-d50): a record, but no
-# DATA_STORE, so a fresh copy beside it defaults to repo (DESIGN.md D50).
+# DATA_STORE, so a fresh copy beside it defaults to repo (DESIGN.md D50). Nor AGENT_CLIENTS,
+# which syntek-media first asks at 0.5.0, so the copy still takes all four clients: a recorded
+# list, an empty one included, would be the copy's default (DESIGN.md D47, Section 9).
 write_peer() { # $1 = kind, $2 = folder
   mkdir -p "$2"
   case "$1" in
-    pre-d50) printf '# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY\n_commit: v0.4.2\n_src_path: ../syntek-media\nAGENT_CLIENTS: []\n' \
+    pre-d50) printf '# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY\n_commit: v0.4.2\n_src_path: ../syntek-media\n' \
                > "$2/$SA_PEER_ANSWERS_FILE" ;;
     *) die "unknown peer: field: $1" ;;
   esac

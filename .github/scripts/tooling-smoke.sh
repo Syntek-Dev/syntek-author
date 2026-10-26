@@ -13,7 +13,7 @@
 #                    silently, and fails on the author's first command. So every render is
 #                    copied to a scratch directory and its targets are run for real.
 #
-#                    Sixty-eight checks, per render:
+#                    Eighty-seven checks, per render:
 #                      1. `make help` succeeds and prints something.
 #                      2. `make flags` succeeds.
 #                      3. `make provenance` succeeds.
@@ -125,8 +125,9 @@
 #                    Each case that needs a root makes one beside the render's copy, outside its
 #                    repository, holding its own .syntek-data-root marker, and passes it to that
 #                    command alone; everything else runs with SYNTEK_DATA_ROOT unset, as
-#                    _common.sh leaves it. Checks 39–49, 51–55 and 60–69 need Python 3.11 or
-#                    later (the resolver's floor) and are skipped by name below it.
+#                    _common.sh leaves it. Checks 39–49, 51–55 and 60–69 need python3 at the
+#                    resolver's floor, _common.sh's SA_PYTHON_MIN, and are skipped by name below
+#                    it (which the pin in _common.sh already refuses).
 #                     39. With the root unset, empty, relative, a missing folder, a folder without
 #                         its marker, a marked folder inside the repository, a marked folder
 #                         holding it, and a marker above it with the variable unset: `make flags`
@@ -201,7 +202,8 @@
 #                     57. The seed's own guard hook command, read from .claude/settings.json: from a
 #                         sub-folder it blocks a Write under a marked root and passes one in the
 #                         project; outside a work tree, and in one with no resolver, it exits 0.
-#                     58. With tomllib made unimportable (as on Python 3.8–3.10), `guard` still exits
+#                     58. With tomllib made unimportable (a Python whose standard library is not
+#                         whole; an older Python is checks 73–79's), `guard` still exits
 #                         2 under a root and 0 elsewhere, and `root` exits 2 with one line.
 #                     59. The resolver parses under ast.parse(…, feature_version=(3, 8)), so an old
 #                         python3 reaches the guard's fail-open wrapper at all.
@@ -254,6 +256,139 @@
 #                         runs no command from the answers (no file appears) and hands TeX the
 #                         data-root folder with the area exactly as written. Needs no TeX.
 #
+#                    The user guide (DESIGN.md D56). how-to/src/ holds the template's chapters,
+#                    never the work: the targets read it only when SCOPE names it, and a session's
+#                    file tools are kept out of how-to/ by the guide guard, whatever the settings
+#                    say. A render without how-to/ (one made before v0.6.0) skips these by name.
+#                     70. `make lint SCOPE=how-to/src STRICT=1` and `make flags SCOPE=how-to/src
+#                         STRICT=1` exit 0: the guide's chapters are lint-clean (business lint
+#                         reads every line under a SCOPE for em dashes) and hold no open flag.
+#                     71. A line holding two sentences, planted in
+#                         how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md, is not reported
+#                         by `make lint` and is reported by `make lint SCOPE=how-to/src`: without
+#                         a SCOPE neither target reads the guide (the Makefile's WORK_DIRS).
+#                     72. The guide guard, .claude/hooks/how-to-read-only.sh, run from the copy's
+#                         root with a hand-written PreToolUse payload: it exits 2 for an Edit of
+#                         how-to/CONTEXT.md, a Write of how-to/new.md, a MultiEdit of an absolute
+#                         path into how-to/src/, a NotebookEdit of how-to/x.ipynb, a Write of
+#                         ./planning/../how-to/a.md, a Write through a link docs-link -> how-to,
+#                         and, on a disk that ignores letter case, a Write of How-To/a.md (on
+#                         Linux a casefold tmpfs in an unprivileged mount namespace stands in for
+#                         one; skipped, by name, where neither exists); it exits 0 for an Edit of
+#                         planning/src/outline.md, a Read of how-to/CONTEXT.md, the payload {},
+#                         input that is no JSON, and, in a scratch project whose how-to is a link
+#                         to planning/, an Edit of planning/src/outline.md. The seed's own hook
+#                         command, read from .claude/settings.json and run with bash -c, refuses
+#                         the Edit of how-to/CONTEXT.md in the copy, and exits 0 with the script
+#                         removed and outside a git work tree.
+#
+#                    An older Python (the maintainer's decision of 23/10/2026; DESIGN.md D49–D52).
+#                    The project's tools need Python X.Y or later, X.Y being _common.sh's
+#                    SA_PYTHON_MIN, and a person may still run one on an older Python, which no
+#                    other check here ever does. A command must then refuse, loudly and on
+#                    stderr: it did not run, because this is Python A.B and it needs X.Y or
+#                    later; upgrade. A hook must never block on it: it lets the action through
+#                    and says the same, as a PreToolUse or UserPromptSubmit hook's JSON on
+#                    stdout with exit 0, its systemMessage shown to the person and its
+#                    hookSpecificOutput.additionalContext read by the session. Checks 73–79 and
+#                    81 run the render's own files on the newest Python below X.Y that
+#                    _common.sh's sa_old_python finds (SA_OLD_PYTHON names one; python3.N on PATH
+#                    or uv's own, never a download, down to 3.8), and are skipped, by name, where
+#                    there is none. "Loud" means the message names the Python it runs on (Python
+#                    A.B), the minimum ('X.Y or later'), that it did not run (or work) and the word
+#                    'upgrade', in any letter case, with no traceback.
+#                     73. The resolver, run as `pythonA.B .claude/syntek-author-dataroot.py`, for
+#                         `root`, `store`, `path`, `add`, `verify`, `status`, `pull`, `plan`,
+#                         `check-names` and `--self-test`: each exits non-zero with nothing on
+#                         stdout and the loud message on stderr, and nothing in the copy changes.
+#                     74. With python3 at A.B first on PATH, `make root`, `make files-status` and
+#                         `make provenance` (each where the Makefile has it) exit non-zero and
+#                         print the loud message, so make's own Python never runs a tool on it.
+#                     75. Every tooling/*.py, run with no argument on Python A.B, exits non-zero
+#                         with nothing on stdout and the loud message on stderr.
+#                     76. `.claude/syntek-author-permissions.py --check` and `--write` on Python
+#                         A.B each exit non-zero with nothing on stdout and the loud message on
+#                         stderr, and nothing in the copy changes.
+#                     77. The data-root guard, as the seed's hook command runs it (read from
+#                         .claude/settings.json) with python3 at A.B first on PATH: a Write under a
+#                         marked root, which it blocks on a current Python (checks 50 and 57),
+#                         exits 0 with one JSON object on stdout, its systemMessage and its
+#                         additionalContext (hookEventName PreToolUse) each the loud message, and
+#                         no permissionDecision, no "decision": "block" and no "continue": false;
+#                         a Write in the project exits 0 and is not blocked either.
+#                     78. The guide guard, .claude/hooks/how-to-read-only.sh, the same way: an Edit
+#                         of how-to/CONTEXT.md, which it refuses on a current Python (check 72),
+#                         exits 0 with that JSON; an Edit of planning/src/outline.md is not blocked.
+#                     79. The context-threshold hook, .claude/hooks/context-threshold-handoff.sh,
+#                         given a UserPromptSubmit payload whose transcript holds no record, exits
+#                         0 with that JSON (hookEventName UserPromptSubmit) and blocks no prompt.
+#                     80. Every Python file the project runs but the resolver (check 59's): the
+#                         permissions script, each tooling/*.py and the Python each
+#                         .claude/hooks/*.sh holds between <<'PY' and PY, parses under
+#                         ast.parse(…, feature_version=(3, 8)), so an old Python reaches the
+#                         version check and prints the message rather than a SyntaxError. Needs
+#                         no older Python, and always runs.
+#                     81. _common.sh, sourced with python3 at A.B first on PATH, and again with
+#                         UV_PYTHON naming it, exits 2 before anything runs, naming Python A.B and
+#                         'X.Y or later': every audit's own findings would otherwise be the
+#                         interpreter's (D52's update script refuses to run there).
+#
+#                    The handoff hooks (DESIGN.md D29, the maintainer's decisions of 24/10/2026).
+#                    A hook's message is the one way the person hears that a compaction was
+#                    stopped or made, and nothing else here ever runs the hooks or reads what
+#                    they print: a note that never appears, appears twice, lands in another
+#                    session or shows Claude Code's 'hook error' notice ships silently. Each check
+#                    reads the seed's four D29 commands from the render's .claude/settings.json
+#                    and runs them as Claude Code runs a command hook on Linux and macOS, `sh -c`
+#                    with a payload written by hand on stdin (checks 86 and 87 under `bash -c`
+#                    too), in a scratch Git project holding a copy of the render's .claude/hooks/
+#                    and .claude/settings.json, from a subfolder of it. They need bash and git
+#                    only (python3 reads the JSON); a render without both hooks is skipped by
+#                    name, and so is one whose seed lacks an entry (shipped-seeds checks 12 and
+#                    22 report it).
+#                     82. Automatic compaction: PreCompact `auto` for session smoke-a exits 2 with
+#                         nothing on stdout and leaves a marker in .claude/; the UserPromptSubmit
+#                         command for smoke-b then exits 0, prints nothing and leaves it; for
+#                         smoke-a, with its transcript past the insist threshold, it exits 0 and
+#                         prints exactly one line, a JSON object whose systemMessage is the
+#                         automatic note's exact text (held here, as HK_AUTO_NOTE), whose
+#                         hookSpecificOutput.hookEventName is UserPromptSubmit and whose
+#                         additionalContext holds the fallback for a full window (HK_AUTO_CTX),
+#                         so the relayed note is the prompt's only output, and no marker remains;
+#                         a second prompt prints nothing. After another `auto` of smoke-a (a
+#                         compaction that went ahead anyway), its SessionStart `compact` exits 0,
+#                         prints nothing and removes the marker unread, and its next prompt
+#                         prints nothing. A PreCompact `auto` with no session_id, and one whose
+#                         id is nothing once reduced to letters, digits and hyphens, exits 2
+#                         with its reminder on stderr and adds no name to .claude/.
+#                     83. Manual compaction: PreCompact `manual` for smoke-m exits 0 with nothing on
+#                         stdout and leaves a marker; smoke-m's prompt prints nothing and keeps it;
+#                         the SessionStart `compact` command for smoke-m exits 0 and prints exactly
+#                         one JSON line whose systemMessage is the manual note's exact text
+#                         (HK_MANUAL_NOTE), whose hookEventName is SessionStart and whose
+#                         additionalContext offers the handoff (HK_MANUAL_CTX), and the marker is
+#                         gone; a second SessionStart prints nothing. A PreCompact `manual` with
+#                         no session_id exits 0 and adds no name to .claude/.
+#                     84. One marker per session: an `auto` in smoke-a and a `manual` in smoke-b
+#                         leave exactly .claude/compaction-marker-smoke-a.tmp and
+#                         .claude/compaction-marker-smoke-b.tmp; smoke-b's SessionStart shows a
+#                         note (one JSON line, hookEventName SessionStart) and leaves smoke-a's
+#                         marker byte for byte; smoke-a's next prompt then shows its note
+#                         (hookEventName UserPromptSubmit). Checks 82 and 83 judge the texts. An
+#                         `auto` in session 'smoke.r/' leaves exactly
+#                         .claude/compaction-marker-smoker.tmp (the id reduced).
+#                     85. Stale markers: with another session's marker last modified eight days ago,
+#                         a third session's an hour ago and a link named like a marker thirty days
+#                         old, a PreCompact `auto` removes the eight-day-old one, keeps the recent
+#                         one and the link, and a PreCompact `auto` of the session the link is
+#                         named for neither removes it nor writes through it.
+#                     86. A missing script is silent: with .claude/hooks/pre-compact-handoff.sh and
+#                         .claude/hooks/context-threshold-handoff.sh removed from a copy, each of
+#                         the four commands exits 0 with nothing on stdout or stderr.
+#                     87. Outside a Git repository: each of the four commands, run from a scratch
+#                         folder outside any repository (GIT_CEILING_DIRECTORIES set so no parent
+#                         repository is found), exits 0 with nothing on stdout or stderr.
+#
 #                    Numbers are stable identifiers. Append, never renumber.
 #
 #                    A check whose input is absent is SKIPPED and named as skipped, never
@@ -267,21 +402,46 @@
 #                    to the right actor: compare.py's own self-test (check 18) proves the
 #                    attribution, and check 33 only that each actor's macro reaches the LaTeX.
 #                    Nor the data root on Windows or macOS (case folding, online-only files,
-#                    long paths), behind a real sync service, or the guard inside a live Claude
-#                    Code session: the checks run on this machine's disk, with the hook's JSON
-#                    written by hand. The resolver's own --self-test covers its units.
+#                    long paths), behind a real sync service, or either guard inside a live
+#                    Claude Code session: the checks run on this machine's disk, with the hook's
+#                    JSON written by hand. The resolver's own --self-test covers its units. Nor
+#                    the guide guard on native Windows, where it may let a write through (D56).
+#                    Nor when Claude Code fires the handoff hooks (an idle compaction among
+#                    them), or how it shows their notes: checks 82–87 write the events by hand.
 #
 # SELF-TEST. --self-test writes a fixture render at runtime with a Makefile whose targets can be
 #            told to fail one at a time, proves it clean, then fails each target in turn and
-#            asserts exactly one finding each. For checks 39–69 the fixture carries the real
+#            asserts exactly one finding each. For checks 70–72 the fixture carries a chapter
+#            of the user guide and the real guide guard from template/; its Makefile reads
+#            how-to/src only under a SCOPE unless told otherwise. For checks 39–69 the fixture carries the real
 #            resolver from template/ behind a stand-in of the same name, which runs it unchanged
 #            unless SMOKE_DR switches on one misbehaviour; the stand-in Makefile's data-root
-#            targets take switches of their own. Those probes need Python 3.11 or later, and are
-#            named as skipped below it. Each probe runs only the group its mutation is in (the
-#            data root, or the rest), after baselines that run both.
+#            targets take switches of their own. Those probes need python3 at SA_PYTHON_MIN or
+#            later, and are named as skipped below it. For checks 73–81 the stand-in resolver,
+#            the guide guard and the threshold hook (each a prelude before the real one), a
+#            stand-in permissions script and two tooling scripts each answer an older Python as
+#            the checks require, until SMOKE_OLD switches on one misbehaviour; the stand-in
+#            Makefile's OLD_SWALLOW=1 hides a refusal, and check 81 sources a copy of
+#            _common.sh whose pin never runs. Those probes need an older Python, as checks
+#            73–79 and 81 do, and are named as skipped without one; check 80's always runs.
+#            For checks 82–87 the fixture carries the real pre-compact-handoff.sh, the real
+#            context-threshold-handoff.sh behind that prelude, which passes a current Python
+#            straight through, and the four D29 commands read from migrations/family-refresh.json
+#            (byte for byte the seed's; shipped-seeds check 12 holds them together). Each probe
+#            changes one fixture file: the automatic note loses its last sentence (82), the
+#            manual note one word (83), every session shares one marker name (84), the prune
+#            waits seventy days (85), the commands end in the old `[ -f … ] && exec` (86), and
+#            the root lookup fails with `|| exit 1` (87). Six more fire one check each: the
+#            threshold hook measures after a relayed note (82), a SessionStart keeps a stale
+#            `auto` marker (82), `auto` lets a payload with no session id through (82), each
+#            session text loses its fallback sentence (82, 83), and the id is no longer
+#            reduced in the marker's name (84).
+#            Each probe runs only the group its mutation is in (the data root, an older Python,
+#            the handoff hooks, or the rest), after baselines that run all four.
 #
-# Requirements: bash 4+, make, python3, git; Python 3.11 or later for the data-root checks;
-#               pandoc, xelatex, pdftotext and uv optional. No network, unless uv must fetch
+# Requirements: bash 4+, make, git, python3 at _common.sh's SA_PYTHON_MIN or later (its pin
+#               refuses an older one); a Python from 3.8 to below that minimum for checks 73–79
+#               and 81 (sa_old_python); pandoc, xelatex, pdftotext and uv optional. No network, unless uv must fetch
 #               fontTools for `make font` on its first run.
 #
 # Usage: tooling-smoke.sh [--require-pandoc] [--skip-pdf] [--quiet] [--self-test] [--help] <tree>...
@@ -356,17 +516,22 @@ mk() { # $1 = dir, $2 = target, then make arguments → sets RES[target]
   RES[$t]=$s
 }
 
-# Which groups a run covers: all, or (the self-test's probes only) legacy, checks 1–38, or
-# dataroot, checks 39–69. A group not run leaves its checks skipped, never passed.
+# Which groups a run covers: all, or (the self-test's probes only) legacy, checks 1–38 and
+# 70–72, dataroot, checks 39–69, oldpy, checks 73–81, or hooks, checks 82–87. A group not run
+# leaves its checks skipped, never passed.
 SMOKE_GROUPS=all
 
 smoke() { # $1 = a COPY of a render
   local d="$1"
-  RES=(); GOT=(); SKIPS=(); GRD=(); CLS=(); LIG=(); BRD=(); STE=(); CMP=(); IGN=(); ISS=(); DR=(); SELFTESTS=()
+  RES=(); GOT=(); SKIPS=(); GRD=(); CLS=(); LIG=(); BRD=(); STE=(); CMP=(); IGN=(); ISS=(); DR=(); SELFTESTS=(); HT=(); HG=(); OLD=(); HK=()
   smoke_answers "$d"
-  if [[ "$SMOKE_GROUPS" != dataroot ]]; then smoke_legacy "$d"
-  else GRD[skip]="skip: not run"; BRD[skip]="skip: not run"; STE[skip]="skip: not run"; fi
-  [[ "$SMOKE_GROUPS" == legacy ]] || smoke_dataroot "$d"
+  case "$SMOKE_GROUPS" in
+    all|legacy) smoke_legacy "$d" ;;
+    *) GRD[skip]="skip: not run"; BRD[skip]="skip: not run"; STE[skip]="skip: not run"; HT[skip]="skip: not run" ;;
+  esac
+  case "$SMOKE_GROUPS" in all|dataroot) smoke_dataroot "$d" ;; esac
+  case "$SMOKE_GROUPS" in all|oldpy) smoke_oldpy "$d" ;; esac
+  case "$SMOKE_GROUPS" in all|hooks) smoke_hooks "$d" ;; esac
   BUILD_DIR="$d/build"
 }
 
@@ -435,6 +600,129 @@ smoke_legacy() { # $1 = a COPY of a render: checks 1–38
     GRD[skip]="skip: no issued documents in a book render"
     CLS[build]="skip: no house preamble in a book render"
   fi
+  smoke_howto "$d"
+  smoke_howto_guard "$d"
+}
+
+# The user guide's chapters (D56, checks 70–71): clean under a SCOPE that names them, and never
+# read without one. HT[lint] and HT[flags] hold the exit statuses; HT[unscoped] and HT[scoped]
+# whether each lint saw the planted line ('seen', 'unseen', or why it could not run).
+HOWTO_CHAPTER="how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
+HOWTO_PLANT="The guide is short. It is plain."
+declare -A HT=()
+smoke_howto() { # $1 = a COPY of a render
+  local d="$1" s n log
+  HT=()
+  if [[ ! -d "$d/how-to/src" ]]; then HT[skip]="skip: no how-to/src (a render made before D56)"; return 0; fi
+  [[ -d "$d/.git" ]] || git -C "$d" init -q
+  for t in lint flags; do
+    s=0; (cd "$d" && timeout 300 make --no-print-directory "$t" SCOPE=how-to/src STRICT=1 "${MAKE_EXTRA[@]}") >"$d/.smoke-howto-$t.log" 2>&1 || s=$?
+    HT[$t]=$s
+  done
+  # A make flags that fails everywhere is check 2's, not a fault of the guide.
+  [[ "${RES[flags]:-0}" == 0 || "${HT[flags]}" == 0 ]] || HT[flags]="skip: make flags failed (check 2 reports it)"
+  if [[ ! -f "$d/$HOWTO_CHAPTER" ]]; then HT[plant]="skip: no $HOWTO_CHAPTER"; return 0; fi
+  cp -- "$d/$HOWTO_CHAPTER" "$d/.smoke-howto-chapter.keep"
+  printf '
+%s
+' "$HOWTO_PLANT" >> "$d/$HOWTO_CHAPTER"
+  n="$(wc -l < "$d/$HOWTO_CHAPTER")"
+  for t in unscoped scoped; do
+    log="$d/.smoke-howto-lint-$t.log"; s=0
+    if [[ "$t" == unscoped ]]; then
+      (cd "$d" && timeout 300 make --no-print-directory lint "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+    else
+      (cd "$d" && timeout 300 make --no-print-directory lint SCOPE=how-to/src "${MAKE_EXTRA[@]}") >"$log" 2>&1 || s=$?
+    fi
+    if [[ "$s" -ne 0 && "$t" == unscoped ]]; then HT[$t]="failed (exit $s)"
+    elif [[ "$s" -ne 0 ]]; then HT[$t]="failed (exit $s)"
+    elif grep -qF "$HOWTO_CHAPTER:$n:" "$log"; then HT[$t]=seen
+    else HT[$t]=unseen; fi
+  done
+  cp -- "$d/.smoke-howto-chapter.keep" "$d/$HOWTO_CHAPTER"; rm -f -- "$d/.smoke-howto-chapter.keep"
+}
+
+# The guide guard (D56, check 72): every case of DESIGN.md D56's guard, run from the copy's root
+# with a payload written by hand. HG[result] is 0, or the cases that went wrong; HG[case7] says
+# why the letter-case case could not run.
+declare -A HG=()
+hg_payload() { # $1 = tool, $2 = field, $3 = target, $4 = cwd → the PreToolUse JSON
+  python3 -I -c 'import json, sys; print(json.dumps({"hook_event_name": "PreToolUse", "tool_name": sys.argv[1], "tool_input": {sys.argv[2]: sys.argv[3]}, "cwd": sys.argv[4]}))' "$@"
+}
+hg_run() { # $1 = folder to run in, $2 = stdin, then the command → its exit status on stdout
+  local dir="$1" input="$2" s=0; shift 2
+  (cd "$dir" && printf '%s' "$input" | "$@") >/dev/null 2>&1 || s=$?
+  printf '%s' "$s"
+}
+smoke_howto_guard() { # $1 = a COPY of a render
+  local d="$1" g=".claude/hooks/how-to-read-only.sh" scratch got cmd s
+  local -a bad=()
+  HG=()
+  if [[ ! -f "$d/$g" ]]; then HG[result]="skip: no $g (a render made before D56)"; return 0; fi
+  [[ -d "$d/.git" ]] || git -C "$d" init -q
+  scratch="$(sa_mktemp)"
+  hg_want() { # $1 = expected exit, $2 = label, $3 = folder, $4 = stdin, then the command
+    local want="$1" label="$2" dir="$3" input="$4" got; shift 4
+    got="$(hg_run "$dir" "$input" "$@")"
+    [[ "$got" == "$want" ]] || bad+=("$label exited $got, not $want")
+  }
+  # Refused (exit 2).
+  hg_want 2 "an Edit of how-to/CONTEXT.md" "$d" "$(hg_payload Edit file_path how-to/CONTEXT.md "$d")" bash "$g"
+  hg_want 2 "a Write of how-to/new.md" "$d" "$(hg_payload Write file_path how-to/new.md "$d")" bash "$g"
+  hg_want 2 "a MultiEdit of an absolute path into how-to/src/" "$d" "$(hg_payload MultiEdit file_path "$d/how-to/src/x.md" "$d")" bash "$g"
+  hg_want 2 "a NotebookEdit of how-to/x.ipynb" "$d" "$(hg_payload NotebookEdit notebook_path how-to/x.ipynb "$d")" bash "$g"
+  hg_want 2 "a Write of ./planning/../how-to/a.md" "$d" "$(hg_payload Write file_path ./planning/../how-to/a.md "$d")" bash "$g"
+  ln -s how-to "$d/docs-link"
+  hg_want 2 "a Write through the link docs-link -> how-to" "$d" "$(hg_payload Write file_path docs-link/a.md "$d")" bash "$g"
+  rm -f -- "$d/docs-link"
+  # Case 7: another letter case, on a disk that ignores it: this one, or a casefold tmpfs.
+  if [[ -d "$d/How-To" ]]; then
+    hg_want 2 "a Write of How-To/a.md on a disk that ignores case" "$d" "$(hg_payload Write file_path How-To/a.md "$d")" bash "$g"
+  elif command -v unshare >/dev/null 2>&1 && command -v chattr >/dev/null 2>&1; then
+    mkdir -p "$scratch/cf"
+    s=0
+    unshare -rm bash -c '
+      mount -t tmpfs -o casefold tmpfs "$1" 2>/dev/null && mkdir "$1/d" && chattr +F "$1/d" 2>/dev/null || exit 99
+      p="$1/d/p"; mkdir -p "$p/.claude/hooks" "$p/how-to"; cp -- "$2" "$p/.claude/hooks/"
+      cd "$p" && python3 -I -c '"'"'import json, sys; print(json.dumps({"tool_name": "Write", "tool_input": {"file_path": "How-To/a.md"}, "cwd": sys.argv[1]}))'"'"' "$p"         | bash .claude/hooks/how-to-read-only.sh' smoke-casefold "$scratch/cf" "$d/$g" >/dev/null 2>&1 || s=$?
+    case "$s" in
+      2) ;;
+      99) HG[case7]="skip: no casefold tmpfs here (Linux 6.13 or later, in an unprivileged mount namespace)" ;;
+      *) bad+=("a Write of How-To/a.md on a casefold disk exited $s, not 2") ;;
+    esac
+  else
+    HG[case7]="skip: the disk is case-sensitive, and no unshare or chattr to make one that is not"
+  fi
+  # Let through (exit 0).
+  hg_want 0 "an Edit of planning/src/outline.md" "$d" "$(hg_payload Edit file_path planning/src/outline.md "$d")" bash "$g"
+  hg_want 0 "a Read of how-to/CONTEXT.md" "$d" "$(hg_payload Read file_path how-to/CONTEXT.md "$d")" bash "$g"
+  hg_want 0 "the payload {}" "$d" '{}' bash "$g"
+  hg_want 0 "input that is no JSON" "$d" 'not json' bash "$g"
+  mkdir -p "$scratch/linked/.claude/hooks" "$scratch/linked/planning/src"
+  cp -- "$d/$g" "$scratch/linked/$g"; ln -s planning "$scratch/linked/how-to"
+  hg_want 0 "an Edit of planning/src/outline.md where how-to links to planning/" "$scratch/linked"     "$(hg_payload Edit file_path planning/src/outline.md "$scratch/linked")" bash "$g"
+  # The seed's own hook command (cases 13 and 14), with the copy's refusal as its control.
+  cmd="$(python3 -I -c 'import json, sys
+try:
+    data = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    sys.exit(0)
+for e in (data.get("hooks") or {}).get("PreToolUse") or []:
+    for h in e.get("hooks") or []:
+        if sys.argv[2] in str(h.get("command", "")):
+            print(h["command"]); sys.exit(0)' "$d/.claude/settings.json" "$g")"
+  if [[ -z "$cmd" ]]; then
+    bad+=(".claude/settings.json has no PreToolUse entry running $g")
+  else
+    hg_want 2 "the seed's hook command, for an Edit of how-to/CONTEXT.md" "$d" "$(hg_payload Edit file_path how-to/CONTEXT.md "$d")" bash -c "$cmd"
+    mkdir -p "$scratch/noscript/.claude/hooks" "$scratch/outside"
+    git -C "$scratch/noscript" init -q
+    hg_want 0 "the seed's hook command with the script absent" "$scratch/noscript" "$(hg_payload Edit file_path how-to/CONTEXT.md "$scratch/noscript")" bash -c "$cmd"
+    GIT_CEILING_DIRECTORIES="$scratch" hg_want 0 "the seed's hook command outside a git work tree" "$scratch/outside"       "$(hg_payload Edit file_path how-to/CONTEXT.md "$scratch/outside")" bash -c "$cmd"
+  fi
+  rm -rf -- "${scratch:?}"
+  if [[ ${#bad[@]} -eq 0 ]]; then HG[result]=0
+  else HG[result]="$(printf '%s; ' "${bad[@]}")"; HG[result]="${HG[result]%; }"; fi
 }
 
 # D42 (checks 21 and 22): a git-ignored file's lines never reach make flags or make lint. The
@@ -944,8 +1232,8 @@ smoke_print() { # $1 = a COPY of a book render
 # check n's result: 0, 'skip: why', or the reasons it failed, which make its one finding.
 DR_PY="$SA_DATAROOT_PY"
 DR_MARK="$SA_DATAROOT_MARKER"
-HAVE_PY311=false
-python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null && HAVE_PY311=true
+HAVE_PY_MIN=false   # python3 at the resolver's floor, SA_PYTHON_MIN (the pin has already refused one below it)
+_v="$(sa_py_version python3 || true)"; [[ -n "$_v" ]] && ! sa_py_older "$_v" && HAVE_PY_MIN=true; unset _v
 declare -A DR=()
 DR_ENV=()
 DR_RC=0
@@ -1177,7 +1465,7 @@ sys.exit({"rows": rows, "rowkey": rowkey, "rowset": rowset, "rowdrop": rowdrop, 
           "guardcmd": guardcmd, "parse": parse, "call": call, "swapcase": swapcase}[sys.argv[1]](*sys.argv[2:]))
 '
 drh() { python3 -I -c "$DR_HELPER" "$@"; }
-# The resolver run as a script with tomllib unimportable, as on Python 3.8 to 3.10.
+# The resolver run as a script with tomllib unimportable, as in a Python whose library is not whole.
 DR_NOTOML='import runpy, sys; sys.modules["tomllib"] = None; sys.argv = sys.argv[1:]; runpy.run_path(sys.argv[0], run_name="__main__")'
 
 # One resolver call from the copy's top, in DR_ENV: DR_RC, and .smoke-dr.out and .smoke-dr.err.
@@ -1268,8 +1556,8 @@ smoke_dataroot() { # $1 = a COPY of a render: checks 39–69
   dr_notoml "$d" "$g"
   dr_env "$d" "$w"
   rm -rf -- "${g:?}"
-  if ! $HAVE_PY311; then
-    for n in {39..49} {51..55} {60..69}; do DR[$n]="skip: python3 is below 3.11, where every data command refuses"; done; return 0
+  if ! $HAVE_PY_MIN; then
+    for n in {39..49} {51..55} {60..69}; do DR[$n]="skip: python3 is below $SA_PYTHON_MIN, where every data command refuses"; done; return 0
   fi
   DR_FOLDER="$(drh folders "$d/$SA_DATAROOT_MAP" "$d" 2>/dev/null | cut -f1 | awk '$0 == "research/src" { r = $0 } NR == 1 { f = $0 } END { print (r != "" ? r : f) }' || true)"
   if [[ -z "$DR_FOLDER" ]]; then
@@ -1389,7 +1677,7 @@ dr_hook() { # $1 = copy, $2 = its scratch folder, $3 = a marked root
   dr_set 57 "$why"
 }
 
-# Check 58: below Python 3.11 tomllib is missing; the guard must not need it, and every other
+# Check 58: without tomllib (a library that is not whole) the guard must still decide, and every other
 # command must say so in one line rather than fail with a traceback.
 dr_notoml() { # $1 = copy, $2 = a marked root
   local d="$1" g="$2" why="" err
@@ -1415,9 +1703,9 @@ dr_env() { # $1 = copy, $2 = its scratch folder
       [[ -z "$2" ]] || export SYNTEK_DATA_ROOT="$3"
       printf "variable: %s\n" "${SYNTEK_DATA_ROOT-unset}"
       [[ "$4" != true ]] || python3 "$5" root 2>/dev/null | head -n 1
-    ' smoke-env "$SA_SCRIPTS_DIR/_common.sh" "$SMOKE_REEXPORT" "$decoy" "$HAVE_PY311" "$DR_PY" 2>&1 || true)"
+    ' smoke-env "$SA_SCRIPTS_DIR/_common.sh" "$SMOKE_REEXPORT" "$decoy" "$HAVE_PY_MIN" "$DR_PY" 2>&1 || true)"
   grep -qx 'variable: unset' <<<"$out" || why+=" a script that sources _common.sh sees SYNTEK_DATA_ROOT ($(head -n 1 <<<"$out"));"
-  if $HAVE_PY311; then
+  if $HAVE_PY_MIN; then
     grep -qx 'root: none' <<<"$out" || why+=" the render's root reports '$(sed -n 2p <<<"$out")', not 'root: none';"
   fi
   [[ "$(find "$decoy" -mindepth 1 | wc -l)" -eq 1 ]] || why+=" something was written in the decoy root;"
@@ -2104,6 +2392,623 @@ dr_head() { # $1 = copy, $2 = its scratch folder
 
 BUILD_DIR=""
 SELFTESTS=()
+# ── An older Python (checks 73–81) ───────────────────────────────────────────
+#
+# The newest Python below SA_PYTHON_MIN this machine has (_common.sh's sa_old_python), found once.
+# OLD[n] is check n's result: 0, 'skip: why', or the reasons it failed, which make its one finding.
+OLD_PY=""; OLD_VER=""; OLD_WHY=""
+if OLD_PY="$(sa_old_python)"; then OLD_VER="$(sa_py_version "$OLD_PY")"; else OLD_WHY="${OLD_PY:-no older Python}"; OLD_PY=""; fi
+OLD_BIN=""              # a folder holding python3 -> the older Python, put first on PATH
+OLD_RC=0
+SMOKE_COMMON=""         # the self-test's check 81 mutation: a copy of _common.sh whose pin never runs
+declare -A OLD=()
+declare -A OLD_WHAT=(
+  [73]="the data-root resolver did not refuse loudly on an older Python"
+  [74]="a make target that runs python3 did not refuse loudly on an older python3"
+  [75]="a tooling script did not refuse loudly on an older Python"
+  [76]="the permissions script did not refuse loudly on an older Python"
+  [77]="the data-root guard, on an older python3, blocked or did not warn the person and the session"
+  [78]="the guide guard, on an older python3, blocked or did not warn the person and the session"
+  [79]="the context-threshold hook, on an older python3, blocked or did not warn the person and the session"
+  [80]="a Python file the project runs does not parse under ast.parse(feature_version=(3, 8))"
+  [81]="_common.sh did not refuse an older Python before anything ran"
+)
+# The judges, run on the current Python. Each prints what is wrong, or nothing.
+#   refusal OUT ERR RC OLD MIN   a command: non-zero, nothing on stdout, the loud message on stderr
+#   log LOG RC OLD MIN           a make target: non-zero, the loud message in its output
+#   hook OUT RC EVENT OLD MIN W  a hook: exit 0, no block; with W=1 the loud message as its JSON
+#   parse FILE                   the file parses under feature_version (3, 8)
+#   hookpy FILE                  every <<'PY' … PY block of a hook script parses so
+OLD_HELPER="$SA_LOUD_DEF"'
+import ast
+import json
+
+
+def first(text):
+    lines = [x.strip() for x in text.splitlines() if x.strip()]
+    return (lines[0] if lines else "")[:90]
+
+
+def refusal(out, err, rc, old, need):
+    out, err = open(out, errors="replace").read(), open(err, errors="replace").read()
+    bad = []
+    if rc == "0":
+        bad.append("exited 0")
+    if out.strip():
+        bad.append("printed on stdout (%r)" % first(out))
+    miss = unloud(err, old, need)
+    if miss:
+        bad.append("its stderr (%r) lacks %s" % (first(err), ", ".join(miss)))
+    print(", ".join(bad))
+
+
+def log(path, rc, old, need):
+    text = open(path, errors="replace").read()
+    bad = []
+    if rc == "0":
+        bad.append("exited 0")
+    miss = unloud(text, old, need)
+    if miss:
+        bad.append("its output (%r) lacks %s" % (first(text), ", ".join(miss)))
+    print(", ".join(bad))
+
+
+def hook(out, rc, event, old, need, warn):
+    text = open(out, errors="replace").read().strip()
+    bad = []
+    if rc != "0":
+        bad.append("exited %s, not 0 (a hook never blocks on an older Python)" % rc)
+    if not text:
+        if warn == "1":
+            bad.append("printed nothing, so no warning reached the person or the session")
+        print(", ".join(bad))
+        return
+    try:
+        data = json.loads(text)
+    except ValueError:
+        data = None
+    if not isinstance(data, dict):
+        bad.append("its stdout is not one JSON object (%r)" % first(text))
+        print(", ".join(bad))
+        return
+    spec = data.get("hookSpecificOutput")
+    if data.get("decision") == "block" or data.get("continue") is False:
+        bad.append("its JSON blocks (decision block, or continue false)")
+    if isinstance(spec, dict) and "permissionDecision" in spec:
+        bad.append("its JSON decides the permission (%r)" % spec.get("permissionDecision"))
+    if warn == "1":
+        msg = data.get("systemMessage")
+        miss = unloud(msg, old, need) if isinstance(msg, str) else ["a systemMessage, which the person sees"]
+        if miss:
+            bad.append("its systemMessage lacks %s" % ", ".join(miss))
+        ctx = spec.get("additionalContext") if isinstance(spec, dict) else None
+        if not isinstance(spec, dict) or spec.get("hookEventName") != event:
+            bad.append("its hookSpecificOutput names no hookEventName %s" % event)
+        miss = unloud(ctx, old, need) if isinstance(ctx, str) else ["an additionalContext, which the session reads"]
+        if miss:
+            bad.append("its additionalContext lacks %s" % ", ".join(miss))
+    print(", ".join(bad))
+
+
+def parse_text(source):
+    try:
+        ast.parse(source, feature_version=(3, 8))
+    except SyntaxError as e:
+        return "line %s: %s" % (e.lineno, e.msg)
+    return ""
+
+
+def parse(path):
+    print(parse_text(open(path, encoding="utf-8").read()))
+
+
+def hookpy(path):
+    block, inside, start, bad = [], False, 0, []
+    for n, line in enumerate(open(path, encoding="utf-8").read().splitlines(), 1):
+        if not inside and re.search(r"<<\s*\x27PY\x27", line):
+            inside, block, start = True, [], n
+        elif inside and line == "PY":
+            inside = False
+            why = parse_text("\n".join(block) + "\n")
+            if why:
+                bad.append("the block from line %d, %s" % (start, why))
+        elif inside:
+            block.append(line)
+    print("; ".join(bad))
+
+
+{"refusal": refusal, "log": log, "hook": hook, "parse": parse, "hookpy": hookpy}[sys.argv[1]](*sys.argv[2:])
+'
+oldh() { python3 -I -c "$OLD_HELPER" "$@"; }
+old_set() { # $1 = check, $2 = its reasons ('' when it passed)
+  local w="${2# }"; w="${w%;}"
+  OLD[$1]="${w:-0}"
+}
+# One command from the copy's top on the older Python: OLD_RC, .smoke-old.out and .smoke-old.err.
+old_run() { # $1 = copy, then the command
+  local d="$1"; shift
+  OLD_RC=0
+  (cd "$d" && env -u SYNTEK_DATA_ROOT PATH="$OLD_BIN:$PATH" timeout 120 "$@") </dev/null >"$d/.smoke-old.out" 2>"$d/.smoke-old.err" || OLD_RC=$?
+}
+# One hook from the copy's top, its JSON on stdin, with python3 at the older Python first on PATH.
+old_hook() { # $1 = copy, $2 = the hook's JSON, then the command
+  local d="$1" in="$2"; shift 2
+  OLD_RC=0
+  (cd "$d" && env -u SYNTEK_DATA_ROOT PATH="$OLD_BIN:$PATH" timeout 60 "$@") <<<"$in" >"$d/.smoke-old.out" 2>"$d/.smoke-old.err" || OLD_RC=$?
+}
+# Every file's hash, logs, .git and build/ aside: what a refusal must leave as it was.
+old_sums() { # $1 = copy
+  (cd "$1" && find . \( -name .git -o -name build -o -name '.smoke-*' \) -prune -o -type f -print0 | LC_ALL=C sort -z \
+    | xargs -0 -r sha1sum 2>/dev/null) || true
+}
+old_changed() { # $1 = sums before, $2 = sums after → the first path that differs
+  diff <(printf '%s\n' "$1") <(printf '%s\n' "$2") | sed -n 's/^[<>] [0-9a-f]*  \.\///p' | head -1 || true
+}
+
+smoke_oldpy() { # $1 = a COPY of a render: checks 73–81
+  local d="$1" w n
+  w="$(dirname "$d")"
+  OLD=()
+  old_parse "$d"
+  if [[ -z "$OLD_PY" ]]; then
+    for n in {73..79} 81; do OLD[$n]="skip: $OLD_WHY"; done; return 0
+  fi
+  OLD_BIN="$w/old-python-bin"; rm -rf -- "$OLD_BIN"; mkdir -p "$OLD_BIN"; ln -s "$OLD_PY" "$OLD_BIN/python3"
+  [[ -d "$d/.git" ]] || git -C "$d" init -q
+  old_resolver "$d"
+  old_make "$d"
+  old_tools "$d"
+  old_permissions "$d"
+  old_guard "$d" "$w"
+  old_howto "$d"
+  old_threshold "$d" "$w"
+  old_pin
+  rm -rf -- "${OLD_BIN:?}"
+}
+
+# Check 73: every command a person or the Makefile gives the resolver.
+old_resolver() { # $1 = copy
+  local d="$1" why="" before after a bad
+  local -a cmds=("root" "store" "path smoke-old.pdf" "add smoke-old.pdf --role issued" "verify" "status" "pull" "plan"
+                 "check-names smoke-old.pdf" "--self-test")
+  if [[ ! -f "$d/$DR_PY" ]]; then OLD[73]="skip: no data-root resolver in this render (one from before D50)"; return 0; fi
+  before="$(old_sums "$d")"
+  for a in "${cmds[@]}"; do
+    # shellcheck disable=SC2086  # each entry is the resolver's arguments, split on purpose
+    old_run "$d" "$OLD_PY" "$DR_PY" $a
+    bad="$(oldh refusal "$d/.smoke-old.out" "$d/.smoke-old.err" "$OLD_RC" "$OLD_VER" "$SA_PYTHON_MIN")"
+    [[ -z "$bad" ]] || why+=" '$a' $bad;"
+  done
+  after="$(old_sums "$d")"
+  [[ "$before" == "$after" ]] || why+=" a refused command changed $(old_changed "$before" "$after");"
+  old_set 73 "$why"
+}
+
+# Check 74: make's own python3 is the older one.
+old_make() { # $1 = copy
+  local d="$1" why="" t s log bad ran=""
+  for t in root files-status provenance; do
+    grep -q "^$t:" "$d/Makefile" 2>/dev/null || continue
+    ran+=" $t"; log="$d/.smoke-old-make-$t.log"; s=0
+    (cd "$d" && env -u AS -u SYNTEK_DATA_ROOT PATH="$OLD_BIN:$PATH" timeout 300 make --no-print-directory "$t" "${MAKE_EXTRA[@]}") \
+      </dev/null >"$log" 2>&1 || s=$?
+    bad="$(oldh log "$log" "$s" "$OLD_VER" "$SA_PYTHON_MIN")"
+    [[ -z "$bad" ]] || why+=" make $t $bad;"
+  done
+  if [[ -z "$ran" ]]; then OLD[74]="skip: the Makefile has none of root, files-status and provenance"; return 0; fi
+  old_set 74 "$why"
+}
+
+# Check 75: each tooling script, as make runs it, from the copy's top.
+old_tools() { # $1 = copy
+  local d="$1" why="" f bad
+  local -a py=()
+  for f in "$d"/tooling/*.py; do [[ -f "$f" ]] && py+=("${f#"$d/"}"); done
+  if [[ ${#py[@]} -eq 0 ]]; then OLD[75]="skip: no tooling/*.py in this render"; return 0; fi
+  for f in "${py[@]}"; do
+    old_run "$d" "$OLD_PY" "$f"
+    bad="$(oldh refusal "$d/.smoke-old.out" "$d/.smoke-old.err" "$OLD_RC" "$OLD_VER" "$SA_PYTHON_MIN")"
+    [[ -z "$bad" ]] || why+=" $f $bad;"
+  done
+  old_set 75 "$why"
+}
+
+# Check 76: the permissions script, read-only and writing.
+old_permissions() { # $1 = copy
+  local d="$1" p=".claude/syntek-author-permissions.py" why="" a bad before after
+  if [[ ! -f "$d/$p" ]]; then OLD[76]="skip: no $p in this render (one from before D49)"; return 0; fi
+  before="$(old_sums "$d")"
+  for a in --check --write; do
+    old_run "$d" "$OLD_PY" "$p" "$a"
+    bad="$(oldh refusal "$d/.smoke-old.out" "$d/.smoke-old.err" "$OLD_RC" "$OLD_VER" "$SA_PYTHON_MIN")"
+    [[ -z "$bad" ]] || why+=" $a $bad;"
+  done
+  after="$(old_sums "$d")"
+  [[ "$before" == "$after" ]] || why+=" --write changed $(old_changed "$before" "$after");"
+  old_set 76 "$why"
+}
+
+# Check 77: the data-root guard as the seed runs it, under a marked root and in the project.
+old_guard() { # $1 = copy, $2 = its scratch folder
+  local d="$1" g="$2/old-root" cmd why="" bad
+  if [[ ! -f "$d/$DR_PY" ]]; then OLD[77]="skip: no data-root resolver in this render (one from before D50)"; return 0; fi
+  if ! cmd="$(drh guardcmd "$d/.claude/settings.json" 2>/dev/null)"; then
+    OLD[77]="skip: the seed .claude/settings.json wires no data-root guard (check 57 reports it)"; return 0
+  fi
+  dr_root "$g"; mkdir -p "$g/business"
+  old_hook "$d" "$(drh call Write file_path "$g/business/new.pdf")" sh -c "$cmd"
+  bad="$(oldh hook "$d/.smoke-old.out" "$OLD_RC" PreToolUse "$OLD_VER" "$SA_PYTHON_MIN" 1)"
+  [[ -z "$bad" ]] || why+=" a Write under a marked root $bad;"
+  old_hook "$d" "$(drh call Write file_path "$d/smoke-notes.md")" sh -c "$cmd"
+  bad="$(oldh hook "$d/.smoke-old.out" "$OLD_RC" PreToolUse "$OLD_VER" "$SA_PYTHON_MIN" 0)"
+  [[ -z "$bad" ]] || why+=" a Write in the project $bad;"
+  rm -rf -- "${g:?}"
+  old_set 77 "$why"
+}
+
+# Check 78: the guide guard, run from the copy's root as check 72 runs it.
+old_howto() { # $1 = copy
+  local d="$1" g="$SA_HOWTO_GUARD" why="" bad
+  if [[ ! -f "$d/$g" ]]; then OLD[78]="skip: no $g (a render made before D56)"; return 0; fi
+  old_hook "$d" "$(hg_payload Edit file_path how-to/CONTEXT.md "$d")" bash "$g"
+  bad="$(oldh hook "$d/.smoke-old.out" "$OLD_RC" PreToolUse "$OLD_VER" "$SA_PYTHON_MIN" 1)"
+  [[ -z "$bad" ]] || why+=" an Edit of how-to/CONTEXT.md $bad;"
+  old_hook "$d" "$(hg_payload Edit file_path planning/src/outline.md "$d")" bash "$g"
+  bad="$(oldh hook "$d/.smoke-old.out" "$OLD_RC" PreToolUse "$OLD_VER" "$SA_PYTHON_MIN" 0)"
+  [[ -z "$bad" ]] || why+=" an Edit of planning/src/outline.md $bad;"
+  old_set 78 "$why"
+}
+
+# Check 79: the context-threshold hook, on a prompt whose transcript holds no record yet.
+old_threshold() { # $1 = copy, $2 = its scratch folder
+  local d="$1" h=".claude/hooks/context-threshold-handoff.sh" t="$2/old-transcript.jsonl" why="" bad in
+  if [[ ! -f "$d/$h" ]]; then OLD[79]="skip: no $h in this render (one from before D51)"; return 0; fi
+  : > "$t"
+  in="$(python3 -I -c 'import json, sys; print(json.dumps({"hook_event_name": "UserPromptSubmit", "session_id": "smoke-old", "transcript_path": sys.argv[1], "cwd": sys.argv[2], "prompt": "Carry on."}))' "$t" "$d")"
+  old_hook "$d" "$in" bash "$h"
+  bad="$(oldh hook "$d/.smoke-old.out" "$OLD_RC" UserPromptSubmit "$OLD_VER" "$SA_PYTHON_MIN" 1)"
+  [[ -z "$bad" ]] || why+=" a prompt $bad;"
+  rm -f -- "$t"
+  old_set 79 "$why"
+}
+
+# Check 80: the grammar every Python file the project runs keeps, so an old Python can read it.
+old_parse() { # $1 = copy
+  local d="$1" why="" f bad
+  local -a py=()
+  [[ -f "$d/.claude/syntek-author-permissions.py" ]] && py+=(.claude/syntek-author-permissions.py)
+  for f in "$d"/tooling/*.py; do [[ -f "$f" ]] && py+=("${f#"$d/"}"); done
+  for f in "${py[@]}"; do
+    bad="$(oldh parse "$d/$f" 2>&1)"
+    [[ -z "$bad" ]] || why+=" $f, $bad;"
+  done
+  for f in "$d"/.claude/hooks/*.sh; do
+    [[ -f "$f" ]] || continue
+    bad="$(oldh hookpy "$f" 2>&1)"
+    [[ -z "$bad" ]] || why+=" ${f#"$d/"}, $bad;"
+  done
+  if [[ ${#py[@]} -eq 0 ]] && ! compgen -G "$d/.claude/hooks/*.sh" >/dev/null; then
+    OLD[80]="skip: no permissions script, tooling script or hook in this render"; return 0
+  fi
+  old_set 80 "$why"
+}
+
+# Check 81: _common.sh, sourced in a fresh shell, with the older Python as python3 and as UV_PYTHON.
+old_pin() {
+  local lib="${SMOKE_COMMON:-$SA_SCRIPTS_DIR/_common.sh}" why="" out s label
+  for label in python3 UV_PYTHON; do
+    s=0
+    if [[ "$label" == python3 ]]; then
+      out="$(env -u SA_PYTHON_PINNED -u UV_PYTHON PATH="$OLD_BIN:$PATH" SA_ROOT="$SA_ROOT" \
+        bash -c 'source "$1" && echo "smoke: sourced"' smoke-pin "$lib" 2>&1)" || s=$?
+    else
+      out="$(env -u SA_PYTHON_PINNED UV_PYTHON="$OLD_PY" SA_ROOT="$SA_ROOT" \
+        bash -c 'source "$1" && echo "smoke: sourced"' smoke-pin "$lib" 2>&1)" || s=$?
+    fi
+    if [[ $s -ne 2 || "$out" == *"smoke: sourced"* || "$out" != *"Python $OLD_VER"* || "$out" != *"$SA_PYTHON_MIN or later"* ]]; then
+      why+=" with $label naming Python $OLD_VER, sourcing it exited $s ($(head -n 1 <<<"$out" | cut -c1-100));"
+    fi
+  done
+  old_set 81 "$why"
+}
+
+# ── The handoff hooks (DESIGN.md D29; checks 82–87) ──────────────────────────
+#
+# The seed's four D29 commands, run as Claude Code runs a command hook, in a scratch Git project
+# holding a copy of the render's .claude/hooks/ and .claude/settings.json. HK[n] is check n's
+# result: 0, 'skip: why', or the reasons it failed, which make its one finding. The two notes'
+# texts are held here exactly as the hook prints them for the person.
+HK_PRE=".claude/hooks/pre-compact-handoff.sh"
+HK_THRESHOLD=".claude/hooks/context-threshold-handoff.sh"
+HK_AUTO_NOTE="Automatic compaction was stopped. Run /handoff to save where you are, then /clear to start a fresh session. If /handoff has no room to run, run /compact yourself (it is allowed), then /handoff."
+HK_MANUAL_NOTE="This session was compacted by hand with /compact. That works, but a handoff gives a cleaner break: next time, run /handoff to save where you are, then /clear to start a fresh session."
+# A distinctive part of each note's session text (additionalContext): the full-window fallback.
+HK_AUTO_CTX="the person may run /compact, which the project allows, and then /handoff"
+HK_MANUAL_CTX="the session offers the handoff skill now"
+HK_SHELLS=(sh bash)     # checks 86 and 87; Claude Code's own is sh -c (on Linux and macOS)
+HK_W="" HK_OUT="" HK_ERR="" HK_TX="" HK_RC=0
+declare -A HK=() HK_CMD=()
+declare -A HK_WHAT=(
+  [82]="an automatic compaction was not blocked with its note relayed once, to its own session"
+  [83]="a manual /compact was not let through with its note shown once, at its own session's start"
+  [84]="two sessions' compactions did not keep one marker each"
+  [85]="a PreCompact auto did not prune stale markers as D29 says"
+  [86]="a handoff hook entry was not silent with its script missing"
+  [87]="a handoff hook entry was not silent outside a Git repository"
+)
+declare -A HK_EVENT=([prompt]="UserPromptSubmit" [auto]="PreCompact auto" [manual]="PreCompact manual" [start]="SessionStart compact")
+# The helpers, on the current Python:
+#   cmds SETTINGS              the four commands, NUL-separated (prompt, auto, manual, start; '' if absent)
+#   note OUT EVENT TEXT LABEL [PART]  OUT is one JSON note of EVENT, its systemMessage TEXT ('' = any),
+#                                     its additionalContext holding PART (when given)
+#   age SECONDS PATH...        each path last modified SECONDS ago (a link itself, never its target)
+HK_HELPER='
+import json
+import os
+import sys
+import time
+
+
+def cmds(path):
+    want = (("UserPromptSubmit", "", "context-threshold-handoff.sh"), ("PreCompact", "auto", "pre-compact-handoff.sh"),
+            ("PreCompact", "manual", "pre-compact-handoff.sh"), ("SessionStart", "compact", "pre-compact-handoff.sh"))
+    try:
+        hooks = json.load(open(path, encoding="utf-8")).get("hooks")
+    except (OSError, ValueError, AttributeError):
+        hooks = None
+    out = []
+    for event, matcher, script in want:
+        found = ""
+        for entry in (hooks.get(event) if isinstance(hooks, dict) else None) or []:
+            if not isinstance(entry, dict) or (entry.get("matcher") or "") != matcher:
+                continue
+            for h in entry.get("hooks") or []:
+                c = h.get("command") if isinstance(h, dict) else None
+                if not found and isinstance(c, str) and ".claude/hooks/" + script in c:
+                    found = c
+        out.append(found)
+    sys.stdout.write("\0".join(out) + "\0")
+
+
+def note(out, event, text, label, part=""):
+    lines = open(out, encoding="utf-8", errors="replace").read().splitlines()
+    if len(lines) != 1:
+        print("printed %d line(s), not the one line of a note" % len(lines))
+        return
+    try:
+        data = json.loads(lines[0])
+    except ValueError:
+        data = None
+    if not isinstance(data, dict):
+        print("printed a line that is no JSON object (%r)" % lines[0][:60])
+        return
+    bad = []
+    msg = data.get("systemMessage")
+    if text and msg != text:
+        m = str(msg)
+        i = next((k for k in range(min(len(m), len(text))) if m[k] != text[k]), min(len(m), len(text)))
+        bad.append("its systemMessage is not %s (from character %d it reads %r where the note reads %r)"
+                   % (label, i + 1, m[i:i + 60], text[i:i + 60]))
+    elif not isinstance(msg, str) or not msg.strip():
+        bad.append("its systemMessage is empty")
+    spec = data.get("hookSpecificOutput")
+    if not isinstance(spec, dict) or spec.get("hookEventName") != event:
+        bad.append("its hookSpecificOutput.hookEventName is not %s" % event)
+    ctx = spec.get("additionalContext") if isinstance(spec, dict) else None
+    if not isinstance(ctx, str) or not ctx.strip():
+        bad.append("its hookSpecificOutput.additionalContext is empty")
+    elif part and part not in ctx:
+        bad.append("its hookSpecificOutput.additionalContext lacks %r" % part)
+    print(", ".join(bad))
+
+
+def age(seconds, *paths):
+    when = time.time() - float(seconds)
+    for p in paths:
+        os.utime(p, (when, when), follow_symlinks=not os.path.islink(p))
+
+
+{"cmds": cmds, "note": note, "age": age}[sys.argv[1]](*sys.argv[2:])
+'
+hkh() { python3 -I -c "$HK_HELPER" "$@"; }
+hk_set() { # $1 = check, $2 = its reasons ('' when it passed)
+  local w="${2# }"; w="${w%;}"
+  HK[$1]="${w:-0}"
+}
+hk_json() { local s="${1//\\/\\\\}"; printf '%s' "${s//\"/\\\"}"; } # a JSON string's inside
+# One event, its payload written by hand: HK_RC, $HK_OUT and $HK_ERR. The threshold hook's own
+# variables are unset, so its measure assumes a 200000-token window and the shipped thresholds.
+hk_ev() { # $1 = prompt, auto, manual or start, $2 = folder to run in, $3 = session ('(none)': no key), $4 = shell (sh)
+  local kind="$1" dir="$2" sid="$3" sh="${4:-sh}" ev kv in idkv
+  case "$kind" in
+    prompt) ev=UserPromptSubmit; kv='"prompt": "Carry on."' ;;
+    auto)   ev=PreCompact; kv='"trigger": "auto", "custom_instructions": null' ;;
+    manual) ev=PreCompact; kv='"trigger": "manual", "custom_instructions": ""' ;;
+    start)  ev=SessionStart; kv='"source": "compact"' ;;
+  esac
+  idkv="\"session_id\": \"$(hk_json "$sid")\", "; [[ "$sid" != "(none)" ]] || idkv=""
+  in="{$idkv\"transcript_path\": \"$(hk_json "$HK_TX")\", \"cwd\": \"$(hk_json "$dir")\", \"hook_event_name\": \"$ev\", $kv}"
+  HK_RC=0
+  (cd "$dir" && env -u CLAUDE_CONTEXT_WINDOW -u CLAUDE_CONTEXT_ADVISE_PCT -u CLAUDE_CONTEXT_INSIST_PCT \
+    timeout 60 "$sh" -c "${HK_CMD[$kind]}" <<<"$in") >"$HK_OUT" 2>"$HK_ERR" || HK_RC=$?
+}
+hk_marks() { # $1 = project → the names in .claude/ that start compaction-marker, sorted, one line
+  local f out=""
+  for f in "$1"/.claude/compaction-marker*; do [[ -e "$f" || -L "$f" ]] && out+=" ${f##*/}"; done
+  printf '%s' "${out# }"
+}
+hk_snap() { # $1 = project → each marker file's name and bytes, '' when there is none
+  local f
+  for f in "$1"/.claude/compaction-marker*; do [[ -f "$f" ]] && printf '%s=%s;' "${f##*/}" "$(od -An -c -- "$f" | tr -d ' \n')"; done
+  return 0
+}
+hk_clear() { rm -rf -- "$1"/.claude/compaction-marker*; }
+hk_names() { ls -A -- "$1/.claude" 2>/dev/null | paste -sd' ' -; } # $1 = project → the names in .claude/
+
+smoke_hooks() { # $1 = a COPY of a render: checks 82–87
+  local d="$1" n c p m
+  local -a cmds=()
+  HK=(); HK_CMD=()
+  if [[ ! -f "$d/$HK_PRE" || ! -f "$d/$HK_THRESHOLD" ]]; then
+    for n in {82..87}; do HK[$n]="skip: no $HK_PRE and $HK_THRESHOLD (a render made before D51)"; done; return 0
+  fi
+  while IFS= read -r -d '' c; do cmds+=("$c"); done < <(hkh cmds "$d/.claude/settings.json" 2>/dev/null || true)
+  if [[ ${#cmds[@]} -ne 4 || -z "${cmds[0]}" || -z "${cmds[1]}" || -z "${cmds[2]}" || -z "${cmds[3]}" ]]; then
+    for n in {82..87}; do HK[$n]="skip: the seed .claude/settings.json lacks one of the four D29 entries (shipped-seeds checks 12 and 22 report it)"; done
+    return 0
+  fi
+  HK_CMD=([prompt]="${cmds[0]}" [auto]="${cmds[1]}" [manual]="${cmds[2]}" [start]="${cmds[3]}")
+  HK_W="$(sa_mktemp)"; HK_OUT="$HK_W/out"; HK_ERR="$HK_W/err"; HK_TX="$HK_W/transcript.jsonl"; : > "$HK_TX"
+  for p in "$HK_W/project" "$HK_W/missing"; do
+    mkdir -p "$p/.claude" "$p/sub/dir"
+    cp -pR -- "$d/.claude/hooks" "$p/.claude/hooks"; cp -p -- "$d/.claude/settings.json" "$p/.claude/settings.json"
+    git -C "$p" init -q
+  done
+  p="$HK_W/project"; m="$HK_W/missing"
+  rm -f -- "${m:?}/$HK_PRE" "$m/$HK_THRESHOLD"
+  mkdir -p "$HK_W/outside/deep"
+  hk_auto "$p" "$p/sub/dir"
+  hk_manual "$p" "$p/sub/dir"
+  hk_sessions "$p" "$p/sub/dir"
+  hk_stale "$p" "$p/sub/dir"
+  hk_silent 86 "$m/sub/dir" "with the scripts removed"
+  GIT_CEILING_DIRECTORIES="$HK_W" hk_silent 87 "$HK_W/outside/deep" "outside a repository"
+  rm -rf -- "${HK_W:?}"
+}
+
+# Check 82: an automatic compaction, blocked, its note relayed once to its own session alone.
+hk_auto() { # $1 = project, $2 = the subfolder to run from
+  local p="$1" s="$2" why="" before bad names sid what
+  hk_clear "$p"
+  hk_ev auto "$s" smoke-a
+  [[ "$HK_RC" == 2 ]] || why+=" PreCompact auto exited $HK_RC, not 2;"
+  [[ ! -s "$HK_OUT" ]] || why+=" PreCompact auto printed on stdout;"
+  before="$(hk_snap "$p")"
+  [[ -n "$before" ]] || why+=" PreCompact auto left no marker in .claude/;"
+  hk_ev prompt "$s" smoke-b
+  [[ "$HK_RC" == 0 && ! -s "$HK_OUT" ]] || why+=" smoke-b's prompt exited $HK_RC or printed (another session's marker);"
+  [[ "$(hk_snap "$p")" == "$before" ]] || why+=" smoke-b's prompt changed smoke-a's marker;"
+  # The window past the insist threshold, as when an automatic compaction is stopped: the
+  # relayed note must still be the prompt's only output.
+  printf '%s\n' '{"type": "assistant", "message": {"usage": {"input_tokens": 160000}}}' > "$HK_TX"
+  hk_ev prompt "$s" smoke-a
+  : > "$HK_TX"
+  [[ "$HK_RC" == 0 ]] || why+=" smoke-a's next prompt exited $HK_RC, not 0;"
+  bad="$(hkh note "$HK_OUT" UserPromptSubmit "$HK_AUTO_NOTE" "the automatic note" "$HK_AUTO_CTX" 2>&1)" || true
+  [[ -z "$bad" ]] || why+=" smoke-a's next prompt: $bad;"
+  [[ -z "$(hk_snap "$p")" ]] || why+=" a marker remains after the note;"
+  hk_ev prompt "$s" smoke-a
+  [[ ! -s "$HK_OUT" ]] || why+=" a second prompt printed again;"
+  # An automatic compaction that went ahead anyway: its SessionStart says nothing, and removes
+  # the marker unread, so no prompt relays a note on a compaction that happened.
+  hk_ev auto "$s" smoke-a
+  hk_ev start "$s" smoke-a
+  [[ "$HK_RC" == 0 && ! -s "$HK_OUT" ]] || why+=" smoke-a's SessionStart after a compaction that went ahead exited $HK_RC or printed;"
+  [[ -z "$(hk_snap "$p")" ]] || why+=" smoke-a's SessionStart after a compaction that went ahead left its marker;"
+  hk_ev prompt "$s" smoke-a
+  [[ ! -s "$HK_OUT" ]] || why+=" smoke-a's prompt after that SessionStart printed;"
+  # No session id: still blocked and reminded; no marker is written, read or removed.
+  names="$(hk_names "$p")"
+  for sid in "(none)" "/./.."; do
+    what="no session id"; [[ "$sid" == "(none)" ]] || what="the session id '$sid'"
+    hk_ev auto "$s" "$sid"
+    [[ "$HK_RC" == 2 && -s "$HK_ERR" ]] || why+=" PreCompact auto with $what exited $HK_RC, not 2 with its reminder;"
+    [[ "$(hk_names "$p")" == "$names" ]] || why+=" PreCompact auto with $what left a new name in .claude/;"
+  done
+  hk_set 82 "$why"
+}
+
+# Check 83: a manual /compact, let through, its note shown once at its own session's start.
+hk_manual() { # $1 = project, $2 = the subfolder to run from
+  local p="$1" s="$2" why="" before bad names
+  hk_clear "$p"
+  hk_ev manual "$s" smoke-m
+  [[ "$HK_RC" == 0 ]] || why+=" PreCompact manual exited $HK_RC, not 0;"
+  [[ ! -s "$HK_OUT" ]] || why+=" PreCompact manual printed on stdout;"
+  before="$(hk_snap "$p")"
+  [[ -n "$before" ]] || why+=" PreCompact manual left no marker in .claude/;"
+  hk_ev prompt "$s" smoke-m
+  [[ "$HK_RC" == 0 && ! -s "$HK_OUT" ]] || why+=" smoke-m's prompt exited $HK_RC or printed before the compaction ended;"
+  [[ "$(hk_snap "$p")" == "$before" ]] || why+=" smoke-m's prompt changed its marker;"
+  hk_ev start "$s" smoke-m
+  [[ "$HK_RC" == 0 ]] || why+=" smoke-m's SessionStart exited $HK_RC, not 0;"
+  bad="$(hkh note "$HK_OUT" SessionStart "$HK_MANUAL_NOTE" "the manual note" "$HK_MANUAL_CTX" 2>&1)" || true
+  [[ -z "$bad" ]] || why+=" smoke-m's SessionStart: $bad;"
+  [[ -z "$(hk_snap "$p")" ]] || why+=" a marker remains after the note;"
+  hk_ev start "$s" smoke-m
+  [[ ! -s "$HK_OUT" ]] || why+=" a second SessionStart printed again;"
+  names="$(hk_names "$p")"
+  hk_ev manual "$s" "(none)"
+  [[ "$HK_RC" == 0 ]] || why+=" PreCompact manual with no session id exited $HK_RC, not 0;"
+  [[ "$(hk_names "$p")" == "$names" ]] || why+=" PreCompact manual with no session id left a new name in .claude/;"
+  hk_set 83 "$why"
+}
+
+# Check 84: two sessions, one marker each; neither touches the other's.
+hk_sessions() { # $1 = project, $2 = the subfolder to run from
+  local p="$1" s="$2" why="" marks bad keep="$HK_W/smoke-a.keep"
+  local a=".claude/compaction-marker-smoke-a.tmp" b=".claude/compaction-marker-smoke-b.tmp"
+  hk_clear "$p"; rm -f -- "$keep"
+  hk_ev auto "$s" smoke-a
+  hk_ev manual "$s" smoke-b
+  marks="$(hk_marks "$p")"
+  [[ "$marks" == "${a#.claude/} ${b#.claude/}" ]] \
+    || why+=" an auto in smoke-a and a manual in smoke-b left ${marks:-no marker}, not $a and $b;"
+  [[ ! -f "$p/$a" ]] || cp -p -- "$p/$a" "$keep"
+  hk_ev start "$s" smoke-b
+  bad="$(hkh note "$HK_OUT" SessionStart "" "a note" 2>&1)" || true
+  [[ -z "$bad" ]] || why+=" smoke-b's SessionStart: $bad;"
+  if [[ ! -f "$keep" ]] || ! cmp -s -- "$keep" "$p/$a"; then why+=" smoke-a's marker was not there byte for byte after smoke-b's SessionStart;"; fi
+  hk_ev prompt "$s" smoke-a
+  bad="$(hkh note "$HK_OUT" UserPromptSubmit "" "a note" 2>&1)" || true
+  [[ -z "$bad" ]] || why+=" smoke-a's next prompt: $bad;"
+  # The id in the name is reduced to letters, digits and hyphens.
+  hk_clear "$p"
+  hk_ev auto "$s" "smoke.r/"
+  marks="$(hk_marks "$p")"
+  [[ "$marks" == "compaction-marker-smoker.tmp" ]] \
+    || why+=" an auto in session 'smoke.r/' left ${marks:-no marker}, not .claude/compaction-marker-smoker.tmp;"
+  hk_clear "$p"
+  hk_set 84 "$why"
+}
+
+# Check 85: the prune of other sessions' markers, older than seven days, never through a link.
+hk_stale() { # $1 = project, $2 = the subfolder to run from
+  local p="$1" s="$2" why="" t="$HK_W/link-target"
+  local old="$p/.claude/compaction-marker-smoke-old.tmp" new="$p/.claude/compaction-marker-smoke-new.tmp"
+  local link="$p/.claude/compaction-marker-smoke-link.tmp"
+  hk_clear "$p"
+  printf 'auto smoke-old\n' > "$old"; printf 'auto smoke-new\n' > "$new"; printf 'target\n' > "$t"
+  ln -s -- "$t" "$link"
+  if ! hkh age 691200 "$old" || ! hkh age 3600 "$new" || ! hkh age 2592000 "$t" "$link"; then
+    HK[85]="skip: this system cannot set a file's or a link's modification time"; rm -f -- "$t"; hk_clear "$p"; return 0
+  fi
+  hk_ev auto "$s" smoke-p
+  [[ ! -e "$old" ]] || why+=" a PreCompact auto kept another session's marker last modified eight days ago;"
+  [[ -f "$new" && "$(cat -- "$new")" == "auto smoke-new" ]] || why+=" a PreCompact auto removed or changed a third session's marker last modified an hour ago;"
+  [[ -L "$link" ]] || why+=" a PreCompact auto removed a link named like a marker;"
+  hk_ev auto "$s" smoke-link
+  [[ -L "$link" ]] || why+=" a PreCompact auto of the session the link is named for removed it;"
+  [[ "$(cat -- "$t" 2>/dev/null)" == target ]] || why+=" a PreCompact auto wrote through a link named like its marker;"
+  rm -f -- "$t"; hk_clear "$p"
+  hk_set 85 "$why"
+}
+
+# Checks 86 and 87: each of the four commands, under each shell, exits 0 and prints nothing.
+hk_silent() { # $1 = check, $2 = folder to run from, $3 = where, for the finding
+  local n="$1" dir="$2" where="$3" why="" sh k err out
+  for sh in "${HK_SHELLS[@]}"; do
+    for k in prompt auto manual start; do
+      hk_ev "$k" "$dir" smoke-x "$sh"
+      [[ "$HK_RC" == 0 && ! -s "$HK_OUT" && ! -s "$HK_ERR" ]] && continue
+      err="$(head -n 1 -- "$HK_ERR" | cut -c1-80)"; out=""
+      [[ ! -s "$HK_OUT" ]] || out=", printing on stdout"
+      why+=" ${HK_EVENT[$k]} under $sh -c $where exited $HK_RC$out${err:+, saying '$err' on stderr};"
+    done
+  done
+  hk_set "$n" "$why"
+}
+
 run_checks() {
   FINDINGS=(); SKIPS=()
   local t n err r
@@ -2251,12 +3156,56 @@ run_checks() {
       fi
       case "${STE[legal]:-}" in skip:*) SKIPS+=("STE legal exclusion (${STE[legal]#skip: })") ;; esac ;;
   esac
+  case "${HT[skip]:-}" in
+    skip:*) SKIPS+=("user guide (${HT[skip]#skip: })") ;;
+    *)
+      for t in lint flags; do
+        r="${HT[$t]:-skip: not run}"
+        case "$r" in
+          skip:*) SKIPS+=("make $t SCOPE=how-to/src (${r#skip: })") ;;
+          0) ;;
+          *) err="$(grep -v -e '^[[:space:]]*$' -e ': 0$' "$(dirname "$BUILD_DIR")/.smoke-howto-$t.log" 2>/dev/null | head -2 | paste -sd' ' - || true)"
+             finding "check 70 — [$NAME] make $t SCOPE=how-to/src STRICT=1 failed (exit $r) over the user guide's chapters: ${err:0:120} — see .smoke-howto-$t.log" ;;
+        esac
+      done
+      case "${HT[plant]:-}" in
+        skip:*) SKIPS+=("planted chapter line (${HT[plant]#skip: })") ;;
+        *)
+          r=""
+          [[ "${HT[unscoped]:-}" == unseen ]] || r+=" make lint without a SCOPE ${HT[unscoped]/seen/reported it};"
+          [[ "${HT[scoped]:-}" == seen ]] || r+=" make lint SCOPE=how-to/src ${HT[scoped]/unseen/did not report it};"
+          [[ -z "$r" ]] || finding "check 71 — [$NAME] a line holding two sentences planted in $HOWTO_CHAPTER:${r%;} — without a SCOPE neither target reads how-to/src (DESIGN.md D56); see .smoke-howto-lint-*.log" ;;
+      esac ;;
+  esac
+  case "${HG[result]:-skip: not run}" in
+    skip:*) r="${HG[result]:-skip: not run}"; SKIPS+=("guide guard (${r#skip: })") ;;
+    0) ;;
+    *) finding "check 72 — [$NAME] the guide guard (.claude/hooks/how-to-read-only.sh) failed: ${HG[result]:0:400}" ;;
+  esac
+  case "${HG[case7]:-}" in skip:*) SKIPS+=("guide guard, another letter case (${HG[case7]#skip: })") ;; esac
   for n in {39..69}; do
     r="${DR[$n]:-skip: not run}"
     case "$r" in
       skip:*) SKIPS+=("check $n (${r#skip: })") ;;
       0) ;;
       *) finding "check $n — [$NAME] ${DR_WHAT[$n]}: $r — see .smoke-dr*" ;;
+    esac
+  done
+  for n in {73..81}; do
+    r="${OLD[$n]:-skip: not run}"
+    case "$r" in
+      skip:*) SKIPS+=("check $n (${r#skip: })") ;;
+      0) ;;
+      *) if [[ "$n" == 80 ]]; then finding "check 80 — [$NAME] ${OLD_WHAT[80]}: $r"
+         else finding "check $n — [$NAME] ${OLD_WHAT[$n]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): $r — see .smoke-old*"; fi ;;
+    esac
+  done
+  for n in {82..87}; do
+    r="${HK[$n]:-skip: not run}"
+    case "$r" in
+      skip:*) SKIPS+=("check $n (${r#skip: })") ;;
+      0) ;;
+      *) finding "check $n — [$NAME] ${HK_WHAT[$n]}: $r" ;;
     esac
   done
   for t in "${SELFTESTS[@]}"; do
@@ -2272,15 +3221,71 @@ run_checks() {
 
 # ── Self-test ────────────────────────────────────────────────────────────────
 
+# Checks 73–81's fixture text. A stand-in Python script's version gate, as the decision of
+# 23/10/2026 asks of every tool: OLD, and refuse(name), which says it did not run, on stderr.
+old_gate_py() {
+  printf '%s\n' 'import os' 'import sys' "MIN = tuple(int(x) for x in \"$SA_PYTHON_MIN\".split(\".\"))" \
+    'OLD = sys.version_info[:2] < MIN' '' '' 'def refuse(name):' \
+    '    sys.stderr.write("%s did NOT run: this is Python %d.%d, and it needs Python %d.%d or later. Upgrade to Python %d.%d.\n"' \
+    '                     % ((name,) + tuple(sys.version_info[:2]) + MIN + MIN))' '    sys.exit(2)' '' ''
+}
+# A stand-in hook's answer to an older python3: the warning as its JSON, exit 0. $1 = the hook's
+# name, $2 = its event, $3 = the SMOKE_OLD fault that makes it block (exit 2) or say nothing.
+old_hook_prelude() {
+  local tuple="(${SA_PYTHON_MIN%%.*}, ${SA_PYTHON_MIN#*.})"
+  printf '%s\n' "# tooling-smoke.sh self-test: an older python3, answered as checks 77–79 require." \
+    "if command -v python3 >/dev/null 2>&1 && _v=\$(python3 -c 'import sys; v = sys.version_info[:2]; sys.exit(1) if v >= $tuple else print(\"%d.%d\" % v)' 2>/dev/null); then" \
+    '  cat >/dev/null' \
+    "  case \"\${SMOKE_OLD:-}\" in $3) [ \"$3\" = threshold-silent ] && exit 0; echo 'refused' >&2; exit 2 ;; esac" \
+    "  _m=\"$1 did NOT work: this is Python \$_v, and it needs Python $SA_PYTHON_MIN or later. Upgrade to Python $SA_PYTHON_MIN.\"" \
+    "  printf '{\"systemMessage\": \"%s\", \"hookSpecificOutput\": {\"hookEventName\": \"$2\", \"additionalContext\": \"%s\"}}\\n' \"\$_m\" \"\$_m\"" \
+    '  exit 0' 'fi'
+}
+
 write_fixture() { # $1 = dir, $2 = DATA_STORE (external by default), $3 = DOC_TYPE (fiction)
   local d="$1" store="${2:-external}" doc="${3:-fiction}"
   mkdir -p "$d/world/src/languages/example-tongue" "$d/manuscript/src/$EXAMPLE_UNIT" "$d/typeset/src/units" "$d/tooling"
   git -C "$d" init -q
-  printf 'import os, sys  # --self-test\nsys.exit(1 if os.environ.get("SMOKE_FAIL") == "demo" else 0)\n' > "$d/tooling/demo.py"
+  { printf 'import os, sys  # --self-test\n'; old_gate_py; printf '%s\n' 'if OLD:' \
+      '    if os.environ.get("SMOKE_OLD") == "tool-traceback":' '        raise RuntimeError("the fault: no version gate")' \
+      '    refuse("tooling/demo.py")' 'sys.exit(1 if os.environ.get("SMOKE_FAIL") == "demo" else 0)'; } > "$d/tooling/demo.py"
+  { old_gate_py; printf '%s\n' 'if OLD:' '    refuse("tooling/smoke_provenance.py")' 'print("provenance: nothing recorded yet")'; } > "$d/tooling/smoke_provenance.py"
   printf '[meta]\nslug = "example-tongue"\n' > "$d/world/src/languages/example-tongue/lexicon.toml"
   mkdir -p "$d/world/src/languages/example-tongue/script"
   printf '[meta]\n' > "$d/world/src/languages/example-tongue/script/glyphs.toml"
   printf '# The ford\n\nThe ford ran low.\n' > "$d/manuscript/src/$EXAMPLE_UNIT/$EXAMPLE_UNIT.md"
+  # The user guide (checks 70–72): a chapter, and the real guide guard from template/.
+  mkdir -p "$d/$(dirname "$HOWTO_CHAPTER")" "$d/.claude/hooks"
+  printf '# Overview — what a project is\n\nThe guide explains the project.\n\n## Where the rules live\n\n- The rules: `.claude/rules/`.\n' > "$d/$HOWTO_CHAPTER"
+  { head -n 1 "$SA_ROOT/template/$SA_HOWTO_GUARD"; old_hook_prelude "The guide guard" PreToolUse howto-blocks
+    tail -n +2 "$SA_ROOT/template/$SA_HOWTO_GUARD"; } > "$d/$SA_HOWTO_GUARD"; chmod +x "$d/$SA_HOWTO_GUARD"
+  # Checks 73–87: the real handoff hooks from template/, the threshold hook behind the prelude
+  # that answers an older Python as checks 79 and 80 require (a current one passes straight
+  # through, as checks 82–87 need), and a stand-in permissions script.
+  cp -- "$SA_ROOT/template/$HK_PRE" "$d/$HK_PRE"; chmod +x "$d/$HK_PRE"
+  { head -n 1 "$SA_ROOT/template/$HK_THRESHOLD"; old_hook_prelude "The context-threshold hook" UserPromptSubmit threshold-silent
+    tail -n +2 "$SA_ROOT/template/$HK_THRESHOLD"; } > "$d/$HK_THRESHOLD"; chmod +x "$d/$HK_THRESHOLD"
+  { old_gate_py; printf '%s\n' 'if OLD and os.environ.get("SMOKE_OLD") != "perm-runs":' '    refuse(".claude/syntek-author-permissions.py")' \
+      'print("plan: every client file already holds every rule")'; } > "$d/.claude/syntek-author-permissions.py"
+  # The stand-in lint: 'organize' and two sentences on a line in the files named, and, in a
+  # business render under a SCOPE, an em dash outside a heading; STRICT=1 fails on any finding.
+  cat > "$d/tooling/smoke-lint.sh" <<'LINT'
+leak=$1 strict=$2 scoped=$3
+shift 3
+[ "$#" -gt 0 ] || { echo "lint: nothing to check"; exit 0; }
+total=0
+for f in $(find "$@" -name '*.md' ! -name CONTEXT.md ! -name CLAUDE.md -print 2>/dev/null | LC_ALL=C sort); do
+  if [ -z "$leak" ] && git check-ignore -q "$f" 2>/dev/null; then continue; fi
+  hits=$(grep -nH -e organize -e '[^[:space:].][.!?][[:space:]][[:space:]]*[[:upper:]]' "$f")
+  if [ -n "$scoped" ] && [ -d library ]; then
+    hits="$hits
+$(grep -nH '—' "$f" | grep -v '^[^:]*:[0-9]*:#')"
+  fi
+  hits=$(printf '%s\n' "$hits" | grep . || true)
+  [ -z "$hits" ] || { printf '%s\n' "$hits"; total=$((total + $(printf '%s\n' "$hits" | wc -l))); }
+done
+[ -z "$strict" ] || [ "$total" -eq 0 ]
+LINT
   write_dataroot_fixture "$d" "$doc" "$store"
   printf 'STORE = %s\n' "$store" > "$d/Makefile"
   cat >> "$d/Makefile" <<'EOF'
@@ -2307,17 +3312,18 @@ flags:
 	@for b in $(if $(STICKY_BRAND),standards/brand) $(if $(BLIND_BRAND),,$(if $(NEWBLIND_BRAND),$(filter standards/brand,$(BRAND_DIRS)),$(BRAND_DIRS))); do \
 	  [ -d "$$b" ] && grep -rnH 'VERIFY:' "$$b" | sed 's/^/  /' || true; done
 	@[ -z "$(SCOPE)" ] || [ -n "$(BLIND_FILLME)" ] || grep -nH 'fillme' $(SCOPE) || true
+	@[ -z "$(STRICT)" ] || [ -z "$(SCOPE)" ] || ! grep -rqE 'VERIFY:|fillme' $(SCOPE)
+WORK_DIRS := $(if $(WORK_ALL),$(wildcard */src),$(filter-out how-to/src,$(wildcard */src)))
 lint:
 	@[ -z "$(LINT_NEEDS_ROOT)" ] || [ -z "$${SYNTEK_DATA_ROOT+set}" ] || { echo "lint failing on purpose: it reads the data root"; exit 1; }
-	@find . -name .git -prune -o -name '*.md' -print | LC_ALL=C sort | while read -r f; do \
-	  if [ -z "$(LEAK_LINT)" ] && git check-ignore -q "$$f" 2>/dev/null; then continue; fi; \
-	  grep -nH 'organize' "$$f" || true; done
+	@sh tooling/smoke-lint.sh '$(LEAK_LINT)' '$(STRICT)' '$(if $(SCOPE),1)' $(if $(SCOPE),$(SCOPE),$(WORK_DIRS))
 	@[ ! -d library/src ] || { echo "List steps over 20 words (ASD-STE100; a hint for technical text only):"; \
 	  [ -n "$(STE_BLIND)" ] || find library/src -name '*.md' | LC_ALL=C sort | while read -r f; do \
 	    case "$$f" in library/src/legal/*) [ -n "$(STE_LEGAL)" ] || continue ;; esac; \
 	    awk -v max=$(if $(STE_ALL),2,20) '/^[0-9]+\. / && NF - 1 > max { print "  " FILENAME ":" FNR ":" $$0 }' "$$f"; done; }
 provenance:
 	$(fail)
+	@python3 tooling/smoke_provenance.py$(if $(OLD_SWALLOW), || true)
 lexicon:
 	$(fail)
 	@for f in world/src/languages/*/lexicon.toml; do [ -f "$$f" ] || continue; \
@@ -2422,7 +3428,7 @@ write_dataroot_fixture() { # $1 = dir, $2 = DOC_TYPE, $3 = DATA_STORE
       "$SA_ROOT/template/$DR_PY" "$DR_PYC" || die "the self-test could not compile template/$DR_PY"
   fi
   cp -- "$DR_PYC" "$d/.claude/.smoke-real-dataroot.pyc"
-  printf '%s' "$DR_SHIM" > "$d/$DR_PY"
+  printf '%s' "${DR_SHIM//@PYTHON_MIN@/$SA_PYTHON_MIN}" > "$d/$DR_PY"
   printf '%s\n' '{"format": 1, "folders": [{"path": "library/src", "kind": "docs"}, {"path": "research/src"}, {"path": "world/src"}]}' \
     > "$d/$SA_DATAROOT_MAP"
   { printf 'DOC_TYPE: %s\nDATA_STORE: %s\n' "$doc" "$store"
@@ -2431,10 +3437,18 @@ write_dataroot_fixture() { # $1 = dir, $2 = DOC_TYPE, $3 = DATA_STORE
     printf 'DATA_PROVIDER: none\n'; } > "$d/$SA_ANSWERS_FILE"
   [[ "$store" != external ]] || printf '%s\n' '*.pdf' '*.mp3' '*.png' '*.syntek-tmp' '!external.toml' > "$d/research/src/.gitignore"
   printf 'languages/*/audio/\n' > "$d/world/src/.gitignore"
+  # The seed's hooks: the two guards, and the four D29 entries as migrations/family-refresh.json
+  # offers them (checks 82–87), which shipped-seeds holds equal to the seed's.
   python3 -I -c 'import json, sys
-print(json.dumps({"hooks": {"PreToolUse": [{"matcher": sys.argv[1], "hooks": [
-    {"type": "command", "command": sys.argv[2], "timeout": int(sys.argv[3])}]}]}}, indent=2))' \
-    "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" "$SA_GUARD_TIMEOUT" > "$d/.claude/settings.json"
+hooks = {"PreToolUse": [{"matcher": sys.argv[1], "hooks": [
+    {"type": "command", "command": sys.argv[2], "timeout": int(sys.argv[3])}]},
+    {"matcher": sys.argv[4], "hooks": [{"type": "command", "command": sys.argv[5], "timeout": 10}]}]}
+offered = json.load(open(sys.argv[6], encoding="utf-8"))["settings"]["hooks"]
+for event in ("PreCompact", "SessionStart", "UserPromptSubmit"):
+    hooks[event] = offered[event]
+print(json.dumps({"hooks": hooks}, indent=2))' \
+    "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" "$SA_GUARD_TIMEOUT" "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" \
+    "$SA_ROOT/migrations/family-refresh.json" > "$d/.claude/settings.json"
 }
 
 # The stand-in resolver. Unswitched, it runs the real one in this process, so the guard's own
@@ -2451,6 +3465,21 @@ REAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".smoke-real-dat
 MUT = os.environ.get("SMOKE_DR", "")
 ARGS = sys.argv[1:]
 CMD = ARGS[0] if ARGS else ""
+MIN = tuple(int(x) for x in "@PYTHON_MIN@".split("."))
+if sys.version_info[:2] < MIN:  # checks 73, 74 and 77: an older Python, answered before anything else
+    SAYS = ("The data-root resolver did NOT %s: this is Python %d.%d, and it needs Python %d.%d or later. "
+            "Upgrade to Python %d.%d." % (("work" if CMD == "guard" else "run",) + tuple(sys.version_info[:2]) + MIN + MIN))
+    OLDMUT = os.environ.get("SMOKE_OLD", "")
+    if CMD == "guard":
+        sys.stdin.read()
+        if OLDMUT == "old-guard-blocks":
+            sys.stderr.write("blocked\n")
+            sys.exit(2)
+        sys.stdout.write(json.dumps({"systemMessage": SAYS, "hookSpecificOutput": {
+            "hookEventName": "PreToolUse", "additionalContext": SAYS}}) + "\n")
+        sys.exit(0)
+    (sys.stdout if OLDMUT == "old-stdout" else sys.stderr).write(SAYS + "\n")
+    sys.exit(2)
 if MUT == "eager-tomllib":
     import tomllib  # noqa: F401  the fault: the guard path needs a module old Pythons lack
 
@@ -2637,6 +3666,10 @@ self_test() {
   probe "check 36 fires when make compare fails on a ledger with no entries" "check 36 — [fixture] make compare with no ledger entries"
   MAKE_EXTRA=("CMP_NOPDF=1"); fresh
   probe "check 37 fires when make compare writes no PDF" "check 37 — [fixture] make compare UNIT=smoke-compare did not write build/compare/smoke-compare.pdf"
+  MAKE_EXTRA=("WORK_ALL=1"); fresh
+  probe "check 71 fires when make lint reads how-to/src without a SCOPE (WORK_DIRS restored to every */src)" "check 71 — [fixture] a line holding two sentences planted in $HOWTO_CHAPTER: make lint without a SCOPE reported it"
+  MAKE_EXTRA=(); FX_PREP=ht_prep_guard; fresh; FX_PREP=""
+  probe "check 72 fires when the guide guard never refuses (return 2 made return 0)" "check 72 — [fixture] the guide guard (.claude/hooks/how-to-read-only.sh) failed: an Edit of how-to/CONTEXT.md exited 0, not 2"
   # A business render: the example section is 'converted' by a stub, so no Pandoc is needed.
   TOLATEX=(sed '1,/^---$/d'); FX_STORE=repo; fresh_business() {
     MAKE_EXTRA=("$@"); rm -rf "$tmp/run"; write_fixture "$tmp/run" "$FX_STORE" business; rm -rf "$tmp/run/manuscript" "$tmp/run/typeset"
@@ -2686,7 +3719,11 @@ self_test() {
   probe "check 38 fires when make lint lists a short list step" "check 38 — [fixture] make lint did not report list steps over 20 words as D46 says: the 3-word step"
   fresh_business "STE_LEGAL=1"
   probe "check 38 fires when make lint lists a step in a legal document" "check 38 — [fixture] make lint did not report list steps over 20 words as D46 says: the step in library/src/legal/"
+  FX_PREP=ht_prep_dash; fresh_business; FX_PREP=""
+  probe "check 70 fires on an em dash in a business render's chapter" "check 70 — [fixture] make lint SCOPE=how-to/src STRICT=1 failed (exit"
   self_test_dataroot
+  self_test_oldpy
+  self_test_hooks
   TOLATEX=(pandoc -f markdown -t latex --lua-filter tooling/pandoc/house.lua)
   MAKE_EXTRA=(); SMOKE_GROUPS=all; FX_STORE=external; FX_PREP=""
   DR_PYC=""
@@ -2697,7 +3734,7 @@ self_test() {
 # stand-in Makefile, or one change to a fixture file (FX_PREP), and exactly one check must name
 # it. Called by self_test, whose fresh_business it uses.
 self_test_dataroot() {
-  if ! $HAVE_PY311; then log "  · checks 39–69 skipped: python3 is below 3.11 (the resolver's floor)"; return 0; fi
+  if ! $HAVE_PY_MIN; then log "  · checks 39–69 skipped: python3 is below $SA_PYTHON_MIN (the resolver's floor)"; return 0; fi
   [[ -f "$SA_ROOT/template/$DR_PY" ]] || die "the self-test needs template/$DR_PY"
   FX_STORE=external; SMOKE_GROUPS=all; fresh_business
   probe_clean "a business render under external, with a resolver whose every case works, is clean"
@@ -2752,6 +3789,137 @@ self_test_dataroot() {
   FX_PREP=""
   SMOKE_GROUPS=all
 }
+# Checks 73–81: each fault is one SMOKE_OLD switch of a stand-in, one switch of the stand-in
+# Makefile, one change to a fixture file (FX_PREP) or a copy of _common.sh, and exactly one check
+# must name it. Called by self_test, whose fresh it uses.
+self_test_oldpy() {
+  local lib="$tmp/common-nopin.sh"
+  FX_STORE=external; MAKE_EXTRA=(); SMOKE_GROUPS=oldpy
+  FX_PREP=old_prep_parse; fresh; FX_PREP=""
+  probe "check 80 fires when a hook's Python needs a grammar newer than Python 3.8's" "check 80 — [fixture] ${OLD_WHAT[80]}: .claude/hooks/context-threshold-handoff.sh, the block from line"
+  if [[ -z "$OLD_PY" ]]; then
+    log "  · checks 73–79 and 81 skipped: $OLD_WHY"; SMOKE_GROUPS=all; return 0
+  fi
+  old_probe "check 73 fires when the resolver's refusal goes to stdout" "check 73 — [fixture] ${OLD_WHAT[73]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): 'root' printed on stdout" old-stdout
+  MAKE_EXTRA=("OLD_SWALLOW=1"); fresh; MAKE_EXTRA=()
+  probe "check 74 fires when make hides a tool's refusal" "check 74 — [fixture] ${OLD_WHAT[74]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): make provenance exited 0"
+  old_probe "check 75 fires when a tooling script has no version gate" "check 75 — [fixture] ${OLD_WHAT[75]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): tooling/demo.py its stderr" tool-traceback
+  old_probe "check 76 fires when the permissions script runs on an older Python" "check 76 — [fixture] ${OLD_WHAT[76]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): --check exited 0" perm-runs
+  old_probe "check 77 fires when the data-root guard blocks on an older Python" "check 77 — [fixture] ${OLD_WHAT[77]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): a Write under a marked root exited 2" old-guard-blocks
+  old_probe "check 78 fires when the guide guard blocks on an older Python" "check 78 — [fixture] ${OLD_WHAT[78]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): an Edit of how-to/CONTEXT.md exited 2" howto-blocks
+  old_probe "check 79 fires when the threshold hook says nothing on an older Python" "check 79 — [fixture] ${OLD_WHAT[79]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): a prompt printed nothing" threshold-silent
+  sed 's/^sa_python_pin$/: sa_python_pin  # the fault: the pin never runs/' "$SA_SCRIPTS_DIR/_common.sh" > "$lib"
+  grep -q '^: sa_python_pin' "$lib" || die "_common.sh holds no 'sa_python_pin' line for the self-test to turn off"
+  SMOKE_COMMON="$lib"; fresh; SMOKE_COMMON=""
+  probe "check 81 fires when _common.sh's pin never runs" "check 81 — [fixture] ${OLD_WHAT[81]} (Python $OLD_VER; the minimum is $SA_PYTHON_MIN): with python3 naming"
+  SMOKE_GROUPS=all
+}
+# Checks 82–87: each fault is one change to a fixture file (FX_PREP), and exactly one check must
+# name it. The fixture's hooks are the real ones, so the group must be clean before any probe.
+# Called by self_test, whose fresh it uses.
+self_test_hooks() {
+  FX_STORE=external; MAKE_EXTRA=(); SMOKE_GROUPS=hooks
+  FX_PREP=""; fresh
+  probe_clean "the real handoff hooks and the four commands family-refresh.json offers are clean (checks 82–87)"
+  FX_PREP=hk_prep_auto; fresh
+  probe "check 82 fires when the automatic note loses its last sentence" "check 82 — [fixture] ${HK_WHAT[82]}: smoke-a's next prompt: its systemMessage is not the automatic note"
+  FX_PREP=hk_prep_manual; fresh
+  probe "check 83 fires when the manual note changes one word" "check 83 — [fixture] ${HK_WHAT[83]}: smoke-m's SessionStart: its systemMessage is not the manual note"
+  FX_PREP=hk_prep_shared; fresh
+  probe "check 84 fires when every session shares one marker" "check 84 — [fixture] ${HK_WHAT[84]}: an auto in smoke-a and a manual in smoke-b left compaction-marker-shared.tmp"
+  FX_PREP=hk_prep_prune; fresh
+  probe "check 85 fires when the prune waits seventy days" "check 85 — [fixture] ${HK_WHAT[85]}: a PreCompact auto kept another session's marker last modified eight days ago"
+  FX_PREP=hk_prep_exec; fresh
+  probe "check 86 fires when the commands end in the old [ -f … ] && exec" "check 86 — [fixture] ${HK_WHAT[86]}: UserPromptSubmit under sh -c with the scripts removed exited 1"
+  FX_PREP=hk_prep_root; fresh
+  probe "check 87 fires when the root lookup fails with || exit 1" "check 87 — [fixture] ${HK_WHAT[87]}: UserPromptSubmit under sh -c outside a repository exited 1"
+  FX_PREP=hk_prep_relay; fresh
+  probe "check 82 fires when the threshold hook measures after a relayed note" "check 82 — [fixture] ${HK_WHAT[82]}: smoke-a's next prompt: printed"
+  FX_PREP=hk_prep_stale; fresh
+  probe "check 82 fires when a SessionStart keeps a stale auto marker" "check 82 — [fixture] ${HK_WHAT[82]}: smoke-a's SessionStart after a compaction that went ahead left its marker"
+  FX_PREP=hk_prep_nosid; fresh
+  probe "check 82 fires when auto lets a payload with no session id through" "check 82 — [fixture] ${HK_WHAT[82]}: PreCompact auto with no session id exited 0, not 2"
+  FX_PREP=hk_prep_autoctx; fresh
+  probe "check 82 fires when the automatic note's session text loses its fallback" "check 82 — [fixture] ${HK_WHAT[82]}: smoke-a's next prompt: its hookSpecificOutput.additionalContext lacks"
+  FX_PREP=hk_prep_manualctx; fresh
+  probe "check 83 fires when the manual note's session text loses its offer" "check 83 — [fixture] ${HK_WHAT[83]}: smoke-m's SessionStart: its hookSpecificOutput.additionalContext lacks"
+  FX_PREP=hk_prep_raw; fresh
+  probe "check 84 fires when the session id is not reduced in the marker's name" "check 84 — [fixture] ${HK_WHAT[84]}: an auto in session 'smoke.r/' left no marker"
+  FX_PREP=""; SMOKE_GROUPS=all
+}
+# One fixture file changed: OLD becomes NEW on every line holding ONLY (any line by default),
+# or the self-test stops (exit 2).
+hk_prep_sub() { # $1 = file, $2 = OLD, $3 = NEW, $4 = the check whose probe it is, $5 = ONLY
+  python3 -I -c 'import sys
+path, old, new, check, only = (sys.argv[1:] + [""])[:5]
+lines = open(path, encoding="utf-8").read().splitlines(True)
+hit = [n for n, line in enumerate(lines) if old in line and only in line]
+if not hit:
+    sys.exit("%s holds no %r for the check %s probe to change" % (path, old, check))
+for n in hit:
+    lines[n] = lines[n].replace(old, new)
+open(path, "w", encoding="utf-8").write("".join(lines))' "$@" || die "the self-test could not change the fixture"
+}
+hk_prep_auto() { # $1 = fixture: the automatic note loses its fallback sentence (check 82)
+  hk_prep_sub "$1/$HK_PRE" ' If /handoff has no room to run, run /compact yourself (it is allowed), then /handoff."' '"' 82
+}
+hk_prep_manual() { # $1 = fixture: the manual note changes one word (check 83)
+  hk_prep_sub "$1/$HK_PRE" 'That works, but a handoff' 'That works, yet a handoff' 83
+}
+hk_prep_shared() { # $1 = fixture: every session shares one marker file (check 84)
+  hk_prep_sub "$1/$HK_PRE" 'marker="$dir/compaction-marker-$session.tmp"' 'marker="$dir/compaction-marker-shared.tmp"' 84
+}
+hk_prep_prune() { # $1 = fixture: the prune waits seventy days, not seven (check 85)
+  hk_prep_sub "$1/$HK_PRE" '-mmin +10080 ' '-mmin +100800 ' 85
+}
+hk_prep_exec() { # $1 = fixture: the four commands end in an earlier release's `[ -f … ] && exec` (check 86)
+  hk_prep_sub "$1/.claude/settings.json" '\" ] || exit 0; exec bash' '\" ] && exec bash' 86 -handoff.sh
+}
+hk_prep_root() { # $1 = fixture: the four commands' root lookup ends '|| exit 1' (check 87)
+  hk_prep_sub "$1/.claude/settings.json" '--show-toplevel 2>/dev/null) || exit 0;' '--show-toplevel 2>/dev/null) || exit 1;' 87 -handoff.sh
+}
+hk_prep_relay() { # $1 = fixture: the threshold hook measures after a relayed note (check 82)
+  python3 -I - "$1/$HK_THRESHOLD" <<'PY' || die "the self-test could not change the fixture"
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+old = "printf '%s\\n' \"$relayed\"\n    exit 0\n"
+if s.count(old) != 1:
+    sys.exit("%s holds no relayed note followed by exit 0 for the check 82 probe to change" % p)
+open(p, "w", encoding="utf-8").write(s.replace(old, "printf '%s\\n' \"$relayed\"\n"))
+PY
+}
+hk_prep_stale() { # $1 = fixture: a SessionStart keeps another trigger's marker (check 82)
+  hk_prep_sub "$1/$HK_PRE" 'consume || true' ':' 82
+}
+hk_prep_nosid() { # $1 = fixture: auto lets a payload with no session id through (check 82)
+  hk_prep_sub "$1/$HK_PRE" 'leave auto' '[ -n "$session" ] || exit 0; leave auto' 82
+}
+hk_prep_autoctx() { # $1 = fixture: the automatic note's session text loses its fallback (check 82)
+  hk_prep_sub "$1/$HK_PRE" ': the person may run /compact, which the project allows, and then /handoff.' '.' 82
+}
+hk_prep_raw() { # $1 = fixture: the session id reaches the marker's name unreduced (check 84)
+  hk_prep_sub "$1/$HK_PRE" '"${BASH_REMATCH[1]//[^A-Za-z0-9-]/}"' '"${BASH_REMATCH[1]}"' 84
+}
+hk_prep_manualctx() { # $1 = fixture: the manual note's session text loses its offer (check 83)
+  hk_prep_sub "$1/$HK_PRE" ' Where the person compacted to make room for a handoff, as the note after a stopped automatic compaction suggests, the session offers the handoff skill now.' '' 83
+}
+old_probe() { # $1 = label, $2 = the finding's text, $3 = SMOKE_OLD
+  export SMOKE_OLD="$3"
+  fresh
+  unset SMOKE_OLD
+  probe "$1" "$2"
+}
+old_prep_parse() { # $1 = fixture: the threshold hook's embedded Python gains a statement 3.8 cannot parse
+  python3 -I - "$1/.claude/hooks/context-threshold-handoff.sh" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+assert "\nPY\n" in s, "the threshold hook holds no <<'PY' block for the self-test to change"
+open(p, "w", encoding="utf-8").write(s.replace("\nPY\n", "\nmatch sys.argv:\n    case _:\n        pass\nPY\n", 1))
+PY
+}
+
 dr_probe() { # $1 = label, $2 = the finding's text, $3 = SMOKE_DR, then the stand-in Makefile's switches
   local label="$1" want="$2"
   export SMOKE_DR="$3"; shift 3
@@ -2769,6 +3937,13 @@ hook["command"] = hook["command"][: hook["command"].rindex("exit 0")] + "exit 1'
 with open(sys.argv[1], "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2)
 PY
+}
+ht_prep_dash() { # $1 = fixture: the guide's chapter gains an em dash outside a heading (check 70)
+  printf '%s\n' '' 'The guide is plain — and short.' >> "$1/$HOWTO_CHAPTER"
+}
+ht_prep_guard() { # $1 = fixture: the guide guard never refuses (check 72)
+  grep -q 'return 2$' "$1/$SA_HOWTO_GUARD" || die "the guide guard holds no 'return 2' for the self-test to change"
+  sed -i 's/return 2$/return 0/' "$1/$SA_HOWTO_GUARD"
 }
 dr_prep_parse() { # $1 = fixture: the stand-in resolver gains a statement Python 3.8 cannot parse
   printf '%s\n' '' '' 'def _smoke_never(value):' '    match value:' '        case _:' '            return value' >> "$1/$DR_PY"

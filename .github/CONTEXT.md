@@ -38,7 +38,8 @@ the project's answers record any other store (DESIGN.md D37, D53).
   every file there as a form or its configuration.
 - `PULL_REQUEST_TEMPLATE.md` — the summary, the decision cited or approved, and the checklist
   (`run-all.sh`, the `CHANGELOG.md` entry, `DESIGN.md` only with approval, `family-shared.sh
-  --write` for shared bytes, no rendered output, no personal data, British English).
+  --write` for shared bytes, no rendered output, no personal data, British English; and, under
+  'Licence', the contributor's licence box).
 - `CODEOWNERS` — `@Syntek-Studio` on every path, with closer reads named for the contract, the
   migrations, the family-shared manifest and the governance files, as in syntek-base.
 

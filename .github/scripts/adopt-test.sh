@@ -42,7 +42,7 @@
 #                 mv lines that hold the link aside and put it back, and following that plan
 #                 must adopt the repository with the link and its target untouched.
 #
-#                 Forty checks:
+#                 Forty-five checks:
 #                   1. The copy succeeds.
 #                   2. .claude/MEMORY.md is byte-for-byte untouched.
 #                   3. Every other existing seed is untouched: .claude/CLAUDE.md,
@@ -94,7 +94,9 @@
 #                      'kept, ignored'.
 #                  25. Outside link: adopt/theology.sh printed the copy as the plan
 #                      'mv .agents .agents.syntek-held', the copy with --exclude /.agents, then
-#                      'mv .agents.syntek-held .agents', and left the link as it was.
+#                      'mv .agents.syntek-held .agents', and left the link as it was. The copy
+#                      is printed in the house form, uvx --python '>=X.Y' copier copy (D3; X.Y
+#                      is _common.sh's SA_PYTHON_MIN), quoted, so it runs as printed.
 #                  26. Outside link: following that plan, the copy succeeds, .agents is the
 #                      same link again, no .agents.syntek-held is left, and every file in the
 #                      folder it points to is byte for byte as it was.
@@ -111,12 +113,13 @@
 #                      of the template's migrations/family-refresh.json settings (D17, D51):
 #                      every key, value and list item it held is still there in its order,
 #                      everything added is an entry of that file (a top-level value, such as
-#                      "autoCompactEnabled": false, only where the author's file had the key
-#                      not at all, and then with exactly the listed value), each hook command
-#                      the file lists is wired exactly once, and each top-level value it lists
-#                      is there, judged whether or not the file changed, so a hook never wired
-#                      fails as surely as one wired twice. The author's fixture settings.json
-#                      holds no autoCompactEnabled, so the copy must add it.
+#                      "autoCompactEnabled": false or "idleCompaction": false, only where the
+#                      author's file had the key not at all, and then with exactly the listed
+#                      value), each hook command the file lists is wired exactly once, and each
+#                      top-level value it lists is there, judged whether or not the file
+#                      changed, so a hook never wired fails as surely as one wired twice. The
+#                      author's fixture settings.json holds neither value, so the copy must add
+#                      every one the file lists.
 #                      (Check 3 covers its bytes when there is no refresh file.)
 #                  31. Moving: the kept .mcp.json (the author's own server, four-space
 #                      indentation) gains the template's two MCP servers once each, with the
@@ -157,9 +160,22 @@
 #                      printed copy writes only under google-drive, is listed with that gate
 #                      ('only if the answers give'), never as plainly replaced; and the run
 #                      wrote nothing (check 17's judge covers both runs).
+#                 The user guide (DESIGN.md D56), on the same book holding the owner's own
+#                 how-to/CONTEXT.md (a shared path) and how-to/notes.md (no template's path):
+#                  42. A moving adoption keeps the owner's how-to/CONTEXT.md byte for byte,
+#                      writes this template's three how-to folders, and the advisory report
+#                      names the file as kept by the copy and given the template's text by the
+#                      first update.
+#                  43. An additive adoption keeps every file, how-to/CONTEXT.md included.
+#                  44. With how-to a file: moving adopt.sh --apply exits 2 having moved
+#                      nothing, and both the advisory moving report and the additive report
+#                      say 'how-to is a file, not a folder'.
+#                  45. Both reports name the owner's how-to/notes.md as belonging to no
+#                      template.
 #                 Checks 31–32 need a migrations/family-refresh.json that lists MCP servers,
-#                 checks 33–39 a copier.yml that asks DATA_STORE, and checks 40–41 one that asks
-#                 DATA_PROVIDER; otherwise each is skipped, by name. A copy-time preview is
+#                 checks 33–39 a copier.yml that asks DATA_STORE, checks 40–41 one that asks
+#                 DATA_PROVIDER, and checks 42–45 a template/how-to/; otherwise each is
+#                 skipped, by name. A copy-time preview is
 #                 read through COPIER_CMD: adopt.sh renders with it, and a wrapper here keeps
 #                 the answers the preview recorded.
 #
@@ -255,7 +271,7 @@ OUT_RAN=false; OUT_PROJ=""; OUT_REPORT=""; OUT_TARGET=""; OUT_ADVISED_TARGET="";
 OUT_AFTER_TARGET=""; OUT_HELD_LEFT=false; OUT_SUMS_BEFORE=""; OUT_SUMS_AFTER=""
 OUT_HELD=".agents.syntek-held"
 OUT_PLAN_HOLD="3. mv .agents $OUT_HELD"
-OUT_PLAN_COPY="uvx copier copy --trust --overwrite --exclude /.agents "
+OUT_PLAN_COPY="$SA_UVX_COPIER copy --trust --overwrite --exclude /.agents "   # the house form (D3)
 OUT_PLAN_BACK="mv $OUT_HELD .agents"
 OUT_DANGLING_REPORT=""
 # D54 (checks 31–32): the kept .mcp.json the moving copy adds to; the ignored one it never reads.
@@ -291,7 +307,8 @@ build_existing() { # $1 = dir
 
 - **14/03/2026** — **Chapter two leads with the parable.** The history waits until chapter three.
 EOF
-  # The author's own settings.json holds no autoCompactEnabled: the copy adds the template's (check 30).
+  # The author's own settings.json holds no top-level value the template lists (autoCompactEnabled,
+  # idleCompaction): the copy adds each of the template's (check 30).
   printf '{\n  "model": "opus"\n}\n' > "$p/.claude/settings.json"
   printf '# The Lantern Road\n\nA book in progress, by an invented author.\n' > "$p/README.md"
   printf 'build/\n.claude/settings.local.json\n' > "$p/.gitignore"
@@ -711,7 +728,8 @@ have = [h.get("command") for g in sum(a.get("hooks", {}).values(), []) for h in 
 for c in cmds:
     if have.count(c) != 1:
         print("a hook of the template is wired %d times, not once: %s" % (have.count(c), c)); sys.exit(1)
-# A top-level value the refresh file lists (autoCompactEnabled) is added where the author had none.
+# Each top-level value the refresh file lists (autoCompactEnabled, idleCompaction) is added where the
+# author had none.
 for k, v in ref.items():
     if k not in ("hooks", "permissions") and isinstance(v, (bool, int, float, str)) and k not in b and k not in a:
         print("settings.%s, which the refresh file lists, was not added to a file that had none" % k); sys.exit(1)
@@ -724,6 +742,7 @@ run_checks() {
   $BIZ_RAN && business_checks
   $OUT_RAN && outside_checks
   $SIB_RAN && sibling_checks
+  $HT_RAN && howto_checks
   [[ -n "$PROJ" ]] || return 0
   local f e now n
   if [[ "$COPY_STATUS" -ne 0 ]]; then
@@ -864,6 +883,113 @@ business_checks() {
 # and the store, the gate's own string), a drafts/ folder in the business family, the business
 # standard in library/docs/reference/, and a build skill, with the template's own .gitignore
 # anchored (as the real one is) so that git holds the skill.
+# The user guide (DESIGN.md D56, checks 42–45): the same book holding the owner's own
+# how-to/CONTEXT.md (at a shared path) and how-to/notes.md (at no template's path), adopted
+# moving and additive; and a book whose how-to is a file.
+HT_RAN=false; HT_MOVE=""; HT_ADD=""
+HT_MOVE_ST=0; HT_ADD_ST=0; HT_APPLY_ST=0; HT_CTX_SUM=""; HT_FILE_DIFF=""
+HT_KEPT_NOTE="how-to/CONTEXT.md is kept by the copy (a shared file is never written over); the first copier update puts the template's text there"
+HT_STRAY_NOTE="how-to/notes.md belongs to no template"
+HT_FILE_NOTE="how-to is a file, not a folder"
+HT_OWN_DIRS="how-to/docs/syntek-author how-to/src/TEMPLATE-GUIDE/syntek-author how-to/workflows/syntek-author"
+
+howto_owner() { # $1 = a book build_existing made: the owner's own files under how-to/, committed
+  mkdir -p "$1/how-to"
+  printf '# How we work\n\nThe author'\''s own notes on how this book is made.\n' > "$1/how-to/CONTEXT.md"
+  printf '# Notes\n\nA note of the author'\''s own.\n' > "$1/how-to/notes.md"
+  sa_git "$1" add -A && sa_git "$1" commit -q -m 'our own how-to notes'
+}
+
+run_howto() { # $1 = template repo, $2 = work dir (holding the snapshot run_flow made) — fills the D56 state
+  local tpl="$2/tpl" log="$2/howto.log" p
+  [[ -d "$tpl/template/how-to" && -f "$tpl/adopt/theology.sh" ]] || return 0
+  HT_RAN=true
+  # 42 and 45: moving, the advisory report, then the copy as it prints it.
+  p="$2/htmove"; HT_MOVE="$p"
+  build_existing "$p" >>"$log" 2>&1; howto_owner "$p" >>"$log" 2>&1
+  HT_CTX_SUM="$(sha1sum < "$p/how-to/CONTEXT.md")"
+  bash "$tpl/adopt/theology.sh" "$p" >"$2/howto-moving.log" 2>&1 || true
+  cat "$2/howto-moving.log" >>"$log"
+  printed_args "$2/howto-moving.log"
+  sa_render "$tpl" "$p" theology --overwrite --data SEED_EXAMPLES=false "${PRINTED[@]}" >>"$log" 2>&1 || HT_MOVE_ST=$?
+  # 43 and 45: additive, the report, then the copy beside every file.
+  p="$2/htadd"; HT_ADD="$p"
+  build_existing "$p" >>"$log" 2>&1; howto_owner "$p" >>"$log" 2>&1
+  adopt_spied "$2/howto-preview.answers" "$tpl/adopt/theology.sh" --additive "$p" >"$2/howto-additive.log" 2>&1 || true
+  cat "$2/howto-additive.log" >>"$log"
+  printed_args "$2/howto-additive.log"
+  sa_render "$tpl" "$p" theology --skip '*' --skip-tasks --data SEED_EXAMPLES=false "${PRINTED[@]}" >>"$log" 2>&1 || HT_ADD_ST=$?
+  # 44: how-to is a file: --apply refuses before it moves anything; both reports say so.
+  p="$2/htfile"
+  build_existing "$p" >>"$log" 2>&1
+  printf 'Our own how-to, a file.\n' > "$p/how-to"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'how-to is a file of ours' >>"$log" 2>&1
+  tree_sums "$p" > "$2/htfile.before"
+  bash "$tpl/adopt/theology.sh" --apply "$p" >"$2/howto-apply.log" 2>&1 || HT_APPLY_ST=$?
+  cat "$2/howto-apply.log" >>"$log"
+  HT_FILE_DIFF="$(tree_sums "$p" | diff "$2/htfile.before" - | grep '^[<>]' || true)"
+  bash "$tpl/adopt/theology.sh" "$p" >"$2/howto-file-moving.log" 2>&1 || true
+  adopt_spied "$2/howto-file-preview.answers" "$tpl/adopt/theology.sh" --additive "$p" >"$2/howto-file-additive.log" 2>&1 || true
+  cat "$2/howto-file-moving.log" "$2/howto-file-additive.log" >>"$log"
+  HT_LOGS="$2"
+}
+
+howto_checks() {
+  local d r
+  # 42. Moving: the owner's file at a shared path kept, and named as restored by the first
+  # update; this template's three folders written.
+  r=""
+  for d in $HT_OWN_DIRS; do [[ -n "$(find "$HT_MOVE/$d" -type f 2>/dev/null | head -1)" ]] || r+=" $d/"; done
+  if [[ "$HT_MOVE_ST" -ne 0 ]]; then
+    finding "check 42 — the moving copy over the owner's how-to/ failed (exit $HT_MOVE_ST)"
+  elif [[ "$(sha1sum < "$HT_MOVE/how-to/CONTEXT.md" 2>/dev/null)" != "$HT_CTX_SUM" ]]; then
+    finding "check 42 — the moving adoption changed the owner's how-to/CONTEXT.md — a shared how-to file is never written over by a copy"
+  elif [[ -n "$r" ]]; then
+    finding "check 42 — the moving adoption did not write this template's own how-to folders:$r"
+  elif ! grep -qF "$HT_KEPT_NOTE" "$HT_LOGS/howto-moving.log"; then
+    finding "check 42 — the moving report does not say '$HT_KEPT_NOTE'"
+  fi
+  # 43. Additive: every file kept, how-to/CONTEXT.md included.
+  r="$(git -C "$HT_ADD" status --porcelain 2>/dev/null | grep -v '^??' || true)"
+  if [[ "$HT_ADD_ST" -ne 0 ]]; then
+    finding "check 43 — the additive copy over the owner's how-to/ failed (exit $HT_ADD_ST)"
+  elif [[ -n "$r" ]]; then
+    finding "check 43 — the additive adoption changed or removed a file it found: $(head -3 <<< "$r" | paste -sd' ' -)"
+  fi
+  # 44. how-to a file: --apply refuses with exit 2, moving nothing; both modes say why.
+  if [[ "$HT_APPLY_ST" -ne 2 ]]; then
+    finding "check 44 — adopt.sh --apply with how-to a file exited $HT_APPLY_ST, not 2"
+  elif [[ -n "$HT_FILE_DIFF" ]]; then
+    finding "check 44 — adopt.sh --apply with how-to a file changed the repository ($(grep -c . <<< "$HT_FILE_DIFF") line(s) of difference)"
+  elif ! grep -qF "$HT_FILE_NOTE" "$HT_LOGS/howto-file-moving.log" || ! grep -qF "$HT_FILE_NOTE" "$HT_LOGS/howto-file-additive.log"; then
+    finding "check 44 — the moving and the additive report do not both say '$HT_FILE_NOTE'"
+  fi
+  # 45. The owner's file at no template's path is named, in both modes.
+  if ! grep -qF "$HT_STRAY_NOTE" "$HT_LOGS/howto-moving.log" || ! grep -qF "$HT_STRAY_NOTE" "$HT_LOGS/howto-additive.log"; then
+    finding "check 45 — the moving and the additive report do not both say '$HT_STRAY_NOTE'"
+  fi
+}
+
+# The fixture as this release's syntek-author is, for checks 42–45: a shared how-to file, copy-only
+# file by file, and a file in each of this template's three how-to folders. Commits.
+extend_fixture_howto() { # $1 = fixture template repo
+  local t="$1" d="$1/template" f
+  mkdir -p "$d/how-to"
+  printf '# CONTEXT.md — how-to/\n\nThe user guide, shared by every template.\n' > "$d/how-to/CONTEXT.md"
+  for f in $HT_OWN_DIRS; do mkdir -p "$d/$f"; printf '# A file of the guide — of this template\n' > "$d/$f/01-a.md"; done
+  python3 - "$t/copier.yml" <<'PY' || return 1
+import sys
+lines = open(sys.argv[1], encoding="utf-8").read().split("\n")
+def after(key, new):
+    i = lines.index(key)
+    lines[i + 1:i + 1] = new
+after("_exclude:", ["  - \"<: if _copier_operation == 'update' :>/how-to/CONTEXT.md<: endif :>\""])
+after("_skip_if_exists:", ["  - /how-to/CONTEXT.md"])
+open(sys.argv[1], "w", encoding="utf-8").write("\n".join(lines))
+PY
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the user guide'
+}
+
 extend_fixture() { # $1 = fixture template repo, $2 = scratch dir
   local t="$1" y="$1/copier.yml" d="$1/template" f
   cat > "$2/gates" <<'EOF'
@@ -943,6 +1069,7 @@ self_test() {
   cp -R "$SA_ROOT/adopt" "$tmp/fixture/adopt"
   extend_fixture "$tmp/fixture" "$tmp" >/dev/null
   extend_fixture_v050 "$tmp/fixture" >/dev/null || die "could not give the fixture the MCP lane and the data-root questions"
+  extend_fixture_howto "$tmp/fixture" >/dev/null || die "could not give the fixture the user guide"
   run_flow "$tmp/fixture" "$tmp"
   $BUILD_IGNORED || { printf '\033[31m  ✗ the fixture .gitignore no longer hides the build skill — check 10 would never be exercised\033[0m\n' >&2; exit 2; }
   st_baseline "a real adoption by the fixture template"
@@ -962,9 +1089,9 @@ self_test() {
   ADOPT_STATUS=1; probe "check 9 fires when the adoption script fails" "check 9"; ADOPT_STATUS=0
   # Check 30: the add-only settings merge, against a refresh file of the real shape.
   local held_refresh="$REFRESH_JSON"; REFRESH_JSON="$tmp/family-refresh.json"
-  printf '%s\n' '{"format": 1, "template": "fixture", "refresh": [], "settings": {"autoCompactEnabled": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"], "ask": []}}}' > "$REFRESH_JSON"
+  printf '%s\n' '{"format": 1, "template": "fixture", "refresh": [], "settings": {"autoCompactEnabled": false, "idleCompaction": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"], "ask": []}}}' > "$REFRESH_JSON"
   cp "$PROJ/.claude/settings.json" "$tmp/s"
-  python3 - "$SETTINGS_BEFORE" "$PROJ/.claude/settings.json" '{"autoCompactEnabled": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"]}}' <<'PY'
+  python3 - "$SETTINGS_BEFORE" "$PROJ/.claude/settings.json" '{"autoCompactEnabled": false, "idleCompaction": false, "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash hook.sh", "timeout": 10}]}]}, "permissions": {"deny": ["AskUserQuestion"]}}' <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1])); d.update(json.loads(sys.argv[3]))
 open(sys.argv[2], "w").write(json.dumps(d, indent=2) + "\n")
@@ -995,7 +1122,13 @@ PY
   probe "check 30 fires when the top-level value is not added" "settings.autoCompactEnabled, which the refresh file lists, was not added"
   python3 - "$PROJ/.claude/settings.json" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1])); d["autoCompactEnabled"] = False; d["hooks"]["UserPromptSubmit"] *= 2
+d = json.load(open(sys.argv[1])); d["autoCompactEnabled"] = False; del d["idleCompaction"]
+open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
+PY
+  probe "check 30 fires when idleCompaction, listed too, is not added" "settings.idleCompaction, which the refresh file lists, was not added"
+  python3 - "$PROJ/.claude/settings.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["idleCompaction"] = False; d["hooks"]["UserPromptSubmit"] *= 2
 open(sys.argv[1], "w").write(json.dumps(d, indent=2) + "\n")
 PY
   python3 - "$PROJ/.claude/settings.json" <<'PY'
@@ -1137,6 +1270,20 @@ PY
     probe "check 39 fires when the printed copy records another store" "check 39 — additive"; SIB[additive.recorded]="$held"
     SIB_RAN=false
   fi
+
+  run_howto "$tmp/fixture" "$tmp"
+  $HT_RAN || die "the fixture ships no how-to/, so checks 42–45 could not run"
+  st_baseline "the owner's own how-to files adopted, moving and additive, and how-to as a file"
+  cp "$HT_MOVE/how-to/CONTEXT.md" "$tmp/h"; printf 'x\n' >> "$HT_MOVE/how-to/CONTEXT.md"
+  probe "check 42 fires when the moving adoption writes over the owner's shared how-to file" "check 42 — the moving adoption changed the owner's how-to/CONTEXT.md"
+  cp "$tmp/h" "$HT_MOVE/how-to/CONTEXT.md"
+  cp "$HT_ADD/how-to/CONTEXT.md" "$tmp/h"; printf 'x\n' >> "$HT_ADD/how-to/CONTEXT.md"
+  probe "check 43 fires when the additive adoption changes a file it found" "check 43 — the additive adoption changed or removed a file it found"
+  cp "$tmp/h" "$HT_ADD/how-to/CONTEXT.md"
+  HT_APPLY_ST=0; probe "check 44 fires when --apply runs over how-to as a file" "check 44 — adopt.sh --apply with how-to a file exited 0"; HT_APPLY_ST=2
+  cp "$HT_LOGS/howto-additive.log" "$tmp/h"; grep -vF "$HT_STRAY_NOTE" "$tmp/h" > "$HT_LOGS/howto-additive.log" || true
+  probe "check 45 fires when the additive report does not name the owner's own how-to file" "check 45"; cp "$tmp/h" "$HT_LOGS/howto-additive.log"
+  HT_RAN=false
   st_finish "an adoption that leaves the author's work alone from one that does not"
 }
 
@@ -1154,6 +1301,7 @@ run_additive "$SA_ROOT" "$work"
 run_business "$SA_ROOT" "$work"
 run_outside "$SA_ROOT" "$work"
 run_sibling "$SA_ROOT" "$work"
+run_howto "$SA_ROOT" "$work"
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   log "  ✓ ${#BEFORE[@]} author file(s) kept after adoption (byte-identical, or only added to by the template's entries); no example added; answers written"
@@ -1170,6 +1318,8 @@ if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   else log "  (checks 33–39 not exercised: copier.yml asks no DATA_STORE)"; fi
   if $PROVIDER_ASKED; then log "  provider: the kept Drive workflow was named in the DATA_PROVIDER wording, and the moving report listed it with its gate"
   else log "  (checks 40–41 not exercised: copier.yml asks no DATA_PROVIDER)"; fi
+  if $HT_RAN; then log "  user guide: a moving adoption kept the owner's how-to/CONTEXT.md, wrote this template's folders and said the first update restores it; an additive one kept every file; with how-to a file, --apply refused and moved nothing, and both reports said why; the owner's how-to/notes.md was named as no template's in both modes"
+  else log "  (checks 42–45 not exercised: the template ships no how-to/)"; fi
   rm -rf "$work"
   bold "✓ Adoption leaves every piece of the author's work as it was."
   exit 0

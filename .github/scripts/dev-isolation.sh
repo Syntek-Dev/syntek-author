@@ -96,7 +96,8 @@
 #            of _common.sh and this script), proves it clean, then applies one mutation per
 #            check and asserts exactly one finding each.
 #
-# Requirements: bash 4+, python3 3.11+ (tomllib), git (checks 13 and 14). No network. codex
+# Requirements: bash 4+, python3 at _common.sh's SA_PYTHON_MIN or later (tomllib; the pin
+#               refuses an older one), git (checks 13 and 14). No network. codex
 #               and unshare optional (check 10).
 #
 # Usage: dev-isolation.sh [--root DIR] [--quiet] [--self-test] [--help]

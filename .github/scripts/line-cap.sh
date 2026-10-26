@@ -12,7 +12,8 @@
 #               Instructional: every .md file — docs, workflows, .claude/** (rules, skills,
 #               mode files, MEMORY.md), every CONTEXT.md and CLAUDE.md, standards, guides.
 #               Exempt (DESIGN.md D25): README.md, and artefacts under any src/ folder —
-#               except the CONTEXT.md and CLAUDE.md pair inside src/, which instructs.
+#               except the chapters of how-to/src/ (D56) and the CONTEXT.md and CLAUDE.md
+#               pair inside src/, which instruct.
 #
 #               One check:
 #                 1. An instructional .md file is longer than 300 lines.
@@ -25,8 +26,8 @@
 #               skill-conformance.sh's check 17.
 #
 # SELF-TEST. --self-test writes a fixture at runtime — a 300-line file, a long README, a long
-#            src/ artefact — proves it clean, then lengthens one file per probe and asserts
-#            exactly one finding.
+#            src/ artefact, a 300-line chapter of how-to/src/ — proves it clean, then
+#            lengthens one file per probe and asserts exactly one finding.
 #
 # Requirements: bash, find, wc. No network.
 #
@@ -81,6 +82,8 @@ instructional() { # tree-relative path
   local b="${1##*/}"
   [[ "$1" == *.md ]] || return 1
   [[ "$b" == README.md ]] && return 1
+  # The user guide's chapters are instructional, not artefacts, and are capped (D56).
+  [[ "$1" == how-to/src/* ]] && return 0
   if [[ "/$1" == */src/* ]]; then
     [[ "$b" == CONTEXT.md || "$b" == CLAUDE.md ]] || return 1
   fi
@@ -113,6 +116,8 @@ self_test() {
   seq 1 900 > "$t/manuscript/src/01-the-ford/01-the-ford.md"
   seq 1 10  > "$t/manuscript/src/CONTEXT.md"
   seq 1 10  > "$t/.claude/skills/flow/SKILL.md"
+  mkdir -p "$t/how-to/src/TEMPLATE-GUIDE/x"
+  seq 1 300 > "$t/how-to/src/TEMPLATE-GUIDE/x/01-a.md"
   st_baseline "a fixture at the cap, with exempt long files"
 
   seq 1 301 > "$t/manuscript/CLAUDE.md";              probe "check 1 fires on a CLAUDE.md one line over" "check 1 — manuscript/CLAUDE.md"
@@ -121,6 +126,8 @@ self_test() {
   seq 1 10  > "$t/manuscript/src/CONTEXT.md"
   seq 1 400 > "$t/.claude/skills/flow/SKILL.md";      probe "check 1 fires on a long SKILL.md" "check 1 — .claude/skills/flow/SKILL.md"
   seq 1 10  > "$t/.claude/skills/flow/SKILL.md"
+  seq 1 301 > "$t/how-to/src/TEMPLATE-GUIDE/x/01-a.md"; probe "check 1 fires on a chapter of how-to/src/ one line over (D56)" "check 1 — how-to/src/TEMPLATE-GUIDE/x/01-a.md"
+  seq 1 300 > "$t/how-to/src/TEMPLATE-GUIDE/x/01-a.md"
   st_finish "files within the cap from files over it"
 }
 
