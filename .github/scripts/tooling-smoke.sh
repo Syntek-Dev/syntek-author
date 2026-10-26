@@ -274,7 +274,8 @@
 #                         ./planning/../how-to/a.md, a Write through a link docs-link -> how-to,
 #                         and, on a disk that ignores letter case, a Write of How-To/a.md (on
 #                         Linux a casefold tmpfs in an unprivileged mount namespace stands in for
-#                         one; skipped, by name, where neither exists); it exits 0 for an Edit of
+#                         one; skipped, by name and with the reason, where neither exists or the
+#                         runner will not make the namespace); it exits 0 for an Edit of
 #                         planning/src/outline.md, a Read of how-to/CONTEXT.md, the payload {},
 #                         input that is no JSON, and, in a scratch project whose how-to is a link
 #                         to planning/, an Edit of planning/src/outline.md. The seed's own hook
@@ -655,7 +656,7 @@ hg_run() { # $1 = folder to run in, $2 = stdin, then the command → its exit st
   printf '%s' "$s"
 }
 smoke_howto_guard() { # $1 = a COPY of a render
-  local d="$1" g=".claude/hooks/how-to-read-only.sh" scratch got cmd s
+  local d="$1" g=".claude/hooks/how-to-read-only.sh" scratch got cmd s why
   local -a bad=()
   HG=()
   if [[ ! -f "$d/$g" ]]; then HG[result]="skip: no $g (a render made before D56)"; return 0; fi
@@ -679,17 +680,26 @@ smoke_howto_guard() { # $1 = a COPY of a render
   if [[ -d "$d/How-To" ]]; then
     hg_want 2 "a Write of How-To/a.md on a disk that ignores case" "$d" "$(hg_payload Write file_path How-To/a.md "$d")" bash "$g"
   elif command -v unshare >/dev/null 2>&1 && command -v chattr >/dev/null 2>&1; then
+    # The casefold project is built inside the namespace and the guard run there. "$3" is
+    # written only once that project stands, so a namespace the runner refuses (unshare itself
+    # failing, as where unprivileged user namespaces are restricted), or a mount, chattr, copy
+    # or cd that fails, is a skip named with its reason, never the guard's failure.
     mkdir -p "$scratch/cf"
+    rm -f -- "$scratch/cf.ready"
     s=0
     unshare -rm bash -c '
-      mount -t tmpfs -o casefold tmpfs "$1" 2>/dev/null && mkdir "$1/d" && chattr +F "$1/d" 2>/dev/null || exit 99
-      p="$1/d/p"; mkdir -p "$p/.claude/hooks" "$p/how-to"; cp -- "$2" "$p/.claude/hooks/"
-      cd "$p" && python3 -I -c '"'"'import json, sys; print(json.dumps({"tool_name": "Write", "tool_input": {"file_path": "How-To/a.md"}, "cwd": sys.argv[1]}))'"'"' "$p"         | bash .claude/hooks/how-to-read-only.sh' smoke-casefold "$scratch/cf" "$d/$g" >/dev/null 2>&1 || s=$?
-    case "$s" in
-      2) ;;
-      99) HG[case7]="skip: no casefold tmpfs here (Linux 6.13 or later, in an unprivileged mount namespace)" ;;
-      *) bad+=("a Write of How-To/a.md on a casefold disk exited $s, not 2") ;;
-    esac
+      mount -t tmpfs -o casefold tmpfs "$1" && mkdir "$1/d" && chattr +F "$1/d" || exit 99
+      p="$1/d/p"
+      mkdir -p "$p/.claude/hooks" "$p/how-to" && cp -- "$2" "$p/.claude/hooks/" && cd "$p" || exit 99
+      : > "$3" || exit 99
+      python3 -I -c '"'"'import json, sys; print(json.dumps({"tool_name": "Write", "tool_input": {"file_path": "How-To/a.md"}, "cwd": sys.argv[1]}))'"'"' "$p" \
+        | bash .claude/hooks/how-to-read-only.sh' smoke-casefold "$scratch/cf" "$d/$g" "$scratch/cf.ready" >/dev/null 2>"$scratch/cf.err" || s=$?
+    if [[ ! -e "$scratch/cf.ready" ]]; then
+      why="$(grep -m1 -v '^[[:space:]]*$' "$scratch/cf.err" 2>/dev/null || true)"
+      HG[case7]="skip: no casefold tmpfs here (Linux 6.13 or later, in an unprivileged mount namespace; exit $s${why:+: ${why:0:120}})"
+    elif [[ "$s" != 2 ]]; then
+      bad+=("a Write of How-To/a.md on a casefold disk exited $s, not 2")
+    fi
   else
     HG[case7]="skip: the disk is case-sensitive, and no unshare or chattr to make one that is not"
   fi
