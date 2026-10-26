@@ -7,5 +7,8 @@
 # Python bytecode from running the migration scripts and their self-tests.
 __pycache__/
 
+# Claude Code's per-machine settings (.claude/settings.local.json); development only.
+/.claude/settings.local.json
+
 # code-review-graph's local SQLite graph of this repository (.mcp.json); development only.
 /.code-review-graph/

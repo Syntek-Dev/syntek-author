@@ -174,8 +174,8 @@ the CI workflow:
 |---|---|
 | bash, make, rsync, GNU diff | The runner, the renders and the floor comparison |
 | git, with a user name and email set | Copier reads the template over git; the update, adoption and coexistence tests commit in scratch repositories |
-| [uv](https://docs.astral.sh/uv/) (`uvx`) | Copier 9.11.0 or newer (the floor, `_min_copier_version` in `copier.yml`, is fetched as well), shellcheck (`shellcheck-py` 0.11.0.1 in CI) and actionlint |
-| Python 3.11 or newer (CI uses 3.12) | The resolver, the permissions script, the update script and the `tooling/` scripts |
+| [uv](https://docs.astral.sh/uv/) (`uvx`) | Copier 9.12.0 or newer (the floor, `_min_copier_version` in `copier.yml`, is fetched as well), shellcheck (`shellcheck-py` 0.11.0.1 in CI) and actionlint |
+| Python 3.14 or newer (CI uses 3.14) | Everything the audits run: Copier, the update script (`migrations/family-update.py`), the resolver, the permissions script, the hooks and the `tooling/` scripts, all on `python3`, which `_common.sh` refuses below 3.14; each script also refuses an older Python itself, with a warning that it did not run |
 | Pandoc | `make docx` and the book builds in `tooling-smoke.sh` |
 | XeLaTeX, with TeX Live's `xcolor`, `ulem` and `paracol` | `make pdf`, `make print` and `make compare` to PDF; CI does not install it, so run these locally or pass `--skip-pdf` |
 | sqlite3 | The references database in renders that include it |
@@ -199,7 +199,8 @@ directory and stay there. `handoffs/` and `.code-review-graph/` are git-ignored;
 - **Do not bump the version.** `VERSION`, `CHANGELOG.md` and the `release` field of
   `family-shared.json` move together in the maintainer's release commit (`.claude/CLAUDE.md`
   Section 9).
-- **Fill in the pull-request checklist**, and read the CI run rather than ticking a box by hand.
+- **Fill in the pull-request checklist**, and read the CI run rather than ticking the audit box
+  by hand.
 - We are a small studio and maintain this alongside client work, so a reply may take a while.
 
 ---
