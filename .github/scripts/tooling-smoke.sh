@@ -1942,6 +1942,9 @@ dr_issue() { # $1 = copy, $2 = its scratch folder
     # Check 42: FORCE=1 files a new copy and keeps the old one under its superseded name. Rows
     # are only appended (D50): the old row keeps its path, and only its state changes.
     if [[ "${DR[42]:-}" != skip:* ]]; then
+      # Change the content so the new PDF differs even with reproducible build timestamps.
+      awk 'index($0, "\\end{document}") { print "\\par Revised issue." } { print }' "$d/$tex" > "$d/$tex.revised"
+      mv -- "$d/$tex.revised" "$d/$tex"
       drm "$d" 42 pdf "FILE=$tex" ISSUE=1 FORCE=1
       why=""
       [[ $DR_RC -eq 0 ]] || why+=" exit $DR_RC ($(dr_last "$d/.smoke-dr-42.log"));"

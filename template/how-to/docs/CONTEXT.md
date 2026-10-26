@@ -26,8 +26,8 @@ how-to/docs/
 each guide belongs to the template whose folder holds it. Every update of a template puts its
 files here back as it wrote them, and lists each in its report; what you had stays in Git. Only
 a template's update, its recovery and the commands its report prints change a file here. A
-project that works differently from a guide records the difference in the project's settings, in
-its rules under `.claude/rules/`, never here.
+project that works differently from a guide records the difference where the project's rules in
+`.claude/rules/` say a departure is recorded, never here.
 
 ## Cross-references
 

@@ -22,6 +22,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ### Changed
 
+- Development only: tooling-smoke check 42 changes the fixture’s visible content before reissuing it, so reproducible PDF timestamps do not make an unchanged source look like a failed replacement (D50, Section 7).
+
+- **Shared guide review (D48, D56):** clarify where guide departures are recorded, seeds and copy-only files, recorded clients and MCP offers, and templates with no data-root filing folders; correct recovery reruns and the hooks' descriptions. Companion templates must refresh the 13 shared how-to files, the guide guard and the hooks pair from the revised manifest (26/10/2026).
+
 - **`README.md`** shows an MIT licence badge beside the version and Copier badges, linking to `LICENSE` (D55). Development only, nothing ships.
 - `make lint` and `make flags` no longer read `how-to/src/` without a `SCOPE`.
 - The rules, the referencing standard and the bridge cite the guide, never a section of the seeded `README.md`.

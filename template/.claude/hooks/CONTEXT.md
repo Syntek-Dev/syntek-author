@@ -6,9 +6,9 @@ session-boundaries rule in the project's rules under `.claude/rules/`) from advi
 guard: `context-threshold-handoff.sh` measures the context window and warns while there is
 still room to hand off, and `pre-compact-handoff.sh` blocks the compaction that would follow and,
 once a compaction is stopped or run by hand, sees that you hear of it.
-The third, `how-to-read-only.sh`, keeps the session's file tools out of the user guide in
-`how-to/`, which is read-only (on macOS, Linux and WSL). Judgement never lives here: a hook can
-measure, block and remind, but only a skill can do the work.
+The third, `how-to-read-only.sh`, stops the session's file tools editing or writing in the user
+guide in `how-to/`, which is read-only (on macOS, Linux and WSL).
+Judgement never lives here: a hook can measure, block and remind, but only a skill can do the work.
 
 ## Directory Tree
 

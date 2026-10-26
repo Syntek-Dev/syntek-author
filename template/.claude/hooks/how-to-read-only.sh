@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# how-to-read-only.sh — keep a session's file tools out of the user guide, how-to/.
+# how-to-read-only.sh — stop a session's file tools editing or writing in the user guide, how-to/.
 #
 # Registered in .claude/settings.json under hooks.PreToolUse, matcher
 # "Edit|Write|MultiEdit|NotebookEdit". The entry resolves this script from the git root and
@@ -46,9 +46,9 @@ FIELDS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path",
 GUIDE = "how-to"
 REASON = ("how-to/ is the user guide this project's templates ship, and it is read-only: no "
           "session edits, writes or deletes a file there, and every template update puts the "
-          "guide's files back. Record how this project departs from the guide in the project's "
-          "settings in its rules under .claude/rules/ (overrides, and workflow aliases for a "
-          "procedure), and keep the project's own notes outside how-to/.")
+          "guide's files back. Record how this project departs from the guide where the "
+          "project's rules under .claude/rules/ say a departure is recorded, and keep the "
+          "project's own notes outside how-to/.")
 
 
 def within(path, top):

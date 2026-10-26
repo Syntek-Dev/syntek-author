@@ -34,7 +34,7 @@ decides.
   template's version, `git add`, removing a `.rej` file). Claude Code denies it, a hook refuses
   it, and the next update puts the file back.
 - **Never add a chapter here**, in a template's folder or beside the shared ones. A departure
-  from a chapter is recorded in the project's settings under `.claude/rules/`.
+  from a chapter is recorded where the project's rules in `.claude/rules/` say.
 - **A shared chapter names no template.** Where it sends the reader to 'your template's
   procedure', use the procedure of the template the job concerns.
 

@@ -13,10 +13,10 @@ Run a template's procedure exactly as written, with the owner, and never change 
 ## How to work here
 
 - **Routing:** the template the job concerns → its folder here → the procedure its pair names
-  for the job. An alias in the project's settings under `.claude/rules/` replaces a procedure;
-  check for one first.
-- **Model:** **Opus**: a procedure changes the template's files or the project's settings, and a
-  wrong step there is costly to undo.
+  for the job. Check first for an alias or an override of the procedure, where the project's
+  rules say one is recorded; it replaces the procedure.
+- **Model:** **Opus**: a procedure can change the template's files, the project's rules or a
+  settings file, and a wrong step there is costly to undo.
 - **Concrete steps:** read the procedure's files in the order its own `CLAUDE.md` gives → run
   each step in order, stopping for the owner where a step says → confirm each check it lists →
   report what changed.
@@ -29,8 +29,8 @@ Run a template's procedure exactly as written, with the owner, and never change 
 - **Never edit, write, move or delete a procedure, even when asked**, except through a
   template's update, its recovery and the commands its update report prints for a file here.
   Claude Code denies it, a hook refuses it, and the next update puts the file back.
-- **The project's own way is an alias, never an edit.** It is recorded in the project's
-  settings under `.claude/rules/`, and it wins over the procedure it names.
+- **The project's own way is an alias or an override, never an edit.** It is recorded where the
+  project's rules say, and it wins over the procedure it names.
 - **Use the procedure of the template the job concerns.** Never run one template's procedure,
   or its command, for another template's job.
 - **Never renumber or add a procedure here.** Numbers are frozen, and the owner's own procedures

@@ -23,8 +23,8 @@ how-to/
   servers, the data root, and updating. Each template's own chapters are numbered from 01.
 - **Guides** (`how-to/docs/`) explain one practice each, such as updating, and name the
   procedure that carries it out.
-- **Procedures** (`how-to/workflows/`) give the steps, with every command, for keeping the
-  project in step with its template, for you or a session to follow.
+- **Procedures** (`how-to/workflows/`) each give the steps, with every command, for one job about
+  the project's template, such as updating it, for you or a session to follow.
 - **Naming.** A template's own folder carries its exact name, the name in its answers file
   `.copier-answers.<template>.yml` and in its rules folder under `.claude/rules/`. Shared files
   sit outside every template's folder.
@@ -42,15 +42,16 @@ version waits for that template's update and is never put back to an older versi
 stands unchanged. Only a template's update, its recovery and the commands its report prints
 change a file here. A file of yours here belongs to no template and no update touches it, but no
 session can edit it either: keep your own notes where your project's rules say. To work
-differently from the guide, record the difference in the project's settings, in its rules under
-`.claude/rules/`.
+differently from the guide, record the difference where the project's rules in `.claude/rules/`
+say a departure from the guide is recorded.
 
 ## Cross-references
 
 - `how-to/src/TEMPLATE-GUIDE/CONTEXT.md`: where reading starts.
-- `.claude/rules/`: the project's rules, which decide wherever a chapter only explains, and the
-  project's settings, where a departure from the guide is recorded.
+- `.claude/rules/`: the project's rules, which decide wherever a chapter only explains, and which
+  say where a departure from the guide is recorded.
 - Every `.claude/syntek-*-agents.md`: the bridge each template ships for the coding agents other
   than Claude Code, which also says the guide is read-only.
 - `.claude/hooks/how-to-read-only.sh`: the hook that refuses a session's edits and writes here.
-- `.claude/settings.json`: the deny rule that keeps Claude Code's file tools out of this folder.
+- `.claude/settings.json`: the deny rule that stops Claude Code's file tools editing or writing
+  in this folder; reading it stays open.

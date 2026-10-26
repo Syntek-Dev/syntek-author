@@ -191,7 +191,7 @@ A recent Git refuses a value Copier tries first, so Copier tries another, and th
 Copier skipped every step after it wrote, as it does when it cannot read a template version.
 Run `git status`, and look for conflict markers and `.rej` files yourself.
 Where it printed instead a message framed in lines of `=` that says `family-update did NOT run`, `uvx` ran Copier on a Python older than 3.14 that it already had, so nothing was reported, refreshed or put back in `how-to/`.
-Once you have checked for conflicts, commit the update, then run the same update again, starting `uvx --python '>=3.14' copier update`.
+Once you have checked for conflicts, commit the update, then run the same update again, with the five settings from 'Before you update' in `how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md` in front of `uvx --python '>=3.14' copier update`.
 That second report says the template did not change, because the first run already moved the answers file to the new version.
 Upgrade the Python your terminal runs to 3.14 or later as well, because the project's own scripts and hooks need it too.
 

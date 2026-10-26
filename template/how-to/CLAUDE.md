@@ -20,8 +20,8 @@ Read the guide to answer how this project works; never change it.
   apply, and a wrong answer is acted on with full confidence.
 - **Concrete steps:** find the template's folder (its name is in its answers file,
   `.copier-answers.<template>.yml`) → read the `CONTEXT.md` of its chapter folder for the
-  reading order → read the chapter, then the rule it routes to → run a procedure the way the
-  project's rules say a workflow is run.
+  reading order → read the chapter, then the rule it routes to → run a procedure as its
+  template's folder under `how-to/workflows/` says, step by step with its checklist open.
 - **Definition of done:** the question is answered from the chapter and the rule, and nothing
   under `how-to/` changed except through a template's update, its recovery and the commands its
   report prints.
@@ -32,8 +32,8 @@ Read the guide to answer how this project works; never change it.
   template's update, its recovery and the commands its update report prints for a file here
   (taking the template's version, `git add`, removing a `.rej` file). Claude Code denies it, a
   hook refuses it, and the next update puts the file back.
-- **Record a departure where the project's rules say**, in the project's settings under
-  `.claude/rules/`: an override for a guide or chapter, an alias for a procedure. Never in the
+- **Record a departure where the project's rules in `.claude/rules/` say**: an override for a
+  guide or chapter, or, where the rules provide one, an alias for a procedure. Never in the
   guide.
 - **Never add a file here.** The owner's own guides, procedures and notes belong where the
   project's rules put them; a file here that no template ships is one no session can edit.

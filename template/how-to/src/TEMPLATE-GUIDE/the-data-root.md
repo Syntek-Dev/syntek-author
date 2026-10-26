@@ -6,11 +6,12 @@ The repository, the project folder Git looks after, keeps the text and a list of
 
 ## Two ways to keep binary files
 
-Each template asks where the project keeps its binary files, in the answer `DATA_STORE`.
+Each template asks, in the answer `DATA_STORE`, where the binary files of its filing folders are kept.
 
 - `external` keeps them outside the repository, under the data root.
 - `repo` keeps them in the repository, committed beside the work, as projects did before the data root existed.
 
+A template with no filing folder keeps nothing under the data root, whatever the answer, and its own rules say where its binary files go.
 Every template applied to a project records the same answer.
 Changing it later goes through your template's update, never an edit by hand.
 Under `repo`, the data commands, which file, check and fetch these copies, file nothing, and the rest of this chapter applies once you move the files out.
@@ -61,7 +62,7 @@ Commit the manifest with the work it lists, and never edit, reorder or delete a 
 Rows are only ever added, and the one change to a row is its state, from current to superseded or withdrawn.
 Each row also has a role, which says what the copy is, such as issued, signed or received.
 A signed, received, ingested or evidence copy is evidence: it is never replaced, and a changed file is a failure, never an update.
-In your writing, a filed file is named `ext:<path in the repository>`.
+In the project's text, a filed file is named `ext:<path in the repository>`.
 
 ## The tool
 
@@ -70,6 +71,8 @@ It needs Python 3.14 or later: on an older Python, every command says in a frame
 You choose its job with one word after its name.
 
 - `root` checks this machine's root and marker, and prints the store, where each kind of file goes and your provider's checklist.
+- `store` prints the store each template's answers record.
+- `path` prints where one file is kept, so it is opened at that path.
 - `add` files a copy of one file under the root and lists it in the manifest.
 - `status` reports what is at risk, such as binaries no manifest lists and copies kept online only.
 - `verify` checks every listed copy against its checksum.
@@ -85,7 +88,7 @@ for f in .claude/syntek-*-dataroot.py; do python3 "$f" root; break; done
 
 Run it first on a new machine, and again whenever a data command refuses.
 When the tool refuses for any other reason, it says why in one line: fix the cause, and never work round it by copying, moving or editing a file yourself.
-Your template may give shorter commands for the same steps; its procedure for setting up the data root, in its folder under `how-to/workflows/`, names them.
+Your template may give shorter commands for the same steps, in its procedures under `how-to/workflows/` or in its own chapters.
 Moving binary files that Git already holds out of the repository is a copy, never a move.
 `plan` with `--copy` files a copy of each one, and taking the originals out of Git is yours to do, once `verify` passes.
 Taking a file out of Git deletes it from every other copy of the repository when that copy next pulls.
@@ -131,7 +134,7 @@ Every template in a project defaults to the same provider, and a difference is o
 
 - The project's rules, in `.claude/rules/`, say when each data command is used and what each refusal means; where they differ from this chapter, the rules win.
 - Every `.claude/syntek-*-agents.md` says how a client other than Claude Code keeps out of the data root.
-- Your template's procedures, in its folder under `how-to/workflows/`, give the steps that set up a machine and move files out.
+- Where your template has filing folders, its procedures, in its folder under `how-to/workflows/`, give the steps that set up a machine and move files out.
 
 ## Next
 

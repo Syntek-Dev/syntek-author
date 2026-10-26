@@ -6,7 +6,7 @@ When it stops part way, you undo it and run it again.
 
 ## Before you update
 
-A template is the source your project was made from, and Copier is the tool that made the project and brings in the template's later versions.
+A template is a source that Copier applies to your project, and Copier is the tool that applies it and brings in the template's later versions.
 Each template keeps your answers to its questions in its answers file at the top of the project, `.copier-answers.<template>.yml`, where `<template>` is the template's name.
 Commit that file with every update, and never edit it by hand: it is the record every later update works from.
 A commit is a snapshot of the project that Git, the tool that records every version of it, keeps for good.
@@ -53,11 +53,12 @@ Your template's own procedure for updating, in its folder under `how-to/workflow
 
 The template's own files are merged with your edits.
 Where you and the template changed the same lines, Copier leaves both versions in the file, between the conflict markers `<<<<<<<` and `>>>>>>>`.
-Seeds, the files a template writes once for you to fill in, such as your settings, are never overwritten.
-A seed you delete comes back as a fresh copy on the next update.
-Copy-only files, such as each client's settings file, are written when the project is made and never again.
-The one exception is the two MCP servers, which an update adds to them once.
-Shared files are the ones every template of the family ships byte for byte, such as the working-practice skills and hooks and the guide's shared files.
+Seeds, the files a template writes once for you to fill in, are never overwritten.
+A seed you delete comes back as a fresh copy on the next update of the template that seeds it.
+Copy-only files, such as the settings files of the clients other than Claude Code, are written only by a copy, where they are missing, and never by an update.
+One file can be a seed in one template and copy-only in another, `.claude/settings.json` among them; each template's rules say which.
+An update changes a copy-only file only to add, once, the settings entries and MCP servers described below.
+Shared files, which the project's rules call family-shared, are the ones every template of the family ships byte for byte, such as the working-practice skills and hooks and the guide's shared files.
 Outside the guide, an update replaces a shared file only while it still holds a version that template wrote here.
 It also adds a shared file the project has never had.
 A shared file you have edited is kept, and the report names it.
@@ -66,11 +67,11 @@ After everything else, the update puts the template's text back on any file of t
 What you had stays in Git, and the report gives the command that shows it.
 It never touches a file there that no template ships, and never writes over another template's version while it stands unchanged.
 So read the guide, and never edit it: only an update, its recovery and the commands its report prints change a file there.
-To work differently from the guide, record the difference in the project's settings, in its rules under `.claude/rules/`.
-The update also adds to `.claude/settings.json` each hook and permission rule the template lists, and adds the two MCP servers to `.mcp.json` and to each client file.
+To work differently from the guide, record the difference where the project's rules in `.claude/rules/` say a departure from the guide is recorded.
+The update also adds to `.claude/settings.json` each hook and permission rule the template lists, and adds the two MCP servers to `.mcp.json` and to the settings file of each client your answers name (OpenCode's and Gemini CLI's once they hold the ask rules the permissions script writes).
 It also adds each top-level setting the template lists, such as `"idleCompaction": false`, where your file has no such key, and keeps a value you set yourself, saying so once.
 Each is added once, and never added back after you remove it.
-Your own writing is never a template file, and no update touches it.
+Your own work is never a template file, and no update writes over it.
 
 ## Reading the report
 
@@ -87,7 +88,7 @@ Each section is printed only when it has an entry.
 - `LEFT AS IT IS`: a file of the guide kept its text, for the reason given.
 - `NOT UPDATED`: the update left a file as you had it, for the reason in the section's title.
 - `NOT RESTORED`: you had deleted a template file that the template has since changed.
-- `NOT ADDED`: a new copy-only file, which only a copy writes.
+- `NOT ADDED`: a file only a copy writes, which the new version ships here because the template added it or an answer now asks for it (the files of a client you have just recorded, for example).
 - `NOT COMPARED`: a file Git ignores, which the update never reads.
 
 The reasons a file is not updated are your edit, another template's version, a file written only once, and a new file where you already had one.
@@ -128,9 +129,9 @@ If no report line appears at all, Copier skipped every step that runs after it w
 Then run `git status`, and look for conflict markers and `.rej` files yourself.
 If, in place of the report, a message framed in lines of `=` says `family-update did NOT run`, `uvx` ran Copier on an older Python it already had.
 That update printed no report, refreshed no shared file, added no settings entry or server, put back no guide file and kept no record.
-Look for conflict markers and `.rej` files yourself, commit the update, then run the same update again, starting `uvx --python '>=3.14' copier update`.
+Look for conflict markers and `.rej` files yourself, commit the update, then run the same update again, with the five settings from 'Before you update' in front of `uvx --python '>=3.14' copier update`.
 That second report says the template did not change, because the first run already moved the answers file to the new version.
-Upgrade the Python your terminal runs to 3.14 or later as well, because the project's own tools and hooks need it too.
+Upgrade the Python your terminal runs to 3.14 or later as well, because the project's own tools and hooks need it too; where your template's own chapters say a tool needs an older Python, keep that one beside it.
 In a folder inside another repository, one line says that nothing was recorded, refreshed or added.
 
 ## When an update stops
@@ -163,7 +164,7 @@ git reset --hard && git clean -fd
 Afterwards `git status` should report nothing to commit.
 
 Where `how-to` was a file or a link, give it another name and commit; `git mv how-to my-how-to` does that for one Git tracks.
-Last, run the update again, starting `uvx --python '>=3.14' copier update`, and check that the report reads from the version you had.
+Last, run the update again, with the five settings from 'Before you update' in front of `uvx --python '>=3.14' copier update`, and check that the report reads from the version you had.
 The second run delivers what an update that never stopped delivers.
 Your template's own procedure for recovering from an update that stopped, in its folder under `how-to/workflows/`, gives every command, the update included.
 
@@ -192,5 +193,5 @@ The next update records them again.
 ## Next
 
 - Putting back a held `.agents` link → `how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md`
-- Keeping binary files outside the repository → `how-to/src/TEMPLATE-GUIDE/the-data-root.md`
+- Keeping binary files under a data root → `how-to/src/TEMPLATE-GUIDE/the-data-root.md`
 - Where each template's chapters start → `how-to/src/TEMPLATE-GUIDE/CONTEXT.md`

@@ -25,7 +25,7 @@ how-to/src/TEMPLATE-GUIDE/
 | New to the project | the lowest-numbered chapter in your template's folder here |
 | Updating, or an update stopped | `how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md` |
 | Adding a coding agent | `how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md` |
-| Filing binary files | `how-to/src/TEMPLATE-GUIDE/the-data-root.md` |
+| Keeping binary files on a data root | `how-to/src/TEMPLATE-GUIDE/the-data-root.md` |
 | Anything else | your template's folder here |
 
 - **A chapter explains; the rules decide.** Each chapter ends with 'Where the rules live', which
@@ -42,7 +42,8 @@ template puts its chapters and the shared ones back as it wrote them, a deleted 
 and lists each in its report; what you had stays in Git. A shared chapter holding another
 template's version waits for that template's update. Only a template's update, its recovery and
 the commands its report prints change a file here. To work differently from a chapter, record
-the difference in the project's settings, in its rules under `.claude/rules/`.
+the difference where the project's rules in `.claude/rules/` say a departure from the guide is
+recorded.
 
 ## Cross-references
 

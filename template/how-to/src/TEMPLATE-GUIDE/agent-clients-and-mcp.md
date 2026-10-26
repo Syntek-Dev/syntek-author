@@ -8,8 +8,8 @@ Two servers that give a session extra tools come with every project, each fixed 
 
 A coding agent, also called a client, is the program you talk to in a session: Claude Code, Codex, Gemini CLI, Antigravity or OpenCode.
 Claude Code always comes with the project, and the others only where you chose them when the project was made.
-The `.claude/` folder holds everything a session needs: the project's rules, its skills, its memory and the manual of each folder.
-It is written once, and every client reads the same copy.
+The `.claude/` folder holds the project's rules, its skills, its memory and the top manual, and each folder keeps its own manual.
+There is one copy of each, and every client reads it.
 Claude Code reads it by itself.
 The other clients start from an entrypoint file at the top of the project: `AGENTS.md` for Codex and OpenCode, and `GEMINI.md` for Gemini CLI and Antigravity.
 Each entrypoint sends its client to every `.claude/syntek-*-agents.md` file present.
@@ -28,20 +28,21 @@ Each client also has a settings file of its own, which names its model, the MCP 
 - OpenCode reads `opencode.json`, at the top of the project.
 
 The skills, the written procedures a session follows for each kind of job, live in one place: `.claude/skills/`.
-Some clients look for skills in `.agents` instead, so `.agents` is a real folder, and the `skills` inside it is a link to `.claude/skills`.
+Some clients look for skills in `.agents` instead, so in a project made for any client besides Claude Code, `.agents` is a real folder, and the `skills` inside it is a link to `.claude/skills`.
 A link, or symbolic link, is a small file that points at another folder, so every client sees one copy of each skill.
-The entrypoints and the other clients' settings files are written once, when the project is made.
+The entrypoints and the other clients' settings files are written when a template is copied into the project, and only where they are missing.
 An update never adds or recreates one, and changes one only by adding the two MCP servers once to a file that lacks them.
 So a file you delete stays deleted, and a client you stop using keeps its files until you delete them.
-Codex and Gemini CLI read the project's settings only once you trust the project, so trust it when they ask.
+The one exception is a later copy, such as another template's first copy into the project, which writes each missing file of the clients its answers name.
+Codex and Gemini CLI read their settings files in the project only once you trust the project, so trust it when they ask.
 OpenCode reads no `CLAUDE.md` file at all, so the bridge is its only route to the rules.
 
 ## Adding a client later
 
 A client you choose after the project was made needs its files copied in by hand, because an update never writes them.
 The route has four parts.
-First, you record the new client through your template's update, in the `AGENT_CLIENTS` answer, listing every client you keep as well as the new one.
-That changes the model table in the rules, and nothing else.
+First, you record the new client through the update of each template applied to the project, one at a time, in its `AGENT_CLIENTS` answer, listing every client you keep as well as the new one.
+That changes the model table in each template's rules, and creates none of the client's files.
 Next, you make a fresh project from the same template source and version into a temporary folder, with your answers.
 Then you copy into your project only the client files it is missing.
 Where a file already exists, you combine the two by hand and never overwrite yours; a session agrees each one with you first.
@@ -50,7 +51,7 @@ Your template's own procedure for enabling a client, in its folder under `how-to
 
 ## When .agents is not a plain folder
 
-In a new project `.agents` is a real folder, and the `skills` inside it is a link to `.claude/skills`.
+In a new project made for any client besides Claude Code, `.agents` is a real folder, and the `skills` inside it is a link to `.claude/skills`; a project made for Claude Code alone has no `.agents`.
 Four other cases need care.
 
 - An older layout made `.agents` a link to `.claude`, which Codex on Linux refuses: make it a real folder before a copy or a new client.
@@ -109,9 +110,9 @@ The permissions script, `.claude/syntek-*-permissions.py`, reads those rules and
 Each template ships its own copy under its own name, and the copies are the same bytes, so either gives the same result.
 It needs Python 3.14 or later: on an older Python it says in a framed message that it did NOT run, and changes nothing.
 It reports every rule a client cannot hold, and why.
-Of the other clients, only OpenCode can hold the deny that keeps sessions out of the user guide in its own file.
+Of the other clients, only OpenCode can hold, in its own file, the deny that stops sessions editing the user guide.
 Antigravity keeps its permissions in the app, so for it the script lists what to set there, the guide's deny included.
-In Codex and Gemini CLI, which cannot hold the deny, the project's rules alone keep a session out of the guide.
+In Codex and Gemini CLI, which cannot hold the deny, the project's rules alone keep a session from editing the guide.
 The `for` loop in these commands runs the first copy of the script it finds, whichever template wrote it.
 This command shows the plan and any rule a client file is missing, and changes nothing:
 
@@ -128,14 +129,14 @@ for f in .claude/syntek-*-permissions.py; do python3 "$f" --write; break; done
 ```
 
 It never creates a client file.
-Run it after an update adds deny or ask rules to `.claude/settings.json`, and after you add a client.
+Run it after each template is first copied into the project, after an update adds deny or ask rules to `.claude/settings.json`, and after you add a client.
 What it writes for Codex and Gemini CLI works only once you trust the project.
 Its OpenCode rules assume you start OpenCode at the top of the project.
 
 ## The two MCP servers
 
 An MCP server is a small program that gives a session extra tools; MCP stands for Model Context Protocol.
-Every project comes with two, listed in `.mcp.json` and in each other client's settings file.
+Every project comes with two, listed in `.mcp.json` and in the settings file of each client its answers name.
 Scrapling fetches web pages, either as a plain web request or through a browser it drives.
 code-review-graph builds a map of the code in the project, kept on your machine.
 Both are pinned, which means each is fixed to one version the template has checked, and neither needs a key or an account.
@@ -149,7 +150,8 @@ Codex and Gemini CLI start them only in a trusted project.
 OpenCode starts them when it opens the project, and runs without a prompt every tool the project does not ask about.
 So in OpenCode the rules are the only safeguard.
 The project's rules in `.claude/rules/` say how a session may use the servers, under 'Web and code tools'.
-An update adds the two servers once to `.mcp.json` and to each client file that lacks them, and never adds back one you removed.
+An update adds the two servers once to `.mcp.json` and to the settings file of each client your answers name, wherever one lacks them (OpenCode's and Gemini CLI's once they hold the ask rules the permissions script writes), and never adds back one you removed.
+A client file your answers do not name gets one line in the report instead; once you record its client, as 'Adding a client later' says, an update adds them.
 
 ## A skill of your own with the same name
 
@@ -168,4 +170,4 @@ OpenCode works the same way: a global skill with a project skill's name wins ove
 ## Next
 
 - Updating a project, and getting back from an update that stopped → `how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md`
-- Keeping binary files outside the repository → `how-to/src/TEMPLATE-GUIDE/the-data-root.md`
+- Keeping binary files under a data root → `how-to/src/TEMPLATE-GUIDE/the-data-root.md`

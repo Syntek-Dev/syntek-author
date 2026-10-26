@@ -14,11 +14,12 @@ names.
 
 - **Routing:** the template's own folder here → the guide for the practice → the procedure it
   names in that template's folder under `how-to/workflows/` → the rule it cites in
-  `.claude/rules/`. A project that departs from a guide says so in the project's settings under
-  `.claude/rules/`; that departure wins.
+  `.claude/rules/`. A project that departs from a guide records it where the project's rules in
+  `.claude/rules/` say; that departure wins.
 - **Model:** **Opus**: a guide is read to decide how a practice applies here, which is judgement.
 - **Concrete steps:** find the template's folder → read its `CONTEXT.md` → read the guide →
-  check the project's settings for a departure → follow the procedure the guide names.
+  check for a departure where the project's rules say one is recorded → follow the procedure the
+  guide names.
 - **Definition of done:** the practice is understood, the procedure is chosen, and nothing under
   `how-to/` changed except through a template's update, its recovery and the commands its report
   prints.
@@ -29,7 +30,7 @@ names.
   update, its recovery and the commands its update report prints for a file here. Claude Code
   denies it, a hook refuses it, and the next update puts the file back.
 - **Never add a guide here.** The owner's own guides belong where the project's rules put them,
-  and a departure from a template's guide is recorded in the project's settings.
+  and a departure from a template's guide is recorded where the project's rules say.
 - **A guide explains; the rules decide.** Where a guide and a rule differ, follow the rule and
   tell the owner.
 

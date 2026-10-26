@@ -82,5 +82,5 @@ guard against silent compaction and the guard on the user guide keep working.
 
 - **Hand-written:** each `kebab-case.sh` script, executable, with its header. Nothing here is
   generated.
-- One script per job, named for the event or the measure and its purpose
+- One script per job, named for the event, the measure or the folder it guards, and its purpose
   (`pre-compact-handoff.sh`, `context-threshold-handoff.sh`, `how-to-read-only.sh`).
