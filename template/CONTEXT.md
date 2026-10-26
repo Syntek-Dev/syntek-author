@@ -3,11 +3,11 @@
 <: if DOC_TYPE == 'theology' :>The working repository for a Christian non-fiction book by <%AUTHOR_NAME%>.
 <: elif DOC_TYPE == 'fiction' :>The working repository for a novel by <%AUTHOR_NAME%>.
 <: else :>The working repository for the business, legal and client documents of <%TRADING_NAME%>.
-<: endif :>The deliverable is finished prose, not code: every file in a `src/` folder is part of the work or
-the evidence and planning behind it. The brief lives in `.claude/CLAUDE.md`, and the settings
-every skill reads (the audience, the reader test, where things are kept) in
-`.claude/rules/syntek-author/00-project.md`, not here; the rules live beside it in
-`.claude/rules/syntek-author/`. This file is orientation only.
+<: endif :>The deliverable is finished prose, not code: every file in a `src/` folder (except
+`how-to/src/`, the template's guide) is part of the work or the evidence and planning behind it.
+The brief lives in `.claude/CLAUDE.md`, and the settings every skill reads (the audience, the
+reader test, where things are kept) in `.claude/rules/syntek-author/00-project.md`, not here; the
+rules live beside it in `.claude/rules/syntek-author/`. This file is orientation only.
 
 ## Directory Tree
 
@@ -35,6 +35,7 @@ every skill reads (the audience, the reader test, where things are kept) in
 ├── handoffs/               ← session bridges from the handoff skill; pruned once resumed
 ├── learning/               ← the teach workspace; nothing here is the work
 ├── assets/                 ← images and other binaries the work uses
+├── how-to/                 ← the user guide: chapters, guides and procedures from the template (read-only)
 ├── CONTEXT.md              ← this file
 ├── Makefile                ← the build entry point (make help)
 ├── README.md               ← the human-facing overview
@@ -61,6 +62,8 @@ every skill reads (the audience, the reader test, where things are kept) in
 - **Supporting layers** — `standards/` (the rules the prose answers to) and `tooling/` (the
   build). Flat, consulted rather than produced inside.
 - **Working folders** — `handoffs/`, `learning/` and `assets/`, outside every build.
+- **The user guide** — `how-to/`, the template's chapters, guides and procedures; read it, never
+  edit it: every update puts it back.
 - **Generated output** — `build/` appears the first time `make` builds anything. It is git-ignored
   and never edited by hand.
 - **Settings files** — `.claude/rules/syntek-author/00-project.md` (the brief's settings, paths,
@@ -80,3 +83,4 @@ every skill reads (the audience, the reader test, where things are kept) in
 - `.claude/rules/syntek-author/03-authorship.md` — how drafting, revision and promotion work.
 - `README.md` — the overview for people, including how to build and how to update from the
   template.
+- `how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md` — where the user guide starts.

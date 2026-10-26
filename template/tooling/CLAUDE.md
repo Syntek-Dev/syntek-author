@@ -56,7 +56,10 @@ a broken build says exactly what broke.
 - **One filter for every output.** Every Pandoc run passes through `tooling/pandoc/house.lua`; a
   build that skips it renders the author's marks as plain text.
 - **Fail loudly.** A script that cannot do its job exits non-zero with a message that names the
-  file and the fix; it never writes a partial or lossy output.<: if INCLUDE_REFERENCES :>
+  file and the fix; it never writes a partial or lossy output.
+- **An old Python stops the build, and says so.** When a target or script prints that it did NOT
+  run because this Python is too old, give the author that message as printed, with its request
+  to upgrade; never lower `PYTHON_MIN` or run a script some other way to get past it.<: if INCLUDE_REFERENCES :>
 - **Commit the database and its dump together**, after every change (`make dump`).<: endif :>
 
 ## Output & naming
@@ -66,4 +69,7 @@ a broken build says exactly what broke.
   once; every other file here is template-owned and updated by `copier update`.
 - **Generated (never hand-edit):** everything under `build/`, named after the scope or file with
   `/` replaced by `__` (the comparison after its unit: `build/compare/<unit>.pdf`)<: if INCLUDE_REFERENCES :>; the text dump `references.dump.sql`, written by `make dump`<: endif :>.
-- New scripts: `snake_case.py`, standard library only, each with a `make` target.
+- New scripts: `snake_case.py`, standard library only, each with a `make` target that lists
+  `python-check` first among its prerequisites, and each with the `PYTHON_MIN` refusal the other
+  scripts carry, before anything an older Python cannot run, the whole file kept to Python 3.8's
+  grammar so an older Python reaches it.

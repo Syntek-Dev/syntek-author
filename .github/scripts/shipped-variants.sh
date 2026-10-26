@@ -16,7 +16,7 @@
 #                       Sections 3–5 transcribed), evaluated against the answers the render
 #                       recorded in .copier-answers.syntek-author.yml.
 #
-#                       Twenty-two checks:
+#                       Twenty-three checks:
 #                         1. The answers file is present and records DOC_TYPE.
 #                         2. Every skill the variant needs is present, with its SKILL.md.
 #                         3. No skill the variant must not have, and no skill DESIGN.md does
@@ -29,12 +29,16 @@
 #                            bridge, the permissions script and the data-root resolver and its
 #                            map (always), the three data-root ignore files (only under
 #                            DATA_STORE external, D50), .github/ (only for business with
-#                            DATA_PROVIDER google-drive and DATA_STORE repo, D53), and the other
-#                            coding agents' files. A catalogued folder is a real folder, never a
+#                            DATA_PROVIDER google-drive and DATA_STORE repo, D53), the other
+#                            coding agents' files, and the user guide (D56): every how-to path,
+#                            the guide guard among the hooks, and exactly the variant's own
+#                            chapter of 14, 15 and 16. A catalogued folder is a real folder, never a
 #                            link (.agents above all: a linked .agents breaks Codex's Linux
 #                            sandbox), and .agents/skills is a link to exactly ../.claude/skills,
 #                            never a copy.
-#                         7. No workflow folder DESIGN.md Section 4.4 does not number.
+#                         7. No workflow folder DESIGN.md Section 4.4 does not number, and no
+#                            how-to procedure (how-to/workflows/<template>/NN-*) Section 4.5
+#                            does not number (D56).
 #                         8. No template-only or retired path (copier.yml, DESIGN.md, adopt/,
 #                            .github/scripts/, .claude/agents/, .claude/commands/ …).
 #                         9. No template delimiter survives rendering.
@@ -59,8 +63,9 @@
 #                            `named` only the model, a local server one OpenAI-compatible
 #                            provider with the address without its trailing slash, the model,
 #                            and limit.context an integer — sets compaction.auto false, and
-#                            denies edits to *.pdf, build/* and typeset/src/units/.base/* with no
-#                            rule after its denies (the last match wins). Every MCP file declares
+#                            denies edits to *.pdf, build/*, how-to/* (D56) and
+#                            typeset/src/units/.base/* with no rule after its denies (the last
+#                            match wins). Every MCP file declares
 #                            exactly the two D54 servers, each with .mcp.json's command,
 #                            arguments and blank keys (OpenCode's command list and environment
 #                            read as the same), and no file carries a credential: a key named
@@ -69,7 +74,7 @@
 #                            exactly "". Whether each file ships is check 6.
 #                        13. `python3 .claude/syntek-author-permissions.py --check` exits 0 in
 #                            the render (DESIGN.md D49): a fresh project already carries every
-#                            rule the script can express. Skipped, by name, under Python 3.11.
+#                            rule the script can express.
 #                        14. Optional, each where its tool is installed and `unshare -rn` keeps
 #                            it off the network (OpenCode also in its own PID namespace, so the
 #                            MCP servers it starts end with it), with a scratch HOME, XDG folders
@@ -101,7 +106,7 @@
 #                            kept and never judged.
 #                        18. `python3 .claude/syntek-author-dataroot.py --self-test` exits 0 in
 #                            the render: the resolver every project runs proves itself where it
-#                            landed. Skipped, by name, under Python 3.11.
+#                            landed.
 #                        19. No external.toml ships: a filing folder's manifest is the
 #                            project's own, written by its first filing, and one shipped would
 #                            list files no machine holds.
@@ -124,6 +129,13 @@
 #                            check-ignore): a type it misses is committed instead of filed, and
 #                            an ignored manifest loses the record of what is filed (D50). Skipped,
 #                            by name, without git.
+#                        23. The guide guard in the render (D56), the first problem of: the
+#                            seed .claude/settings.json wires exactly one PreToolUse entry whose
+#                            command names .claude/hooks/how-to-read-only.sh; its
+#                            permissions.deny holds Edit(/how-to/**); the guard script, where it
+#                            ships (its absence is check 6's), is executable. Without the entry
+#                            or the bit, nothing stops a session's file tools in the read-only
+#                            guide but the deny, which a session started in a subfolder escapes.
 #
 #                       Numbers are stable identifiers. Append, never renumber.
 #
@@ -138,7 +150,9 @@
 #            the same for a business tree that keeps its documents in the repository and has
 #            the Google Drive workflows.
 #
-# Requirements: bash 4+, grep, awk, find, python3 3.11+. No network. Does NOT render — pass
+# Requirements: bash 4+, grep, awk, find, python3 at _common.sh's SA_PYTHON_MIN or later (the
+#               floor of the permissions script and the resolver; the pin refuses an older one,
+#               so checks 13 and 18 never skip on the interpreter). No network. Does NOT render — pass
 #               trees that generate-all.sh (or `copier copy`) produced. opencode, codex and
 #               unshare optional (check 14); git for check 22.
 #
@@ -262,13 +276,17 @@ run_checks() {
 
   # ── 7. Workflow folders DESIGN.md does not number ───────────────────────────
   while read -r gate kind path; do
-    [[ "$path" == */workflows/[0-9][0-9]-* ]] || continue
+    [[ "$path" == */workflows/[0-9][0-9]-* || "$path" == how-to/workflows/*/[0-9][0-9]-* ]] || continue
     if [[ "$path" == '{L}'* ]]; then wf_known["manuscript${path#\{L\}}"]=1; wf_known["library${path#\{L\}}"]=1
     else wf_known["$path"]=1; fi
   done <<< "$SA_PATHS"
   while IFS= read -r rel; do
     [[ -n "${wf_known[$rel]:-}" ]] || finding "check 7 — $rel/ is a workflow DESIGN.md Section 4.4 does not number (author procedures belong in workflows/local/)"
   done < <(cd "$TREE" && find . -mindepth 3 -maxdepth 3 -type d -path './*/workflows/[0-9][0-9]-*' -not -path './.git/*' | sed 's#^\./##' | sort)
+  # The user guide's procedures (D56): numbered from 01 in each template's own folder.
+  while IFS= read -r rel; do
+    [[ -n "${wf_known[$rel]:-}" ]] || finding "check 7 — $rel/ is a how-to procedure DESIGN.md Section 4.5 does not number"
+  done < <(cd "$TREE" && find . -mindepth 4 -maxdepth 4 -type d -path './how-to/workflows/*/[0-9][0-9]-*' | sed 's#^\./##' | sort)
 
   # ── 8. Template-only and retired paths ──────────────────────────────────────
   for p in $SA_NEVER; do
@@ -317,7 +335,7 @@ import json, re, sys, tomllib
 tree, answers, clients = sys.argv[1], sys.argv[2], sys.argv[3].split()
 SHARED, BLANK = sys.argv[4], sys.argv[5].split()
 LOCAL = ("llama-cpp", "ollama", "vllm", "lmstudio", "openai-compatible")
-DENIES = ("*.pdf", "build/*", "typeset/src/units/.base/*")
+DENIES = ("*.pdf", "build/*", "how-to/*", "typeset/src/units/.base/*")
 # The two D54 servers as .mcp.json declares them: command, arguments, and the names of the blank
 # keys (their values are the credential test's).
 def shape(command, args, env):
@@ -456,13 +474,9 @@ PY
   # ── 13. The permissions script finds no drift in a fresh render (D49) ───────
   local perm="$TREE/.claude/syntek-author-permissions.py" out status
   if [[ -f "$perm" ]]; then
-    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
-      NOTES["check 13 skipped — python3 is older than 3.11, which the permissions script needs"]=1
-    else
-      status=0
-      out="$(cd "$TREE" && python3 -I "$perm" --check 2>&1)" || status=$?
-      [[ "$status" -eq 0 ]] || finding "check 13 — .claude/syntek-author-permissions.py --check exits $status in a fresh render: $(printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | tail -1 | cut -c1-160)"
-    fi
+    status=0
+    out="$(cd "$TREE" && python3 -I "$perm" --check 2>&1)" || status=$?
+    [[ "$status" -eq 0 ]] || finding "check 13 — .claude/syntek-author-permissions.py --check exits $status in a fresh render: $(printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | tail -1 | cut -c1-160)"
   fi
 
   # ── 14. Optional: the clients themselves read the files (no network, scratch home) ──
@@ -566,13 +580,9 @@ PY
   # ── 18. The resolver proves itself in the render (D50) ──────────────────────
   local dr="$TREE/$SA_DATAROOT_PY"
   if [[ -f "$dr" ]]; then
-    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
-      NOTES["check 18 skipped — python3 is older than 3.11, which the data-root resolver needs"]=1
-    else
-      status=0
-      out="$(cd "$TREE" && python3 -I "$dr" --self-test 2>&1)" || status=$?
-      [[ "$status" -eq 0 ]] || finding "check 18 — $SA_DATAROOT_PY --self-test exits $status in this render: $(printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | tail -1 | cut -c1-160)"
-    fi
+    status=0
+    out="$(cd "$TREE" && python3 -I "$dr" --self-test 2>&1)" || status=$?
+    [[ "$status" -eq 0 ]] || finding "check 18 — $SA_DATAROOT_PY --self-test exits $status in this render: $(printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | tail -1 | cut -c1-160)"
   fi
 
   # ── 19. No manifest ships (D50) ─────────────────────────────────────────────
@@ -748,6 +758,34 @@ finally:
     shutil.rmtree(scratch, ignore_errors=True)
 PY
 )
+  fi
+
+  # ── 23. The guide guard in the render (D56) ─────────────────────────────────
+  if [[ -f "$TREE/.claude/settings.json" ]]; then
+    hits="$(python3 - "$TREE/.claude/settings.json" "$SA_HOWTO_GUARD" "$SA_HOWTO_DENY" <<'PY'
+import json, sys
+path, script, deny = sys.argv[1:4]
+try:
+    with open(path, encoding="utf-8") as fh:
+        data = json.load(fh)
+except Exception:
+    sys.exit(0)  # check 20 reports a settings file that does not parse
+hooks = data.get("hooks") if isinstance(data, dict) and isinstance(data.get("hooks"), dict) else {}
+pre = hooks.get("PreToolUse") if isinstance(hooks.get("PreToolUse"), list) else []
+n = sum(1 for e in pre if isinstance(e, dict) and isinstance(e.get("hooks"), list)
+        and any(isinstance(h, dict) and script in str(h.get("command", "")) for h in e["hooks"]))
+perms = data.get("permissions") if isinstance(data, dict) and isinstance(data.get("permissions"), dict) else {}
+if n != 1:
+    print(f".claude/settings.json wires the guide guard ({script}) in {n} PreToolUse entries — the seed wires it once")
+elif deny not in (perms.get("deny") or []):
+    print(f".claude/settings.json does not deny {deny} — the user guide is read-only (D56)")
+PY
+)"
+    if [[ -n "$hits" ]]; then
+      finding "check 23 — $hits"
+    elif [[ -f "$TREE/$SA_HOWTO_GUARD" && ! -x "$TREE/$SA_HOWTO_GUARD" ]]; then
+      finding "check 23 — $SA_HOWTO_GUARD is not executable — the seed's entry runs it with bash, but the copy task and every family template ship it at mode 755"
+    fi
   fi
   return 0
 }
@@ -937,7 +975,7 @@ build_tree() { # $1 = dir — every path the catalogue says the current answers 
  "compaction": {"auto": false},
  "mcp": {"servers": ${oc}},
  "permissions": [{"action": "edit", "resource": "*.pdf", "effect": "deny"}, {"action": "edit", "resource": "build/*", "effect": "deny"},
-                 {"action": "edit", "resource": "typeset/src/units/.base/*", "effect": "deny"}]}
+                 {"action": "edit", "resource": "how-to/*", "effect": "deny"}, {"action": "edit", "resource": "typeset/src/units/.base/*", "effect": "deny"}]}
 JSON
   fi
   # The permissions script and the data-root resolver (always ship): stand-ins that exit as
@@ -951,9 +989,11 @@ JSON
   done
   printf '{\n  "format": 1,\n  "folders": [\n    {"path": "library/src", "kind": "docs"},\n    {"path": "research/src"},\n    {"path": "proposal/src"},\n    {"path": "assets", "warn_over_kib": 1024},\n    {"path": "world/src"}\n  ]\n}\n' \
     > "$t/$SA_DATAROOT_MAP"
-  # The seed settings.json: the data-root guard, once (check 20).
-  python3 -c 'import json, sys; print(json.dumps({"hooks": {"PreToolUse": [{"matcher": sys.argv[1], "hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}]}}, indent=2))' \
-    "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" > "$t/.claude/settings.json"
+  # The seed settings.json: the data-root guard, once (check 20), then the guide guard, and the
+  # guide's deny (check 23); the guard script at mode 755.
+  python3 -c 'import json, sys; print(json.dumps({"hooks": {"PreToolUse": [{"matcher": sys.argv[1], "hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}, {"matcher": sys.argv[3], "hooks": [{"type": "command", "command": sys.argv[4], "timeout": 10}]}]}, "permissions": {"deny": ["Edit(build/**)", sys.argv[5]]}}, indent=2))' \
+    "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" > "$t/.claude/settings.json"
+  chmod +x "$t/$SA_HOWTO_GUARD"
   if gate_true drive; then
     write_drive_workflow "$t/.github/workflows/google-drive-push.yml" "Push Documents to Google Drive"
     write_drive_workflow "$t/.github/workflows/google-drive-pull.yml" "Pull Documents from Google Drive"
@@ -1040,6 +1080,12 @@ self_test() {
   mkdir -p "$TREE/planning/workflows/99-invent-a-step"
   probe "check 7 fires on an unnumbered workflow" "check 7"
   rmdir "$TREE/planning/workflows/99-invent-a-step"
+  mkdir -p "$TREE/how-to/workflows/syntek-author/05-invent-a-procedure"
+  probe "check 7 fires on a how-to procedure DESIGN.md does not number" "check 7 — how-to/workflows/syntek-author/05-invent-a-procedure/ is a how-to procedure"
+  rmdir "$TREE/how-to/workflows/syntek-author/05-invent-a-procedure"
+  printf 'x\n' > "$TREE/how-to/src/TEMPLATE-GUIDE/syntek-author/15-a-novel.md"
+  probe "check 6 fires when another variant's chapter of the user guide ships" "check 6 — how-to/src/TEMPLATE-GUIDE/syntek-author/15-a-novel.md leaked"
+  rm -f "$TREE/how-to/src/TEMPLATE-GUIDE/syntek-author/15-a-novel.md"
 
   printf 'x\n' > "$TREE/copier.yml"
   probe "check 8 fires when copier.yml leaks" "check 8 — copier.yml"
@@ -1116,7 +1162,7 @@ self_test() {
   cp "$tmp/oc" "$TREE/opencode.json"
   cp "$TREE/$SA_ANSWERS_FILE" "$tmp/answers"
   sed -i 's/^OPENCODE_PROVIDER: ollama$/OPENCODE_PROVIDER: user/' "$TREE/$SA_ANSWERS_FILE"
-  printf '{"$schema": "https://opencode.ai/config.json", "compaction": {"auto": false}, "mcp": {"servers": %s},\n "permissions": [{"action": "edit", "resource": "*.pdf", "effect": "deny"}, {"action": "edit", "resource": "build/*", "effect": "deny"}, {"action": "edit", "resource": "typeset/src/units/.base/*", "effect": "deny"}]}\n' "$oc" \
+  printf '{"$schema": "https://opencode.ai/config.json", "compaction": {"auto": false}, "mcp": {"servers": %s},\n "permissions": [{"action": "edit", "resource": "*.pdf", "effect": "deny"}, {"action": "edit", "resource": "build/*", "effect": "deny"}, {"action": "edit", "resource": "how-to/*", "effect": "deny"}, {"action": "edit", "resource": "typeset/src/units/.base/*", "effect": "deny"}]}\n' "$oc" \
     > "$TREE/opencode.json"
   probe_clean "check 12 holds the user provider's opencode.json, which declares the MCP servers"
   cp "$tmp/answers" "$TREE/$SA_ANSWERS_FILE"; cp "$tmp/oc" "$TREE/opencode.json"
@@ -1190,8 +1236,17 @@ self_test() {
   python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d["hooks"]["PreToolUse"].append(d["hooks"]["PreToolUse"][0]); json.dump(d, open(sys.argv[1], "w"))' "$TREE/.claude/settings.json"
   probe "check 20 fires when the seed wires the guard twice" "check 20 — .claude/settings.json wires the data-root guard 2 times"
   cp "$tmp/seed" "$TREE/.claude/settings.json"
-  python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d["hooks"] = {"PostToolUse": d["hooks"]["PreToolUse"]}; json.dump(d, open(sys.argv[1], "w"))' "$TREE/.claude/settings.json"
+  python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d["hooks"] = {"PostToolUse": d["hooks"]["PreToolUse"][:1], "PreToolUse": d["hooks"]["PreToolUse"][1:]}; json.dump(d, open(sys.argv[1], "w"))' "$TREE/.claude/settings.json"
   probe "check 20 fires when the guard runs on another event" "check 20 — .claude/settings.json wires the data-root guard on PostToolUse"
+  cp "$tmp/seed" "$TREE/.claude/settings.json"
+  chmod -x "$TREE/$SA_HOWTO_GUARD"
+  probe "check 23 fires when the guide guard is not executable" "check 23 — $SA_HOWTO_GUARD is not executable"
+  chmod +x "$TREE/$SA_HOWTO_GUARD"
+  python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d["hooks"]["PreToolUse"].pop(); json.dump(d, open(sys.argv[1], "w"))' "$TREE/.claude/settings.json"
+  probe "check 23 fires when the seed does not wire the guide guard" "check 23 — .claude/settings.json wires the guide guard ($SA_HOWTO_GUARD) in 0 PreToolUse entries"
+  cp "$tmp/seed" "$TREE/.claude/settings.json"
+  python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d["permissions"]["deny"].remove(sys.argv[2]); json.dump(d, open(sys.argv[1], "w"))' "$TREE/.claude/settings.json" "$SA_HOWTO_DENY"
+  probe "check 23 fires when the seed does not deny the guide" "check 23 — .claude/settings.json does not deny $SA_HOWTO_DENY"
   cp "$tmp/seed" "$TREE/.claude/settings.json"
   cp "$TREE/research/src/.gitignore" "$tmp/ig"
   sed -i '/^\*\.\[wW\]\[aA\]\[vV\]$/d' "$TREE/research/src/.gitignore"

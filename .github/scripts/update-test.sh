@@ -53,7 +53,8 @@
 #                       naming every INCLUDE_* option, DATA_PROVIDER (D53), DATA_STORE=repo
 #                       (D50: the off value of the store deletes the data-root ignore files)
 #                       and BUSINESS_FAMILIES — the only warning an author gets before an
-#                       option turned off deletes the seeds they filled in.
+#                       option turned off deletes the seeds they filled in — and D56's
+#                       paragraph naming how-to/, read-only from v0.6.0.
 #                   13. Business: the update from v0.1.0 to the tree tagged VERSION succeeds,
 #                       and the v0.2.0 migration runs.
 #                   14. Every author file planted in a v0.1.0 family folder, and the kept
@@ -186,12 +187,17 @@
 #                  settings.json (four-space indentation, permissions before model, an allow
 #                  rule) before the copy at v0.3.0.
 #                   55. A copy over it wires the template's threshold hook exactly once (the
-#                       copy-time baseline), and adds the top-level "autoCompactEnabled": false
-#                       family-refresh.json lists once, keeping the owner's indentation, key
-#                       order and allow rule; the update to v0.4.0 leaves both there exactly
-#                       once. A fifth project whose own settings.json holds autoCompactEnabled
-#                       true keeps it through the copy and the update, and the copy alone
-#                       prints the one line saying the handoff hooks assume false.
+#                       copy-time baseline), and adds every top-level value the real
+#                       family-refresh.json lists ("autoCompactEnabled": false and
+#                       "idleCompaction": false; the fixture's third release, which the copy
+#                       takes, offers them all, and its fourth keeps them) once each, with
+#                       the listed value, keeping the owner's indentation, key order and allow
+#                       rule; the update to v0.4.0 leaves them there exactly once. A fifth
+#                       project whose own settings.json holds autoCompactEnabled
+#                       true keeps it through the copy and the update, gains idleCompaction
+#                       false once, and the copy alone prints the one line saying the handoff
+#                       hooks assume false. (An owner's own idleCompaction true is kept by the
+#                       same code; family-update.py's --self-test proves that case.)
 #                   56. A hook the copy wired and the owner then removed is not re-added by
 #                       the next update: once removed after a commit, and once before any
 #                       commit, so only the record lists it as offered.
@@ -305,7 +311,7 @@
 #                  projects copied at v0.2.0 and updated to v0.3.0, each update then discarded
 #                  and run again, and a third whose owner keeps .claude/settings.json out of git,
 #                  updated to v0.3.0 and then to v0.4.0; and, on a second build of the fixture
-#                  whose v0.2.0 already offers the hook, autoCompactEnabled, the D54 deny and
+#                  whose v0.2.0 already offers the hook, the top-level values, the D54 deny and
 #                  asks and the two servers, a project copied at v0.1.0 and updated to v0.2.0,
 #                  that update discarded, then updated to v0.3.0, beside one updated from v0.1.0
 #                  to v0.3.0 directly. Check 89 reads the D54 flow above.
@@ -327,11 +333,80 @@
 #                   91. D51: an update discarded with git reset --hard and git clean -fd, then an
 #                       update to a later release, gives what a direct update gives: every path
 #                       with the same status and bytes (the D54 deny and asks, the threshold
-#                       hook and autoCompactEnabled in settings.json, the servers in .mcp.json,
+#                       hook and the top-level values in settings.json, the servers in .mcp.json,
 #                       the refreshed and the arrived shared skills), the record listing the
 #                       same offers and written blobs, chained on the one HEAD committed. The
 #                       discarded update must have offered those entries, and the direct one
 #                       delivered them, or the comparison proves nothing.
+#
+#                  The user guide (DESIGN.md D56), once per run, on the first DOC_TYPE: projects
+#                  copied at the v0.5.0 tag (one copy, duplicated) are updated to the working
+#                  tree, tagged as the release its newest _migrations entry names (v0.6.0), and
+#                  one of them on to DT_NEXT.
+#                   92. The crossing: this template's how-to files arrive by the merge, the
+#                       shared ones and the guide guard by the refresh ('added … shared files
+#                       new in this version'), the guard's settings.json entry and the deny
+#                       Edit(/how-to/**) are there once each, and a second update is quiet.
+#                       The settings.json the v0.5.0 copy wrote, judged against the real
+#                       family-refresh.json: every hook entry it lists wired exactly once by
+#                       event, matcher and script (the SessionStart compact entry arriving
+#                       once, no second entry beside a v0.5.0 one in the older
+#                       `[ -f … ] && exec` form), every top-level value it lists written once
+#                       with its value ("idleCompaction": false arriving), and every command
+#                       the copy wired still there byte for byte (D29, D51: never rewritten).
+#                   93. With SYNTEK_UPDATE_REPORT=off the shared how-to files are missing and
+#                       the output says 'no file of how-to/ is restored'; the next full update
+#                       adds them.
+#                   94. The owner's how-to/notes.md and how-to/src/mine.md, committed before
+#                       the crossing, are untouched; the v0.6.0 migration names both as
+#                       belonging to no template, runs before the update report (its
+#                       copier.yml entry before the update block), and prints the same report
+#                       on two hand runs, each exiting 0; it prints no 'stand where the guide
+#                       now has files' line, on the crossing (where Copier has just written
+#                       every guide file) or on a rerun after the crossing is committed.
+#                   95. The owner's own committed how-to/CONTEXT.md is put back to the
+#                       template's text on the crossing and listed under RESTORED; git show
+#                       syntek-author/yours:how-to/CONTEXT.md prints the owner's bytes; the
+#                       migration listed it first.
+#                   96. The owner's committed file at
+#                       how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md gets Copier's
+#                       conflict, then the template's text; git ls-files -u still lists it; its
+#                       RESTORED entry says 'then:    git add'; CONFLICT does not list it; the
+#                       migration listed it.
+#                   97. how-to as a link to docs-notes/ inside the project: the migration names
+#                       it, no shared how-to file is written through it, and LEFT AS IT IS
+#                       names the files.
+#                   98. After the crossing is committed, the owner edits chapter 07, deletes
+#                       the shared chapter the-data-root.md and commits; the update to DT_NEXT
+#                       restores both and lists them; a third update is a quiet no-op.
+#                   99. how-to as a committed file: the update exits non-zero naming
+#                       FileExistsError or NotADirectoryError; procedure 02's commands (git
+#                       clean -n -d, then git reset --hard and git clean -fd) bring back HEAD;
+#                       after git mv how-to my-how-to and a commit, the update succeeds, the
+#                       migration says nothing of how-to, and how-to/CONTEXT.md and chapter 01
+#                       arrive in a new how-to folder. And in a project already at the release
+#                       (the first flow, after its crossing), how-to renamed and committed: the
+#                       update to DT_NEXT succeeds, only the restore can write the guide back,
+#                       so both files hold the template's text again and RESTORED lists
+#                       how-to/CONTEXT.md as missing before this update.
+#                  100. An older Python (the maintainer's decision of 23/10/2026): uvx may run
+#                       Copier, and migrations/family-update.py with it, on a Python older than
+#                       _common.sh's SA_PYTHON_MIN. Run as Copier runs it, in a scratch project
+#                       with a commit and an answers file, on the newest older Python that
+#                       sa_old_python finds (skipped, by name, where there is none): `update` and
+#                       `baseline` each exit 0, so the update itself is never stopped, and print
+#                       the loud message (the Python it runs on, the minimum, that it did not
+#                       run, the word upgrade, no traceback), the rerun in the house form
+#                       uvx --python '>=X.Y' (D3), and, for `update`, that it printed no report;
+#                       the project's files, index and refs are as they were; and `--self-test`
+#                       exits non-zero with the loud message.
+#                  101. The same older Python for migrations/agents-outside-link.py, which
+#                       Copier runs first: in a scratch project whose .agents links to a folder
+#                       outside it, `hold` exits 0 with the loud message and the rerun in the
+#                       house form and holds nothing, `restore` exits 0, and neither moves the
+#                       link; with a link an earlier update held, `restore` exits 0, is loud and
+#                       leaves it held; `--self-test` exits non-zero with the loud message.
+#                       Skipped, by name, where check 100 is.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -340,7 +415,9 @@
 #                  Numbers are stable identifiers. Append, never renumber.
 #
 #                  What it CANNOT check: an upgrade from any release but v0.1.0 (and v0.3.0 for
-#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85 and 89), or a migration
+#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85 and 89, v0.5.0 for checks
+#                  92–99), how-to in another letter case on a disk that ignores it (the guard's
+#                  own case is tooling-smoke.sh check 72's), or a migration
 #                  the update does not reach (a later release's script needs its own flow here,
 #                  written with the release that moves the folder: DESIGN.md D26, D44); a real
 #                  syntek-media beside it (an invented sibling answers file stands in: the
@@ -359,13 +436,15 @@
 #            is given the real migrations/agents-outside-link.py and the real family-shared
 #            migrations block of copier.yml, and every update runs for real. The report
 #            fixture runs the real D54 lane (checks 47 and 59), and the discarded updates
-#            and the ignored settings.json run on it too (checks 86–88, 90 and 91). Checks 60–85 and
-#            89 need the real template, so the self-test writes the trees, logs and statuses
-#            a clean run leaves (dt_synth) and mutates one input per probe, which proves every
-#            judge too.
+#            and the ignored settings.json run on it too (checks 86–88, 90 and 91). Checks 60–85,
+#            89 and 92–99 need the real template, so the self-test writes the trees, logs and
+#            statuses a clean run leaves (dt_synth, ht_synth) and mutates one input per probe,
+#            which proves every judge too.
 #
-# Requirements: bash 4+, git, rsync, Python 3.11+ (tomllib), uvx (or COPIER_CMD), and the
-#               v0.1.0, v0.3.0 and v0.4.0 tags in the template repository (CI checks out with
+# Requirements: bash 4+, git, rsync, Python at _common.sh's SA_PYTHON_MIN or later, on PATH as
+#               python3 and as UV_PYTHON (the pin refuses an older one, since the update script
+#               refuses to run there), uvx (or COPIER_CMD), and the
+#               v0.1.0, v0.3.0, v0.4.0 and v0.5.0 tags in the template repository (CI checks out with
 #               fetch-depth 0). Network on the first uvx run only. The environment's
 #               SYNTEK_DATA_ROOT is never seen (_common.sh unsets it): the round trip makes
 #               its own root, with its marker, and passes it to each resolver command.
@@ -425,7 +504,8 @@ MESSAGE_MARK="Before you answer: turning an option off deletes"
 # What the warning must name: each option as `KEY=false`, and the family list by its key.
 # DATA_PROVIDER is D53's row (it replaced INCLUDE_DRIVE_SYNC=false) and DATA_STORE=repo D50's: the
 # table names the store's off value, which deletes the data-root ignore files.
-MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLANG=false INCLUDE_REFERENCES=false INCLUDE_SENSITIVE_CONTENT=false DATA_PROVIDER DATA_STORE=repo BUSINESS_FAMILIES"
+# how-to/ is D56's paragraph: from v0.6.0 the guide is read-only, and every update puts it back.
+MESSAGE_NAMES="INCLUDE_PROPOSAL=false INCLUDE_WORLDBUILDING=false INCLUDE_CONLANG=false INCLUDE_REFERENCES=false INCLUDE_SENSITIVE_CONTENT=false DATA_PROVIDER DATA_STORE=repo BUSINESS_FAMILIES how-to/"
 
 # State the checks read. --self-test mutates it.
 DOC=""; PROJ=""; COPY_STATUS=0; UPDATE_STATUS=0; AUTHOR_FILE=""; AUTHOR_SUM=""; TARGET_REL=""
@@ -1156,10 +1236,12 @@ tpl_file() { # $1 = template repo, $2 = ref, $3 = path under template/, $4 = des
 # Three tagged releases of the fixture with the real update script: each section of the
 # report gets one planted file (RP_WANT), and the shared set gets a refresh, an owner edit and
 # an arrival. With $2 = early (check 91), release 2 already offers what release 3 offers in the
-# settings and MCP lanes, and the D54 deny and asks too: the hook entry, autoCompactEnabled,
-# the nine rules and the two servers, so an update to it that is discarded has offered them.
+# settings and MCP lanes, and the D54 deny and asks too: the hook entry, the top-level values
+# (SM_TOP), the nine rules and the two servers, so an update to it that is discarded has offered
+# them.
 report_fixture() { # $1 = dest, $2 = early (optional)
   local t="$1" early="${2:-}"
+  [[ "$SM_TOP" != "{}" ]] || die "migrations/family-refresh.json lists no top-level value for the fixture to offer"
   sa_fixture_template "$t" >/dev/null
   sa_add_update "$t" syntek-author "$RP_SHARED $RP_ARRIVES" mcp || die "could not give the fixture the update script"
   # D54: the first two releases declare no MCP server in the seed .mcp.json; the third does, so
@@ -1173,15 +1255,15 @@ report_fixture() { # $1 = dest, $2 = early (optional)
   printf '\nRelease 2.\n' >> "$t/template/README.md"
   printf '\nRevision 2.\n' >> "$t/template/.claude/skills/wait-what/SKILL.md"
   if [[ "$early" == early ]]; then
-    python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" "$SA_MCP_DENY" "$SA_MCP_ASKS" <<'PY'
+    python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" "$SA_MCP_DENY" "$SA_MCP_ASKS" "$SM_TOP" <<'PY'
 import json, sys
-path, cmd, data, deny, asks = sys.argv[1:]
-rules = {"deny": [deny], "ask": asks.split()}
-json.dump({"model": "opus", "autoCompactEnabled": False,
+path, cmd, data, deny, asks, top = sys.argv[1:]
+rules, top = {"deny": [deny], "ask": asks.split()}, json.loads(top)
+json.dump({"model": "opus", **top,
            "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": cmd, "timeout": 10}]}]},
            "permissions": rules}, open(path, "w"), indent=2)
 d = json.load(open(data, encoding="utf-8"))
-d["settings"] = {"autoCompactEnabled": False, **d["settings"], "permissions": rules}
+d["settings"] = {**top, **d["settings"], "permissions": rules}
 json.dump(d, open(data, "w", encoding="utf-8"), indent=2)
 PY
     printf '%s' "$SA_MCP_SHARED" > "$t/template/.mcp.json"
@@ -1199,16 +1281,17 @@ PY
   printf '%s' "$SA_MCP_SHARED" > "$t/template/.mcp.json"
   mkdir -p "$t/template/.claude/skills/to-questionnaire"
   printf -- '---\nname: to-questionnaire\ndescription: A shared skill.\n---\n\n# Skill: to-questionnaire\n' > "$t/template/$RP_ARRIVES"
-  python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" <<'PY'
+  python3 - "$t/template/.claude/settings.json" "$RP_HOOK_CMD" "$t/migrations/family-refresh.json" "$SM_TOP" <<'PY'
 import json, sys
-# Release 2's settings kept (the early fixture's rules), the hook and the value set.
+# Release 2's settings kept (the early fixture's rules), the hook and the values set.
+top = json.loads(sys.argv[4])
 s = json.load(open(sys.argv[1], encoding="utf-8"))
-s.update({"model": "opus", "autoCompactEnabled": False,
+s.update({"model": "opus", **top,
           "hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": sys.argv[2], "timeout": 10}]}]}})
 json.dump(s, open(sys.argv[1], "w"), indent=2)
-# Release 3 also offers the top-level autoCompactEnabled, as the real family-refresh.json does.
+# Release 3 also offers every top-level value the real family-refresh.json lists.
 d = json.load(open(sys.argv[3], encoding="utf-8"))
-d["settings"] = {"autoCompactEnabled": False, **d["settings"]}
+d["settings"] = {**top, **d["settings"]}
 json.dump(d, open(sys.argv[3], "w", encoding="utf-8"), indent=2)
 PY
   python3 - "$t/copier.yml" <<'PY'
@@ -1384,12 +1467,12 @@ rp_record() { # $1 = project
 }
 
 # What the settings and MCP lanes owe a project of the early fixture at v0.2.0 or later: the D54
-# deny and each ask once, the threshold hook once, autoCompactEnabled false, both servers in
-# .mcp.json. Prints the missing ones, '; '-joined (nothing when all are there).
+# deny and each ask once, the threshold hook once, each top-level value of SM_TOP as listed,
+# both servers in .mcp.json. Prints the missing ones, '; '-joined (nothing when all are there).
 rp_holds() { # $1 = project
-  python3 - "$1" "$RP_HOOK_CMD" "$SA_MCP_DENY" "$SA_MCP_ASKS" "$SA_MCP_SERVERS" <<'PY'
+  python3 - "$1" "$RP_HOOK_CMD" "$SA_MCP_DENY" "$SA_MCP_ASKS" "$SA_MCP_SERVERS" "$SM_TOP" <<'PY'
 import json, sys
-p, cmd, deny, asks, servers = sys.argv[1:]
+p, cmd, deny, asks, servers, top = sys.argv[1:]
 def load(rel):
     try:
         v = json.load(open(p + "/" + rel, encoding="utf-8"))
@@ -1403,7 +1486,7 @@ miss += ["the ask " + a for a in asks.split() if (perm.get("ask") or []).count(a
 hooks = [h for e in ((s.get("hooks") or {}).get("UserPromptSubmit") or []) if isinstance(e, dict)
          for h in (e.get("hooks") or []) if isinstance(h, dict) and h.get("command") == cmd]
 miss += [] if len(hooks) == 1 else ["the threshold hook once"]
-miss += [] if s.get("autoCompactEnabled") is False else ["autoCompactEnabled false"]
+miss += ["%s %s" % (k, json.dumps(v)) for k, v in json.loads(top).items() if json.dumps(s.get(k)) != json.dumps(v)]
 miss += ["the server %s in .mcp.json" % x for x in servers.split() if x not in (m.get("mcpServers") or {})]
 print("; ".join(miss))
 PY
@@ -1590,6 +1673,13 @@ PY
 
 SM_RAN=false
 SM_HOOK="context-threshold-handoff.sh"
+# The top-level values the real family-refresh.json offers (D51), as one JSON object: a copy or
+# an update writes each once, with the listed value, where the owner had none, and keeps an
+# owner's other value. The report fixture's later releases offer exactly these.
+SM_TOP="$(python3 -c 'import json, sys
+s = json.load(open(sys.argv[1], encoding="utf-8")).get("settings") or {}
+print(json.dumps({k: v for k, v in s.items() if isinstance(v, (bool, int, float, str))}))' \
+  "$SA_ROOT/migrations/family-refresh.json" 2>/dev/null || printf '{}')"
 sm_existing() { # the owner's settings.json before the copy: four spaces, permissions first
   cat <<'EOF'
 {
@@ -1603,12 +1693,15 @@ sm_existing() { # the owner's settings.json before the copy: four spaces, permis
 EOF
 }
 # Judges a settings.json: prints "ok", or what is wrong. $2 = how many threshold hooks it must
-# wire (0 or 1); $3 = the autoCompactEnabled it must hold, written once (default false); the
-# owner's four-space indentation, key order and allow rule must hold.
-sm_judge() { # $1 = settings.json, $2 = hooks wanted, $3 = autoCompactEnabled wanted (false|true)
-  python3 - "$1" "$2" "$SM_HOOK" "${3:-false}" <<'PY'
+# wire (0 or 1); $3 = the owner's own top-level values, as a JSON object (default none). Each
+# value of SM_TOP must be written once: the owner's where $3 names it, the listed one otherwise.
+# The owner's four-space indentation, key order and allow rule must hold.
+sm_judge() { # $1 = settings.json, $2 = hooks wanted, $3 = the owner's values ('{"autoCompactEnabled": true}')
+  local own="${3:-}"
+  python3 - "$1" "$2" "$SM_HOOK" "$SM_TOP" "${own:-null}" <<'PY'
 import json, re, sys
-path, want, hook, compact = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+path, want, hook = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+expect = {**json.loads(sys.argv[4]), **(json.loads(sys.argv[5]) or {})}
 try:
     text = open(path, encoding="utf-8").read()
     d = json.loads(text)
@@ -1618,9 +1711,10 @@ n = sum(1 for e in (d.get("hooks") or {}).get("UserPromptSubmit") or [] for h in
         if hook in h.get("command", ""))
 bad = []
 if n != want: bad.append(f"the threshold hook wired {n} time(s), not {want}")
-k = len(re.findall(r'"autoCompactEnabled"\s*:', text))
-if k != 1 or json.dumps(d.get("autoCompactEnabled")) != compact:
-    bad.append(f"autoCompactEnabled written {k} time(s), {json.dumps(d.get('autoCompactEnabled'))}, not {compact} once")
+for key, value in expect.items():
+    k = len(re.findall(r'"%s"\s*:' % re.escape(key), text))
+    if k != 1 or json.dumps(d.get(key)) != json.dumps(value):
+        bad.append(f"{key} written {k} time(s), {json.dumps(d.get(key))}, not {json.dumps(value)} once")
 if list(d)[:2] != ["permissions", "model"]: bad.append(f"the owner's key order changed ({list(d)})")
 if (d.get("permissions") or {}).get("allow") != ["Bash(make *)"]: bad.append("the owner's allow rule changed")
 if any("\t" in l or len(re.match(r" *", l).group(0)) % 4 for l in text.splitlines()): bad.append("the owner's four-space indentation was not kept")
@@ -1709,14 +1803,14 @@ PY
   sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, no tasks' >>"$log" 2>&1 || true
   rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[3]=$?
   SM_C_UPDATED="$(sm_judge "$p/.claude/settings.json" 1)"
-  # t: the owner set autoCompactEnabled true; the copy keeps it and says so once, the update
-  # says nothing more.
+  # t: the owner set autoCompactEnabled true; the copy keeps it and says so once, adds the
+  # other listed values (idleCompaction false), and the update says nothing more.
   p="$w/t"
   rp_copy "$1" v0.3.0 "$p" theology >"$w/t-copy.log" 2>&1 || SM_COPY[4]=$?
-  SM_T_COPIED="$(sm_judge "$p/.claude/settings.json" 1 true)"
+  SM_T_COPIED="$(sm_judge "$p/.claude/settings.json" 1 '{"autoCompactEnabled": true}')"
   sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, compaction on' >>"$log" 2>&1 || true
   rp_update "$p" v0.4.0 >"$w/t-update.log" 2>&1 || SM_UPD[5]=$?
-  SM_T_UPDATED="$(sm_judge "$p/.claude/settings.json" 1 true)"
+  SM_T_UPDATED="$(sm_judge "$p/.claude/settings.json" 1 '{"autoCompactEnabled": true}')"
   SM_T_LINES="$(grep -cF "$SM_KEPT" "$w/t-copy.log" || true) $(grep -cF "$SM_KEPT" "$w/t-update.log" || true)"
   cat "$w/t-copy.log" "$w/t-update.log" >>"$log"
 }
@@ -2813,6 +2907,722 @@ dt_self_test() { # $1 = scratch dir
   MC_RAN=false; TD_RAN=false; DR_RAN=false; RT_RAN=false
 }
 
+# ── The user guide on real updates (D56) ─────────────────────────────────────
+#
+# Checks 92–99, on the real template: one project copied at v0.5.0 is committed and duplicated,
+# each duplicate set up as one check needs it, and updated to the working tree, tagged as the
+# release its newest _migrations entry names (v0.6.0); the first goes on to DT_NEXT. Each flow
+# keeps what the checks read: copies of the guide after an update, the template's bytes, the
+# logs, the exit statuses and what git said. The judges run when the checks run, so --self-test
+# proves them on synthetic trees it writes (ht_synth) with one mutation per check.
+HT_FROM="v0.5.0"
+HT_MIG_SCRIPT="migrations/v0.6.0-how-to.sh"
+HT_MIG_MARK="▸ v0.6.0 migration — the user guide"
+HT_MIG_ENTRY="  - version: v0.6.0"
+HT_STAND="stand where the guide now has files"
+HT_NOONE="belong to no template"
+HT_LINK="how-to is a link to docs-notes"
+HT_OFF_LINE="no file of how-to/ is restored"
+HT_RESTORED_SEC="RESTORED to the template's text"
+HT_LEFT_SEC="LEFT AS IT IS in how-to/"
+HT_CH07="how-to/src/TEMPLATE-GUIDE/syntek-author/07-the-writing-loop.md"
+HT_SHCH="how-to/src/TEMPLATE-GUIDE/the-data-root.md"
+HT_OVERVIEW="how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
+HT_STRAYS="how-to/notes.md how-to/src/mine.md"
+# What the v0.6.0 migration says about how-to; after it is renamed (check 99) it says none of it.
+HT_HOWTO_LINES=("how-to is a link" "differs from how-to only in letter case" "Git ignores files under how-to/" "$HT_STAND" "$HT_NOONE")
+HT_RAN=false; HT_DOC=""; HT_W=""
+# Check 100: the update script on an older Python. OU[<stage>.rc] and OU[<stage>.log] per stage
+# (update, baseline, selftest), OU[before] and OU[after] the project's state around them.
+OU_RAN=false; OU_SKIP=""
+declare -A OU=()
+# Check 101: the outside-link script on an older Python. OX[<run>.rc] and OX[<run>.log] per run
+# (hold, restore, held: restore beside a held link, selftest), OX[<run>.before] and OX[<run>.after]
+# what stands at .agents and at the held name around each.
+OX_RAN=false; OX_SKIP=""
+declare -A OX=()
+
+# The how-to files a render of DOC_TYPE $1 holds, from the catalogue (_common.sh SA_PATHS).
+ht_shipped() { # $1 = DOC_TYPE
+  local gate kind path
+  A_DOC_TYPE="$1"
+  while read -r gate kind path; do
+    [[ "$kind" == f && "$path" == how-to/* ]] || continue
+    if gate_true "$gate"; then printf '%s\n' "$path"; fi
+  done <<< "$SA_PATHS"
+}
+ht_keep() { # $1 = project, $2 = dir (new): how-to/, the guide guard and settings.json as they stand
+  mkdir -p "$2/.claude/hooks"
+  [[ ! -d "$1/how-to" ]] || cp -a "$1/how-to" "$2/how-to"
+  [[ ! -f "$1/$SA_HOWTO_GUARD" ]] || cp -a "$1/$SA_HOWTO_GUARD" "$2/$SA_HOWTO_GUARD"
+  [[ ! -f "$1/.claude/settings.json" ]] || cp "$1/.claude/settings.json" "$2/.claude/settings.json"
+  return 0
+}
+ht_migration_part() { # $1 = log → its lines before the update report
+  awk -v h="$RP_HEAD" 'index($0, h) == 1 { exit } { print }' "$1" 2>/dev/null || true
+}
+ht_entry() { # $1 = log, $2 = section title prefix, $3 = path → the entry's own lines in that section
+  awk -v s="  $2" -v p="    $3" '
+    index($0, s) == 1 { on = 1; next }
+    on && /^  [A-Z]/ { on = 0 }
+    on && $0 == p { e = 1; next }
+    e && /^        / { print; next }
+    { e = 0 }' "$1" 2>/dev/null || true
+}
+ht_quiet() { # $1 = status, $2 = log, $3 = dirty paths → "ok" or why an update was no quiet no-op
+  local n
+  local -a r=()
+  [[ "$1" -eq 0 ]] || r+=("it exited $1")
+  [[ -z "$3" ]] || r+=("$(printf '%s\n' "$3" | grep -c . || true) path(s) changed")
+  n="$(grep -c '^▸' "$2" 2>/dev/null || true)"
+  [[ "$n" -eq 1 ]] || r+=("$n ▸ line(s), not the one report line")
+  if grep -qF "$HT_RESTORED_SEC" "$2" 2>/dev/null; then r+=("it restored a file"); fi
+  verdict "${r[@]}"
+}
+
+run_howto_flow() { # $1 = tagged template, $2 = work dir (made here), $3 = DOC_TYPE
+  local tpl="$1" w="$2/ht" log="$2/ht-flow.log" base p f
+  HT_RAN=true; HT_DOC="$3"; HT_W="$w"
+  HTA_COPY=0; HTA_UPD=0; HTA_AGAIN_ST=0; HTA_AGAIN_DIRTY=""; HTA_NEXT_ST=0; HTA_THIRD_ST=0; HTA_THIRD_DIRTY=""
+  HTB_OFF_ST=0; HTB_FULL_ST=0; HTC_UPD=0; HTC_SUMS=""; HTC_MIG1=0; HTC_MIG2=0
+  HTD_UPD=0; HTD_UNMERGED=""; HTE_UPD=0; HTF_UPD=0; HTF_CLEAN_N=0; HTF_DIRTY=""; HTF_COMMIT=""; HTF_AGAIN=0
+  HTG_UPD=0
+  mkdir -p "$w"
+  [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
+  next_release "$tpl" >>"$log" 2>&1 || die "could not tag a later release in $tpl"
+  git -C "$tpl" rev-parse -q --verify "refs/tags/$HT_FROM" >/dev/null 2>&1 \
+    || die "$tpl has no $HT_FROM tag — the crossing into the user guide cannot be proven (CI needs fetch-depth: 0)"
+  base="$w/base"
+  rp_copy "$tpl" "$HT_FROM" "$base" "$3" >>"$log" 2>&1 || HTA_COPY=$?
+  [[ "$HTA_COPY" -eq 0 ]] || return 0
+  [[ -d "$base/.git" ]] || sa_git "$base" init -q
+  sa_git "$base" add -A && sa_git "$base" commit -q -m "copied at $HT_FROM" >>"$log" 2>&1
+  for p in a b c d e f; do cp -a "$base" "$w/$p"; done
+
+  # 92 and 98: the crossing, a quiet second update, the owner's edit and deletion, and DT_NEXT.
+  p="$w/a"
+  cp -p -- "$p/.claude/settings.json" "$w/a-settings-before.json" 2>>"$log" || true
+  cp -p -- "$tpl/migrations/family-refresh.json" "$w/a-refresh.json" 2>>"$log" || true
+  rp_update "$p" HEAD >"$w/a1.log" 2>&1 || HTA_UPD=$?
+  cat "$w/a1.log" >>"$log"; ht_keep "$p" "$w/a-mid"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated' >>"$log" 2>&1 || true
+  rp_update "$p" HEAD >"$w/a2.log" 2>&1 || HTA_AGAIN_ST=$?
+  cat "$w/a2.log" >>"$log"; HTA_AGAIN_DIRTY="$(git -C "$p" status --porcelain)"
+  cp -a "$p" "$w/g"   # 99's second case: the project at the release, its records included
+  printf '\nMy own line in the guide.\n' >> "$p/$HT_CH07"
+  sa_git "$p" rm -q -- "$HT_SHCH" >>"$log" 2>&1 || true
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my edit to chapter 07, and the data-root chapter gone' >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >"$w/a3.log" 2>&1 || HTA_NEXT_ST=$?
+  cat "$w/a3.log" >>"$log"
+  mkdir -p "$w/a-tpl/$(dirname "$HT_CH07")" "$w/a-tpl/$(dirname "$HT_SHCH")"
+  for f in "$HT_CH07" "$HT_SHCH"; do git -C "$tpl" show "$DT_NEXT:template/$f" > "$w/a-tpl/$f" 2>>"$log" || true; done
+  sa_git "$p" add -A && sa_git "$p" commit -q -m "updated to $DT_NEXT" >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >"$w/a4.log" 2>&1 || HTA_THIRD_ST=$?
+  cat "$w/a4.log" >>"$log"; HTA_THIRD_DIRTY="$(git -C "$p" status --porcelain)"
+
+  # 93: the crossing with the report off, then a full update.
+  p="$w/b"
+  (export SYNTEK_UPDATE_REPORT=off; rp_update "$p" HEAD) >"$w/b1.log" 2>&1 || HTB_OFF_ST=$?
+  cat "$w/b1.log" >>"$log"; ht_keep "$p" "$w/b-off"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated with the report off' >>"$log" 2>&1 || true
+  rp_update "$p" HEAD >"$w/b2.log" 2>&1 || HTB_FULL_ST=$?
+  cat "$w/b2.log" >>"$log"; ht_keep "$p" "$w/b-full"
+
+  # 94: the owner's own files under how-to/, at paths no template ships.
+  p="$w/c"
+  mkdir -p "$p/how-to/src"
+  printf '# My notes\n\nA note of my own.\n' > "$p/how-to/notes.md"; printf '# Mine\n\nA page of my own.\n' > "$p/how-to/src/mine.md"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own how-to notes' >>"$log" 2>&1
+  # shellcheck disable=SC2086  # one word per path
+  HTC_SUMS="$(cd "$p" && sha1sum $HT_STRAYS)"
+  rp_update "$p" HEAD >"$w/c1.log" 2>&1 || HTC_UPD=$?
+  cat "$w/c1.log" >>"$log"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated' >>"$log" 2>&1 || true
+  (cd "$p" && bash "$tpl/$HT_MIG_SCRIPT") >"$w/c-mig1.out" 2>&1 || HTC_MIG1=$?
+  (cd "$p" && bash "$tpl/$HT_MIG_SCRIPT") >"$w/c-mig2.out" 2>&1 || HTC_MIG2=$?
+
+  # 95 and 96: the owner's own files at a shared path and at a template-owned path.
+  p="$w/d"
+  mkdir -p "$p/$(dirname "$HT_OVERVIEW")"
+  printf '# My how-to\n\nMy own map of this folder.\n' > "$p/how-to/CONTEXT.md"
+  printf '# My overview — my own words\n\nMy own overview.\n' > "$p/$HT_OVERVIEW"
+  cp "$p/how-to/CONTEXT.md" "$w/d-owner-context"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'my own guide files' >>"$log" 2>&1
+  rp_update "$p" HEAD >"$w/d1.log" 2>&1 || HTD_UPD=$?
+  cat "$w/d1.log" >>"$log"
+  HTD_UNMERGED="$(git -C "$p" ls-files -u -- how-to | awk '{ print $4 }' | sort -u | paste -sd' ' - || true)"
+  git -C "$p" show "syntek-author/yours:how-to/CONTEXT.md" > "$w/d-yours-context" 2>>"$log" || true
+  mkdir -p "$w/d-tpl/$(dirname "$HT_OVERVIEW")"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do git -C "$tpl" show "HEAD:template/$f" > "$w/d-tpl/$f" 2>>"$log" || true; done
+
+  # 97: how-to as a link to a folder of the owner's inside the project.
+  p="$w/e"
+  mkdir -p "$p/docs-notes"; printf '# My notes\n' > "$p/docs-notes/mine.md"; ln -s docs-notes "$p/how-to"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'how-to links to my notes' >>"$log" 2>&1
+  rp_update "$p" HEAD >"$w/e1.log" 2>&1 || HTE_UPD=$?
+  cat "$w/e1.log" >>"$log"
+
+  # 99: how-to as a committed file: the update stops; the recovery; renamed, it updates.
+  p="$w/f"
+  printf 'My own how-to, a file.\n' > "$p/how-to"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'how-to is a file of mine' >>"$log" 2>&1
+  rp_update "$p" HEAD >"$w/f1.log" 2>&1 || HTF_UPD=$?
+  cat "$w/f1.log" >>"$log"
+  git -C "$p" clean -n -d >>"$log" 2>&1 || HTF_CLEAN_N=$?
+  { git -C "$p" reset -q --hard && git -C "$p" clean -q -fd; } >>"$log" 2>&1 || true
+  HTF_DIRTY="$(git -C "$p" status --porcelain)"
+  HTF_COMMIT="$(answer_value _commit "$p/$SA_ANSWERS_FILE")"
+  sa_git "$p" mv how-to my-how-to >>"$log" 2>&1 && sa_git "$p" commit -q -m 'how-to renamed' >>"$log" 2>&1 || true
+  rp_update "$p" HEAD >"$w/f2.log" 2>&1 || HTF_AGAIN=$?
+  cat "$w/f2.log" >>"$log"
+
+  # 99, at the release: how-to renamed in a project that already has the guide. Copier takes
+  # the guide's files as deleted by the owner; only the restore writes them back.
+  p="$w/g"
+  sa_git "$p" mv how-to my-how-to >>"$log" 2>&1 && sa_git "$p" commit -q -m 'how-to renamed' >>"$log" 2>&1 || true
+  rp_update "$p" "$DT_NEXT" >"$w/g1.log" 2>&1 || HTG_UPD=$?
+  cat "$w/g1.log" >>"$log"
+  mkdir -p "$w/g-tpl/$(dirname "$HT_OVERVIEW")"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do git -C "$tpl" show "$DT_NEXT:template/$f" > "$w/g-tpl/$f" 2>>"$log" || true; done
+  return 0
+}
+
+# Check 92's settings judge: the settings.json after the crossing against the one the copy wrote
+# and the family-refresh.json the crossing read → 'ok', or why (D29, D51).
+ht_d29() { # $1 = settings.json after, $2 = settings.json before, $3 = family-refresh.json
+  python3 - "$@" <<'PY'
+import collections, json, re, sys
+after, before, data = sys.argv[1:]
+try:
+    text = open(after, encoding="utf-8").read()
+    st, old = json.loads(text), json.load(open(before, encoding="utf-8"))
+    settings = json.load(open(data, encoding="utf-8")).get("settings") or {}
+except (OSError, ValueError) as e:
+    print(f"settings.json, the copy's settings.json or family-refresh.json is unreadable ({e})"); sys.exit(0)
+scripts = lambda e: set(re.findall(r"\.claude/hooks/([A-Za-z0-9._-]+)", json.dumps(e.get("hooks"))))
+cmds = lambda d: collections.Counter(h.get("command", "") for es in (d.get("hooks") or {}).values() for e in es or []
+                                     for h in (e.get("hooks") or []) if isinstance(h, dict))
+bad = []
+for event, entries in (settings.get("hooks") or {}).items():
+    for w in entries:
+        n = sum(1 for e in (st.get("hooks") or {}).get(event) or []
+                if e.get("matcher", "") == w.get("matcher", "") and scripts(w) <= scripts(e))
+        if n != 1:
+            bad.append(f"the {event} {w.get('matcher', '') or '(no matcher)'} entry for {','.join(sorted(scripts(w)))} is wired {n} time(s), not once")
+for key, value in settings.items():
+    if key in ("hooks", "permissions") or isinstance(value, (dict, list)) or value is None:
+        continue
+    n = len(re.findall(r'"%s"\s*:' % re.escape(key), text))
+    if n != 1 or json.dumps(st.get(key)) != json.dumps(value):
+        bad.append(f"{key} is written {n} time(s), value {json.dumps(st.get(key))}, not {json.dumps(value)} once")
+lost = sorted((cmds(old) - cmds(st)).elements())
+if lost:
+    bad.append(f"{len(lost)} hook command(s) the copy wired were rewritten or removed, the first {lost[0][:100]!r}")
+print("; ".join(bad) or "ok")
+PY
+}
+
+howto_checks() {
+  local L="[$HT_DOC from $HT_FROM]" w="$HT_W" f r v a b s missing="" sec ent v29
+  local -a why=()
+  if [[ "$HTA_COPY" -ne 0 ]]; then
+    finding "check 92 — $L the copy at $HT_FROM failed (exit $HTA_COPY) — see ht-flow.log beside $w"
+    return 0
+  fi
+  # 92. The crossing: this template's files by the merge, the shared ones and the guard by the
+  # refresh, the guard's entry and the deny once each, then a quiet second update.
+  while IFS= read -r f; do [[ -f "$w/a-mid/$f" ]] || missing+=" $f"; done < <(ht_shipped "$HT_DOC")
+  v="$(python3 - "$w/a-mid/.claude/settings.json" "$SA_HOWTO_GUARD" "$SA_HOWTO_DENY" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("settings.json does not parse"); sys.exit(0)
+pre = (d.get("hooks") or {}).get("PreToolUse") or []
+n = sum(1 for e in pre if any(sys.argv[2] in str(h.get("command", "")) for h in e.get("hooks") or []))
+m = ((d.get("permissions") or {}).get("deny") or []).count(sys.argv[3])
+print("ok" if (n, m) == (1, 1) else f"settings.json runs the guide guard in {n} PreToolUse entries and denies {sys.argv[3]} {m} time(s)")
+PY
+)"
+  v29="$(ht_d29 "$w/a-mid/.claude/settings.json" "$w/a-settings-before.json" "$w/a-refresh.json")"
+  a="$(grep -E "^▸ syntek-author: added [0-9]+ shared files? new in this version: " "$w/a1.log" | tail -1 || true)"
+  r=""
+  for f in $SA_SHARED_HOWTO $SA_HOWTO_GUARD; do [[ ", ${a##*: }, " == *", $f, "* ]] || r+=" $f"; done
+  if [[ "$HTA_UPD" -ne 0 ]]; then
+    finding "check 92 — $L the crossing update failed (exit $HTA_UPD) — see $w/a1.log"
+  elif [[ -n "$missing" ]]; then
+    finding "check 92 — $L after the crossing, the guide lacks:${missing:0:300}"
+  elif [[ ! -x "$w/a-mid/$SA_HOWTO_GUARD" ]]; then
+    finding "check 92 — $L after the crossing, $SA_HOWTO_GUARD is missing or not executable"
+  elif [[ "$v" != ok ]]; then
+    finding "check 92 — $L after the crossing, $v — each is offered once"
+  elif [[ "$v29" != ok ]]; then
+    finding "check 92 — $L after the crossing, judged against family-refresh.json: ${v29:0:400}"
+  elif [[ -n "$r" ]]; then
+    finding "check 92 — $L the refresh did not report adding the shared files and the guard as new in this version:${r:0:300}"
+  elif [[ "$(ht_quiet "$HTA_AGAIN_ST" "$w/a2.log" "$HTA_AGAIN_DIRTY")" != ok ]]; then
+    finding "check 92 — $L a second update was no quiet no-op: $(ht_quiet "$HTA_AGAIN_ST" "$w/a2.log" "$HTA_AGAIN_DIRTY")"
+  fi
+  # 93. With the report off, no shared how-to file arrives, and the output says so; the next full
+  # update adds them.
+  r=""; for f in $SA_SHARED_HOWTO; do [[ ! -e "$w/b-off/$f" ]] || r+=" $f"; done
+  missing=""; for f in $SA_SHARED_HOWTO; do [[ -f "$w/b-full/$f" ]] || missing+=" $f"; done
+  if [[ "$HTB_OFF_ST" -ne 0 || "$HTB_FULL_ST" -ne 0 ]]; then
+    finding "check 93 — $L the update with SYNTEK_UPDATE_REPORT=off (exit $HTB_OFF_ST) or the full one after it (exit $HTB_FULL_ST) failed"
+  elif [[ -n "$r" ]]; then
+    finding "check 93 — $L with SYNTEK_UPDATE_REPORT=off, shared how-to files arrived:${r:0:200}"
+  elif ! grep -qF "$HT_OFF_LINE" "$w/b1.log"; then
+    finding "check 93 — $L with SYNTEK_UPDATE_REPORT=off, the output does not say '$HT_OFF_LINE'"
+  elif [[ -n "$missing" ]]; then
+    finding "check 93 — $L the next full update did not add the shared how-to files:${missing:0:200}"
+  fi
+  # 94. The owner's files that no template ships: untouched, named, and nothing more.
+  a="$(grep -nF "$HT_MIG_MARK" "$w/c1.log" | head -1 | cut -d: -f1 || true)"; b="$(grep -n "^$RP_HEAD" "$w/c1.log" | head -1 | cut -d: -f1 || true)"
+  s="$(awk -v e="$HT_MIG_ENTRY" -v u="$SA_UPD_BEGIN" '$0 == e && !m { m = NR } $0 == u && !b { b = NR } END { print (m && b && m < b) ? "before" : "not before" }' "$SA_ROOT/copier.yml")"
+  r=""; for f in $HT_STRAYS; do ht_migration_part "$w/c1.log" | grep -qxF "    $f" || r+=" $f"; done
+  # shellcheck disable=SC2086  # one word per path
+  if [[ "$HTC_UPD" -ne 0 ]]; then
+    finding "check 94 — $L the crossing update over the owner's own how-to files failed (exit $HTC_UPD)"
+  elif [[ "$(cd "$w/c" && sha1sum $HT_STRAYS 2>/dev/null)" != "$HTC_SUMS" ]]; then
+    finding "check 94 — $L the update changed or removed the owner's how-to/notes.md or how-to/src/mine.md, which no template ships"
+  elif [[ -z "$a" || -z "$b" || "$a" -gt "$b" || "$s" != before ]]; then
+    finding "check 94 — $L the v0.6.0 migration did not run before the update report (its line ${a:-absent}, the report's ${b:-absent}), or its copier.yml entry is $s the update block"
+  elif [[ -n "$r" ]]; then
+    finding "check 94 — $L the v0.6.0 migration did not name, as belonging to no template:$r"
+  elif grep -qF "$HT_STAND" "$w/c1.log" "$w/c-mig1.out" "$w/c-mig2.out" 2>/dev/null; then
+    finding "check 94 — $L the v0.6.0 migration says files of the owner's '$HT_STAND', on the crossing or on a rerun after it — none do (Copier's own files are no owner's)"
+  elif [[ "$HTC_MIG1" -ne 0 || "$HTC_MIG2" -ne 0 ]] || ! cmp -s "$w/c-mig1.out" "$w/c-mig2.out"; then
+    finding "check 94 — $L two hand runs of the v0.6.0 migration (exits $HTC_MIG1 and $HTC_MIG2) did not print the same report"
+  fi
+  # 95. The owner's own file at a shared path: restored, listed, and kept in Git.
+  sec="$(dt_section_of "$w/d1.log" how-to/CONTEXT.md)"
+  if [[ "$HTD_UPD" -ne 0 ]]; then
+    finding "check 95 — $L the crossing update over the owner's own guide files failed (exit $HTD_UPD)"
+  elif ! cmp -s "$w/d/how-to/CONTEXT.md" "$w/d-tpl/how-to/CONTEXT.md"; then
+    finding "check 95 — $L the owner's how-to/CONTEXT.md was not put back to the template's text"
+  elif [[ "$sec" != "$HT_RESTORED_SEC"* ]]; then
+    finding "check 95 — $L the report lists how-to/CONTEXT.md under '${sec:-no section}', not under RESTORED"
+  elif ! cmp -s "$w/d-yours-context" "$w/d-owner-context"; then
+    finding "check 95 — $L git show syntek-author/yours:how-to/CONTEXT.md does not print the owner's bytes"
+  elif ! ht_migration_part "$w/d1.log" | grep -qE "^    how-to/CONTEXT\.md +git show"; then
+    finding "check 95 — $L the v0.6.0 migration did not list the owner's how-to/CONTEXT.md as standing where the guide now has a file"
+  fi
+  # 96. The owner's own file at a template-owned path: Copier's conflict, then the template's text,
+  # still unmerged, with the git add the report prints.
+  sec="$(dt_section_of "$w/d1.log" "$HT_OVERVIEW")"; ent="$(ht_entry "$w/d1.log" "$HT_RESTORED_SEC" "$HT_OVERVIEW")"
+  if [[ "$HTD_UPD" -ne 0 ]]; then
+    :   # check 95 reports the failed update
+  elif ! cmp -s "$w/d/$HT_OVERVIEW" "$w/d-tpl/$HT_OVERVIEW"; then
+    finding "check 96 — $L the owner's $HT_OVERVIEW was not put back to the template's text"
+  elif [[ " $HTD_UNMERGED " != *" $HT_OVERVIEW "* ]]; then
+    finding "check 96 — $L git ls-files -u does not list $HT_OVERVIEW: the restore wrote the index, or Copier marked no conflict"
+  elif [[ "$sec" != "$HT_RESTORED_SEC"* ]]; then
+    finding "check 96 — $L the report lists $HT_OVERVIEW under '${sec:-no section}', not under RESTORED (and never under CONFLICT)"
+  elif ! grep -qE '^ +then: +git add -- ' <<< "$ent"; then
+    finding "check 96 — $L the RESTORED entry for $HT_OVERVIEW does not say 'then:    git add'"
+  elif ! ht_migration_part "$w/d1.log" | grep -qF "    $HT_OVERVIEW    git show"; then
+    finding "check 96 — $L the v0.6.0 migration did not list the owner's $HT_OVERVIEW"
+  fi
+  # 97. how-to as a link inside the project: named, and nothing restored through it.
+  r=""; for f in $SA_SHARED_HOWTO; do [[ ! -e "$w/e/docs-notes/${f#how-to/}" ]] || r+=" ${f#how-to/}"; done
+  if [[ "$HTE_UPD" -ne 0 ]]; then
+    finding "check 97 — $L the crossing update with how-to linked to docs-notes/ failed (exit $HTE_UPD)"
+  elif ! ht_migration_part "$w/e1.log" | grep -qF "$HT_LINK"; then
+    finding "check 97 — $L the v0.6.0 migration did not say '$HT_LINK'"
+  elif [[ -n "$r" ]]; then
+    finding "check 97 — $L a shared how-to file was written through the link into docs-notes/:${r:0:200}"
+  elif [[ "$(dt_section_of "$w/e1.log" how-to/CONTEXT.md)" != "$HT_LEFT_SEC"* ]]; then
+    finding "check 97 — $L the report does not list how-to/CONTEXT.md under '$HT_LEFT_SEC'"
+  fi
+  # 98. A later edit and a deletion are restored and listed; a third update is quiet.
+  why=()
+  for f in "$HT_CH07" "$HT_SHCH"; do
+    cmp -s "$w/a/$f" "$w/a-tpl/$f" || why+=("$f does not hold the template's text")
+    [[ "$(dt_section_of "$w/a3.log" "$f")" == "$HT_RESTORED_SEC"* ]] || why+=("$f is not listed under RESTORED")
+  done
+  if [[ "$HTA_NEXT_ST" -ne 0 ]]; then
+    finding "check 98 — $L the update to $DT_NEXT after the owner's edit and deletion failed (exit $HTA_NEXT_ST)"
+  elif [[ ${#why[@]} -gt 0 ]]; then
+    finding "check 98 — $L the update to $DT_NEXT: $(verdict "${why[@]}")"
+  elif [[ "$(ht_quiet "$HTA_THIRD_ST" "$w/a4.log" "$HTA_THIRD_DIRTY")" != ok ]]; then
+    finding "check 98 — $L a third update was no quiet no-op: $(ht_quiet "$HTA_THIRD_ST" "$w/a4.log" "$HTA_THIRD_DIRTY")"
+  fi
+  # 99. how-to as a committed file: the update stops, the recovery brings back HEAD, and once
+  # renamed the update succeeds with nothing said about how-to.
+  r=""; for s in "${HT_HOWTO_LINES[@]}"; do if ht_migration_part "$w/f2.log" | grep -qF "$s"; then r+=" '$s'"; fi; done
+  if [[ "$HTF_UPD" -eq 0 ]] || ! grep -qE 'FileExistsError|NotADirectoryError' "$w/f1.log"; then
+    finding "check 99 — $L with how-to a file, the update exited $HTF_UPD without naming FileExistsError or NotADirectoryError"
+  elif [[ "$HTF_CLEAN_N" -ne 0 || -n "$HTF_DIRTY" || "$HTF_COMMIT" != "$HT_FROM" ]]; then
+    finding "check 99 — $L procedure 02's recovery did not bring back HEAD (git clean -n -d exit $HTF_CLEAN_N; $(printf '%s\n' "$HTF_DIRTY" | grep -c . || true) path(s) left; the answers record ${HTF_COMMIT:-nothing})"
+  elif [[ "$HTF_AGAIN" -ne 0 ]]; then
+    finding "check 99 — $L after git mv how-to my-how-to, the update failed (exit $HTF_AGAIN)"
+  elif [[ -n "$r" ]]; then
+    finding "check 99 — $L after how-to was renamed, the v0.6.0 migration still said:$r"
+  elif missing="$(for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do [[ -f "$w/f/$f" ]] || printf ' %s' "$f"; done)"; [[ -n "$missing" ]]; then
+    finding "check 99 — $L after the rename, the update did not write the guide into a new how-to folder:$missing"
+  fi
+  a=""; b=""; ent="$(ht_entry "$w/g1.log" "$HT_RESTORED_SEC" how-to/CONTEXT.md)"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do
+    if [[ ! -f "$w/g/$f" ]]; then a+=" $f"; elif ! cmp -s "$w/g/$f" "$w/g-tpl/$f"; then b+=" $f"; fi
+  done
+  if [[ "$HTG_UPD" -ne 0 ]]; then
+    finding "check 99 — $L at the release, after git mv how-to my-how-to, the update to $DT_NEXT failed (exit $HTG_UPD)"
+  elif [[ -n "$a$b" ]]; then
+    finding "check 99 — $L at the release, after git mv how-to my-how-to, the update to $DT_NEXT did not put the guide back (missing:${a:- none}; not the template's text:${b:- none})"
+  elif ! grep -qF 'was:     missing before this update' <<< "$ent"; then
+    finding "check 99 — $L at the release, after the rename, RESTORED does not list how-to/CONTEXT.md as missing before this update"
+  fi
+}
+
+# The trees and logs of the D56 flows, as a clean run leaves them (checks 92–99, --self-test).
+ht_synth() { # $1 = dir (new)
+  local w="$1/ht" f
+  mkdir -p "$w"
+  HT_RAN=true; HT_DOC=theology; HT_W="$w"
+  HTA_COPY=0; HTA_UPD=0; HTA_AGAIN_ST=0; HTA_AGAIN_DIRTY=""; HTA_NEXT_ST=0; HTA_THIRD_ST=0; HTA_THIRD_DIRTY=""
+  HTB_OFF_ST=0; HTB_FULL_ST=0; HTC_UPD=0; HTC_MIG1=0; HTC_MIG2=0
+  HTD_UPD=0; HTD_UNMERGED="$HT_OVERVIEW"; HTE_UPD=0; HTF_UPD=1; HTF_CLEAN_N=0; HTF_DIRTY=""; HTF_COMMIT="$HT_FROM"; HTF_AGAIN=0
+  HTG_UPD=0
+  # 92: every file of the guide, the guard and its settings, after the crossing.
+  while IFS= read -r f; do mkdir -p "$(dirname "$w/a-mid/$f")"; printf 'x\n' > "$w/a-mid/$f"; done < <(ht_shipped theology)
+  mkdir -p "$w/a-mid/.claude/hooks"; printf '#!/usr/bin/env bash\n' > "$w/a-mid/$SA_HOWTO_GUARD"; chmod +x "$w/a-mid/$SA_HOWTO_GUARD"
+  # Its settings.json as the crossing leaves a v0.5.0 copy's: the real family-refresh.json's
+  # entries, the v0.5.0 ones still in the older `[ -f … ] && exec` form, beside the data-root
+  # guard; and the copy's own, before the crossing.
+  cp -- "$SA_ROOT/migrations/family-refresh.json" "$w/a-refresh.json"
+  python3 - "$w/a-refresh.json" "$w/a-mid/.claude/settings.json" "$w/a-settings-before.json" "$SA_HOWTO_DENY" <<'PY'
+import copy, json, sys
+s = json.load(open(sys.argv[1], encoding="utf-8"))["settings"]
+after = copy.deepcopy(s)
+for e in after["hooks"].get("UserPromptSubmit", []) + after["hooks"].get("PreCompact", []):
+    for h in e["hooks"]:
+        h["command"] = h["command"].replace(") || exit 0; [ -f", ") && [ -f").replace('" ] || exit 0; exec', '" ] && exec')
+after["hooks"].setdefault("PreToolUse", []).insert(0, {"matcher": "x", "hooks": [{"type": "command", "command": "dataroot.py guard"}]})
+before = copy.deepcopy(after)
+before["hooks"].pop("SessionStart", None)
+before.pop("idleCompaction", None)
+before["hooks"]["PreToolUse"] = before["hooks"]["PreToolUse"][:1]
+before["permissions"]["deny"] = [r for r in before["permissions"]["deny"] if r != sys.argv[4]]
+for path, d in ((sys.argv[2], after), (sys.argv[3], before)):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(d, f, indent=2)
+        f.write("\n")
+PY
+  # shellcheck disable=SC2086  # one word per path
+  { printf '%s, the user guide, how-to/ (DESIGN.md D56); report only\n' "$HT_MIG_MARK"
+    printf '▸ syntek-author: added %d shared files new in this version: %s\n' 14 "$(printf '%s, ' $SA_SHARED_HOWTO $SA_HOWTO_GUARD | sed 's/, $//')"
+    printf '%s, 0.5.0 → 0.6.0\n  The template changed 60 files here: 46 delivered, 14 added.\n' "$RP_HEAD"; } > "$w/a1.log"
+  printf '%s, 0.6.0 → 0.6.0: the template did not change.\n' "$RP_HEAD" > "$w/a2.log"
+  # 98: the edited and the deleted chapter restored by the next release.
+  mkdir -p "$w/a/$(dirname "$HT_CH07")" "$w/a-tpl/$(dirname "$HT_CH07")"
+  for f in "$HT_CH07" "$HT_SHCH"; do printf '# A chapter — of the template\n' > "$w/a/$f"; cp "$w/a/$f" "$w/a-tpl/$f"; done
+  { printf '%s, 0.6.0 → 0.6.1\n  The template changed 1 file here: 1 delivered, 2 restored.\n\n' "$RP_HEAD"
+    printf "  %s, because how-to/ is read-only (what you had is in Git) (2):\n" "$HT_RESTORED_SEC"
+    printf '    %s\n        compare: git diff syntek-author/template syntek-author/yours -- %s\n' "$HT_CH07" "$HT_CH07"
+    printf '    %s\n        was:     missing before this update\n' "$HT_SHCH"; } > "$w/a3.log"
+  printf '%s, 0.6.1 → 0.6.1: the template did not change.\n' "$RP_HEAD" > "$w/a4.log"
+  # 93: off, then full.
+  mkdir -p "$w/b-off/$(dirname "$HT_OVERVIEW")"; printf 'x\n' > "$w/b-off/$HT_OVERVIEW"
+  printf '%s SYNTEK_UPDATE_REPORT=off, so conflicts and deletions only; no shared file is refreshed or added, and %s until an update runs without it.\n' "$RP_HEAD" "$HT_OFF_LINE" > "$w/b1.log"
+  for f in $SA_SHARED_HOWTO; do mkdir -p "$(dirname "$w/b-full/$f")"; printf 'x\n' > "$w/b-full/$f"; done
+  # 94: the owner's own files, untouched and named.
+  mkdir -p "$w/c/how-to/src"; printf 'notes\n' > "$w/c/how-to/notes.md"; printf 'mine\n' > "$w/c/how-to/src/mine.md"
+  # shellcheck disable=SC2086  # one word per path
+  HTC_SUMS="$(cd "$w/c" && sha1sum $HT_STRAYS)"
+  # shellcheck disable=SC2086  # one word per path
+  { printf '%s, the user guide, how-to/ (DESIGN.md D56); report only\n' "$HT_MIG_MARK"
+    printf '\n  2 file(s) under how-to/ %s. The rules now call how-to/ the templates'"'"'\n' "$HT_NOONE"
+    printf '    %s\n' $HT_STRAYS
+    printf '%s, 0.5.0 → 0.6.0\n' "$RP_HEAD"; } > "$w/c1.log"
+  ht_migration_part "$w/c1.log" > "$w/c-mig1.out"; cp "$w/c-mig1.out" "$w/c-mig2.out"
+  # 95 and 96: the owner's files at the guide's paths, restored.
+  mkdir -p "$w/d/$(dirname "$HT_OVERVIEW")" "$w/d-tpl/$(dirname "$HT_OVERVIEW")"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do printf '# the template — its text\n' > "$w/d/$f"; cp "$w/d/$f" "$w/d-tpl/$f"; done
+  printf '# My how-to\n' > "$w/d-owner-context"; cp "$w/d-owner-context" "$w/d-yours-context"
+  { printf '%s, the user guide, how-to/ (DESIGN.md D56); report only\n' "$HT_MIG_MARK"
+    printf '\n  2 file(s) of yours %s. The update report that follows puts\n' "$HT_STAND"
+    printf '    %s    git show HEAD:%s\n' how-to/CONTEXT.md how-to/CONTEXT.md "$HT_OVERVIEW" "$HT_OVERVIEW"
+    printf '%s, 0.5.0 → 0.6.0\n\n' "$RP_HEAD"
+    printf "  %s, because how-to/ is read-only (what you had is in Git) (2):\n" "$HT_RESTORED_SEC"
+    printf '    how-to/CONTEXT.md\n        compare: git diff syntek-author/template syntek-author/yours -- how-to/CONTEXT.md\n        yours:   git show syntek-author/yours:how-to/CONTEXT.md\n'
+    printf '    %s\n        compare: x\n        yours:   x\n        then:    git add -- %s\n' "$HT_OVERVIEW" "$HT_OVERVIEW"; } > "$w/d1.log"
+  # 97: the link, named; nothing through it; the files left.
+  mkdir -p "$w/e/docs-notes"; printf 'mine\n' > "$w/e/docs-notes/mine.md"
+  { printf '%s, the user guide, how-to/ (DESIGN.md D56); report only\n' "$HT_MIG_MARK"
+    printf '\n  %s: this update wrote the guide'"'"'s files through it, and the update report restores no file beyond it.\n' "$HT_LINK"
+    printf '%s, 0.5.0 → 0.6.0\n\n  %s, which is read-only (1):\n    how-to/CONTEXT.md\n        why:     a link, or a path beyond one: the template never writes through it\n' "$RP_HEAD" "$HT_LEFT_SEC"; } > "$w/e1.log"
+  # 99: the stop, then the update after the rename.
+  printf 'FileExistsError: [Errno 17] File exists: %s\n' "'how-to'" > "$w/f1.log"
+  { printf '%s, the user guide, how-to/ (DESIGN.md D56); report only\n  This release adds the user guide.\n' "$HT_MIG_MARK"
+    printf '%s, 0.5.0 → 0.6.0\n' "$RP_HEAD"; } > "$w/f2.log"
+  mkdir -p "$w/f/$(dirname "$HT_OVERVIEW")"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do printf '# the template — its text\n' > "$w/f/$f"; done
+  # 99, at the release: the renamed guide put back by the restore.
+  mkdir -p "$w/g/$(dirname "$HT_OVERVIEW")" "$w/g-tpl/$(dirname "$HT_OVERVIEW")"
+  for f in how-to/CONTEXT.md "$HT_OVERVIEW"; do printf '# the template — its text\n' > "$w/g/$f"; cp "$w/g/$f" "$w/g-tpl/$f"; done
+  { printf '%s, 0.6.0 → 0.6.1\n\n' "$RP_HEAD"
+    printf "  %s, because how-to/ is read-only (what you had is in Git) (2):\n" "$HT_RESTORED_SEC"
+    printf '    how-to/CONTEXT.md\n        was:     missing before this update\n'
+    printf '    %s\n        was:     missing before this update\n' "$HT_OVERVIEW"; } > "$w/g1.log"
+}
+
+# The probes for checks 92–99, on ht_synth's trees: each mutation is undone before the next.
+# Check 100: migrations/family-update.py as Copier runs it, but on an older Python. $1 = the script,
+# $2 = work dir. The scratch project is a repository with one commit and an answers file.
+ou_state() { # $1 = project → its tree, index and refs, one line each
+  git -C "$1" status --porcelain=v1 --untracked-files=all 2>/dev/null
+  git -C "$1" for-each-ref --format='%(refname) %(objectname)' 2>/dev/null
+  git -C "$1" ls-files -s 2>/dev/null | sha1sum
+}
+run_oldupdate_flow() {
+  local script="$1" w="$2/oldpy" p old st
+  OU=(); OU_RAN=false; OU_SKIP=""
+  if ! old="$(sa_old_python)"; then OU_SKIP="$old"; return 0; fi
+  OU[ver]="$(sa_py_version "$old")"
+  rm -rf -- "$w"; mkdir -p "$w/p"; p="$w/p"
+  sa_git "$p" init -q
+  printf '_commit: v0.5.0\n_src_path: gh:Example/probe\nDOC_TYPE: theology\n' > "$p/$SA_ANSWERS_FILE"
+  printf '# A project\n' > "$p/README.md"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'the project'
+  OU[before]="$(ou_state "$p")"
+  for st in update baseline; do
+    OU[$st.rc]=0
+    (cd "$p" && timeout 120 "$old" "$script" "$st" --src "$SA_ROOT" --to 0000000 --answers "$SA_ANSWERS_FILE") \
+      </dev/null >"$w/$st.log" 2>&1 || OU[$st.rc]=$?
+    OU[$st.log]="$w/$st.log"
+  done
+  OU[after]="$(ou_state "$p")"
+  OU[selftest.rc]=0
+  (cd "$w" && timeout 120 "$old" "$script" --self-test) </dev/null >"$w/selftest.log" 2>&1 || OU[selftest.rc]=$?
+  OU[selftest.log]="$w/selftest.log"
+  OU_RAN=true
+}
+
+oldupdate_checks() {
+  local st why lacks
+  for st in update baseline; do
+    why=""
+    [[ "${OU[$st.rc]}" == 0 ]] || why+=" exited ${OU[$st.rc]}, not 0 (a migration that fails stops the update);"
+    lacks="$(sa_loud_lacks "${OU[$st.log]}" "${OU[ver]}")"
+    [[ -z "$lacks" ]] || why+=" its message lacks $lacks;"
+    grep -qF -- "uvx --python '>=$SA_PYTHON_MIN'" "${OU[$st.log]}" 2>/dev/null \
+      || why+=" it gives no rerun in the house form uvx --python '>=$SA_PYTHON_MIN';"
+    if [[ "$st" == update ]] && ! grep -qi 'report' "${OU[$st.log]}" 2>/dev/null; then
+      why+=" it does not say that no report was printed;"
+    fi
+    [[ -z "$why" ]] || finding "check 100 — family-update.py $st on Python ${OU[ver]} (the minimum is $SA_PYTHON_MIN):${why%;} — see ${OU[$st.log]}"
+  done
+  [[ "${OU[before]}" == "${OU[after]}" ]] \
+    || finding "check 100 — family-update.py on Python ${OU[ver]} changed the project's files, index or refs (it must change nothing there)"
+  why=""
+  [[ "${OU[selftest.rc]}" != 0 ]] || why+=" exited 0;"
+  lacks="$(sa_loud_lacks "${OU[selftest.log]}" "${OU[ver]}")"
+  [[ -z "$lacks" ]] || why+=" its message lacks $lacks;"
+  [[ -z "$why" ]] || finding "check 100 — family-update.py --self-test on Python ${OU[ver]}:${why%;} — see ${OU[selftest.log]}"
+  return 0
+}
+
+# A stand-in update script for check 100's self-test: the line the decision asks for, exit 0 on
+# a stage and 1 on --self-test; SMOKE_OLD switches on one fault.
+ou_standin() { # $1 = dest
+  cat > "$1" <<EOF
+import os
+import subprocess
+import sys
+
+MIN = tuple(int(x) for x in "$SA_PYTHON_MIN".split("."))
+FAULT = os.environ.get("SMOKE_OLD", "")
+if sys.version_info[:2] < MIN:
+    sub = sys.argv[1] if len(sys.argv) > 1 else ""
+    ver = "%d.%d" % tuple(sys.version_info[:2])
+    need = "%d.%d" % MIN
+    if FAULT == "ou-writes" and sub == "update":
+        subprocess.run(["git", "update-ref", "refs/probe/template", "HEAD"])
+    line = "family-update: the update report did NOT run: this is Python %s, and it needs Python %s or later. Upgrade to Python %s" % (ver, need, need)
+    if sub == "update":
+        line += ": this update printed no report. Commit it, then run it again with uvx --python '>=%s' copier update." % need
+    elif sub == "baseline":
+        line += ": this copy recorded nothing. Run every update with uvx --python '>=%s' copier update." % need
+    else:
+        line += ": the self-test did not run either."
+    print("!" * 72)
+    print("family-update: skipped." if FAULT == "ou-quiet" and sub == "update" else line)
+    print("!" * 72)
+    sys.exit(1 if sub == "--self-test" else (3 if FAULT == "ou-fails" and sub == "update" else 0))
+sys.exit(0)
+EOF
+}
+
+ou_self_test() { # $1 = scratch dir
+  local k="$1/ou"
+  mkdir -p "$k"; ou_standin "$k/family-update.py"
+  run_oldupdate_flow "$k/family-update.py" "$k"
+  if [[ -n "$OU_SKIP" ]]; then log "  · check 100 skipped: $OU_SKIP"; OU_RAN=false; return 0; fi
+  probe_clean "an update script that, on Python ${OU[ver]}, prints the loud line with its rerun and changes nothing passes check 100"
+  export SMOKE_OLD=ou-fails; run_oldupdate_flow "$k/family-update.py" "$k"; unset SMOKE_OLD
+  probe "check 100 fires when the update script stops the update on an older Python" "check 100 — family-update.py update on Python ${OU[ver]} (the minimum is $SA_PYTHON_MIN): exited 3"
+  export SMOKE_OLD=ou-quiet; run_oldupdate_flow "$k/family-update.py" "$k"; unset SMOKE_OLD
+  probe "check 100 fires when the line is not loud" "check 100 — family-update.py update on Python ${OU[ver]} (the minimum is $SA_PYTHON_MIN): its message lacks the Python it runs on"
+  export SMOKE_OLD=ou-writes; run_oldupdate_flow "$k/family-update.py" "$k"; unset SMOKE_OLD
+  probe "check 100 fires when the update script writes on an older Python" "check 100 — family-update.py on Python ${OU[ver]} changed the project's files, index or refs"
+  run_oldupdate_flow "$k/family-update.py" "$k"; sed -i "s/--python '>=[0-9.]*'/--python >=$SA_PYTHON_MIN/" "${OU[update.log]}"
+  probe "check 100 fires when the rerun is not in the house form" "check 100 — family-update.py update on Python ${OU[ver]} (the minimum is $SA_PYTHON_MIN): it gives no rerun in the house form"
+  run_oldupdate_flow "$k/family-update.py" "$k"; OU[selftest.rc]=0
+  probe "check 100 fires when --self-test passes on an older Python" "check 100 — family-update.py --self-test on Python ${OU[ver]}: exited 0"
+  OU_RAN=false
+}
+
+# Check 101: migrations/agents-outside-link.py as Copier runs it, on an older Python. $1 = the
+# script, $2 = work dir. The scratch project's .agents links to a folder beside it.
+ox_state() { # $1 = project → what stands at .agents and at the held name, one line each
+  local n
+  for n in .agents .agents.syntek-held; do
+    if [[ -L "$1/$n" ]]; then printf '%s -> %s\n' "$n" "$(readlink "$1/$n")"
+    elif [[ -e "$1/$n" ]]; then printf '%s: not a link\n' "$n"
+    else printf '%s: absent\n' "$n"; fi
+  done
+}
+run_oldlink_flow() {
+  local script="$1" w="$2/oldlink" p old st
+  OX=(); OX_RAN=false; OX_SKIP=""
+  if ! old="$(sa_old_python)"; then OX_SKIP="$old"; return 0; fi
+  OX[ver]="$(sa_py_version "$old")"
+  rm -rf -- "$w"; mkdir -p "$w/p" "$w/outside"; p="$w/p"
+  ln -s ../outside "$p/.agents"
+  for st in hold restore held; do
+    [[ "$st" != held || ! -L "$p/.agents" ]] || mv -- "$p/.agents" "$p/.agents.syntek-held"
+    OX[$st.before]="$(ox_state "$p")"
+    OX[$st.rc]=0
+    (cd "$p" && timeout 60 "$old" "$script" "${st/held/restore}") </dev/null >"$w/$st.log" 2>&1 || OX[$st.rc]=$?
+    OX[$st.log]="$w/$st.log"
+    OX[$st.after]="$(ox_state "$p")"
+  done
+  OX[selftest.rc]=0
+  (cd "$w" && timeout 120 "$old" "$script" --self-test) </dev/null >"$w/selftest.log" 2>&1 || OX[selftest.rc]=$?
+  OX[selftest.log]="$w/selftest.log"
+  OX_RAN=true
+}
+
+oldlink_checks() {
+  local st why lacks
+  for st in hold restore held; do
+    why=""
+    [[ "${OX[$st.rc]}" == 0 ]] || why+=" exited ${OX[$st.rc]}, not 0 (a migration that fails stops the update);"
+    if [[ "$st" != restore ]]; then
+      lacks="$(sa_loud_lacks "${OX[$st.log]}" "${OX[ver]}")"
+      [[ -z "$lacks" ]] || why+=" its message lacks $lacks;"
+      grep -qF -- "uvx --python '>=$SA_PYTHON_MIN'" "${OX[$st.log]}" 2>/dev/null \
+        || why+=" it gives no rerun in the house form uvx --python '>=$SA_PYTHON_MIN';"
+    fi
+    [[ "${OX[$st.before]}" == "${OX[$st.after]}" ]] || why+=" it moved the link (it must hold and restore nothing);"
+    [[ -z "$why" ]] || finding "check 101 — agents-outside-link.py ${st/held/restore beside a held link} on Python ${OX[ver]} (the minimum is $SA_PYTHON_MIN):${why%;} — see ${OX[$st.log]}"
+  done
+  why=""
+  [[ "${OX[selftest.rc]}" != 0 ]] || why+=" exited 0;"
+  lacks="$(sa_loud_lacks "${OX[selftest.log]}" "${OX[ver]}")"
+  [[ -z "$lacks" ]] || why+=" its message lacks $lacks;"
+  [[ -z "$why" ]] || finding "check 101 — agents-outside-link.py --self-test on Python ${OX[ver]}:${why%;} — see ${OX[selftest.log]}"
+  return 0
+}
+
+# A stand-in outside-link script for check 101's self-test: the message the decision asks for,
+# exit 0 on a stage and 1 on --self-test; SMOKE_OLD switches on one fault.
+ox_standin() { # $1 = dest
+  cat > "$1" <<EOF
+import os
+import sys
+
+MIN = tuple(int(x) for x in "$SA_PYTHON_MIN".split("."))
+FAULT = os.environ.get("SMOKE_OLD", "")
+if sys.version_info[:2] < MIN:
+    sub = sys.argv[1] if len(sys.argv) > 1 else ""
+    ver = "%d.%d" % tuple(sys.version_info[:2])
+    need = "%d.%d" % MIN
+    if FAULT == "ox-moves" and sub == "hold":
+        os.rename(".agents", ".agents.syntek-held")
+    if sub == "restore" and not os.path.lexists(".agents.syntek-held"):
+        sys.exit(0)
+    line = "agents-outside-link did NOT run: this is Python %s, and it needs Python %s or later. Upgrade to Python %s" % (ver, need, need)
+    line += ", then run the same update again, starting uvx --python '>=%s' copier update." % need
+    print("=" * 72)
+    print("agents-outside-link: skipped." if FAULT == "ox-quiet" and sub == "hold" else line)
+    print("=" * 72)
+    sys.exit(1 if sub == "--self-test" else (3 if FAULT == "ox-fails" and sub == "hold" else 0))
+sys.exit(0)
+EOF
+}
+
+ox_self_test() { # $1 = scratch dir
+  local k="$1/ox"
+  mkdir -p "$k"; ox_standin "$k/agents-outside-link.py"
+  run_oldlink_flow "$k/agents-outside-link.py" "$k"
+  if [[ -n "$OX_SKIP" ]]; then log "  · check 101 skipped: $OX_SKIP"; OX_RAN=false; return 0; fi
+  probe_clean "an outside-link script that, on Python ${OX[ver]}, prints the loud message with its rerun and holds nothing passes check 101"
+  export SMOKE_OLD=ox-fails; run_oldlink_flow "$k/agents-outside-link.py" "$k"; unset SMOKE_OLD
+  probe "check 101 fires when the outside-link script stops the update on an older Python" "check 101 — agents-outside-link.py hold on Python ${OX[ver]} (the minimum is $SA_PYTHON_MIN): exited 3"
+  export SMOKE_OLD=ox-quiet; run_oldlink_flow "$k/agents-outside-link.py" "$k"; unset SMOKE_OLD
+  probe "check 101 fires when the message is not loud" "check 101 — agents-outside-link.py hold on Python ${OX[ver]} (the minimum is $SA_PYTHON_MIN): its message lacks the Python it runs on"
+  export SMOKE_OLD=ox-moves; run_oldlink_flow "$k/agents-outside-link.py" "$k"; unset SMOKE_OLD
+  probe "check 101 fires when the outside-link script holds the link on an older Python" "check 101 — agents-outside-link.py hold on Python ${OX[ver]} (the minimum is $SA_PYTHON_MIN): it moved the link"
+  run_oldlink_flow "$k/agents-outside-link.py" "$k"; sed -i "s/--python '>=[0-9.]*'/--python >=$SA_PYTHON_MIN/" "${OX[held.log]}"
+  probe "check 101 fires when the rerun is not in the house form" "check 101 — agents-outside-link.py restore beside a held link on Python ${OX[ver]} (the minimum is $SA_PYTHON_MIN): it gives no rerun in the house form"
+  run_oldlink_flow "$k/agents-outside-link.py" "$k"; OX[selftest.rc]=0
+  probe "check 101 fires when --self-test passes on an older Python" "check 101 — agents-outside-link.py --self-test on Python ${OX[ver]}: exited 0"
+  OX_RAN=false
+}
+
+ht_self_test() { # $1 = scratch dir
+  local w k="$1/ht-kept"
+  ht_synth "$1/ht-synth"; w="$HT_W"
+  st_baseline "the trees and logs of real updates across D56 (synthetic)"
+  mkdir -p "$k"; cp -p -- "$w/a-mid/.claude/settings.json" "$k/settings"
+  dt_json "$w/a-mid/.claude/settings.json" 'd["hooks"]["PreToolUse"].pop()'
+  probe "check 92 fires when the crossing does not wire the guide guard" "check 92 — [theology from v0.5.0] after the crossing, settings.json runs the guide guard in 0"
+  cp -p -- "$k/settings" "$w/a-mid/.claude/settings.json"
+  dt_json "$w/a-mid/.claude/settings.json" 'd["hooks"]["PreCompact"].append({"matcher": "auto", "hooks": [{"type": "command", "command": "bash .claude/hooks/pre-compact-handoff.sh auto"}]})'
+  probe "check 92 fires when the crossing adds a second PreCompact auto entry beside the v0.5.0 one" "check 92 — [theology from v0.5.0] after the crossing, judged against family-refresh.json: the PreCompact auto entry for pre-compact-handoff.sh is wired 2 time(s), not once"
+  cp -p -- "$k/settings" "$w/a-mid/.claude/settings.json"
+  dt_json "$w/a-mid/.claude/settings.json" 'd["hooks"]["PreCompact"][0]["hooks"][0]["command"] = "bash .claude/hooks/pre-compact-handoff.sh auto"'
+  probe "check 92 fires when the crossing rewrites a v0.5.0 entry's command" "check 92 — [theology from v0.5.0] after the crossing, judged against family-refresh.json: 1 hook command(s) the copy wired were rewritten or removed"
+  cp -p -- "$k/settings" "$w/a-mid/.claude/settings.json"
+  dt_json "$w/a-mid/.claude/settings.json" 'd.pop("idleCompaction")'
+  probe "check 92 fires when idleCompaction does not arrive" "check 92 — [theology from v0.5.0] after the crossing, judged against family-refresh.json: idleCompaction is written 0 time(s)"
+  cp -p -- "$k/settings" "$w/a-mid/.claude/settings.json"
+  mv "$w/a-mid/$HT_CH07" "$k/ch07"
+  probe "check 92 fires when a chapter does not arrive" "check 92 — [theology from v0.5.0] after the crossing, the guide lacks: $HT_CH07"; mv "$k/ch07" "$w/a-mid/$HT_CH07"
+  printf 'x\n' > "$w/b-off/how-to/CONTEXT.md"
+  probe "check 93 fires when a shared how-to file arrives with the report off" "check 93 — [theology from v0.5.0] with SYNTEK_UPDATE_REPORT=off, shared how-to files arrived: how-to/CONTEXT.md"
+  mv "$w/b-off/how-to/CONTEXT.md" "$k/b-off-context"
+  cp "$w/c/how-to/notes.md" "$k/notes"; printf 'changed\n' > "$w/c/how-to/notes.md"
+  probe "check 94 fires when the update touches the owner's own how-to file" "check 94 — [theology from v0.5.0] the update changed or removed"; cp "$k/notes" "$w/c/how-to/notes.md"
+  cp "$w/c-mig1.out" "$k/mig1"; printf '  1 file(s) of yours %s.\n' "$HT_STAND" >> "$w/c-mig1.out"
+  probe "check 94 fires when the migration says the owner's files stand where the guide is" "check 94 — [theology from v0.5.0] the v0.6.0 migration says files of the owner's"; cp "$k/mig1" "$w/c-mig1.out"
+  cp "$w/d/how-to/CONTEXT.md" "$k/d-context"; printf '# My how-to\n' > "$w/d/how-to/CONTEXT.md"
+  probe "check 95 fires when the owner's file at a shared path is not restored" "check 95 — [theology from v0.5.0] the owner's how-to/CONTEXT.md was not put back"; cp "$k/d-context" "$w/d/how-to/CONTEXT.md"
+  HTD_UNMERGED=""
+  probe "check 96 fires when the restored conflict is no longer unmerged" "check 96 — [theology from v0.5.0] git ls-files -u does not list"; HTD_UNMERGED="$HT_OVERVIEW"
+  printf 'x\n' > "$w/e/docs-notes/CONTEXT.md"
+  probe "check 97 fires when a shared file is written through the link" "check 97 — [theology from v0.5.0] a shared how-to file was written through the link into docs-notes/: CONTEXT.md"
+  mv "$w/e/docs-notes/CONTEXT.md" "$k/e-context"
+  mv "$w/a/$HT_SHCH" "$k/shch"
+  probe "check 98 fires when a deleted shared chapter is not restored" "check 98 — [theology from v0.5.0] the update to"; mv "$k/shch" "$w/a/$HT_SHCH"
+  cp "$w/f2.log" "$k/f2"; sed -i '1a\  how-to is a link to elsewhere: this update wrote the guide files through it.' "$w/f2.log"
+  probe "check 99 fires when the migration still speaks of how-to after the rename" "check 99 — [theology from v0.5.0] after how-to was renamed, the v0.6.0 migration still said: 'how-to is a link'"
+  cp "$k/f2" "$w/f2.log"
+  HTF_UPD=0; probe "check 99 fires when the update over a how-to file succeeds" "check 99 — [theology from v0.5.0] with how-to a file, the update exited 0"; HTF_UPD=1
+  mv "$w/f/how-to/CONTEXT.md" "$k/f-context"
+  probe "check 99 fires when the guide does not arrive after the rename" "check 99 — [theology from v0.5.0] after the rename, the update did not write the guide into a new how-to folder: how-to/CONTEXT.md"
+  mv "$k/f-context" "$w/f/how-to/CONTEXT.md"
+  HTG_UPD=1; probe "check 99 fires when the update at the release fails after the rename" "check 99 — [theology from v0.5.0] at the release, after git mv how-to my-how-to, the update to $DT_NEXT failed (exit 1)"; HTG_UPD=0
+  mv "$w/g/$HT_OVERVIEW" "$k/g-overview"
+  probe "check 99 fires when, at the release, the restore does not put the renamed guide back" "check 99 — [theology from v0.5.0] at the release, after git mv how-to my-how-to, the update to $DT_NEXT did not put the guide back (missing: $HT_OVERVIEW"
+  mv "$k/g-overview" "$w/g/$HT_OVERVIEW"
+  cp "$w/g1.log" "$k/g1"; sed -i '0,/was:     missing/s//was:     not in Git/' "$w/g1.log"
+  probe "check 99 fires when RESTORED does not say the guide was missing" "check 99 — [theology from v0.5.0] at the release, after the rename, RESTORED does not list how-to/CONTEXT.md"
+  cp "$k/g1" "$w/g1.log"
+  HT_RAN=false
+}
+
 run_checks() {
   FINDINGS=()
   $FLOW_RAN && flow_checks
@@ -2829,6 +3639,9 @@ run_checks() {
   $TD_RAN && trap_data_checks
   $DR_RAN && drive_checks
   $RT_RAN && rt_checks
+  $HT_RAN && howto_checks
+  $OU_RAN && oldupdate_checks
+  $OX_RAN && oldlink_checks
   return 0
 }
 
@@ -2933,6 +3746,8 @@ self_test() {
   probe "check 12 fires when the warning leaves the provider out" "check 12 — [theology] the option-off warning does not name DATA_PROVIDER"; cp "$tmp/h" "$UPDATE_LOG"
   grep -vF "DATA_STORE=repo" "$tmp/h" > "$UPDATE_LOG" || true
   probe "check 12 fires when the warning leaves the store out" "check 12 — [theology] the option-off warning does not name DATA_STORE=repo"; cp "$tmp/h" "$UPDATE_LOG"
+  grep -vF "how-to/" "$tmp/h" > "$UPDATE_LOG" || true
+  probe "check 12 fires when the message loses the user guide's paragraph (D56)" "check 12 — [theology] the option-off warning does not name how-to/"; cp "$tmp/h" "$UPDATE_LOG"
   $CO_RAN || { finding "self-test: the fixture wrote no agent files"; }
   cp "$PROJ/AGENTS.md" "$tmp/h"; printf '%s\n' "$TEMPLATE_MARK" >> "$PROJ/AGENTS.md"
   probe "check 24 fires when the update renders AGENTS.md" "check 24 — [theology] the update rendered"; cp "$tmp/h" "$PROJ/AGENTS.md"
@@ -3128,15 +3943,17 @@ self_test() {
   SM_T_COPIED='autoCompactEnabled written 1 time(s), false, not true once'
   probe "check 55 fires when a copy overwrites the owner's autoCompactEnabled" "check 55 — [settings fixture] after a copy over the owner's autoCompactEnabled true"; SM_T_COPIED=ok
   SM_T_LINES="1 1"; probe "check 55 fires when the kept value is reported again by the update" "check 55 — [settings fixture] the owner's autoCompactEnabled true was not reported exactly once"; SM_T_LINES="1 0"
-  # sm_judge itself: the key absent, written twice, or with another value.
+  # sm_judge itself: a key absent, written twice, or with another value, for each listed value.
   local sj=""
   sm_existing > "$tmp/sj.json"
   [[ "$(sm_judge "$tmp/sj.json" 0)" == *"autoCompactEnabled written 0 time(s)"* ]] || sj+=" absent"
-  sed 's/^    "model": "opus"$/    "autoCompactEnabled": false,\n    "autoCompactEnabled": false,\n    "model": "opus"/' "$tmp/sj.json" > "$tmp/sj2.json"
+  [[ "$(sm_judge "$tmp/sj.json" 0)" == *"idleCompaction written 0 time(s)"* ]] || sj+=" idle-absent"
+  sed 's/^    "model": "opus"$/    "autoCompactEnabled": false,\n    "autoCompactEnabled": false,\n    "idleCompaction": false,\n    "model": "opus"/' "$tmp/sj.json" > "$tmp/sj2.json"
   [[ "$(sm_judge "$tmp/sj2.json" 0)" == *"autoCompactEnabled written 2 time(s)"* ]] || sj+=" twice"
-  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false/' "$tmp/sj.json" > "$tmp/sj3.json"
-  [[ "$(sm_judge "$tmp/sj3.json" 0)" == ok && "$(sm_judge "$tmp/sj3.json" 0 true)" == *"not true once"* ]] || sj+=" value"
-  [[ -z "$sj" ]] || { printf '\033[31m  ✗ sm_judge misjudges autoCompactEnabled:%s\033[0m\n' "$sj" >&2; exit 2; }
+  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false,\n    "idleCompaction": false/' "$tmp/sj.json" > "$tmp/sj3.json"
+  [[ "$(sm_judge "$tmp/sj3.json" 0)" == ok && "$(sm_judge "$tmp/sj3.json" 0 '{"autoCompactEnabled": true}')" == *"not true once"* ]] || sj+=" value"
+  [[ "$(sm_judge "$tmp/sj3.json" 0 '{"idleCompaction": true}')" == *"idleCompaction written 1 time(s), false, not true once"* ]] || sj+=" idle-value"
+  [[ -z "$sj" ]] || { printf '\033[31m  ✗ sm_judge misjudges the top-level values:%s\033[0m\n' "$sj" >&2; exit 2; }
   SM_A_UPDATED="the threshold hook wired 2 time(s), not 1"
   probe "check 55 fires when the update wires the hook twice" "check 55 — [settings fixture] after the update"; SM_A_UPDATED=ok
   SM_B_UPDATED="the threshold hook wired 1 time(s), not 0"
@@ -3169,6 +3986,9 @@ self_test() {
 
   # Checks 60–85: the trees, logs and statuses of real updates across D50, D53 and D54.
   dt_self_test "$tmp"
+  ht_self_test "$tmp"
+  ou_self_test "$tmp"
+  ox_self_test "$tmp"
   st_finish "an update that keeps its promises from one that breaks them"
 }
 
@@ -3196,7 +4016,7 @@ for doc in ${DOC_TYPES//,/ }; do
   case "$doc" in theology|fiction|business) ;; *) die "unknown DOC_TYPE: $doc" ;; esac
   work="$(sa_mktemp)"
   MIG_RAN=false; SET_RAN=false; TRAP_RAN=false; CL_RAN=false; OL_RAN=false; RP_RAN=false; SH_RAN=false; SM_RAN=false
-  MC_RAN=false; TD_RAN=false; DR_RAN=false; RT_RAN=false
+  MC_RAN=false; TD_RAN=false; DR_RAN=false; RT_RAN=false; HT_RAN=false; OU_RAN=false; OX_RAN=false
   run_flow "$SA_ROOT" "$doc" "$work"
   tagged_once
   git -C "$TAGGED" rev-parse -q --verify "refs/tags/$TRAP_FROM" >/dev/null 2>&1 \
@@ -3221,6 +4041,12 @@ for doc in ${DOC_TYPES//,/ }; do
     cat "$work/mc-flow.log" >> "$work/flow.log" 2>/dev/null || true
     run_roundtrip_flow "$TAGGED" "$work" "$doc"
     cat "$work/rt-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_howto_flow "$TAGGED" "$work" "$doc"
+    cat "$work/ht-flow.log" >> "$work/flow.log" 2>/dev/null || true
+    run_oldupdate_flow "$SA_ROOT/migrations/family-update.py" "$work"
+    [[ -z "$OU_SKIP" ]] || log "  · check 100 skipped: $OU_SKIP"
+    run_oldlink_flow "$SA_ROOT/migrations/agents-outside-link.py" "$work"
+    [[ -z "$OX_SKIP" ]] || log "  · check 101 skipped: $OX_SKIP"
   fi
   if [[ "$doc" == business ]]; then
     run_drive_flow "$TAGGED" "$work"
@@ -3249,12 +4075,15 @@ for doc in ${DOC_TYPES//,/ }; do
     $OL_RAN && log "  ✓ $doc — .agents linked outside the project: held and restored by the update with its target untouched, a second update a no-op, a stranded hold fixed by the printed mv and by restore, a real .agents/ with an outside skills link updated"
     $RP_RAN && log "  ✓ $doc — the update report: every section on its fixture (inline and rej), the refresh and the owner's edit, settings add-only, every printed command run offline, a rerun and a second update quiet, the opt-out and the limits one line each; an update discarded by reset and clean, or by stash, delivered again by the second run, whose hand rerun changes nothing; an update discarded and followed by one to a later release giving a direct update's result, offers and written blobs; an ignored settings.json never read, its entries named once per update"
     $SH_RAN && log "  ✓ $doc — updates from $TRAP_FROM and from $PRE_D51_REF: unedited shared files refreshed or added, the edited one kept and reported, the threshold hook wired once, add-only, a second update quiet"
-    $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds autoCompactEnabled false once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
+    $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds each listed top-level value once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     $TD_RAN && log "  ✓ $doc — update from $TRAP_FROM across v0.5.0: the nine rules and both MCP servers once, DATA_STORE repo with no layout answer, the resolver and no ignore file, no guard wired, DATA_PROVIDER none and no .github/, no false report line"
     $MC_RAN && log "  ✓ $doc — MCP servers from $DT_FROM: added once to each existing file in the owner's order, a differing entry kept and said once, no client file created or restored, Codex's prompts, --write then --check clean, held back from a catch-all opencode.json until --write, removed servers never re-added, an ignored .mcp.json untouched, allowed Scrapling asks left out, a quiet second update; the v0.5.0 migration before the report and the same twice; a sibling at external followed"
     $RT_RAN && log "  ✓ $doc — the round trip: external with its own layout, repo, external re-derived, the old folder named from filed_under and restored by --data; a case-only area change refused, the tree clean"
+    $OU_RAN && log "  ✓ $doc — the update script on Python ${OU[ver]}: update and baseline exit 0 with the loud line and the rerun uvx --python '>=$SA_PYTHON_MIN', the project untouched, --self-test refused"
+    $OX_RAN && log "  ✓ $doc — the outside-link script on Python ${OX[ver]}: hold, and restore beside a held link, exit 0 with the loud message and the rerun uvx --python '>=$SA_PYTHON_MIN', nothing held or moved, --self-test refused"
+    $HT_RAN && log "  ✓ $doc — the user guide from $HT_FROM: this template's files by the merge, the shared ones and the guard by the refresh, the guard's entry and the deny once each, a quiet second update; none of the shared files with the report off, until the next full update; the owner's own how-to files untouched and named, the owner's files at the guide's paths restored and listed, the conflicted one still unmerged; how-to as a link named and never written through; a later edit and a deletion restored, then quiet; how-to as a file stopped, recovered, renamed and updated"
     $DR_RAN && log "  ✓ $doc — Google Drive from $DT_FROM and $TRAP_FROM: google-drive and repo recorded, the owner's edit kept with the guard step merged, a second update a no-op; another provider, external and the settings trap delete .github/ and list the edit; external delivers the ignore files, untracks nothing and lists the owner's ignore file as a conflict; a sibling in both orders keeps repo; the migration lists the unmanaged workflow and the stale seed line"
     rm -rf "$work"
   else

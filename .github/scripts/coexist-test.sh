@@ -15,7 +15,7 @@
 #                   runtime (its own answers file, its own rules file, its own skill, and the
 #                   D17 root files as seeds), changes both templates, updates both, and checks.
 #
-#                   Thirty-six checks:
+#                   Fifty checks:
 #                     1. The second template applies over the project without --overwrite —
 #                        nothing it ships collides with what is there.
 #                     2. Both answers files exist, under different names.
@@ -75,13 +75,14 @@
 #                    14. syntek-author's update beside it succeeds, prints one report, refreshes
 #                        the shared skill, keeps only syntek-author's refs, and wires each hook
 #                        of family-refresh.json exactly once (and holds each top-level value it
-#                        lists, autoCompactEnabled, once, with that value).
+#                        lists, autoCompactEnabled and idleCompaction, once, with that value).
 #                    15. Sibling first: syntek-author's copy over the sibling's own
-#                        settings.json (tab-indented, no hooks, no autoCompactEnabled) wires each
-#                        hook exactly once, adds autoCompactEnabled false once, and keeps the
-#                        sibling's lines as they were.
+#                        settings.json (tab-indented, no hooks, no top-level value of ours)
+#                        wires each hook exactly once, adds each top-level value
+#                        family-refresh.json lists (autoCompactEnabled and idleCompaction, both
+#                        false) once, and keeps the sibling's lines as they were.
 #                    16. The sibling's later update to its release with the shared set (whose
-#                        family-refresh.json and seed carry autoCompactEnabled false too)
+#                        family-refresh.json and seed carry the same top-level values too)
 #                        succeeds, records refs/dummy-media/template and yours, leaves no
 #                        conflict, wires no hook twice, writes no key twice and leaves the shared
 #                        skill's bytes as they were.
@@ -174,9 +175,88 @@
 #                        a kind's (videos) cannot be read: path into media/src exits 2 from both
 #                        resolvers, naming the role, while path into syntek-author's library/src
 #                        exits 0.
-#                   Checks 25, 26 and 29–36 run the resolver, which needs Python 3.11; on an
-#                   older python3 they are skipped, by name. Every resolver run gets a temporary
-#                   data root holding its own marker; no audit reads a machine's root (D50).
+#
+#                   The user guide shared by both (DESIGN.md D56): the sibling ships the shared
+#                   how-to files byte for byte, its own files under how-to/docs/<sibling>/,
+#                   how-to/src/TEMPLATE-GUIDE/<sibling>/ and how-to/workflows/<sibling>/,
+#                   "restore": ["how-to"] in its refresh data, and the guide's deny and guard in
+#                   its seed; a later release of it revises a shared chapter, and the next takes
+#                   the shared bytes again.
+#                    37. In both orders, each shared how-to file is there, holds the manifest's
+#                        bytes and no conflict, and every how-to file each template renders is
+#                        there, after both copies (and, author first, both updates).
+#                    38. The sibling copied first with its own revision of
+#                        updating-and-recovery.md: syntek-author's copy and its update to a
+#                        release that changes nothing there keep it, listed under LEFT AS IT IS
+#                        with 'it holds dummy-media's version', never written over while it
+#                        stands unchanged (D56, as softened on 23/10/2026); after the
+#                        sibling's update to the shared bytes, syntek-author's next report lists
+#                        nothing for it.
+#                    39. The crossing: syntek-author copied before the guide, the sibling's
+#                        revision beside it, then syntek-author's update into the release that
+#                        adds the guide lists the file as holding dummy-media's version, and
+#                        never under 'new in this version'.
+#                    40. make lint SCOPE=how-to/src STRICT=1 and make flags SCOPE=how-to/src
+#                        STRICT=1 exit 0 over both templates' chapters, and make lint without a
+#                        SCOPE never reads them (a line holding two sentences planted in the
+#                        sibling's chapter is silent).
+#                    41. The owner's committed edit to how-to/CONTEXT.md is restored by
+#                        syntek-author's update and listed under RESTORED; the sibling's next
+#                        update lists nothing for it (it holds the bytes both ship); the owner's
+#                        edit in the sibling's how-to folder is untouched by syntek-author's
+#                        update; the guide guard is wired once after both copies and updates.
+#                    42. A plain clone (38 without refs/dummy-media/template, as git clone
+#                        gives): syntek-author's update leaves the sibling's revision and says
+#                        'this clone holds no record of dummy-media'; after the sibling's next
+#                        update here records it, syntek-author's update leaves it as the
+#                        sibling's.
+#
+#                   One project, one set of agent clients and models (DESIGN.md D47, Section 9
+#                   rule 7; syntek-media's point, accepted 24/10/2026). The peer dummy vendors
+#                   this tree's whole family-shared questions block and copier.yml's per-client
+#                   gates, so it reads syntek-author's recorded client and model answers as
+#                   syntek-author reads its. Each case is a business project of its own:
+#                    43. syntek-author copied with AGENT_CLIENTS [codex] and an invented
+#                        CODEX_MODEL; the dummy copied after it with --defaults records the
+#                        same two answers, and the project holds none of GEMINI.md, .gemini/,
+#                        opencode.json and .agents/mcp_config.json.
+#                    44. The other order: the dummy copied first with AGENT_CLIENTS [opencode],
+#                        OPENCODE_PROVIDER ollama, an address that is not ollama's default, an
+#                        invented OPENCODE_MODEL and OPENCODE_CONTEXT 8192; syntek-author copied
+#                        after it with --defaults records those five, and every agent answer as
+#                        the dummy recorded it, the project holds none of .codex/, GEMINI.md,
+#                        .gemini/ and .agents/mcp_config.json, and syntek-author's rules 05
+#                        model table names the model.
+#                    45. A sibling record holding values this release does not offer
+#                        (AGENT_CLIENTS [codex, a-future-client], OPENCODE_PROVIDER
+#                        a-future-provider) is filtered, never fed to choices: syntek-author's
+#                        copy with --defaults succeeds and records AGENT_CLIENTS [codex] and no
+#                        OpenCode answer (hidden).
+#                    46. The update that first asks AGENT_CLIENTS, beside a sibling that records
+#                        clients (a copy of 44's project whose syntek-author record has lost the
+#                        seven agent answers, as a record from before them), records the
+#                        sibling's clients and models, not none.
+#                    47. A provider changed on the second copy inherits none of the sibling's
+#                        OpenCode answers: beside a sibling record at ollama with an address, a
+#                        model and a context of its own, syntek-author's copy with
+#                        OPENCODE_PROVIDER vllm and no model stops with 'Name the model', and
+#                        with a model of its own records vllm's own address and context.
+#                    48. The template's own record comes first: a copy with --overwrite and no
+#                        -a (as a re-adoption runs it) over 43's project, whose sibling record
+#                        now holds another client list and another CODEX_MODEL, keeps
+#                        syntek-author's own [codex] and model.
+#                    49. An empty list is the sibling's choice of none: beside a sibling record
+#                        holding AGENT_CLIENTS [], syntek-author's copy with --defaults records
+#                        [] and the project holds none of AGENTS.md, GEMINI.md, .agents,
+#                        .codex/, .gemini/ and opencode.json.
+#                    50. GEMINI_MODEL reads the sibling's record too: in 47's copy, beside a
+#                        sibling record that also holds gemini-cli and an invented
+#                        GEMINI_MODEL, syntek-author records that model.
+#                   Checks 25, 26 and 29–36 run the resolver, which needs Python at
+#                   _common.sh's SA_PYTHON_MIN or later (its pin refuses an older python3); on
+#                   a python3 without tomllib they are skipped, by name. Every resolver run gets
+#                   a temporary data root holding its own marker; no audit reads a machine's
+#                   root (D50).
 #
 #                   Numbers are stable identifiers. Append, never renumber.
 #
@@ -187,7 +267,13 @@
 #                   "repo": "skip", a renders/ working-output folder), not media's shipped map.
 #                   It never copies syntek-author at v0.4.0 beside a fresh sibling (check 27 runs
 #                   the other way round, which exercises syntek-author's own copier.yml), and it
-#                   never syncs a data root.
+#                   never syncs a data root. Check 39's release before the guide is the working
+#                   tree with how-to/ and its refresh lines taken out, not the v0.5.0 tag.
+#                   Check 46's record from before the clients is this release's with the seven
+#                   answers taken out, not a copy from the v0.3.0 tag (update-test.sh's checks
+#                   31–34 update from that tag, with no sibling). The sibling records of checks
+#                   45, 47, 49 and 50 are written by hand, and check 48's is the dummy's with
+#                   its agent answers rewritten, not records a real sibling's copy wrote.
 #
 # SELF-TEST. --self-test runs the whole flow with a fixture syntek-author, proves it clean, then
 #            mutates the result once per check and asserts exactly one finding each.
@@ -281,10 +367,29 @@ PY
 }
 
 # The data-root questions of the family-shared block (DESIGN.md D50, D53): DATA_STORE to the
-# block's end, as a sibling vendors them. They read only data-root keys, _external_data,
-# _folder_name and UNSET, so they need none of the block's agent questions.
+# block's end. They read only data-root keys, _external_data, _folder_name and UNSET, so they
+# need none of the block's agent questions.
 dataroot_questions() { # $1 = copier.yml
   awk '/^DATA_STORE:/ { on = 1 } /^# END family-shared questions/ { on = 0 } on { print }' "$1"
+}
+
+# The whole family-shared questions block (DESIGN.md D48), its marker lines included, as a
+# sibling vendors it: the agent questions read the other template's record too (checks 43–50).
+# Where copier.yml holds no block, the data-root questions alone.
+Q_BEGIN='# BEGIN family-shared questions (D48)'
+Q_END='# END family-shared questions (D48)'
+shared_questions() { # $1 = copier.yml
+  if grep -qxF "$Q_BEGIN" "$1" && grep -qxF "$Q_END" "$1"; then
+    awk -v b="$Q_BEGIN" -v e="$Q_END" '$0 == b { on = 1 } on { print } $0 == e { on = 0 }' "$1"
+  else
+    dataroot_questions "$1"
+  fi
+}
+
+# copier.yml's per-client _exclude lines (DESIGN.md D47, Section 3.5): each client's files ship
+# only when AGENT_CLIENTS names it.
+client_gates() { # $1 = copier.yml
+  grep -E '^  - "<: if not \(.*AGENT_CLIENTS.*\) :>/' "$1" || true
 }
 
 # A rules file's marked rules-web-tools block, the marker lines included.
@@ -302,10 +407,11 @@ rwt_block() { # $1 = rules file
 #   d48     a sibling at the D48 set only (syntek-media 0.5.0's agent files): none of the shared
 #           working practice (D51), no family-update.py, no block and no task, and a
 #           settings.json of its own (tab-indented, no hooks).
-#   peer    a sibling at this release (D50, D53, D54): the shared set, the data-root questions
-#           read from its own answers and syntek-author's (_external_data.peer), the resolver
-#           under its own name and a map of its own, the marked rules-web-tools block, the MCP
-#           lane, and the five MCP files and settings.json of the render $5.
+#   peer    a sibling at this release (D47, D50, D53, D54): the shared set, the whole questions
+#           block read from its own answers and syntek-author's (_external_data.peer), the
+#           per-client gates of syntek-author's copier.yml, the resolver under its own name and
+#           a map of its own, the marked rules-web-tools block, the MCP lane, and the five MCP
+#           files and settings.json of the render $5.
 # $4 = its name (default dummy-media): the answers file, rules folder, bridge and refs follow it;
 # a syntek-<name> template fills a manifest path's <template> with <name> alone.
 build_dummy() { # $1 = dir, $2 = the syntek-author repo it vendors from, $3 = mode, $4 = name, $5 = render
@@ -341,8 +447,9 @@ EOF
     for s in $SHARED_ROOT $SA_COPY_ONLY $shared; do printf '  - /%s\n' "$s"; done
     printf '_preserve_symlinks: true\n_exclude:\n  - .git\n'
     for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS $shared; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
+    if [[ "$mode" == peer && -n "$src" ]]; then client_gates "$src/copier.yml"; fi
     printf 'PROJECT_NAME:\n  type: str\n'
-    [[ "$mode" == peer && -n "$src" ]] && dataroot_questions "$src/copier.yml"
+    if [[ "$mode" == peer && -n "$src" ]]; then shared_questions "$src/copier.yml"; fi
     # The family-shared update script, its block and its task, as a sibling carries them (D52).
     if [[ "$mode" != d48 && -n "$src" && -f "$src/migrations/family-update.py" ]] && grep -qF "$SA_UPD_END" "$src/copier.yml"; then
       printf '_migrations:\n'
@@ -364,6 +471,9 @@ data = {"format": 1, "template": sys.argv[4], "refresh": sys.argv[2].split(),
         "settings": {**top, "hooks": want.get("hooks") or {}, "permissions": {"deny": [], "ask": []}}}
 if sys.argv[5] == "peer" and src.get("mcp"):
     data["mcp"] = src["mcp"]
+# The user guide (D56): a sibling that ships the shared how-to files restores how-to/ too.
+if src.get("restore") and any(p.startswith("how-to/") for p in data["refresh"]):
+    data["restore"] = src["restore"]
 json.dump(data, open(sys.argv[1], "w", encoding="utf-8"), indent=2)
 PY
   fi
@@ -378,14 +488,18 @@ PY
   done
   ln -s "$SA_AGENTS_LINK_TARGET" "$b/template/.agents/skills"
   # Its settings.json seed is JSON of its own: tab-indented; the G sibling wires the shared hooks.
-  python3 - "$b/template/.claude/settings.json" "$src/migrations/family-refresh.json" "$mode" <<'PY'
+  python3 - "$b/template/.claude/settings.json" "$src/migrations/family-refresh.json" "$mode" "$SA_HOWTO_DENY" <<'PY'
 import json, os, sys
 d = {"model": "sonnet"}
 if sys.argv[3] != "d48" and os.path.isfile(sys.argv[2]):
-    want = json.load(open(sys.argv[2], encoding="utf-8")).get("settings") or {}
+    src = json.load(open(sys.argv[2], encoding="utf-8"))
+    want = src.get("settings") or {}
     d.update({k: v for k, v in want.items() if k not in ("hooks", "permissions")})
     if want.get("hooks"):
         d["hooks"] = want["hooks"]
+    # The guide's deny (D56), where the sibling ships the shared how-to files.
+    if any(p.startswith("how-to/") for p in src.get("refresh", [])):
+        d["permissions"] = {"deny": [sys.argv[4]]}
 open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent="\t") + "\n")
 PY
   # Media's own mode files beside each shared skill (MEDIA-BUSINESS.md and its kind).
@@ -435,6 +549,8 @@ Template-owned by %s.
       if [[ -f "$ref/$f" ]]; then cp "$ref/$f" "$b/template/$f"; else rm -f "$b/template/$f"; fi
     done
   fi
+  # The user guide (D56): the sibling's own how-to files, under folders named for it.
+  if [[ "$mode" != d48 && " $shared " == *" how-to/"* ]]; then howto_own "$b/template" "$n"; fi
   sa_git "$b" init -q && sa_git "$b" add -A && sa_git "$b" commit -q -m "$n"
 }
 
@@ -526,6 +642,9 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
   run_d48_flow "$a" "$w"
   # A sibling at this release, whose answers file has the peer's name (D50, D53, D54).
   run_peer_flow "$a" "$w"
+  # The user guide shared by both (D56).
+  run_howto_lint "$PROJ" "$w"
+  run_howto_flow "$a" "$b" "$w"
 }
 
 run_checks() {
@@ -571,6 +690,7 @@ run_checks() {
   report_checks
   $D48_RAN && d48_checks
   $PEER_RAN && peer_checks
+  howto_checks
   return 0
 }
 
@@ -628,9 +748,9 @@ report_checks() {
 
 # Judges a project's settings.json against syntek-author's family-refresh.json: prints "ok", or
 # each hook entry that is not wired exactly once, and each top-level value it lists
-# (autoCompactEnabled) that the file's text does not hold exactly once with that value (a key
-# written twice parses silently to the last). $3 = tabs: the file must still be the sibling's
-# own, tab-indented with its own first key.
+# (autoCompactEnabled, idleCompaction) that the file's text does not hold exactly once with that
+# value (a key written twice parses silently to the last). $3 = tabs: the file must still be
+# the sibling's own, tab-indented with its own first key.
 hooks_once() { # $1 = settings.json, $2 = family-refresh.json, $3 = tabs (optional)
   python3 - "$1" "$2" "${3:-}" <<'PY'
 import json, re, sys
@@ -951,7 +1071,7 @@ run_peer_flow() { # $1 = syntek-author snapshot, $2 = work dir
     PEER_RAN=false; NOTES+=("checks 18–30 skipped — copier.yml asks no DATA_STORE, or the template ships no $SA_DATAROOT_PY"); return 0
   fi
   PY_DR=false; python3 -c 'import tomllib' 2>/dev/null && PY_DR=true
-  $PY_DR || NOTES+=("checks 25, 26 and 29–36 skipped — python3 has no tomllib: the resolver needs Python 3.11 or later")
+  $PY_DR || NOTES+=("checks 25, 26 and 29–36 skipped — python3 has no tomllib: the resolver needs Python $SA_PYTHON_MIN or later, with its standard library whole")
   PEER_REFRESH="$a/migrations/family-refresh.json"
   PEER_MANIFEST=""; [[ -f "$a/family-shared.json" ]] && PEER_MANIFEST="$a/family-shared.json"
   if [[ -z "$PEER_MANIFEST" || -z "$(manifest_block "$PEER_MANIFEST" rules-web-tools)" ]]; then
@@ -1027,6 +1147,8 @@ run_peer_flow() { # $1 = syntek-author snapshot, $2 = work dir
   fi
   # The manifest role rules with both maps present, on scratch copies of the projects above.
   run_roles_flow
+  # One project, one set of agent clients and models, in projects of their own.
+  run_clients_flow "$a" "$b" "$w"
   return 0
 }
 
@@ -1132,6 +1254,7 @@ peer_checks() {
       || finding "check 30 — with DATA_PROVIDER none beside dropbox, path exited '${PEER[author-first.pm_author]%% *}' with ${PEER[author-first.provider_warn]:-0} 'differ on DATA_PROVIDER' warning(s): a provider difference warns and never refuses"
   fi
   roles_checks
+  clients_checks
   return 0
 }
 
@@ -1396,7 +1519,542 @@ roles_checks() {
   return 0
 }
 
+# ── One project, one set of agent clients and models (checks 43–50) ───────────────────────────
+#
+# syntek-media's point, accepted 24/10/2026 (DESIGN.md D47, Section 9 rule 7): the shared block's
+# client and model defaults read the sibling's record after this template's own, so a template
+# applied second writes no client file the first left out, and both records, and so both rules
+# 05 model tables, agree. Each case is a business project of its own, with the peer dummy.
+CL_RAN=false
+CL_SEVEN="AGENT_CLIENTS CODEX_MODEL GEMINI_MODEL OPENCODE_PROVIDER OPENCODE_BASE_URL OPENCODE_MODEL OPENCODE_CONTEXT"
+CL_CODEX_MODEL="gpt-invented-4.2"
+CL_OC_PROVIDER="ollama"; CL_OC_MODEL="qwen-invented:14b"; CL_OC_CONTEXT=8192
+CL_OC_URL="http://127.0.0.1:11500/v1"   # not ollama's default port, so check 44 sees it inherited
+CL_VLLM_URL="http://127.0.0.1:8000/v1"; CL_VLLM_CONTEXT=32768   # vllm's own defaults (DESIGN.md Section 2)
+CL_OWN_MODEL="mistral-invented-7b"; CL_SIB_MODEL="gpt-sibling-invented-3.0"; CL_GEMINI_MODEL="gemini-invented-2.5-pro"
+CL_FUTURE_CLIENT="a-future-client"; CL_FUTURE_PROVIDER="a-future-provider"
+CL_RULES=".claude/rules/syntek-author/05-model-allocation.md"
+
+# The agent answers a record holds, in the block's order, space-separated: "KEY=value", a list
+# as its values joined by commas. An answer the record does not hold (hidden) is left out.
+agent_answers() { # $1 = answers file
+  local k out=""
+  for k in $CL_SEVEN; do
+    grep -q "^$k:" "$1" 2>/dev/null || continue
+    if [[ "$k" == AGENT_CLIENTS ]]; then out+="$k=$(answer_list "$k" "$1" | paste -sd, -) "
+    else out+="$k=$(answer_value "$k" "$1") "; fi
+  done
+  printf '%s' "${out% }"
+}
+# Those of the paths that stand in the project (a file, a folder or a link), space-separated.
+present_of() { # $1 = project, then paths
+  local p="$1" f out=""; shift
+  for f in "$@"; do [[ -e "$p/$f" || -L "$p/$f" ]] && out+="$f "; done
+  printf '%s' "${out% }"
+}
+# A record from before the agent questions: the seven answers and their list items taken out.
+strip_agent_answers() { # $1 = answers file
+  awk -v keys=" $CL_SEVEN " '
+    /^[A-Za-z_][A-Za-z0-9_]*:/ { k = $0; sub(/:.*/, "", k); drop = (index(keys, " " k " ") > 0); if (drop) next; print; next }
+    drop && /^- / { next }
+    { drop = 0; print }' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+}
+
+run_clients_flow() { # $1 = syntek-author snapshot, $2 = the peer dummy, $3 = the peer work dir
+  local a="$1" b="$2" w="$3" p
+  if ! grep -q '^AGENT_CLIENTS:' "$b/copier.yml"; then
+    NOTES+=("checks 43–50 skipped — the peer dummy vendors no AGENT_CLIENTS (copier.yml holds no family-shared questions block)"); return 0
+  fi
+  CL_RAN=true
+  # 43: syntek-author first, Codex alone with a model of its own; then the sibling, --defaults.
+  p="$w/clients-author-first"
+  peer_copy author "$a" "$p" "$w/clients-43-1.log" --data 'AGENT_CLIENTS=[codex]' --data "CODEX_MODEL=$CL_CODEX_MODEL" || PEER[cl43.first]=$?
+  commit_all "$p" 'syntek-author'
+  peer_copy media "$b" "$p" "$w/clients-43-2.log" || PEER[cl43.second]=$?
+  commit_all "$p" "$PEER_NAME"
+  # 44: the sibling first, OpenCode alone on a local server; then syntek-author, --defaults.
+  p="$w/clients-media-first"
+  peer_copy media "$b" "$p" "$w/clients-44-1.log" --data 'AGENT_CLIENTS=[opencode]' --data "OPENCODE_PROVIDER=$CL_OC_PROVIDER" \
+    --data "OPENCODE_BASE_URL=$CL_OC_URL" --data "OPENCODE_MODEL=$CL_OC_MODEL" --data "OPENCODE_CONTEXT=$CL_OC_CONTEXT" \
+    || PEER[cl44.first]=$?
+  commit_all "$p" "$PEER_NAME"
+  peer_copy author "$a" "$p" "$w/clients-44-2.log" || PEER[cl44.second]=$?
+  commit_all "$p" 'syntek-author'
+  # 46: the update that first asks AGENT_CLIENTS beside that sibling, on a copy of 44's project
+  # whose syntek-author record has lost the seven answers.
+  if [[ "${PEER[cl44.first]:-0}" -eq 0 && "${PEER[cl44.second]:-0}" -eq 0 ]]; then
+    PEER[cl46.ran]=true; rm -rf "$w/clients-first-update"; cp -a "$p" "$w/clients-first-update"; p="$w/clients-first-update"
+    strip_agent_answers "$p/$SA_ANSWERS_FILE"; commit_all "$p" 'syntek-author: a record from before the agent questions'
+    peer_update author "$p" "$w/clients-46.log" || PEER[cl46.update]=$?
+  else
+    NOTES+=("check 46 skipped — check 44's copies did not succeed (check 44 says why)")
+  fi
+  # 45: a sibling record holding a client and a provider this release does not offer.
+  p="$w/clients-future"; rm -rf "$p"; mkdir -p "$p"
+  printf '%s\n' "# A later release of the other template: an invented record." '_commit: v9.0.0' 'AGENT_CLIENTS:' '- codex' \
+    "- $CL_FUTURE_CLIENT" 'DATA_PROVIDER: none' 'DATA_STORE: repo' "OPENCODE_PROVIDER: $CL_FUTURE_PROVIDER" \
+    "PROJECT_NAME: $SA_RENDER_NAME" > "$p/$SA_PEER_ANSWERS_FILE"
+  commit_all "$p" "$PEER_NAME, later"
+  peer_copy author "$a" "$p" "$w/clients-45.log" || PEER[cl45.copy]=$?
+  # 47 and 50: a sibling record at ollama with an address, a model and a context of its own, and
+  # Gemini CLI with a model; syntek-author's copy changes the provider, without a model and with.
+  p="$w/clients-provider"; rm -rf "$p" "$p-nomodel"; mkdir -p "$p"
+  printf '%s\n' "# The other template at this release: an invented record." '_commit: v0.6.0' 'AGENT_CLIENTS:' '- opencode' \
+    '- gemini-cli' 'DATA_PROVIDER: none' 'DATA_STORE: repo' "GEMINI_MODEL: $CL_GEMINI_MODEL" "OPENCODE_BASE_URL: $CL_OC_URL" \
+    "OPENCODE_CONTEXT: $CL_OC_CONTEXT" "OPENCODE_MODEL: $CL_OC_MODEL" "OPENCODE_PROVIDER: $CL_OC_PROVIDER" \
+    "PROJECT_NAME: $SA_RENDER_NAME" > "$p/$SA_PEER_ANSWERS_FILE"
+  commit_all "$p" "$PEER_NAME"
+  cp -a "$p" "$p-nomodel"
+  peer_copy author "$a" "$p-nomodel" "$w/clients-47-1.log" --data 'OPENCODE_PROVIDER=vllm' || PEER[cl47.nomodel]=$?
+  peer_copy author "$a" "$p" "$w/clients-47-2.log" --data 'OPENCODE_PROVIDER=vllm' --data "OPENCODE_MODEL=$CL_OWN_MODEL" \
+    || PEER[cl47.copy]=$?
+  # 48: a copy with --overwrite and no -a over 43's project, whose sibling record now holds
+  # another client list and another CODEX_MODEL.
+  if [[ "${PEER[cl43.first]:-0}" -eq 0 && "${PEER[cl43.second]:-0}" -eq 0 ]]; then
+    PEER[cl48.ran]=true; p="$w/clients-own-first"; rm -rf "$p"; cp -a "$w/clients-author-first" "$p"
+    strip_agent_answers "$p/$SA_PEER_ANSWERS_FILE"
+    printf '%s\n' 'AGENT_CLIENTS:' '- gemini-cli' '- codex' "CODEX_MODEL: $CL_SIB_MODEL" "GEMINI_MODEL: $CL_GEMINI_MODEL" \
+      >> "$p/$SA_PEER_ANSWERS_FILE"
+    commit_all "$p" "$PEER_NAME, answered again"
+    peer_copy author "$a" "$p" "$w/clients-48.log" --overwrite || PEER[cl48.copy]=$?
+  else
+    NOTES+=("check 48 skipped — check 43's copies did not succeed (check 43 says why)")
+  fi
+  # 49: a sibling record whose client list is empty: the sibling chose none.
+  p="$w/clients-none"; rm -rf "$p"; mkdir -p "$p"
+  printf '%s\n' "# The other template at this release, Claude-only: an invented record." '_commit: v0.6.0' 'AGENT_CLIENTS: []' \
+    'DATA_PROVIDER: none' 'DATA_STORE: repo' "PROJECT_NAME: $SA_RENDER_NAME" > "$p/$SA_PEER_ANSWERS_FILE"
+  commit_all "$p" "$PEER_NAME, Claude-only"
+  peer_copy author "$a" "$p" "$w/clients-49.log" || PEER[cl49.copy]=$?
+  return 0
+}
+
+clients_checks() {
+  local p a m want got kv miss
+  $CL_RAN || return 0
+  # 43: the sibling, copied second, records syntek-author's clients and model, and writes no
+  # client file syntek-author left out.
+  p="$PEER_W/clients-author-first"
+  if [[ "${PEER[cl43.first]:-0}" -ne 0 || "${PEER[cl43.second]:-0}" -ne 0 ]]; then
+    finding "check 43 — a copy failed (syntek-author exit ${PEER[cl43.first]:-0}, $PEER_NAME exit ${PEER[cl43.second]:-0}): the second template must take the first's clients and models"
+  else
+    want="AGENT_CLIENTS=codex CODEX_MODEL=$CL_CODEX_MODEL"
+    a="$(agent_answers "$p/$SA_ANSWERS_FILE")"; m="$(agent_answers "$p/$SA_PEER_ANSWERS_FILE")"
+    [[ "$a" == "$want" && "$m" == "$want" ]] \
+      || finding "check 43 — the records hold '$a' (syntek-author) and '$m' ($PEER_NAME), not both '$want': the second template did not take the first's clients and model"
+    got="$(present_of "$p" GEMINI.md .gemini opencode.json .agents/mcp_config.json)"
+    [[ -z "$got" ]] || finding "check 43 — beside a Codex-only syntek-author the project holds $got: the second template wrote a client file the first left out"
+  fi
+  # 44: syntek-author, copied second, records the sibling's OpenCode answers, writes no client
+  # file the sibling left out, and its model table names the model.
+  p="$PEER_W/clients-media-first"
+  if [[ "${PEER[cl44.first]:-0}" -ne 0 || "${PEER[cl44.second]:-0}" -ne 0 ]]; then
+    finding "check 44 — a copy failed ($PEER_NAME exit ${PEER[cl44.first]:-0}, syntek-author exit ${PEER[cl44.second]:-0}): the second template must take the first's clients and models"
+  else
+    a="$(agent_answers "$p/$SA_ANSWERS_FILE")"; m="$(agent_answers "$p/$SA_PEER_ANSWERS_FILE")"; miss=""
+    for kv in AGENT_CLIENTS=opencode "OPENCODE_PROVIDER=$CL_OC_PROVIDER" "OPENCODE_BASE_URL=$CL_OC_URL" "OPENCODE_MODEL=$CL_OC_MODEL" \
+      "OPENCODE_CONTEXT=$CL_OC_CONTEXT"; do
+      [[ " $a " == *" $kv "* ]] || miss+=" $kv"
+    done
+    [[ -z "$miss" && "$a" == "$m" ]] \
+      || finding "check 44 — syntek-author records '$a' beside $PEER_NAME's '$m'$([[ -n "$miss" ]] && printf ', without%s' "$miss"): the second template did not take the first's clients and OpenCode answers"
+    got="$(present_of "$p" .codex GEMINI.md .gemini .agents/mcp_config.json)"
+    [[ -z "$got" ]] || finding "check 44 — beside an OpenCode-only sibling the project holds $got: syntek-author wrote a client file the sibling left out"
+    grep -qF "| OpenCode | \`$CL_OC_MODEL\`" "$p/$CL_RULES" 2>/dev/null \
+      || finding "check 44 — $CL_RULES's model table does not name $CL_OC_MODEL for OpenCode: it follows syntek-author's record, which must hold the sibling's model"
+  fi
+  # 45: values this release does not offer are filtered, never fed to choices.
+  p="$PEER_W/clients-future"
+  if [[ "${PEER[cl45.copy]:-0}" -ne 0 ]]; then
+    got="$(grep -m1 -E 'Validation error|not a valid|Error' "$PEER_W/clients-45.log" 2>/dev/null || true)"
+    finding "check 45 — beside a sibling record holding [codex, $CL_FUTURE_CLIENT] and OPENCODE_PROVIDER $CL_FUTURE_PROVIDER, syntek-author's copy exited ${PEER[cl45.copy]}${got:+ ($got)}: a recorded value this release does not offer must never reach choices"
+  else
+    a="$(agent_answers "$p/$SA_ANSWERS_FILE")"
+    [[ " $a " == *" AGENT_CLIENTS=codex "* && " $a " != *" OPENCODE_"* ]] \
+      || finding "check 45 — beside a sibling record holding [codex, $CL_FUTURE_CLIENT] and OPENCODE_PROVIDER $CL_FUTURE_PROVIDER, syntek-author records '$a', not AGENT_CLIENTS codex and no OpenCode answer"
+  fi
+  # 46: the update that first asks AGENT_CLIENTS takes the sibling's clients and models, not none.
+  if [[ "${PEER[cl46.ran]:-false}" == true ]]; then
+    p="$PEER_W/clients-first-update"
+    if [[ "${PEER[cl46.update]:-0}" -ne 0 ]]; then
+      finding "check 46 — the update that first asks AGENT_CLIENTS, beside a sibling that records clients, failed (exit ${PEER[cl46.update]})"
+    else
+      a="$(agent_answers "$p/$SA_ANSWERS_FILE")"; m="$(agent_answers "$p/$SA_PEER_ANSWERS_FILE")"
+      [[ "$a" == "$m" && " $a " == *" AGENT_CLIENTS=opencode "* ]] \
+        || finding "check 46 — the update that first asks AGENT_CLIENTS recorded '$a' beside $PEER_NAME's '$m': it takes the sibling's clients and models, not none"
+    fi
+  fi
+  # 47: a provider syntek-author's copy changes inherits none of the sibling's OpenCode answers.
+  if [[ "${PEER[cl47.nomodel]:-0}" -eq 0 ]] || ! grep -q 'Name the model' "$PEER_W/clients-47-1.log" 2>/dev/null; then
+    finding "check 47 — beside a sibling record at $CL_OC_PROVIDER naming $CL_OC_MODEL, syntek-author's copy with OPENCODE_PROVIDER vllm and no model exited ${PEER[cl47.nomodel]:-0} without 'Name the model': a provider the person changes must not inherit the sibling's model"
+  fi
+  p="$PEER_W/clients-provider"
+  if [[ "${PEER[cl47.copy]:-0}" -ne 0 ]]; then
+    finding "check 47 — beside a sibling record at $CL_OC_PROVIDER, syntek-author's copy with OPENCODE_PROVIDER vllm and a model of its own failed (exit ${PEER[cl47.copy]})"
+  else
+    a="$(agent_answers "$p/$SA_ANSWERS_FILE")"; miss=""
+    for kv in OPENCODE_PROVIDER=vllm "OPENCODE_BASE_URL=$CL_VLLM_URL" "OPENCODE_MODEL=$CL_OWN_MODEL" "OPENCODE_CONTEXT=$CL_VLLM_CONTEXT"; do
+      [[ " $a " == *" $kv "* ]] || miss+=" $kv"
+    done
+    [[ -z "$miss" ]] \
+      || finding "check 47 — beside a sibling record at $CL_OC_PROVIDER ($CL_OC_URL, context $CL_OC_CONTEXT), syntek-author's copy with OPENCODE_PROVIDER vllm records '$a', without$miss: a provider the person changes inherits none of the sibling's address, model or context"
+  fi
+  # 48: this template's own record comes before the sibling's.
+  if [[ "${PEER[cl48.ran]:-false}" == true ]]; then
+    p="$PEER_W/clients-own-first"; want="AGENT_CLIENTS=codex CODEX_MODEL=$CL_CODEX_MODEL"
+    if [[ "${PEER[cl48.copy]:-0}" -ne 0 ]]; then
+      finding "check 48 — syntek-author's copy with --overwrite over its own Codex-only project failed (exit ${PEER[cl48.copy]})"
+    else
+      a="$(agent_answers "$p/$SA_ANSWERS_FILE")"
+      [[ "$a" == "$want" ]] \
+        || finding "check 48 — a copy over a project whose syntek-author record holds '$want', beside a sibling record holding [gemini-cli, codex] and CODEX_MODEL $CL_SIB_MODEL, records '$a': the template's own record comes before the sibling's"
+    fi
+  fi
+  # 49: an empty list the sibling recorded is its choice of none.
+  p="$PEER_W/clients-none"
+  if [[ "${PEER[cl49.copy]:-0}" -ne 0 ]]; then
+    finding "check 49 — beside a sibling record holding AGENT_CLIENTS [], syntek-author's copy failed (exit ${PEER[cl49.copy]})"
+  else
+    a="$(agent_answers "$p/$SA_ANSWERS_FILE")"
+    [[ "$a" == "AGENT_CLIENTS=" ]] \
+      || finding "check 49 — beside a sibling record holding AGENT_CLIENTS [], syntek-author records '$a', not AGENT_CLIENTS []: an empty list is the sibling's choice of none"
+    got="$(present_of "$p" AGENTS.md GEMINI.md .agents .codex .gemini opencode.json)"
+    [[ -z "$got" ]] || finding "check 49 — beside a sibling record holding AGENT_CLIENTS [], the project holds $got: syntek-author wrote a client file the sibling chose not to have"
+  fi
+  # 50: GEMINI_MODEL reads the sibling's record too (47's copy).
+  if [[ "${PEER[cl47.copy]:-0}" -eq 0 ]]; then
+    a="$(agent_answers "$PEER_W/clients-provider/$SA_ANSWERS_FILE")"
+    [[ " $a " == *" GEMINI_MODEL=$CL_GEMINI_MODEL "* ]] \
+      || finding "check 50 — beside a sibling record holding gemini-cli and GEMINI_MODEL $CL_GEMINI_MODEL, syntek-author records '$a': the second template did not take the first's Gemini CLI model"
+  else
+    NOTES+=("check 50 skipped — check 47's copy did not succeed (check 47 says why)")
+  fi
+  return 0
+}
+
 MF_SRC=""
+# ── The user guide shared by two templates (DESIGN.md D56; checks 37–42) ──────
+#
+# The sibling ships the shared how-to files byte for byte (vendored from family-shared.json),
+# its own files under folders named for it, "restore": ["how-to"] in its refresh data, and the
+# guide's deny and guard in its seed. Each case runs on a project of its own: the sibling copied
+# first with its own revision of a shared chapter (38), the same in a clone without the sibling's
+# record (42), syntek-author crossing into the release that adds the guide beside the sibling's
+# revision (39), and an owner's edits (41); checks 37 and 40 read the main flow's projects.
+HT_SHARED_CH="how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md"
+HT_REV_MARK="A line only the sibling's own revision of this chapter holds."
+HT_SIB_WHY="it holds dummy-media's version of a shared file"
+HT_CLONE_WHY="this clone holds no record of dummy-media"
+HT_LEFT="LEFT AS IT IS in how-to/"
+HT_RESTORED="RESTORED to the template's text"
+HT_NEW="NOT UPDATED because it is new in this version"
+HT_SIB_SEC="NOT UPDATED because the file holds dummy-media's version"
+HT_PLANT="The guide is short. It is plain."
+HT_RAN=false; HT_W=""
+declare -A HT=()
+
+# The sibling's own how-to files (D56): a guide, a chapter and a procedure under folders named
+# for it, plain enough for make lint and make flags with SCOPE=how-to/src STRICT=1.
+howto_own() { # $1 = the sibling's template/, $2 = its name
+  local t="$1" n="$2" f
+  mkdir -p "$t/how-to/docs/$n" "$t/how-to/src/TEMPLATE-GUIDE/$n" "$t/how-to/workflows/$n/01-b"
+  printf '# A guide of the sibling — what it explains\n\nThe guide explains one thing.\n' > "$t/how-to/docs/$n/x.md"
+  printf '# A chapter of the sibling — what it covers\n\nThe chapter explains the sibling.\n\n## The first topic\n\nOne plain sentence.\n\n## The second topic\n\nAnother plain sentence.\n\n## Where the rules live\n\n- The rules.\n\n## Next\n\n- Read on.\n' \
+    > "$t/how-to/src/TEMPLATE-GUIDE/$n/01-a.md"
+  for f in CONTEXT CLAUDE STEPS CHECKLIST; do printf '# %s.md — a procedure of the sibling\n' "$f" > "$t/how-to/workflows/$n/01-b/$f.md"; done
+}
+
+# Every section of the last report for $3 in a log that lists the path, then each line of its
+# entry: "section<TAB>line" ("section<TAB>" for the path's own line).
+ht_entries() { # $1 = log, $2 = path, $3 = template name
+  python3 - "$1" "$2" "$3" <<'PY'
+import re, sys
+log, path, name = sys.argv[1:]
+try:
+    lines = open(log, encoding="utf-8", errors="replace").read().splitlines()
+except OSError:
+    sys.exit(0)
+starts = [i for i, l in enumerate(lines) if l.startswith(f"▸ {name} update report")]
+cur, on = None, False
+for l in (lines[starts[-1]:] if starts else []):
+    if re.match(r"  [A-Z]{2}", l):
+        cur, on = l.strip(), False
+    elif re.match(r"    \S", l):
+        on = cur is not None and l.strip() == path
+        if on:
+            print(cur + "\t")
+    elif on and l.startswith("        "):
+        print(cur + "\t" + l.strip())
+    elif l and not l.startswith((" ", "▸")):
+        break
+PY
+}
+ht_sha() { if [[ -f "$1" ]]; then sha256sum < "$1" | cut -d' ' -f1; else printf 'none'; fi; }
+# The sha256 a shared how-to file must carry: family-shared.json's where it lists the file, the
+# template source's otherwise (a shared how-to file holds no delimiter, so the two agree).
+ht_want_sha() { # $1 = syntek-author repo, $2 = path
+  local s=""
+  [[ -f "$1/family-shared.json" ]] && s="$(manifest_file_sha "$1/family-shared.json" "$2")"
+  [[ -n "$s" ]] || s="$(ht_sha "$1/template/$2")"
+  printf '%s' "$s"
+}
+ht_guard_count() { # $1 = settings.json → how many PreToolUse entries run the guide guard
+  python3 - "$1" "$SA_HOWTO_GUARD" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print(-1); sys.exit(0)
+pre = (d.get("hooks") or {}).get("PreToolUse") or []
+print(sum(1 for e in pre if any(sys.argv[2] in str(h.get("command", "")) for h in e.get("hooks") or [])))
+PY
+}
+
+run_howto_flow() { # $1 = syntek-author snapshot (A_FIRST and its change), $2 = the dummy, $3 = work dir
+  local a="$1" b0="$2" w="$3/ht" log="$3/ht-flow.log" a2="$3/ht/a" b="$3/ht/b" p f pre revb back
+  HT_RAN=true; HT_W="$w"   # HT holds check 40's state already (run_howto_lint runs first)
+  if [[ ! -f "$b0/template/$HT_SHARED_CH" || ! -f "$a/template/$HT_SHARED_CH" ]]; then
+    HT_RAN=false; NOTES+=("checks 38, 39, 41 and 42 skipped — the dummy vendors no $HT_SHARED_CH (family-shared.json lists no how-to file)"); return 0
+  fi
+  mkdir -p "$w"
+  # syntek-author before the guide (39): its snapshot on a side branch, with how-to/ and the
+  # how-to lines of its refresh data gone; main stays the snapshot with its change.
+  git clone -q "$a" "$a2" >>"$log" 2>&1 || die "could not clone $a"
+  sa_git "$a2" checkout -q -b pre "$A_FIRST" >>"$log" 2>&1
+  sa_git "$a2" rm -q -r -- template/how-to >>"$log" 2>&1
+  python3 - "$a2/migrations/family-refresh.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d["refresh"] = [p for p in d.get("refresh", []) if not p.startswith("how-to/")]
+d.pop("restore", None)
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent=2) + "\n")
+PY
+  sa_git "$a2" add -A && sa_git "$a2" commit -q -m 'syntek-author before the guide' >>"$log" 2>&1
+  pre="$(git -C "$a2" rev-parse HEAD)"; sa_git "$a2" checkout -q - >>"$log" 2>&1
+  # Tagged, so Copier reads the crossing as an upgrade: two untagged commits the same distance
+  # from the root compare by their hashes, and half the time Copier refuses a 'downgrade'.
+  sa_git "$a2" tag v0.0.1 "$pre" >>"$log" 2>&1; sa_git "$a2" tag v0.0.2 HEAD >>"$log" 2>&1
+  # The sibling's own revision of a shared chapter, and a later release back on the shared bytes.
+  git clone -q "$b0" "$b" >>"$log" 2>&1 || die "could not clone $b0"
+  printf '\n%s\n' "$HT_REV_MARK" >> "$b/template/$HT_SHARED_CH"
+  sa_git "$b" add -A && sa_git "$b" commit -q -m 'the sibling revises a shared chapter' >>"$log" 2>&1; revb="$(git -C "$b" rev-parse HEAD)"
+  cp "$a/template/$HT_SHARED_CH" "$b/template/$HT_SHARED_CH"
+  sa_git "$b" add -A && sa_git "$b" commit -q -m 'the sibling takes the shared bytes again' >>"$log" 2>&1; back="$(git -C "$b" rev-parse HEAD)"
+  HT[rev_sha]="$(git -C "$b" show "$revb:template/$HT_SHARED_CH" | sha256sum | cut -d' ' -f1)"
+  HT[want_sha]="$(ht_want_sha "$a" "$HT_SHARED_CH")"
+
+  b_copy() { "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref="$1" --data "PROJECT_NAME=$SA_RENDER_NAME" "$b" "$2" </dev/null; }
+  b_update() { (cd "$1" && "${SA_COPIER[@]}" update --trust --defaults --vcs-ref="$2" --answers-file "$B_ANSWERS" </dev/null); }
+  a_update() { (cd "$1" && "${SA_COPIER[@]}" update --trust --defaults --vcs-ref=HEAD --answers-file "$SA_ANSWERS_FILE" </dev/null); }
+
+  # 38 and 42: the sibling first, with its own revision; syntek-author second.
+  p="$w/p38"; HT[38_copy]=0
+  { b_copy "$revb" "$p" && { [[ -d "$p/.git" ]] || sa_git "$p" init -q; } && commit_all "$p" 'the sibling first' \
+      && a_copy_at "$a" "$A_FIRST" "$p" && commit_all "$p" 'syntek-author second'; } >>"$log" 2>&1 || HT[38_copy]=$?
+  if [[ "${HT[38_copy]}" -eq 0 ]]; then
+    cp -a "$p" "$w/p42"
+    HT[38_a1]=0; a_update "$p" >"$w/38a.log" 2>&1 || HT[38_a1]=$?; cat "$w/38a.log" >>"$log"
+    HT[38_sha1]="$(ht_sha "$p/$HT_SHARED_CH")"
+    commit_all "$p" 'syntek-author updated' >>"$log" 2>&1 || true
+    HT[38_b]=0; b_update "$p" "$back" >>"$log" 2>&1 || HT[38_b]=$?
+    commit_all "$p" 'the sibling updated' >>"$log" 2>&1 || true
+    HT[38_a2]=0; a_update "$p" >"$w/38b.log" 2>&1 || HT[38_a2]=$?; cat "$w/38b.log" >>"$log"
+    HT[38_sha2]="$(ht_sha "$p/$HT_SHARED_CH")"
+    p="$w/p42"
+    git -C "$p" update-ref -d refs/dummy-media/template >>"$log" 2>&1 || true
+    HT[42_a1]=0; a_update "$p" >"$w/42a.log" 2>&1 || HT[42_a1]=$?; cat "$w/42a.log" >>"$log"
+    HT[42_sha1]="$(ht_sha "$p/$HT_SHARED_CH")"
+    commit_all "$p" 'syntek-author updated in a plain clone' >>"$log" 2>&1 || true
+    HT[42_b]=0; b_update "$p" "$revb" >>"$log" 2>&1 || HT[42_b]=$?
+    commit_all "$p" 'the sibling updated, and recorded' >>"$log" 2>&1 || true
+    HT[42_a2]=0; a_update "$p" >"$w/42b.log" 2>&1 || HT[42_a2]=$?; cat "$w/42b.log" >>"$log"
+    HT[42_sha2]="$(ht_sha "$p/$HT_SHARED_CH")"
+  fi
+
+  # 39: syntek-author before the guide, the sibling's revision beside it, then the crossing.
+  p="$w/p39"; HT[39_copy]=0; HT[39_a]=0
+  { a_copy_at "$a2" "$pre" "$p" && { [[ -d "$p/.git" ]] || sa_git "$p" init -q; } && commit_all "$p" 'syntek-author before the guide' \
+      && b_copy "$revb" "$p" && commit_all "$p" 'the sibling, with its revision'; } >>"$log" 2>&1 || HT[39_copy]=$?
+  if [[ "${HT[39_copy]}" -eq 0 ]]; then
+    a_update "$p" >"$w/39.log" 2>&1 || HT[39_a]=$?; cat "$w/39.log" >>"$log"
+    HT[39_sha]="$(ht_sha "$p/$HT_SHARED_CH")"
+  fi
+
+  # 41: the owner edits a shared how-to file and a file in the sibling's folder.
+  p="$w/p41"; HT[41_copy]=0; HT[41_a]=0; HT[41_b]=0
+  { a_copy_at "$a" "$A_FIRST" "$p" && { [[ -d "$p/.git" ]] || sa_git "$p" init -q; } && commit_all "$p" 'syntek-author' \
+      && b_copy "$B_FIRST" "$p" && commit_all "$p" 'the sibling'; } >>"$log" 2>&1 || HT[41_copy]=$?
+  if [[ "${HT[41_copy]}" -eq 0 ]]; then
+    printf '\nMy own line.\n' >> "$p/how-to/CONTEXT.md"; printf '\nMy own line.\n' >> "$p/how-to/docs/dummy-media/x.md"
+    commit_all "$p" 'my edits in the guide' >>"$log" 2>&1
+    HT[41_x]="$(ht_sha "$p/how-to/docs/dummy-media/x.md")"
+    a_update "$p" >"$w/41a.log" 2>&1 || HT[41_a]=$?; cat "$w/41a.log" >>"$log"
+    HT[41_ctx]="$(ht_sha "$p/how-to/CONTEXT.md")"; HT[41_x_after]="$(ht_sha "$p/how-to/docs/dummy-media/x.md")"
+    commit_all "$p" 'syntek-author updated' >>"$log" 2>&1 || true
+    b_update "$p" HEAD >"$w/41b.log" 2>&1 || HT[41_b]=$?; cat "$w/41b.log" >>"$log"
+    HT[41_guard]="$(ht_guard_count "$p/.claude/settings.json")"
+  fi
+  HT[ctx_sha]="$(ht_want_sha "$a" how-to/CONTEXT.md)"
+  return 0
+}
+
+# Check 40 on a copy of the main project: the guide's chapters clean under a SCOPE, and never
+# read without one.
+run_howto_lint() { # $1 = the main project, $2 = work dir
+  local p="$2/ht40" s ch="how-to/src/TEMPLATE-GUIDE/dummy-media/01-a.md"
+  HT=(); HT[40]=""
+  if [[ ! -f "$1/Makefile" || ! -f "$1/$ch" ]]; then HT[40]="skip: no Makefile or no sibling chapter in the project"; return 0; fi
+  cp -a "$1" "$p"
+  s=0; (cd "$p" && make --no-print-directory lint SCOPE=how-to/src STRICT=1) >"$2/ht40-lint.log" 2>&1 || s=$?; HT[40_lint]=$s
+  s=0; (cd "$p" && make --no-print-directory flags SCOPE=how-to/src STRICT=1) >"$2/ht40-flags.log" 2>&1 || s=$?; HT[40_flags]=$s
+  printf '\n%s\n' "$HT_PLANT" >> "$p/$ch"
+  s=0; (cd "$p" && make --no-print-directory lint) >"$2/ht40-unscoped.log" 2>&1 || s=$?
+  if [[ "$s" -ne 0 ]]; then HT[40_unscoped]="make lint failed (exit $s)"
+  elif grep -qF "$ch" "$2/ht40-unscoped.log"; then HT[40_unscoped]=seen
+  else HT[40_unscoped]=unseen; fi
+}
+
+howto_checks() {
+  local L p f now want sec e n r
+  # 37. In both orders, each shared how-to file is there with the manifest's bytes and no
+  # conflict, and both templates' how-to files are there.
+  for L in author-first media-first; do
+    p="$PROJ"; [[ "$L" == media-first ]] && p="$MF"
+    [[ "$L" == author-first && ( "$A_UPDATE" -ne 0 || "$B_UPDATE" -ne 0 ) ]] && continue   # checks 3 and 4
+    [[ "$L" == media-first && ( "$MF_A_COPY" -ne 0 || "$MF_B_COPY" -ne 0 ) ]] && continue   # check 9
+    r=""
+    for f in $SA_SHARED_HOWTO; do
+      [[ -f "$MF_SRC/template/$f" ]] || continue
+      want="$(ht_want_sha "$MF_SRC" "$f")"
+      if [[ ! -f "$p/$f" || -L "$p/$f" ]]; then r="$f is missing, or not a file"; break; fi
+      now="$(ht_sha "$p/$f")"
+      if grep -q '^<<<<<<< ' "$p/$f" || [[ -e "$p/$f.rej" ]]; then r="$f holds a conflict"; break; fi
+      [[ "$now" == "$want" ]] || { r="$f does not hold the manifest's bytes"; break; }
+    done
+    if [[ -z "$r" ]]; then
+      for f in "${A_ALL[@]}" "${B_ALL[@]}"; do
+        [[ "$f" == how-to/* ]] || continue
+        [[ -f "$p/$f" ]] || { r="$f, a file of one template's guide, is missing"; break; }
+      done
+    fi
+    n="after both copies"; [[ "$L" == author-first ]] && n+=" and both updates"
+    [[ -z "$r" ]] || finding "check 37 — [$L] $n: $r"
+  done
+  if ! $HT_RAN; then return 0; fi
+  # 38. The sibling's revision is kept and attributed, never written over while it stands
+  # unchanged; once the sibling takes the shared bytes again, nothing is listed.
+  if [[ "${HT[38_copy]}" -ne 0 ]]; then
+    finding "check 38 — the sibling's copy and syntek-author's after it failed (exit ${HT[38_copy]})"
+  else
+    e="$(ht_entries "$HT_W/38a.log" "$HT_SHARED_CH" syntek-author)"
+    if [[ "${HT[38_a1]}" -ne 0 || "${HT[38_b]}" -ne 0 || "${HT[38_a2]}" -ne 0 ]]; then
+      finding "check 38 — an update failed (syntek-author ${HT[38_a1]}, the sibling ${HT[38_b]}, syntek-author again ${HT[38_a2]})"
+    elif [[ "${HT[38_sha1]}" != "${HT[rev_sha]}" ]]; then
+      finding "check 38 — syntek-author's update replaced the sibling's revision of $HT_SHARED_CH — a sibling's version is never written over while it stands unchanged"
+    elif ! grep -q "^$HT_LEFT.*$HT_SIB_WHY" <<< "$e"; then
+      finding "check 38 — syntek-author's report does not list $HT_SHARED_CH under '$HT_LEFT' with '$HT_SIB_WHY'"
+    elif [[ "${HT[38_sha2]}" != "${HT[want_sha]}" ]] || [[ -n "$(ht_entries "$HT_W/38b.log" "$HT_SHARED_CH" syntek-author)" ]]; then
+      finding "check 38 — after the sibling's update to the shared bytes, $HT_SHARED_CH does not hold them, or syntek-author's next report still lists it"
+    fi
+  fi
+  # 39. The crossing beside the sibling's revision: listed as the sibling's, never as new.
+  if [[ "${HT[39_copy]}" -ne 0 || "${HT[39_a]}" -ne 0 ]]; then
+    finding "check 39 — the crossing beside the sibling failed (copies ${HT[39_copy]}, update ${HT[39_a]})"
+  else
+    e="$(ht_entries "$HT_W/39.log" "$HT_SHARED_CH" syntek-author)"
+    if grep -q "^$HT_NEW" <<< "$e"; then
+      finding "check 39 — the crossing lists the sibling's revision of $HT_SHARED_CH under '$HT_NEW' — it is the sibling's, not the owner's"
+    elif ! grep -qE "^$HT_SIB_SEC|^$HT_LEFT.*$HT_SIB_WHY" <<< "$e"; then
+      finding "check 39 — the crossing does not list $HT_SHARED_CH as holding dummy-media's version (a shared file)"
+    elif [[ "${HT[39_sha]}" != "${HT[rev_sha]}" ]]; then
+      finding "check 39 — the crossing replaced the sibling's revision of $HT_SHARED_CH"
+    fi
+  fi
+  # 40. make lint and make flags read the guide's chapters only under a SCOPE.
+  case "${HT[40]:-}" in
+    skip:*) NOTES+=("check 40 skipped — ${HT[40]#skip: }") ;;
+    *)
+      if [[ "${HT[40_lint]:-1}" -ne 0 || "${HT[40_flags]:-1}" -ne 0 ]]; then
+        finding "check 40 — make lint (exit ${HT[40_lint]:-none}) or make flags (exit ${HT[40_flags]:-none}) with SCOPE=how-to/src STRICT=1 failed over both templates' chapters"
+      elif [[ "${HT[40_unscoped]:-}" != unseen ]]; then
+        r="${HT[40_unscoped]:-was not run}"; [[ "$r" != seen ]] || r="reported the line planted in the sibling's chapter"
+        finding "check 40 — make lint without a SCOPE $r — it reads no how-to/src"
+      fi ;;
+  esac
+  # 41. The owner's edit to a shared how-to file is restored by one template's update and the
+  # other's is quiet for it; the sibling's folder is never touched; the guard is wired once.
+  if [[ "${HT[41_copy]}" -ne 0 || "${HT[41_a]}" -ne 0 || "${HT[41_b]}" -ne 0 ]]; then
+    finding "check 41 — a copy or an update failed (copies ${HT[41_copy]}, syntek-author ${HT[41_a]}, the sibling ${HT[41_b]})"
+  elif [[ "${HT[41_ctx]}" != "${HT[ctx_sha]}" ]]; then
+    finding "check 41 — syntek-author's update did not put the owner's how-to/CONTEXT.md back to the shared bytes"
+  elif ! grep -q "^$HT_RESTORED" <<< "$(ht_entries "$HT_W/41a.log" how-to/CONTEXT.md syntek-author)"; then
+    finding "check 41 — syntek-author's report does not list how-to/CONTEXT.md under RESTORED"
+  elif [[ -n "$(ht_entries "$HT_W/41b.log" how-to/CONTEXT.md dummy-media)" ]]; then
+    finding "check 41 — the sibling's next update lists how-to/CONTEXT.md, which holds the bytes both templates ship"
+  elif [[ "${HT[41_x_after]}" != "${HT[41_x]}" ]]; then
+    finding "check 41 — syntek-author's update touched the owner's edit in the sibling's how-to/docs/dummy-media/x.md"
+  elif [[ "${HT[41_guard]}" != 1 ]]; then
+    finding "check 41 — after both copies and both updates settings.json runs the guide guard in ${HT[41_guard]} PreToolUse entries, not one"
+  fi
+  # 42. A plain clone: the sibling's revision left as unjudgeable, then as the sibling's.
+  if [[ "${HT[38_copy]}" -eq 0 ]]; then
+    if [[ "${HT[42_a1]}" -ne 0 || "${HT[42_b]}" -ne 0 || "${HT[42_a2]}" -ne 0 ]]; then
+      finding "check 42 — an update in the plain clone failed (syntek-author ${HT[42_a1]}, the sibling ${HT[42_b]}, syntek-author again ${HT[42_a2]})"
+    elif [[ "${HT[42_sha1]}" != "${HT[rev_sha]}" || "${HT[42_sha2]}" != "${HT[rev_sha]}" ]]; then
+      finding "check 42 — in a clone without the sibling's record, syntek-author's update replaced the sibling's revision of $HT_SHARED_CH"
+    elif ! grep -q "^$HT_LEFT.*$HT_CLONE_WHY" <<< "$(ht_entries "$HT_W/42a.log" "$HT_SHARED_CH" syntek-author)"; then
+      finding "check 42 — in a clone without the sibling's record, the report does not say '$HT_CLONE_WHY'"
+    elif ! grep -q "^$HT_LEFT.*$HT_SIB_WHY" <<< "$(ht_entries "$HT_W/42b.log" "$HT_SHARED_CH" syntek-author)"; then
+      finding "check 42 — once the sibling's update recorded its render, the report does not say '$HT_SIB_WHY'"
+    fi
+  fi
+  return 0
+}
+
+# The fixture as this release's syntek-author is, for checks 37–42: two shared how-to files and a
+# chapter of its own, the guide guard and its entry, the deny, "restore" in its refresh data, and
+# a stand-in Makefile whose lint and flags read how-to/src only under a SCOPE. Commits.
+extend_fixture_howto() { # $1 = fixture template repo
+  local t="$1" d="$1/template" own="how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
+  local shared="how-to/CONTEXT.md $HT_SHARED_CH"
+  mkdir -p "$d/how-to/src/TEMPLATE-GUIDE/syntek-author" "$d/.claude/hooks"
+  printf '# CONTEXT.md — how-to/\n\nThe user guide, shared by every template.\n' > "$d/how-to/CONTEXT.md"
+  printf '# Updating and recovery — taking an update safely\n\nAn update brings the template'"'"'s changes.\n\n## Before you update\n\nCommit your work.\n\n## Where the rules live\n\n- The rules.\n\n## Next\n\n- Read on.\n' > "$d/$HT_SHARED_CH"
+  printf '# Overview — what the project is\n\nThe project holds your work.\n\n## The layers\n\nEach layer has a job.\n\n## The settings\n\nTwo files hold them.\n\n## Where the rules live\n\n- The rules.\n\n## Next\n\n- Read on.\n' > "$d/$own"
+  cp "$SA_ROOT/template/$SA_HOWTO_GUARD" "$d/$SA_HOWTO_GUARD"; chmod +x "$d/$SA_HOWTO_GUARD"
+  printf '%s\n' 'WORK_DIRS := $(filter-out how-to/src,$(wildcard */src))' 'IN = $(if $(SCOPE),$(SCOPE),$(WORK_DIRS))' \
+    'lint:' $'\t@n=0; for f in $$(find $(or $(IN),.nothing-to-scan) -name \'*.md\' ! -name CONTEXT.md ! -name CLAUDE.md 2>/dev/null); do \\' \
+    $'\t  h=$$(grep -nH \'[^[:space:].][.!?][[:space:]][[:space:]]*[[:upper:]]\' "$$f"); [ -z "$$h" ] || { echo "$$h"; n=$$((n + 1)); }; done; \\' \
+    $'\t[ -z "$(STRICT)" ] || [ "$$n" -eq 0 ]' \
+    'flags:' $'\t@n=0; for f in $$(find $(or $(IN),.nothing-to-scan) -name \'*.md\' ! -name CONTEXT.md ! -name CLAUDE.md 2>/dev/null); do \\' \
+    $'\t  h=$$(grep -nH \'VERIFY:\' "$$f"); [ -z "$$h" ] || { echo "$$h"; n=$$((n + 1)); }; done; \\' \
+    $'\t[ -z "$(STRICT)" ] || [ "$$n" -eq 0 ]' > "$d/Makefile"
+  python3 - "$t/copier.yml" "$t/migrations/family-refresh.json" "$d/.claude/settings.json" "$shared $SA_HOWTO_GUARD" \
+    "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" <<'PY' || return 1
+import json, sys
+cy, rf, st, paths, matcher, cmd, deny = sys.argv[1:]
+paths = paths.split()
+lines = open(cy, encoding="utf-8").read().split("\n")
+def after(key, new):
+    i = lines.index(key)
+    lines[i + 1:i + 1] = new
+after("_exclude:", [f"  - \"<: if _copier_operation == 'update' :>/{p}<: endif :>\"" for p in paths])
+after("_skip_if_exists:", [f"  - /{p}" for p in paths])
+open(cy, "w", encoding="utf-8").write("\n".join(lines))
+entry = {"matcher": matcher, "hooks": [{"type": "command", "command": cmd, "timeout": 10}]}
+d = json.load(open(rf, encoding="utf-8"))
+d["refresh"] = d.get("refresh", []) + paths
+d["restore"] = ["how-to"]
+d.setdefault("settings", {}).setdefault("hooks", {})["PreToolUse"] = [entry]
+json.dump(d, open(rf, "w", encoding="utf-8"), indent=2)
+s = json.load(open(st, encoding="utf-8"))
+s.setdefault("hooks", {})["PreToolUse"] = [entry]
+s.setdefault("permissions", {}).setdefault("deny", []).append(deny)
+open(st, "w", encoding="utf-8").write(json.dumps(s, indent=2) + "\n")
+PY
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the user guide'
+}
+
 media_first_checks() {
   local kind path sum source now
   if [[ "$MF_B_COPY" -ne 0 ]]; then finding "check 9 — the dummy second template did not render on its own (exit $MF_B_COPY)"; return 0; fi
@@ -1438,27 +2096,38 @@ media_first_checks() {
   return 0
 }
 
-# The fixture as this release's syntek-author is, for checks 18–30: the peer key, the data-root
-# questions of the real family-shared block, the real resolver and map, and rules 06 holding the
-# real rules-web-tools block. Commits.
+# The fixture as this release's syntek-author is, for checks 18–30 and 43–50: the peer key, the
+# real family-shared questions block in place of the fixture's own agent questions, copier.yml's
+# per-client gates, the real resolver and map, and rules 06 holding the real rules-web-tools
+# block. Commits.
 extend_fixture_peer() { # $1 = fixture template repo
   local t="$1" d="$1/template"
   grep -q '^DATA_STORE:' "$SA_ROOT/copier.yml" && [[ -f "$SA_ROOT/template/$SA_DATAROOT_PY" ]] || return 0
   cp "$SA_ROOT/template/$SA_DATAROOT_PY" "$d/$SA_DATAROOT_PY" && cp "$SA_ROOT/template/$SA_DATAROOT_MAP" "$d/$SA_DATAROOT_MAP" || return 1
   { printf '# 06 — global rules\n\n## 13. Web and code tools\n\n'
     rwt_block "$SA_ROOT/template/.claude/rules/syntek-author/06-global-rules.md"; } > "$d/.claude/rules/syntek-author/06-global-rules.md"
-  python3 - "$t/copier.yml" "$SA_ANSWERS_FILE" "$SA_PEER_ANSWERS_FILE" <<'PY' || return 1
+  # The questions: the whole block replaces the fixture's agent questions (a copier.yml without
+  # the block gives its data-root questions, appended); the per-client gates open _exclude.
+  python3 - "$t/copier.yml" "$SA_ANSWERS_FILE" "$SA_PEER_ANSWERS_FILE" <(shared_questions "$SA_ROOT/copier.yml") \
+    <(client_gates "$SA_ROOT/copier.yml") <<'PY' || return 1
 import sys
-path, prev, peer = sys.argv[1:]
+path, prev, peer, block, gates = sys.argv[1:]
 lines = open(path, encoding="utf-8").read().split("\n")
+block = open(block, encoding="utf-8").read().rstrip("\n").split("\n")
+gates = [g for g in open(gates, encoding="utf-8").read().split("\n") if g]
 i = lines.index("  prev: " + prev)
 lines.insert(i + 1, "  peer: " + peer)
+i = lines.index("_exclude:")
+lines[i + 1:i + 1] = gates
+if "AGENT_CLIENTS:" in block:
+    b, e = lines.index("# BEGIN fixture agent questions"), lines.index("# END fixture agent questions")
+    lines[b:e + 1] = block
+else:
+    lines += [""] + block
 open(path, "w", encoding="utf-8").write("\n".join(lines))
 PY
-  # The questions, and the after-update message that reports a store the sibling records differently.
-  { printf '\n'; dataroot_questions "$SA_ROOT/copier.yml"
-    awk '/^_message_after_update:/ { on = 1; print; next } on && /^[^ ]/ { on = 0 } on { print }' "$SA_ROOT/copier.yml"
-  } >> "$t/copier.yml"
+  # The after-update message that reports a store the sibling records differently.
+  awk '/^_message_after_update:/ { on = 1; print; next } on && /^[^ ]/ { on = 0 } on { print }' "$SA_ROOT/copier.yml" >> "$t/copier.yml"
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the data root and the rules-web-tools block'
 }
 
@@ -1475,6 +2144,7 @@ self_test() {
   sa_add_update "$tmp/fixture" syntek-author ".claude/skills/wait-what/SKILL.md .claude/hooks/context-threshold-handoff.sh" mcp \
     || die "could not give the fixture the update script"
   extend_fixture_peer "$tmp/fixture" || die "could not give the fixture the data-root questions and the resolver"
+  extend_fixture_howto "$tmp/fixture" || die "could not give the fixture the user guide"
   # The fixture's settings.json wires the hook its family-refresh.json offers, as the real seed does.
   python3 - "$tmp/fixture/template/.claude/settings.json" "$tmp/fixture/migrations/family-refresh.json" <<'PY'
 import json, sys
@@ -1493,7 +2163,8 @@ def f(p):
     return {"path": p, "source": f"template/{p}", "kind": "file", "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
 files = [f(".agents/mcp_config.json"),
          {"path": ".agents/skills", "source": "template/.agents/skills", "kind": "symlink", "target": "../.claude/skills"},
-         f("AGENTS.md"), f(".claude/skills/wait-what/SKILL.md"), f(".claude/hooks/context-threshold-handoff.sh")]
+         f("AGENTS.md"), f(".claude/skills/wait-what/SKILL.md"), f(".claude/hooks/context-threshold-handoff.sh"),
+         f(".claude/hooks/how-to-read-only.sh"), f("how-to/CONTEXT.md"), f("how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md")]
 # The resolver under every template's name (D50), and the rules-web-tools block (D54, check 21).
 r = f(".claude/syntek-author-dataroot.py"); r["path"] = ".claude/syntek-<template>-dataroot.py"
 files.append(r)
@@ -1552,15 +2223,17 @@ PY
   held="${D48[d48-first.b_hooks]}"; D48[d48-first.b_hooks]="UserPromptSubmit  context-threshold-handoff.sh wired 2 time(s)"
   probe "check 16 fires when the sibling's adoption duplicates a hook" "check 16 — [D48-only sibling, d48-first] after the sibling adopted"; D48[d48-first.b_hooks]="$held"
   # The judge itself: a top-level value written twice, missing, or another value, is named.
-  printf '{"settings": {"autoCompactEnabled": false}}\n' > "$tmp/rf.json"
+  printf '{"settings": {"autoCompactEnabled": false, "idleCompaction": false}}\n' > "$tmp/rf.json"
   local judged=""
-  printf '{\n  "autoCompactEnabled": false,\n  "autoCompactEnabled": false\n}\n' > "$tmp/st.json"
+  printf '{\n  "autoCompactEnabled": false,\n  "autoCompactEnabled": false,\n  "idleCompaction": false\n}\n' > "$tmp/st.json"
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == "autoCompactEnabled written 2 time(s)"* ]] || judged+=" twice"
   printf '{\n  "model": "opus"\n}\n' > "$tmp/st.json"
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == "autoCompactEnabled written 0 time(s)"* ]] || judged+=" missing"
-  printf '{\n  "autoCompactEnabled": true\n}\n' > "$tmp/st.json"
+  printf '{\n  "autoCompactEnabled": true,\n  "idleCompaction": false\n}\n' > "$tmp/st.json"
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == *"value true"* ]] || judged+=" true"
   printf '{\n  "autoCompactEnabled": false\n}\n' > "$tmp/st.json"
+  [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == "idleCompaction written 0 time(s)"* ]] || judged+=" idle-missing"
+  printf '{\n  "autoCompactEnabled": false,\n  "idleCompaction": false\n}\n' > "$tmp/st.json"
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == ok ]] || judged+=" once"
   if [[ -n "$judged" ]]; then
     printf '\033[31m  ✗ hooks_once misjudges a top-level value:%s\033[0m\n' "$judged" >&2; exit 2
@@ -1649,6 +2322,92 @@ PY
       probe "check 36 fires when a map role named after a kind is accepted" "check 36 — a sibling map role named after a shared role or a kind did not"
       PEER[name.videos_author]="$held_v"
     fi
+    if $CL_RAN; then
+      # 43–50: one set of agent clients and models. Each mutation leaves a record as a block
+      # that ignores the other template's record would write it, or a file it would let in.
+      f="$PEER_W/clients-author-first/$SA_PEER_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed 's/^- codex$/- codex\n- gemini-cli\n- antigravity\n- opencode/' "$tmp/h" > "$f"
+      probe "check 43 fires when the second template does not take the first's clients" "check 43 — the records hold"; cp "$tmp/h" "$f"
+      printf '# GEMINI.md\n' > "$PEER_W/clients-author-first/GEMINI.md"
+      probe "check 43 fires when the second template writes a client file the first left out" "check 43 — beside a Codex-only syntek-author the project holds GEMINI.md"
+      rm -f "$PEER_W/clients-author-first/GEMINI.md"
+      f="$PEER_W/clients-media-first/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      grep -v '^OPENCODE_' "$tmp/h" > "$f"; printf 'OPENCODE_PROVIDER: user\n' >> "$f"
+      probe "check 44 fires when syntek-author does not take the sibling's OpenCode answers" "check 44 — syntek-author records"; cp "$tmp/h" "$f"
+      mkdir -p "$PEER_W/clients-media-first/.codex"
+      probe "check 44 fires when syntek-author writes a client file the sibling left out" "check 44 — beside an OpenCode-only sibling the project holds .codex"
+      rm -rf "$PEER_W/clients-media-first/.codex"
+      f="$PEER_W/clients-media-first/$CL_RULES"; cp "$f" "$tmp/h"; grep -v '^| OpenCode |' "$tmp/h" > "$f" || true
+      probe "check 44 fires when rules 05's model table does not name the sibling's model" "check 44 — $CL_RULES's model table"; cp "$tmp/h" "$f"
+      f="$PEER_W/clients-media-first/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed 's|^OPENCODE_BASE_URL: .*|OPENCODE_BASE_URL: http://127.0.0.1:11434/v1|' "$tmp/h" > "$f"
+      probe "check 44 fires when syntek-author takes its provider's own address, not the sibling's" "check 44 — syntek-author records"; cp "$tmp/h" "$f"
+      held_v="${PEER[cl45.copy]:-0}"; PEER[cl45.copy]=1
+      probe "check 45 fires when a value not offered reaches choices and stops the copy" "check 45 — beside a sibling record holding"; PEER[cl45.copy]="$held_v"
+      f="$PEER_W/clients-future/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed "s/^- codex\$/- codex\n- $CL_FUTURE_CLIENT/" "$tmp/h" > "$f"
+      probe "check 45 fires when a client not offered is recorded" "check 45 — beside a sibling record holding [codex, $CL_FUTURE_CLIENT] and OPENCODE_PROVIDER $CL_FUTURE_PROVIDER, syntek-author records"
+      cp "$tmp/h" "$f"
+      f="$PEER_W/clients-first-update/$SA_ANSWERS_FILE"
+      if [[ -f "$f" ]]; then
+        cp "$f" "$tmp/h"; strip_agent_answers "$f"; printf 'AGENT_CLIENTS: []\n' >> "$f"
+        probe "check 46 fires when the update that first asks AGENT_CLIENTS records none beside a sibling's clients" "check 46"; cp "$tmp/h" "$f"
+      else
+        ST_FAILS=$((ST_FAILS + 1)); printf '\033[31m  ✗ self-test: the fixture ran no check 46 update\033[0m\n' >&2
+      fi
+      held_v="${PEER[cl47.nomodel]:-0}"; PEER[cl47.nomodel]=0
+      probe "check 47 fires when a changed provider's copy without a model succeeds" "check 47 — beside a sibling record at $CL_OC_PROVIDER naming"
+      PEER[cl47.nomodel]="$held_v"
+      f="$PEER_W/clients-provider/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed "s|^OPENCODE_BASE_URL: .*|OPENCODE_BASE_URL: $CL_OC_URL|" "$tmp/h" > "$f"
+      probe "check 47 fires when a changed provider inherits the sibling's address" "check 47 — beside a sibling record at $CL_OC_PROVIDER ($CL_OC_URL"
+      cp "$tmp/h" "$f"
+      f="$PEER_W/clients-own-first/$SA_ANSWERS_FILE"
+      if [[ -f "$f" ]]; then
+        cp "$f" "$tmp/h"; sed "s|^CODEX_MODEL: .*|CODEX_MODEL: $CL_SIB_MODEL|" "$tmp/h" > "$f"
+        probe "check 48 fires when the sibling's record wins over the template's own" "check 48 — a copy over a project"; cp "$tmp/h" "$f"
+      else
+        ST_FAILS=$((ST_FAILS + 1)); printf '\033[31m  ✗ self-test: the fixture ran no check 48 copy\033[0m\n' >&2
+      fi
+      f="$PEER_W/clients-none/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed 's/^AGENT_CLIENTS: \[\]$/AGENT_CLIENTS:\n- codex\n- gemini-cli\n- antigravity\n- opencode/' "$tmp/h" > "$f"
+      probe "check 49 fires when an empty sibling list is skipped" "check 49 — beside a sibling record holding AGENT_CLIENTS [], syntek-author records"
+      cp "$tmp/h" "$f"
+      printf '# AGENTS.md\n' > "$PEER_W/clients-none/AGENTS.md"
+      probe "check 49 fires when a client file is written beside a sibling that chose none" "check 49 — beside a sibling record holding AGENT_CLIENTS [], the project holds AGENTS.md"
+      rm -f "$PEER_W/clients-none/AGENTS.md"
+      f="$PEER_W/clients-provider/$SA_ANSWERS_FILE"; cp "$f" "$tmp/h"
+      sed "s|^GEMINI_MODEL: .*|GEMINI_MODEL: ''|" "$tmp/h" > "$f"
+      probe "check 50 fires when GEMINI_MODEL ignores the sibling's record" "check 50"; cp "$tmp/h" "$f"
+    else
+      ST_FAILS=$((ST_FAILS + 1)); printf '\033[31m  ✗ self-test: the fixture ran no clients flow (checks 43–50)\033[0m\n' >&2
+    fi
+  fi
+  # 37–42: the user guide shared by both (D56).
+  cp "$PROJ/how-to/CONTEXT.md" "$tmp/h"; printf 'x\n' >> "$PROJ/how-to/CONTEXT.md"
+  probe "check 37 fires when a shared how-to file does not hold the manifest's bytes" "check 37 — [author-first] after both copies and both updates: how-to/CONTEXT.md does not hold"
+  cp "$tmp/h" "$PROJ/how-to/CONTEXT.md"
+  if $HT_RAN; then
+    cp "$HT_W/38a.log" "$tmp/h"; grep -vF "$HT_SIB_WHY" "$tmp/h" > "$HT_W/38a.log" || true
+    probe "check 38 fires when the sibling's revision is not attributed" "check 38 — syntek-author's report does not list"; cp "$tmp/h" "$HT_W/38a.log"
+    cp "$HT_W/39.log" "$tmp/h"
+    python3 - "$HT_W/39.log" "$HT_NEW" "$HT_SHARED_CH" <<'PY'
+import sys
+p, title, path = sys.argv[1:]
+lines = open(p, encoding="utf-8").read().split("\n")
+i = max(i for i, l in enumerate(lines) if l.startswith("▸ syntek-author update report"))
+lines[i + 1:i + 1] = ["", f"  {title} and you already had a file there (1):", f"    {path}"]
+open(p, "w", encoding="utf-8").write("\n".join(lines))
+PY
+    probe "check 39 fires when the crossing lists the sibling's revision as new" "check 39 — the crossing lists the sibling's revision"; cp "$tmp/h" "$HT_W/39.log"
+    held="${HT[40_unscoped]}"; HT[40_unscoped]=seen
+    probe "check 40 fires when make lint reads how-to/src without a SCOPE" "check 40 — make lint without a SCOPE reported the line"; HT[40_unscoped]="$held"
+    held="${HT[41_ctx]}"; HT[41_ctx]=none
+    probe "check 41 fires when the owner's edit to a shared how-to file is not restored" "check 41 — syntek-author's update did not put"; HT[41_ctx]="$held"
+    cp "$HT_W/42a.log" "$tmp/h"; grep -vF "$HT_CLONE_WHY" "$tmp/h" > "$HT_W/42a.log" || true
+    probe "check 42 fires when a plain clone's report does not say it holds no record" "check 42 — in a clone without the sibling's record, the report does not say"; cp "$tmp/h" "$HT_W/42a.log"
+  else
+    finding "self-test: the fixture ran no D56 flow (checks 38–42)"
   fi
   st_finish "templates that coexist from templates that collide"
 }
@@ -1670,7 +2429,9 @@ if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   log "  ✓ media first: syntek-author's copy over media 0.4.x's .agents/ succeeded with no --exclude, its baseline gave the 23 bytes the two MCP servers; the family-shared files carry the manifest's bytes"
   log "  ✓ each template keeps its own render record in both orders; a shared skill refreshed by syntek-author keeps its bytes through the dummy's update, which attributes it; each report lists only its own files"
   $PEER_RAN && log "  ✓ a sibling at this release, both orders: the second takes the first's store, area, slug and kinds and refuses another slug; each MCP server once in every MCP file, the second report silent, an older sibling pin kept and attributed; the rules-web-tools blocks, the resolvers' bytes, roots and paths the same; a store change reported, refused meanwhile, never a deadlock; a pre-data-root sibling gives repo and one warning; a provider difference only warns"
+  $CL_RAN && log "  ✓ one set of agent clients and models: the second template takes the first's clients and models in both orders (Gemini CLI's model and the OpenCode address included) and writes no client file the first left out, a sibling's empty list included; a sibling's value this release does not offer is filtered; a changed provider inherits none of the sibling's OpenCode answers; the template's own record comes first; and the update that first asks the clients takes the sibling's"
   $PEER_RAN && $PY_DR && log "  ✓ the manifest role rules with both maps: the sibling map's evidence roles filed and add --force refused on them, a role the maps define differently treated as evidence and reported, a newer or unparseable sibling map refusing only its own folders, a \"repo\": \"skip\" role writing nothing under repo, working output never listed, a map role named after a shared role or a kind refused"
+  $HT_RAN && log "  ✓ the user guide: each shared how-to file once with the manifest's bytes in both orders; a sibling's revision kept, attributed and never written over while it stands unchanged, also in a plain clone and on the crossing; make lint and make flags clean with SCOPE=how-to/src and blind to it without; an owner's edit to a shared how-to file restored by one template and left quiet by the other; the guard wired once"
   $D48_RAN && log "  ✓ a sibling at the D48 set only, in both orders: syntek-author's report and refresh work beside it, its copy wires the hooks once into the sibling's settings.json, and the sibling's later adoption of the shared set converges (its own refs, no conflict, no hook twice, its MEDIA-* mode file its own)"
   rm -rf "$work"
   bold "✓ A second template shares the project cleanly."

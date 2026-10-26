@@ -97,6 +97,11 @@ Section 1); splitting `MEMORY.md` past 300 lines (`08-naming-and-memory.md` Sect
 sentence per line for documents written before the template arrived (`06-global-rules.md`
 Section 5). None of these is active until it is written below.
 
+The user guide in `how-to/` is read-only: no session edits it, and every update puts its text
+back. A guide, chapter or procedure there that this project does differently is an override
+here (a redirect included) or, for a procedure, a `## Workflow aliases` row
+(`how-to/src/TEMPLATE-GUIDE/syntek-author/09-customising.md`).
+
 **Redirects.** A template path that has no role in `## Paths` (<: if DOC_TYPE == 'business' :>a family standard<: else :>the style sheet<: endif :>, a guide, a
 drafts folder) is pointed at the project's own by a line of its own here, in the form
 `` `<template path>` → `<project path>` ``. Every template file honours it: where a rule, skill,

@@ -25,7 +25,9 @@ runs itself as a forked subagent (`context: fork`) instead of handing off to an 
 
 A template skill that is not listed here does not ship in this project on purpose. Never recreate
 one, and never improvise a substitute under its name: say which skill is missing and why it
-matters. Any other folder in `.claude/skills/` is the project's own (Section 7).
+matters. Any other folder in `.claude/skills/` is the project's own (Section 7). For the author,
+`how-to/src/TEMPLATE-GUIDE/syntek-author/13-a-guide-to-skills.md` explains which skill does
+which job.
 
 The paths in these tables are the template's defaults. Where `00-project.md` `## Paths` gives
 another path for the same role, a skill uses that one, and where a skill names a heading of
@@ -159,7 +161,7 @@ in a family folder, the family skill and its standard hold the conventions that 
 <: endif :><: if DOC_TYPE != 'business' and INCLUDE_PROPOSAL :>| `approach-a-reader` | <: if DOC_TYPE == 'theology' :>Prepares an approach to a prospective endorser<: else :>Prepares an approach to a literary agent<: endif :> and records it in the tracker | moded |
 <: endif :><: if DOC_TYPE != 'business' and INCLUDE_SENSITIVE_CONTENT :>| `sensitivity-pass` | Checks sensitive material for trauma-aware handling, sourcing, signposting and safeguarding | moded |
 <: endif :><: else :>No option skills are switched on in this project. They are added by re-answering the Copier
-questions (`README.md`, "Updating from the template").
+questions (`how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md`).
 <: endif :>
 ---
 

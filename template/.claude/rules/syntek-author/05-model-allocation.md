@@ -70,5 +70,6 @@ This table follows the project's answers and is updated with this file. The clie
 written once and are the owner's: after a change of answer, change the client file to match.
 Elsewhere, `opus` and `sonnet` stay tier labels in every client. A local model must handle tool
 calls reliably before it drafts: test it on a scratch copy first, and when in doubt keep
-substantive work on the strongest model available. Client setup: `.claude/syntek-author-agents.md`.
+substantive work on the strongest model available. Client setup: `.claude/syntek-author-agents.md`;
+the steps: `how-to/workflows/syntek-author/03-enable-an-agent-client/`.
 <: endif :>

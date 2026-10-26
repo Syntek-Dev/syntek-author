@@ -37,6 +37,25 @@ skipped refresh never wrote arrives with the next full run. A hook written or re
 .claude/hooks/ is left mode 755. A file that cannot be written is reported and the run goes on
 to the report and the record.
 
+Restore. Where the data file lists folders under "restore" (a template's read-only guide),
+every update that runs in full puts the new render's bytes back, after the refresh, the
+settings entries and the MCP servers, on each regular file the new render holds under a
+listed folder whose project copy differs: an edit, a merge, conflict markers or a deletion.
+A shared file (one the data lists under "refresh") is put back only where it is missing,
+holds a version a render here held, or holds bytes no recorded render holds while every
+other template whose answers file HEAD holds has a record here of the version that file
+names; otherwise it holds, or may hold, another template's newer version, which is never
+downgraded while it stands unchanged. Left, and listed with the reason: another template's
+version, a shared file this clone cannot judge (updating that template here, to a release
+that writes update records, settles it), a file HEAD lacks whose bytes no render here holds
+(it would be lost), a link or a path beyond one, and a path that is not a regular file. A
+git-ignored file is never read or written. It never touches a path the new render lacks, and
+never writes the index: a restored file Copier had marked as a conflict still needs git add,
+which the report says. The report lists each file restored, with the commands that show what
+the project had, which HEAD and refs/<name>/yours keep. A copy (baseline) restores nothing;
+SYNTEK_UPDATE_REPORT=off and a render that failed restore nothing, and the next full update
+does. An error in the restore is one line; the report and the record still follow.
+
 A record the project never committed counts as not made. Where the tip record's version and
 answers are not the ones HEAD's answers file names (an update discarded with git reset --hard
 and git clean, or git stash -u, and run again or followed by an update to a later release),
@@ -139,14 +158,16 @@ render's after it; an older record's 'settings-blob: ' lines are read as setting
 written once, never as the owner's edit; a file the script changed in this run is classified
 by its blob from before the change; and a JSON or TOML file it wrote that parses equal to the
 new render's, list order apart, counts as delivered.
-Nothing else of the owner's is ever written: not the work tree, the index or a branch. It
-never commits and needs no network. The record holds no path of this machine (the rendered
-answers file, which names the template's source, is left out of it).
+Nothing else of the owner's is ever written: not the index or a branch, and the work tree only
+through the refresh, the settings entries, the MCP servers and the restore. It never commits
+and needs no network. The record holds no path of this machine (the rendered answers file,
+which names the template's source, is left out of it).
 
 The data file, migrations/family-refresh.json, is per template (each lists its own files),
 but its format is shared by every template of the family:
   {"format": 1, "template": "<name in .copier-answers.<name>.yml>",
    "refresh": ["<project path>", ...],
+   "restore": ["<project folder, no . or .. part>", ...],
    "settings": {"<top-level key>": <true, false, a number or a string>, ...,
                 "hooks": {"<event>": [<entry exactly as settings.json holds it>, ...]},
                 "permissions": {"deny": ["<rule>", ...], "ask": ["<rule>", ...]}},
@@ -164,12 +185,14 @@ ignores the top-level values and offers nothing for them.
 the key path that holds the servers there; a path ending .toml is TOML, every other is JSON.
 The values are read from the new render, never from the data file. A malformed "mcp" gives one
 line and no MCP offer, and the rest of the run goes on. A script older than "mcp" ignores it.
+"restore" sits beside "refresh" and is optional; a malformed one gives one line and no
+restore, and the rest of the run goes on. A script older than "restore" ignores it.
 
 SYNTEK_UPDATE_REPORT=off skips every render and prints only conflicts and deletions; it also
-skips the refresh, the settings entries and the MCP servers, which the next update without it
-then delivers (as it does after a render that failed). It records nothing, but sets back a
-discarded record, as above. A .rej file counts as a conflict only beside a template path and
-only where it is new or changed since HEAD.
+skips the refresh, the settings entries and the MCP servers and the restore, which the next
+update without it then delivers (as it does after a render that failed). It records nothing,
+but sets back a discarded record, as above. A .rej file counts as a conflict only beside a
+template path and only where it is new or changed since HEAD.
 The project must be its own git repository (not a folder inside one); otherwise nothing is
 recorded, refreshed or added, and one line says so. A record is a commit whose message ends
 with its 'commit: ' and 'answers: ' lines; any other commit at refs/<name>/template, and any
@@ -177,9 +200,53 @@ ref in a namespace of Git's own (refs/heads/template, say), is never read as one
 SYNTEK_UPDATE_COPIER names the command that renders (default: copier on PATH, then this
 Python's copier module).
 
-Python 3.11 or later, standard library and git only. Exit status: always 0, except a failing
---self-test. A non-zero exit would abort the update.
+Python 3.14 or later (PYTHON_MIN, below), standard library and git only. Copier runs it on
+its own Python, which uvx may choose from those it already holds, so every update command
+asks for uvx --python '>=3.14'. On an older Python it does NOT run: it changes nothing and
+prints a framed message on stderr naming everything it skipped, asking for Python 3.14 and
+giving the rerun (a --self-test there fails; --help still prints this text). The check runs
+before any other import, and the file parses as Python 3.8, so an old Python reaches the
+message instead of a SyntaxError. Exit status: always 0, except a failing --self-test. A
+non-zero exit would abort the update.
 """
+
+import sys
+
+# The one place the minimum is set: the move to a newer Python changes this line and the text
+# above, nothing else.
+PYTHON_MIN = (3, 14)
+
+
+def too_old(sub, ver):
+    """The framed message printed on stderr, in place of any run, where Python is older than
+    PYTHON_MIN; sub is the subcommand, ver the running Python's version."""
+    need, have = '%d.%d' % tuple(PYTHON_MIN), '%d.%d' % tuple(ver[:2])
+    rerun = "uvx --python '>=%s' copier update" % need
+    if sub == '--self-test':
+        body = ['family-update did NOT run, because this is Python %s and it needs Python %s or later.' % (have, need),
+                'The self-test did not run.',
+                'Upgrade to Python %s or later, then run the self-test again.' % need]
+    elif sub == 'baseline':
+        body = ['family-update did NOT run, because Copier runs on Python %s here and it needs Python %s or later.'
+                % (have, need),
+                'This copy recorded nothing, refreshed no shared file and added no settings entry or MCP server.',
+                'Upgrade to Python %s or later, and start every update with %s;' % (need, rerun),
+                'the first one renders this version again.']
+    else:
+        body = ['family-update did NOT run, because Copier runs on Python %s here and it needs Python %s or later.'
+                % (have, need),
+                'This update printed no report, refreshed no shared file, added no settings entry or MCP server,',
+                'put back no guide file and kept no record.',
+                'Upgrade to Python %s or later. Then look for conflict markers and .rej files yourself,' % need,
+                'commit this update, and run the same update again, starting %s.' % rerun]
+    rule = '  ' + '=' * 76
+    return '\n'.join([rule] + ['  ' + line for line in body] + [rule]) + '\n'
+
+
+if __name__ == '__main__' and sys.version_info < PYTHON_MIN and sys.argv[1:2] not in (['--help'], ['-h']):
+    sys.stderr.write('\n' + too_old(sys.argv[1] if len(sys.argv) > 1 else '', sys.version_info))
+    sys.stderr.flush()
+    sys.exit(1 if sys.argv[1:2] == ['--self-test'] else 0)
 
 import copy
 import fnmatch
@@ -190,7 +257,6 @@ import re
 import shlex
 import shutil
 import subprocess
-import sys
 import tempfile
 
 MAX_LIST = 25
@@ -203,7 +269,7 @@ HOOK_SCRIPT = re.compile(r'\.claude/hooks/([A-Za-z0-9._-]+)')
 SETTINGS = '.claude/settings.json'
 REFRESH_DATA = 'migrations/family-refresh.json'
 # Who relies on a top-level value, for the line that reports an owner's other value.
-SETTING_USERS = {'autoCompactEnabled': 'the handoff hooks'}
+SETTING_USERS = {'autoCompactEnabled': 'the handoff hooks', 'idleCompaction': 'the handoff hooks'}
 # An MCP rule of .claude/settings.json, as the permissions script reads one: mcp__<server>__<tool>.
 MCP_RULE = re.compile(r'mcp__([A-Za-z0-9_-]+?)__([A-Za-z0-9_-]+)')
 MCP_NAME = re.compile(r'[A-Za-z0-9_-]+')
@@ -878,6 +944,104 @@ def refresh_notes(t, done, added, failed):
     return notes
 
 
+def restore_dirs(data):
+    """The project folders the data lists under "restore" (a template's read-only guide): []
+    where it lists none, None where the key is malformed."""
+    dirs = data.get('restore', []) if isinstance(data, dict) else []
+    ok = isinstance(dirs, list) and all(
+        isinstance(d, str) and MCP_PATH.fullmatch(d) and not ({'.', '..'} & set(d.split('/')))
+        for d in dirs)
+    return dirs if ok else None
+
+
+def answers_siblings(t):
+    """The other templates whose answers file HEAD holds at the project's root."""
+    if not verify('HEAD'):
+        return []
+    names = git('ls-tree', '--name-only', 'HEAD', check=False).splitlines()
+    return sorted(m.group(1) for m in (re.fullmatch(r'\.copier-answers\.(.+)\.yml', n) for n in names)
+                  if m and m.group(1) != t)
+
+
+def unrecorded_siblings(t):
+    """The other templates whose answers file HEAD holds but whose render record here does not
+    name it (no record, or one of another version or answers: a plain clone has none, since
+    records travel only with git push --mirror). Their shared files' current versions are not
+    known in this clone, so the restore never judges a shared file against them."""
+    out = []
+    for s in answers_siblings(t):
+        path = '.copier-answers.%s.yml' % s
+        ans = git('rev-parse', '-q', '--verify', 'HEAD:' + path, check=False).strip()
+        cur = ref_info('refs/%s/template' % s) if s not in GIT_NAMESPACES else None
+        base = committed_record(cur, None, ans, answers_held(path))[0] if cur else None
+        if not (base and same_answers(base, ans)):
+            out.append(s)
+    return out
+
+
+def unread_reason(unread):
+    """Why a shared file is left while siblings have no record here, and what settles it."""
+    one = len(unread) == 1
+    return ('this clone holds no record of %s, so this may be %s: updating %s here, to a release '
+            'that writes update records, settles it (or work in a clone that holds %s records, '
+            'which travel only with git push --mirror)' % (
+                ', '.join(unread), 'its version' if one else 'the version of one of them',
+                'that template' if one else 'each of them', 'its' if one else 'their'))
+
+
+def restore(dirs, shared, N, H, own, others, unread, root, write=True):
+    """Put the new render's bytes back on every regular file it holds under dirs whose project
+    copy differs. shared: the paths the data lists under "refresh", which another template
+    may ship too; own: every blob this template's renders here held; others: each sibling's
+    render history; unread: the siblings unrecorded_siblings names.
+    A file whose copy holds bytes no render here held, and which HEAD lacks, is left (its bytes
+    are in no commit). A shared file whose copy holds bytes this template never rendered here
+    is left where a sibling's render held them, or where any sibling is unread; otherwise it
+    is the owner's edit and is put back. Left, with a reason: those, a link or a path beyond
+    one, a path outside the project and a path that is not a regular file. Skipped silently: a
+    git-ignored path (never read; the report lists one the template changed as not compared).
+    Never a path N lacks; never the index.
+    Returns (restored, missing, left, failed): missing, the restored paths that were absent;
+    left as (path, reason); failed as 'path (reason)'."""
+    under = lambda p: any(p == d or p.startswith(d + '/') for d in dirs)
+    restored, missing, left, failed, plain = [], set(), [], [], []
+    for p in sorted(p for p, (mode, _) in N.items() if under(p) and mode in ('100644', '100755')):
+        if beyond_link(p) or os.path.islink(p) or not inside(os.path.dirname(p) or '.', root):
+            left.append((p, 'a link, or a path beyond one: the template never writes through it'))
+        else:
+            plain.append(p)
+    ign = ignored_paths(plain) | {p for p in plain if not os.path.lexists(p) and ignored(p) is not False}
+    plain = [p for p in plain if p not in ign]
+    now = worktree(plain)
+    for p in plain:
+        n, w = N[p], now.get(p)
+        if w == n[1]:
+            continue
+        if os.path.lexists(p) and not os.path.isfile(p):
+            left.append((p, 'not a regular file'))
+            continue
+        if w is not None and w not in own.get(p, ()):
+            sib = next((s for s, hist in sorted(others.items()) if w in hist.get(p, ())), None)
+            if p in shared and sib:
+                left.append((p, "it holds %s's version of a shared file: that template's update brings its own" % sib))
+                continue
+            if p not in H:
+                left.append((p, "Git does not hold your copy: commit or move it, and the next update restores the template's"))
+                continue
+            if p in shared and unread:
+                left.append((p, unread_reason(unread)))
+                continue
+        try:
+            if write:
+                write_blob(p, n[0], n[1])
+            restored.append(p)
+            if w is None:
+                missing.add(p)
+        except (OSError, RuntimeError) as err:
+            failed.append('%s (%s)' % (p, getattr(err, 'strerror', None) or err))
+    return restored, missing, left, failed
+
+
 def hook_scripts(entry):
     return {m for h in (entry.get('hooks') or []) if isinstance(h, dict)
             for m in HOOK_SCRIPT.findall(str(h.get('command', '')))}
@@ -1337,7 +1501,7 @@ def settings_wrote(lines):
 # tables appended, and is written only where the result parses to exactly the plan.
 
 def _toml():
-    import tomllib   # Python 3.11: imported here, so an older Python still reaches its one line
+    import tomllib   # imported here, after the version check at the top of this file
     return tomllib
 
 
@@ -1905,7 +2069,11 @@ def classify(N, O, P, H, own, others, skip, ign=()):
             elif h and w != h[1]:
                 counts['merged'] += 1
             elif o is None:
-                g['new_here'].append(p)
+                sib = next((name for name, hist in sorted(others.items()) if w in hist.get(p, ())), None)
+                if sib:
+                    g['sibling'].append((p, sib))
+                else:
+                    g['new_here'].append(p)
             elif w == o[1] or w in own.get(p, ()):
                 g['once'].append(p)
             else:
@@ -1941,14 +2109,34 @@ def body(t, g, unmerged, rej, deleted_unknown, cap):
                                  'take:    git checkout %s -- %s' % (T, q(p))])
     rej_here = [r[:-4] for r in rej if os.path.lexists(r[:-4])]
     rej_gone = [r[:-4] for r in rej if not os.path.lexists(r[:-4])]
+    ro = lambda p: any(p == d or p.startswith(d + '/') for d in g.get('restore_dirs', []))
     section(L, cap, "REJECTED HUNKS: the file holds the template's version; your lines are in <file>.rej",
-            rej_here, lambda p: ['compare: git diff %s %s -- %s' % (T, Y, q(p)),
-                                 'yours:   git restore --source=%s -- %s' % (Y, q(p))])
+            rej_here, lambda p: ['compare: git diff %s %s -- %s' % (T, Y, q(p))] + (
+                ['then:    rm -- %s' % q(p + '.rej')]
+                if ro(p) else ['yours:   git restore --source=%s -- %s' % (Y, q(p))]))
     restore = lambda p: ['see:     git show %s:%s' % (Y, q(p)), 'restore: git restore --source=%s -- %s' % (Y, q(p))]
     section(L, cap, 'DELETED by this update although you had changed them (retired by the template, or by an answer that no longer ships them)',
             g['lost'] + rej_gone, restore)
     section(L, cap, 'DELETED by this update (retired by the template, or by an option you turned off)',
             deleted_unknown, restore)
+    where = g.get('restore_where', '')
+    held, missing, marks = g.get('restore_held', set()), g.get('restore_missing', set()), g.get('restore_marks', set())
+
+    def was(p):
+        if p in missing:
+            out = ['was:     missing before this update']
+        elif p in held:
+            out = ['compare: git diff %s %s -- %s' % (T, Y, q(p)), 'yours:   git show %s:%s' % (Y, q(p))]
+        else:
+            out = ['was:     not in Git, holding a version a template rendered here']
+        if p in marks:
+            out.append('then:    git add -- %s' % q(p))
+        return out
+    section(L, cap, "RESTORED to the template's text, because %s is read-only (what you had is in Git)" % where,
+            g.get('restored', []), was)
+    left = dict(g.get('restore_left', []))
+    section(L, cap, 'LEFT AS IT IS in %s, which is read-only' % where, sorted(left),
+            lambda p: ['why:     %s' % left[p], 'see:     git show %s:%s' % (T, q(p))])
     take = lambda p: ['compare: git diff %s -- %s' % (T, q(p)), 'take:    git restore --source=%s -- %s' % (T, q(p))]
     section(L, cap, 'NOT UPDATED because you had changed them', g['edit'], take)
     sibs = {}
@@ -1988,16 +2176,25 @@ def build_report(t, frm, to, g, counts, unmerged, rej, notes, extra, cap, full):
         return lines + [head + ': every change was delivered (%d file%s).' % (
             counts['changed'], '' if counts['changed'] == 1 else 's')]
     parts = [('delivered', counts['delivered']), ('merged with your edits', counts['merged']),
-             ('refreshed', refreshed), ('added', added), ('kept back', kept),
+             ('refreshed', refreshed), ('added', added), ('restored', counts.get('restored', 0)),
+             ('left in a read-only folder', counts.get('left', 0)), ('kept back', kept),
              ('conflict' + ('' if len(unmerged) + len(rej) == 1 else 's'), len(unmerged) + len(rej)),
              ('deleted although you had changed them', len(g['lost'])),
              ('not compared because git ignores them', unread)]
     lines.append(head)
-    lines.append('  The template changed %d file%s here: %s.' % (
-        counts['changed'], '' if counts['changed'] == 1 else 's',
-        ', '.join('%d %s' % (n, w) for w, n in parts if n)))
+    if counts['changed']:
+        lines.append('  The template changed %d file%s here: %s.' % (
+            counts['changed'], '' if counts['changed'] == 1 else 's',
+            ', '.join('%d %s' % (n, w) for w, n in parts if n)))
+    else:
+        lines.append('  The template changed no file here.')
+    restored = len(g.get('restored', []))
+    if restored:
+        lines.append("  %d file%s of %s, which is read-only, %s put back to the template's text (RESTORED below)." % (
+            restored, '' if restored == 1 else 's', g.get('restore_where', ''), 'was' if restored == 1 else 'were'))
     lines.append("  %s changed none of your files. In every compare, '-' lines are the template's and '+' lines are yours." % (
-        'Apart from the refresh above, this report' if notes else 'This report'))
+        ('Apart from the refresh above%s, this report' % (' and the files restored below' if restored else '')) if notes
+        else ('Apart from the files restored below, this report' if restored else 'This report')))
     lines += B
     lines += ['', "  These commands work offline until the next update. To see the template's whole change to a file:",
               '  git diff %s/template^ %s/template -- <path>' % (t, t),
@@ -2292,7 +2489,9 @@ def cmd_update(args):
         g = {k: (v if k == 'lost' else []) for k, v in g.items()}
         if head:
             git('update-ref', Y, head)
-        print('\n'.join(build_report(t, frm, vto, g, {}, unmerged, rej, [], (gone, 'SYNTEK_UPDATE_REPORT=off, so conflicts and deletions only; no shared file is refreshed or added until an update runs without it.'), MAX_LIST, False)), flush=True)
+        r_off = restore_dirs(refresh_data(src, t) or {}) or []
+        also = (', and no file of %s is restored' % ', '.join(d + '/' for d in r_off)) if r_off else ''
+        print('\n'.join(build_report(t, frm, vto, g, {}, unmerged, rej, [], (gone, 'SYNTEK_UPDATE_REPORT=off, so conflicts and deletions only; no shared file is refreshed or added%s until an update runs without it.' % also), MAX_LIST, False)), flush=True)
         # At the tip's own version and answers, which HEAD does not name (an update discarded and
         # run again with the report off, or a hand rerun before the commit), the tip is set back
         # where its writes are gone, so committing this run never makes a discarded record count.
@@ -2309,7 +2508,9 @@ def cmd_update(args):
                 gone = [p for p in sorted(H) if not os.path.lexists(p) and p not in skip]
                 if head:
                     git('update-ref', Y, head)
-                print('\n'.join(build_report(t, frm, vto, empty(), {}, unmerged, rej, [], (gone, 'no report, because %s; no shared file was refreshed or added, so the next update does it.' % reason), MAX_LIST, False)), flush=True)
+                r_off = restore_dirs(refresh_data(src, t) or {}) or []
+                also = (', and no file of %s is restored' % ', '.join(d + '/' for d in r_off)) if r_off else ''
+                print('\n'.join(build_report(t, frm, vto, empty(), {}, unmerged, rej, [], (gone, 'no report, because %s; no shared file was refreshed or added%s, so the next update does it.' % (reason, also.replace('is restored', 'was restored'))), MAX_LIST, False)), flush=True)
                 return
         chain = base['sha'] if base else None
         if O_tree is None and from_sha:
@@ -2382,8 +2583,30 @@ def cmd_update(args):
                     P[p] = N[p][1]   # the release's file, the servers added: delivered
         except Exception as err:
             notes.append('▸ %s: the MCP servers stopped (%s); the report below covers every other file.' % (t, err))
+    r_dirs, r_done, r_missing, r_left = [], [], set(), []
+    if data:
+        r_dirs = restore_dirs(data)
+        if r_dirs is None:
+            r_dirs = []
+            notes.append('▸ %s: %s lists "restore" in a form this script does not read, so no file was restored.' % (t, REFRESH_DATA))
+        elif r_dirs:
+            try:
+                shared = {p for p in data.get('refresh', []) if isinstance(p, str)}
+                r_done, r_missing, r_left, r_failed = restore(
+                    r_dirs, shared, N, H, own, others, unrecorded_siblings(t), c['root'])
+                if r_failed:
+                    notes.append('▸ %s: could not restore %d file%s of %s, left as %s: %s' % (
+                        t, len(r_failed), '' if len(r_failed) == 1 else 's',
+                        ', '.join(d + '/' for d in r_dirs), 'it was' if len(r_failed) == 1 else 'they were',
+                        ', '.join(r_failed)))
+            except Exception as err:   # nothing was written; the report and the record still follow
+                notes.append('▸ %s: the restore stopped (%s); the report below covers every other file.' % (t, err))
+            touched |= set(r_done) | {p for p, _ in r_left}
+            wrote_any = wrote_any or bool(r_done)
     g, cnt = classify(N, O, P, H, own, others, skip | touched, ign)
     cnt.update(counts)
+    cnt['restored'] = sum(1 for p in r_done if N.get(p) != O.get(p))
+    cnt['left'] = sum(1 for p, _ in r_left if N.get(p) != O.get(p))
     if O_tree:
         override = ''
         deleted_unknown = []
@@ -2391,7 +2614,15 @@ def cmd_update(args):
         g = {k: [] for k in g}
         deleted_unknown = [p for p in sorted(H) if not os.path.lexists(p) and p not in skip]
         override = ('the full report needs version %s, which could not be rendered.' % frm_raw) if not rerun else ''
-    printed = build_report(t, frm, vto, g, cnt, unmerged, rej, notes, (deleted_unknown, override), MAX_LIST, False)
+    g['restore_dirs'] = r_dirs
+    if r_done or r_left:
+        g['restored'], g['restore_left'] = r_done, r_left
+        g['restore_where'] = ', '.join(d + '/' for d in r_dirs)
+        g['restore_held'] = {p for p in r_done if p in H}
+        g['restore_missing'] = r_missing
+        g['restore_marks'] = {p for p in r_done if p in unmerged}
+    shown = [u for u in unmerged if u not in set(r_done)]
+    printed = build_report(t, frm, vto, g, cnt, shown, rej, notes, (deleted_unknown, override), MAX_LIST, False)
     print('\n'.join(printed), flush=True)
     # A rerun records nothing: a hand rerun over the uncommitted tree finds the first run's writes
     # and adds nothing. Where the tip was never committed and a lane wrote (the update was
@@ -2399,7 +2630,7 @@ def cmd_update(args):
     # recorded afresh on the record HEAD committed. Every other run records on its base.
     if rerun and not (uncommitted and wrote_any):
         return
-    full = build_report(t, frm, vto, g, cnt, unmerged, rej, notes, (deleted_unknown, override), 10 ** 9, True)
+    full = build_report(t, frm, vto, g, cnt, shown, rej, notes, (deleted_unknown, override), 10 ** 9, True)
     commit(N_tree, '\n'.join(full) + record_tail(to, ans_now, offered or set(), blobs, mcp_offered), T, chain)
     if head:
         git('update-ref', Y, head)
@@ -2612,6 +2843,33 @@ def settings_probe(base, check):
         check(os.stat('.claude/hooks/probe-hook.sh').st_mode & 0o777 == 0o755, 'a hook the refresh writes is mode 755')
     finally:
         os.chdir(old)
+    # An entry an earlier release wired in another command form (the same event, matcher and
+    # script) is that entry: never rewritten, no second added, and recorded as offered.
+    d = os.path.join(base, 'old-form')
+    os.makedirs(os.path.join(d, '.claude', 'hooks'))
+    try:
+        os.chdir(d)
+        git('init', '-q')
+        for script in ('probe-hook.sh', 'pre.sh'):
+            with open('.claude/hooks/' + script, 'w') as f:
+                f.write('exit 0\n')
+        older = {'matcher': 'auto', 'hooks': [{'type': 'command',
+                                                'command': '[ -f .claude/hooks/pre.sh ] && exec bash .claude/hooks/pre.sh auto'}]}
+        text = json.dumps({'hooks': {'PreCompact': [older]}}, indent=2) + '\n'
+        with open(SETTINGS, 'w', encoding='utf-8') as f:
+            f.write(text)
+        sha = git('hash-object', '-w', '--stdin', inp=json.dumps(rendered, indent=2) + '\n').strip()
+        N = {SETTINGS: ('100644', sha)}
+        lines, seen = settings_merge(data, N, None, set())
+        cur = json.loads(open(SETTINGS).read())
+        check(cur['hooks']['PreCompact'] == [older] and 'hook PreCompact "auto" pre.sh' in seen
+              and has_hook(cur, 'UserPromptSubmit', hook) and 'pre.sh' not in '\n'.join(lines),
+              'old form: an entry wired in another command form is kept byte for byte, no second is added, '
+              'and it is recorded as offered (%r)' % lines)
+        again, _ = settings_merge(data, N, seen, set())
+        check(not again and json.loads(open(SETTINGS).read()) == cur, 'old form: a second merge adds nothing (%r)' % again)
+    finally:
+        os.chdir(old)
     setting_probe(os.path.join(base, 'top-level'), check)
 
 
@@ -2679,6 +2937,15 @@ def setting_probe(base, check):
             again, _ = settings_merge(data, N, seen, set())
             check(not again, 'top-level %s: reported once, never again (%r)' % (name, again))
             os.chdir(old)
+        # idleCompaction, the other value the handoff hooks rely on, reads the same line.
+        N, mtime = case('idle-true', '{\n  "idleCompaction": true\n}\n', {'idleCompaction': False})
+        lines, seen = settings_merge({'settings': {'idleCompaction': False}}, N, None, set())
+        check(len(lines) == 1 and lines[0].startswith('▸ kept your "idleCompaction": true') and lines[0].endswith(line)
+              and seen == {'setting idleCompaction'} and os.stat(SETTINGS).st_mtime_ns == mtime,
+              'top-level idle-true: an owner\'s idleCompaction true is kept and the line names the handoff hooks (%r)' % lines)
+        again, _ = settings_merge({'settings': {'idleCompaction': False}}, N, seen, set())
+        check(not again, 'top-level idle-true: reported once, never again (%r)' % again)
+        os.chdir(old)
         # No record: a committed settings.json that held the key means the owner removed it.
         N, _ = case('history', '{\n  "model": "opus"\n}\n', history=('{\n  "autoCompactEnabled": false\n}\n',))
         lines, seen = settings_merge(data, N, None, set())
@@ -4201,6 +4468,282 @@ def self_test():
             except Exception as err:   # a probe that raises is a failure, never a crash
                 check(False, 'a probe raised %s: %s' % (type(err).__name__, err))
 
+        # ── The read-only folders: restore ──
+        # The data lists how-to under "restore": every update that runs in full puts the new
+        # render's bytes back on each file it holds there that differs, a sibling's shared
+        # version and a file Git does not hold excepted; a copy, the report off, a link and a
+        # git-ignored file restore nothing. Each project starts from its own copy at h1.
+        hsrc = os.path.join(tmp, 'tplh')
+        os.makedirs(os.path.join(hsrc, 'migrations'))
+        HDATA = {'format': 1, 'template': 'probe', 'refresh': ['how-to/CONTEXT.md'], 'restore': ['how-to'],
+                 'settings': {}}
+        write(hsrc, REFRESH_DATA, json.dumps(HDATA))
+        git('init', '-q', hsrc)
+        HS, HO, HK, HN = 'how-to/CONTEXT.md', 'how-to/own/ch.md', 'how-to/own/keep.md', 'how-to/own/new.md'
+        releases['h1'] = {SETTINGS: '{\n  "model": "opus"\n}\n', HS: 'shared 1\n', HO: 'own 1\n', HK: 'keep\n'}
+        releases['h2'] = {SETTINGS: json.dumps({'model': 'opus', 'permissions': {'deny': ['Edit(/how-to/**)']}}, indent=2) + '\n',
+                          HS: 'shared 2\n', HO: 'own 2\n', HK: 'keep\n', HN: 'new 2\n'}
+        for v in ('h1', 'h2'):
+            write(hsrc, 'VERSION', v + '\n')
+            git('-C', hsrc, 'add', '-A')
+            git('-C', hsrc, 'commit', '-q', '-m', v, env=IDENT)
+            shas[v] = verify('HEAD', cwd=hsrc)
+            by_sha[shas[v]] = v
+        hcommon = ['--src', hsrc, '--answers', A]
+
+        def hfresh(name, edit=None):
+            """A copy at h1, its baseline, then the owner's edits (None deletes), committed."""
+            d = os.path.join(tmp, name)
+            git('init', '-q', d)
+            for rel, text in releases['h1'].items():
+                write(d, rel, text)
+            write(d, A, '_commit: h1\nNAME: probe\n')
+            run(d, 'baseline', '--to', shas['h1'], *hcommon)
+            for rel, text in (edit or {}).items():
+                if text is None:
+                    os.remove(os.path.join(d, rel))
+                else:
+                    write(d, rel, text)
+            commit_all(d, 'copied and worked')
+            return d
+
+        def hsim(d, v_to='h2', keep=()):
+            """Copier's update: this template's how-to files written, but keep (the owner's files
+            Copier leaves); the shared file and the settings seed never rendered on update."""
+            for rel, text in releases[v_to].items():
+                if rel not in keep and rel not in (HS, SETTINGS):
+                    write(d, rel, text)
+            write(d, A, '_commit: %s\nNAME: probe\n' % v_to)
+
+        def hupd(d, v_from='h1', v_to='h2', extra=None):
+            return run(d, 'update', '--to', shas[v_to], *hcommon,
+                       env={'VERSION_FROM': shas[v_from], 'VERSION_PEP440_FROM': v_from,
+                            'VERSION_PEP440_TO': v_to, **(extra or {})})
+
+        def entry(out, p):
+            """The command lines printed under p's entry, stripped, or [] where it is not listed."""
+            L = out.splitlines()
+            for i, l in enumerate(L):
+                if l == '    ' + p:
+                    got, j = [], i + 1
+                    while j < len(L) and L[j].startswith('        '):
+                        got, j = got + [L[j].strip()], j + 1
+                    return got
+            return []
+
+        def heads(out, title):
+            return [l for l in out.splitlines() if l.startswith('  ' + title)]
+
+        def sib_record(d, files, answers='_commit: s1\nNAME: sibling\n'):
+            """A sibling template's render record holding files, and its answers file in the work
+            tree (the caller commits it, as the project commits a sibling's copy)."""
+            sdir = os.path.join(tmp, os.path.basename(d) + '-sibling')
+            for rel, text in files.items():
+                write(sdir, rel, text)
+            senv = {'GIT_DIR': os.path.join(d, '.git'), 'GIT_WORK_TREE': sdir,
+                    'GIT_INDEX_FILE': os.path.join(tmp, os.path.basename(d) + '-sibling.index')}
+            git('add', '-A', '--force', '.', env=senv, cwd=sdir)
+            stree = git('write-tree', env=senv, cwd=sdir).strip()
+            write(d, '.copier-answers.sibling.yml', answers)
+            os.chdir(d)
+            try:
+                commit(stree, 'sibling render\n\ncommit: %s\nanswers: %s\n' % (
+                    'a' * 40, git('hash-object', '.copier-answers.sibling.yml').strip()), 'refs/sibling/template')
+            finally:
+                os.chdir(tmp)
+
+        restored_dirs = []
+        # R1. An owner's committed edit to a file the template did not change: put back, listed,
+        # and the 'yours:' command prints the owner's text.
+        d = hfresh('ro-edit', {HK: 'mine\n'})
+        hsim(d, keep=(HK,))
+        out = hupd(d)
+        e = entry(out, HK)
+        yours = [l.split(':', 1)[1].strip() for l in e if l.startswith('yours:')]
+        shown = subprocess.run(shlex.split(yours[0]), cwd=d, capture_output=True, text=True).stdout if yours else None
+        check(read(d, HK) == 'keep\n' and sections(out).get(HK, '').startswith('RESTORED') and shown == 'mine\n'
+              and "1 file of how-to/, which is read-only, was put back to the template's text (RESTORED below)." in out,
+              'R1 restore: an owner edit under how-to/ is put back and listed, its yours: command prints it (%r)' % out)
+        restored_dirs.append(d)
+        # R2. A file the owner deleted and committed: put back, 'was: missing'.
+        d = hfresh('ro-deleted', {HO: None})
+        hsim(d, keep=(HO,))
+        out = hupd(d)
+        check(read(d, HO) == 'own 2\n' and 'was:     missing before this update' in entry(out, HO),
+              'R2 restore: a deleted file under how-to/ comes back, listed as missing before (%r)' % out)
+        restored_dirs.append(d)
+        # R3. A sibling's recorded version of the shared file, committed with its answers: left.
+        d = hfresh('ro-sibling')
+        sib_record(d, {HS: 'sibling\n'})
+        write(d, HS, 'sibling\n')
+        commit_all(d, 'the sibling copied')
+        hsim(d)
+        out = hupd(d)
+        check(read(d, HS) == 'sibling\n' and sections(out).get(HS, '').startswith('LEFT AS IT IS')
+              and any("it holds sibling's version" in l for l in entry(out, HS)) and not heads(out, 'RESTORED'),
+              'R3 restore: a sibling\'s version of a shared file is left and listed, never put back (%r)' % out)
+        # R3b. As R3 in a plain clone (no sibling record), the file at bytes no render here holds: left.
+        d = hfresh('ro-plain-clone')
+        sib_record(d, {HS: 'sibling\n'})
+        write(d, HS, 'sibling\n')
+        commit_all(d, 'the sibling copied')
+        git('-C', d, 'update-ref', '-d', 'refs/sibling/template')
+        write(d, HS, 'sibling newer\n')
+        commit_all(d, "the sibling's newer version")
+        hsim(d)
+        out = hupd(d)
+        check(read(d, HS) == 'sibling newer\n' and sections(out).get(HS, '').startswith('LEFT AS IT IS')
+              and any('this clone holds no record of sibling' in l for l in entry(out, HS))
+              and any('updating that template here, to a release that writes update records, settles it' in l
+                      for l in entry(out, HS)),
+              'R3b restore: a shared file a sibling with no record here may hold is left and listed (%r)' % out)
+        # R4. An owner's own file under how-to/ that no render holds: never read, written or listed.
+        d = hfresh('ro-mine', {'how-to/mine.md': 'my own guide\n'})
+        hsim(d)
+        out = hupd(d)
+        check(read(d, 'how-to/mine.md') == 'my own guide\n' and 'how-to/mine.md' not in out and 'stopped' not in out,
+              'R4 restore: a file under how-to/ the new render lacks is never touched or listed (%r)' % out)
+        # R5. A git-ignored file the template changed: never read or written, listed as not compared.
+        d = hfresh('ro-ignored')
+        write(d, '.gitignore', '/how-to/own/ch.md\n')
+        git('-C', d, 'rm', '-q', '--cached', HO)
+        write(d, HO, 'mine\n')
+        commit_all(d, 'the owner ignores a chapter')
+        hsim(d, keep=(HO,))
+        out = hupd(d)
+        check(read(d, HO) == 'mine\n' and sections(out).get(HO, '').startswith('NOT COMPARED because git ignores them')
+              and sum(1 for l in out.splitlines() if l == '    ' + HO) == 1,
+              'R5 restore: a git-ignored file under how-to/ is never written, and listed only as not compared (%r)' % out)
+        # R6. A conflict Copier left (markers in the file, stages in the index): put back, the index
+        # left unmerged, 'then: git add', and not listed as a conflict.
+        d = hfresh('ro-conflict', {HO: 'mine\n'})
+        hsim(d, keep=(HO,))
+        write(d, HO, '<<<<<<< before updating\nmine\n=======\nown 2\n>>>>>>> after updating\n')
+        stages = [git('-C', d, 'hash-object', '-w', '--stdin', inp=x).strip() for x in ('own 1\n', 'mine\n', 'own 2\n')]
+        git('-C', d, 'update-index', '--index-info',
+            inp='0 %s\t%s\n100644 %s 1\t%s\n100644 %s 2\t%s\n100644 %s 3\t%s\n' % (
+                '0' * 40, HO, stages[0], HO, stages[1], HO, stages[2], HO))
+        out = hupd(d)
+        check(read(d, HO) == 'own 2\n' and HO in git('-C', d, 'ls-files', '-u')
+              and 'then:    git add -- %s' % HO in entry(out, HO)
+              and sections(out).get(HO, '').startswith('RESTORED') and not heads(out, 'CONFLICT'),
+              'R6 restore: a conflicted file is put back, the index left unmerged and the git add said (%r)' % out)
+        restored_dirs.append(d)
+        # R7. The report off, or a render that failed: nothing restored, and the line says so.
+        for label, extra, said in (('off', {'SYNTEK_UPDATE_REPORT': 'off'}, 'no file of how-to/ is restored'),
+                                   ('failed', {'PROBE_NO_COPIER': '1'}, 'no file of how-to/ was restored')):
+            d = hfresh('ro-' + label, {HK: 'mine\n'})
+            hsim(d, keep=(HK,))
+            out = hupd(d, extra=extra)
+            check(read(d, HK) == 'mine\n' and said in out,
+                  'R7 restore: %s restores nothing and says so (%r)' % (
+                      'SYNTEK_UPDATE_REPORT=off' if label == 'off' else 'a render that failed', out))
+        # R8. The next update, once the restores are committed: nothing restored, nothing changed.
+        for d in restored_dirs:
+            commit_all(d, 'updated')
+            out = hupd(d, 'h2', 'h2')
+            check(not heads(out, 'RESTORED') and not git('-C', d, 'status', '--porcelain'),
+                  'R8 restore: an update after a committed restore restores nothing (%s: %r)' % (os.path.basename(d), out))
+        # R9. how-to a link to a folder inside the project: nothing written through it, every file left.
+        d = hfresh('ro-link', {HK: 'mine\n'})
+        os.rename(os.path.join(d, 'how-to'), os.path.join(d, 'elsewhere'))
+        os.symlink('elsewhere', os.path.join(d, 'how-to'))
+        commit_all(d, 'how-to as a link')
+        hsim(d, keep=(HK,))
+        out = hupd(d)
+        check(read(d, 'elsewhere/own/keep.md') == 'mine\n' and read(d, 'elsewhere/CONTEXT.md') == 'shared 1\n'
+              and all(sections(out).get(p, '').startswith('LEFT AS IT IS') for p in (HS, HO, HK, HN)),
+              'R9 restore: how-to as a link is never written through, and its files are listed as left (%r)' % out)
+        # R10 and R11. Data without "restore" restores nothing; a malformed one says so in one line.
+        for label, data_now in (('none', {k: v for k, v in HDATA.items() if k != 'restore'}),
+                                ('malformed', dict(HDATA, restore=['../x']))):
+            write(hsrc, REFRESH_DATA, json.dumps(data_now))
+            try:
+                d = hfresh('ro-data-' + label, {HK: 'mine\n'})
+                hsim(d, keep=(HK,))
+                out = hupd(d)
+            finally:
+                write(hsrc, REFRESH_DATA, json.dumps(HDATA))
+            said = out.count('lists "restore" in a form this script does not read, so no file was restored.')
+            check(read(d, HK) == 'mine\n' and not heads(out, 'RESTORED') and 'update report' in out
+                  and said == (1 if label == 'malformed' else 0),
+                  'R%s restore: %s "restore" restores nothing%s (%r)' % (
+                      '10' if label == 'none' else '11', 'no' if label == 'none' else 'a malformed',
+                      '' if label == 'none' else ', in one line, and the report runs', out))
+        # R12. A copy (baseline) over the owner's committed file at a how-to path restores nothing.
+        d = os.path.join(tmp, 'ro-copy')
+        git('init', '-q', d)
+        write(d, HK, 'mine\n')
+        commit_all(d, 'my own project')
+        for rel, text in releases['h2'].items():
+            if rel != HK:
+                write(d, rel, text)
+        write(d, A, '_commit: h2\nNAME: probe\n')
+        out = run(d, 'baseline', '--to', shas['h2'], *hcommon)
+        check(read(d, HK) == 'mine\n', 'R12 restore: a copy restores nothing (%r)' % out)
+        # R13. The shared file's deletion committed, an untracked copy at bytes no render holds: left.
+        d = hfresh('ro-untracked', {HS: None})
+        write(d, HS, 'my untracked copy\n')
+        hsim(d)
+        out = hupd(d)
+        check(read(d, HS) == 'my untracked copy\n' and sections(out).get(HS, '').startswith('LEFT AS IT IS')
+              and any('Git does not hold your copy' in l for l in entry(out, HS)),
+              'R13 restore: a file Git does not hold, at bytes no render holds, is left and listed (%r)' % out)
+        # R14. A rejected hunk beside a how-to file: the .rej is removed, never the owner's text taken.
+        d = hfresh('ro-rej', {HO: 'mine\n'})
+        hsim(d)
+        write(d, HO + '.rej', '@@ -1 +1 @@\n-own 1\n+mine\n')
+        out = hupd(d)
+        e = entry(out, HO)
+        check(sections(out).get(HO, '').startswith('REJECTED HUNKS')
+              and 'then:    rm -- %s.rej' % HO in e
+              and not any(l.startswith('yours:') for l in e),
+              'R14 restore: a .rej beside a how-to file offers rm of the .rej, never the owner\'s version (%r)' % out)
+        # R15. A restore that raises: one line; the settings and MCP lanes, the report and the record follow.
+        d = hfresh('ro-raises', {HK: 'mine\n'})
+        hsim(d, keep=(HK,))
+        write(hsrc, REFRESH_DATA, json.dumps(dict(HDATA, settings={'permissions': {'deny': ['Edit(/how-to/**)']}})))
+        real_restore, real_mcp, mcp_calls = restore, mcp_lane, []
+
+        def boom(*a, **k):
+            raise RuntimeError('probe')
+
+        def counted(*a, **k):
+            mcp_calls.append(1)
+            return real_mcp(*a, **k)
+        globals()['restore'], globals()['mcp_lane'] = boom, counted
+        try:
+            out = hupd(d)
+        finally:
+            globals()['restore'], globals()['mcp_lane'] = real_restore, real_mcp
+            write(hsrc, REFRESH_DATA, json.dumps(HDATA))
+        check(out.count('the restore stopped') == 1 and 'refresh stopped' not in out and mcp_calls
+              and has_rule(json.loads(read(d, SETTINGS)), 'deny', 'Edit(/how-to/**)') and 'update report' in out
+              and read(d, HK) == 'mine\n'
+              and ('commit: %s' % shas['h2']) in git('-C', d, 'log', '-1', '--format=%B', 'refs/probe/template'),
+              'R15 restore: an error in the restore is one line, and the settings and MCP lanes, the report and '
+              'the record still run (%r)' % out)
+
+        # C1 and C2. A file new in this version that the owner's tree holds: the sibling's version
+        # where a sibling's recorded render holds its bytes, else the owner's file.
+        for label, sib_files, mine in (('C1', {'brand-new.md': 'sibling new\n'}, 'sibling new\n'),
+                                       ('C2', None, 'mine new\n'),
+                                       ('C2', {'brand-new.md': 'sibling other\n'}, 'mine new\n')):
+            d = fresh('classify-%s-%s' % (label, 'record' if sib_files else 'none'), 'v2')
+            commit_all(d, 'copied')
+            if sib_files:
+                sib_record(d, sib_files)
+            write(d, 'brand-new.md', mine)
+            commit_all(d, 'the file there')
+            sim_update(d, 'v3')
+            out = upd(d, 'v2', 'v3')
+            want = ("NOT UPDATED because the file holds sibling's" if label == 'C1'
+                    else 'NOT UPDATED because it is new in this version')
+            check(sections(out).get('brand-new.md', '').startswith(want),
+                  '%s classify: a file new in this version holding %s is listed as %r (%r)' % (
+                      label, 'a sibling\'s recorded version' if label == 'C1' else 'bytes no sibling recorded', want,
+                      sections(out).get('brand-new.md')))
+
         # ── The MCP lane through update and baseline: attribution, the opt-out, the root ──
         msrc = os.path.join(tmp, 'tplm')
         os.makedirs(os.path.join(msrc, 'migrations'))
@@ -4304,6 +4847,60 @@ def self_test():
               and read(d, '.mcp.json') == secret and 'is ignored by git, so it was not read' in out
               and '-- .mcp.json' not in out and 'probe-secret' not in mrecord(d),
               'mcp flow: an ignored file is listed as not compared, never read, compared or taken (%r)' % out)
+    # An older Python: a framed message on stderr naming what was skipped, the minimum and the
+    # quoted rerun; exit 0 inside Copier, 1 for a self-test. Read from PYTHON_MIN, never typed.
+    need = '%d.%d' % PYTHON_MIN
+    older = (PYTHON_MIN[0], PYTHON_MIN[1] - 1)
+    have = '%d.%d' % older
+    rerun = "uvx --python '>=%s' copier update" % need
+    old_u, old_b, old_t = (too_old(s, older) for s in ('update', 'baseline', '--self-test'))
+    framed = lambda t: (t.splitlines()[0] == t.splitlines()[-1] == '  ' + '=' * 76 and t.endswith('\n'))
+    check(all(framed(t) for t in (old_u, old_b, old_t))
+          and ('  family-update did NOT run, because Copier runs on Python %s here and it needs Python %s or later.'
+               % (have, need)) == old_u.splitlines()[1] == old_b.splitlines()[1]
+          and all(w in old_u for w in ('printed no report', 'refreshed no shared file',
+                                       'added no settings entry or MCP server', 'put back no guide file',
+                                       'kept no record', 'Upgrade to Python %s or later.' % need,
+                                       'conflict markers and .rej files', 'commit this update',
+                                       'run the same update again, starting %s.' % rerun))
+          and all(w in old_b for w in ('This copy recorded nothing', 'Upgrade to Python %s or later' % need, rerun))
+          and old_t.splitlines()[1:3] == ['  family-update did NOT run, because this is Python %s and it needs '
+                                          'Python %s or later.' % (have, need), '  The self-test did not run.'],
+          'old Python: the framed message names what was skipped, the minimum and the quoted rerun (%r, %r, %r)'
+          % (old_u, old_b, old_t))
+    check(('Python %s or later (PYTHON_MIN, below)' % need) in ' '.join(__doc__.split())
+          and ("uvx --python '>=%s'" % need) in __doc__,
+          'old Python: the docstring states the minimum PYTHON_MIN sets')
+    import ast
+    with open(os.path.abspath(__file__), encoding='utf-8') as f:
+        source = f.read()
+    try:
+        ast.parse(source, feature_version=(3, 8))
+        parses = True
+    except SyntaxError:
+        parses = False
+    check(parses, 'old Python: the file parses as Python 3.8, so an old Python reaches the message')
+    check(source.index("sys.exit(1 if sys.argv[1:2] == ['--self-test'] else 0)") < source.index('\nimport copy\n'),
+          'old Python: the version check runs before any other import')
+    for sub, code in (('update', 0), ('baseline', 0), ('--self-test', 1)):
+        r = subprocess.run([sys.executable, '-I', '-c',
+                            'import runpy, sys; sys.version_info = %r; sys.argv = [%r, %r]; '
+                            'runpy.run_path(sys.argv[0], run_name="__main__")'
+                            % (older + (0, 'final', 0), os.path.abspath(__file__), sub)],
+                           capture_output=True, text=True)
+        check(r.returncode == code and r.stdout == '' and r.stderr == '\n' + too_old(sub, older),
+              'old Python: %s exits %d, with the framed message alone, on stderr (%r)' % (sub, code, r))
+    r = subprocess.run([sys.executable, '-I', '-c',
+                        'import runpy, sys; sys.version_info = %r; sys.argv = [%r, "--help"]; '
+                        'runpy.run_path(sys.argv[0], run_name="__main__")' % (older + (0, 'final', 0),
+                                                                              os.path.abspath(__file__))],
+                       capture_output=True, text=True)
+    check(r.returncode == 0 and 'PYTHON_MIN' in r.stdout and r.stderr == '',
+          'old Python: --help still prints the docstring (%r)' % r)
+    two = unread_reason(['a', 'b'])
+    check(two.startswith('this clone holds no record of a, b, so this may be the version of one of them')
+          and 'updating each of them here' in two and 'their records' in two,
+          'unread siblings: the reason reads for two templates (%r)' % two)
     RENDER = None
     for f in fails:
         print('  ✗ ' + f)
@@ -4341,9 +4938,6 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 11):
-        print('  family-update: needs Python 3.11 or later; nothing reported.')
-        sys.exit(0)
     try:   # an output that cannot show a character must never stop the run after a write
         sys.stdout.reconfigure(errors='replace')
     except (AttributeError, ValueError):

@@ -53,9 +53,10 @@
 #            finding naming it. Every stub fails if it sees SYNTEK_DATA_ROOT, and one probe
 #            exports a decoy into the runner itself: no step may see it.
 #
-# Requirements: those of the scripts it runs (bash, git, rsync, uvx, python3 3.11+, make;
-#               pandoc and xelatex optional), GNU diff (check 4), and the network the first
-#               time uvx fetches the floor's Copier.
+# Requirements: those of the scripts it runs (bash, git, rsync, uvx, make, and python3 at
+#               _common.sh's SA_PYTHON_MIN or later, which its pin enforces; pandoc and xelatex
+#               optional, and a Python below the minimum for tooling-smoke checks 73–81), GNU
+#               diff (check 4), and the network the first time uvx fetches the floor's Copier.
 #
 # Usage: run-all.sh [--out DIR] [--keep] [--no-self-test] [--skip-integration]
 #                   [--require-pandoc] [--skip-pdf] [--quiet] [--self-test] [--help]

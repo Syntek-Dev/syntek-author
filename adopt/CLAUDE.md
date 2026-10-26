@@ -29,7 +29,7 @@ Prepare an existing writing repository for adoption: for `copier copy --overwrit
 - **Never overwrite, never delete.** An existing destination is a collision: report it and leave both files. Leftover folders are the author's to delete.
 - **Never edit prose.** Nothing under `*/src/` is rewritten except a unit's frontmatter `status:` line; handoffs and learning records are history and are never edited.
 - **Idempotent by construction.** A second run must find nothing to move or edit; a step that would act twice is wrong.
-- **`--apply` refuses `main` and `master`, and anything outside a git work tree,** so every move can be reviewed with `git diff` and undone with git.
+- **`--apply` refuses `main` and `master`, anything outside a git work tree, and a `how-to` that is a link or a file (D56),** so every move can be reviewed with `git diff` and undone with git.
 - **Invented values only in `examples/`.** No real author, title, client, trading name or path, ever — these files are public.
 
 ## Output & naming

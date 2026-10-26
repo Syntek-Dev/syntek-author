@@ -26,7 +26,15 @@
 #                     A token is tested as a path when it has no spaces, contains a slash, and
 #                     is not a placeholder: anything with < > { } * ? [ ] … | = ( ) $ % @ # , ;
 #                     : ' " \ + ! or the house placeholders NN, DD-MM-YYYY, YYYY; URLs; absolute
-#                     paths (scrub.sh's); and generated output (build/, audio/, references.db).
+#                     paths (scrub.sh's); generated output (build/, audio/, references.db); and
+#                     the runtime files no template ships (.claude/settings.local.json, and the
+#                     handoff hooks' markers, one per session, DESIGN.md D29). The markers are
+#                     exempt by name, before any other rule, exactly as the docs write them:
+#                     .claude/compaction-marker-<session_id>.tmp and the ignore glob
+#                     .claude/compaction-marker-*.tmp. Any other path naming a marker, before
+#                     the placeholder and glob rules below could pass it (one session's
+#                     concrete name, another placeholder, another glob), is tested, and no
+#                     tree holds one, so it fails.
 #                     The `ext:<path>` form is exempt by name (DESIGN.md D50): it names a file
 #                     filed under the data root by its path in the repository, which the work
 #                     tree does not hold, so it is never a citation of this tree.
@@ -35,7 +43,8 @@
 #                     inside manuscript/CLAUDE.md means manuscript/src/. An unresolved path led
 #                     by a generic folder name (`drafts/`, `docs/project/`, `workflows/local/`)
 #                     names a class of folder, not a place, and is not a finding; one led by a
-#                     top-level entry (`world/…`, `planning/…`) always is.
+#                     top-level entry (`world/…`, `planning/…`, the user guide's `how-to/…`,
+#                     D56) always is.
 #
 #                     Fenced code is skipped (format samples quote invented paths). A line is
 #                     exempt when it, or the line above it, carries
@@ -55,10 +64,13 @@
 #                     names a file anyone filed (only the resolver, with a data root, can see).
 #
 # SELF-TEST. --self-test builds a small tree at runtime, proves it clean (placeholders, a fenced
-#            sample, a marker, a layer-relative path, generated output, the `ext:<path>` form
-#            and a skill description folded over two lines all pass), then applies one mutation
-#            per check, and a second for check 4's description reading and for check 1 on the
-#            path an `ext:` form names, written without it, and asserts exactly one finding each.
+#            sample, a marker, a layer-relative path, generated output, the runtime files, the
+#            hooks' markers as the docs name them, the `ext:<path>` form and a skill description
+#            folded over two lines all pass), then applies one mutation per check, and a second
+#            for check 4's description reading, for check 1 on the path an `ext:` form names,
+#            written without it, and for check 1 on a marker named other than as the docs name
+#            it (one session's concrete name, another placeholder, another glob), and asserts
+#            exactly one finding each.
 #
 # Requirements: bash 4+, awk, find. No network. Pass trees that generate-all.sh produced.
 #
@@ -162,6 +174,12 @@ is_pathlike() { # sets P to the testable path, or returns 1
   local t="$1"
   # A file filed under the data root (D50), named by its repository path: never in this tree.
   [[ "$t" == ext:* ]] && return 1
+  # The handoff hooks' runtime markers (D29), one per session, as the docs name them; any other
+  # path naming a marker is tested before a placeholder or glob rule below could pass it.
+  case "$t" in
+    ".claude/compaction-marker-<session_id>.tmp"|".claude/compaction-marker-*.tmp") return 1 ;;
+    */compaction-marker*) P="$t"; return 0 ;;
+  esac
   [[ "$t" =~ ^(.+):[0-9]+(:[0-9]+|-[0-9]+)?$ ]] && t="${BASH_REMATCH[1]}"
   [[ "$t" == */* ]] || return 1
   case "$t" in
@@ -183,8 +201,12 @@ is_pathlike() { # sets P to the testable path, or returns 1
 # is relative to the citing file; unresolved, it is a dead end — unless it is led by a generic
 # folder name, in which case it names a CLASS of folder ("each `drafts/`", "every
 # `docs/project/`"), not a place.
-TOPLEVEL=" .claude .github manuscript library planning research proposal world standards tooling handoffs learning assets README.md CONTEXT.md Makefile .gitignore .mcp.json $SA_ANSWERS_FILE "
-GENERIC=" docs src workflows drafts local reference project samples ledger LESSONS sources evidence notes templates client-docs script glyphs audio "
+TOPLEVEL=" .claude .github manuscript library planning research proposal world standards tooling handoffs how-to learning assets README.md CONTEXT.md Makefile .gitignore .mcp.json $SA_ANSWERS_FILE "
+# TEMPLATE-GUIDE is the user guide's one fixed chapter folder (D56): rules 08 names it as a kind
+# of folder, as it names workflows/local/. The cost: a dead relative cite led by TEMPLATE-GUIDE/
+# reads as a class name and passes; shipped text cites every chapter by its full how-to/ path,
+# which check 1 still resolves (the self-test proves a dead one fires).
+GENERIC=" docs src workflows drafts local reference project samples ledger LESSONS sources evidence notes templates client-docs script glyphs audio TEMPLATE-GUIDE "
 
 is_class_name() { # $1 = unresolved path
   local first="${1%%/*}"
@@ -279,7 +301,7 @@ model: opus
 See `manuscript/src/` and `planning/src/units/` and `.claude/skills/flow/SKILL.md:3`.
 Placeholders are not citations: `planning/src/arcs/<slug>.md`, `NN-kebab-title/NN-kebab-title.md`,
 `handoffs/HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md`, `world/src/*/`, `https://example.com/a/b`.
-Generated output is not a citation: `build/proof.pdf`, `tooling/references.db`.
+Generated output and runtime files are not citations: `build/proof.pdf`, `tooling/references.db`, `.claude/settings.local.json`, `.claude/compaction-marker-<session_id>.tmp`, `.claude/compaction-marker-*.tmp`.
 Commands are not citations: `make pdf SCOPE=manuscript/src/02-x`. Nor are `N/A` or `and/or`.
 Filed copies under the data root are not citations: `ext:research/src/scans/deed-1852.pdf`.
 The `flow` skill and the `research` skill both ship.
@@ -307,6 +329,14 @@ EOF
   probe "check 1 fires on a path that does not exist" "check 1"
   sed -i '$d' "$g"
 
+  printf 'The guide starts at `how-to/src/nope.md`.\n' >> "$g"
+  probe "check 1 fires on an unresolved path in the user guide (D56)" "check 1 — manuscript/docs/reference/guide.md:23 cites \`how-to/src/nope.md\`"
+  sed -i '$d' "$g"
+
+  printf 'Read `how-to/src/TEMPLATE-GUIDE/syntek-author/99-x.md` next.\n' >> "$g"
+  probe "check 1 fires on a dead chapter cited by its full path, TEMPLATE-GUIDE a class name or not" "check 1 — manuscript/docs/reference/guide.md:23 cites \`how-to/src/TEMPLATE-GUIDE/syntek-author/99-x.md\`"
+  sed -i '$d' "$g"
+
   sed -i 's/^skills: \[flow\]/skills: [flow, continuity]/' "$wf/STEPS.md"
   probe "check 2 fires on frontmatter routing to an absent skill" "check 2"
   sed -i 's/^skills: \[flow, continuity\]/skills: [flow]/' "$wf/STEPS.md"
@@ -315,12 +345,25 @@ EOF
   probe "check 3 fires on a Skill line naming an absent skill" "check 3"
   head -n -4 "$wf/STEPS.md" > "$tmp/s" && cat "$tmp/s" > "$wf/STEPS.md"
 
+  printf 'The hook leaves `.claude/compaction-marker-abc123.tmp`.\n' >> "$g"
+  probe "check 1 fires on a marker named other than as the docs name it (one session's concrete name)" \
+    "check 1 — manuscript/docs/reference/guide.md:23 cites \`.claude/compaction-marker-abc123.tmp\`"
+  sed -i '$d' "$g"
+  printf 'The hook leaves `.claude/compaction-marker-<id>.tmp`.\n' >> "$g"
+  probe "check 1 fires on a marker named with another placeholder" \
+    "check 1 — manuscript/docs/reference/guide.md:23 cites \`.claude/compaction-marker-<id>.tmp\`"
+  sed -i '$d' "$g"
+  printf 'Git ignores `.claude/compaction-marker*.tmp`.\n' >> "$g"
+  probe "check 1 fires on a marker named with another glob" \
+    "check 1 — manuscript/docs/reference/guide.md:23 cites \`.claude/compaction-marker*.tmp\`"
+  sed -i '$d' "$g"
+
   printf 'The scan sits at `research/src/scans/deed-1852.pdf`.\n' >> "$g"
   probe "check 1 still fires on the path an ext: form names, written without it" \
     "cites \`research/src/scans/deed-1852.pdf\`, which does not exist"
   sed -i '$d' "$g"
 
-  printf 'Each `drafts/` carries a README; every `docs/project/` is yours.\n' >> "$g"
+  printf 'Each `drafts/` carries a README; every `docs/project/` is yours; `TEMPLATE-GUIDE/` holds the chapters.\n' >> "$g"
   probe_clean "a generic folder-class name is not a citation"
   sed -i '$d' "$g"
 

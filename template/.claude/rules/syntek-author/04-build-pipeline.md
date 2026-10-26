@@ -5,10 +5,11 @@
 
 > **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
 
-Markdown<: if DOC_TYPE == 'business' :> and LaTeX<: endif :> in `src/` folders is the only writing surface; everything else is
-an export. The `Makefile` at the root is the single entry point, and `make help` lists every
-target with its one-line description. **Where this file and `make help` disagree, `make help` is
-right**, and this file is reported to the author as stale.
+Markdown<: if DOC_TYPE == 'business' :> and LaTeX<: endif :> in `src/` folders is the only writing surface (the guide in
+`how-to/src/` is the template's, never the work); everything else is an export. The `Makefile` at
+the root is the single entry point, and `make help` lists every target with its one-line
+description. **Where this file and `make help` disagree, `make help` is right**, and this file is
+reported to the author as stale.
 
 ---
 
@@ -114,8 +115,8 @@ standards/style/ledger/ (each section's record) + the brief's sections: list (th
 <: endif :><: if DATA_STORE == 'external' :>| `make pdf FILE=… ISSUE=1` | Also files the PDF under the data root as the issued copy, listed in the folder's `external.toml` (commit it): only when the document's status is in `ISSUE_STATUSES` (default `final`) and it holds no open item (`make flags SCOPE=<file>` lists them; `FORCE=1` never overrides this), and it refuses to replace a copy already filed unless `FORCE=1` is given too, which keeps the old copy as superseded. It needs this machine's data root (`make root`). `ISSUE` and `FORCE` take `1`, `yes` or `true`; any other value is refused |
 <: endif :>| `make docx FILE=<x>.md` | Converts Markdown copy to `.docx` with Pandoc. A `.tex` converts only with `DOCX_CONVERTER` set (a lossless converter the author chose, in `tooling/project.mk` or on the command line), and otherwise refuses by design: send the PDF |
 | `make section-check` | `FILE=….tex SECTION=<slug> DRAFT=….md`: proves the text between the section's marker pair carries exactly the promoted draft's words; fails on any difference |
-<: endif :>| `make flags` | Lists every `AUTHOR TO CONFIRM` and `VERIFY` flag, and every open item `FLAG_EXTRA_RE` matches<: if DOC_TYPE == 'business' :> (by default `[AWAITING USER INPUT]` and `\fillme`, the field that prints it)<: endif :>, by file and line; with no `SCOPE`, <: if DOC_TYPE == 'business' :>the brand folders `BRAND_DIRS` names (by default `standards/brand/`), <: endif :>the project brief `.claude/CLAUDE.md` and `00-project.md` too. Give `SCOPE=` for the work in hand<: if DOC_TYPE == 'business' :>; `SCOPE=<file>` lists what stops that document's issue<: endif :> |
-| `make lint` | Flags lines in `src/` that hold more than one sentence, en_US spellings<: if DOC_TYPE == 'business' :>, em dashes in client copy, and list steps over 20 words outside legal documents (ASD-STE100; a hint for technical text, see method rule 11)<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and paragraphs with more than three unglossed constructed-language words<: endif :> |
+<: endif :>| `make flags` | Lists every `AUTHOR TO CONFIRM` and `VERIFY` flag, and every open item `FLAG_EXTRA_RE` matches<: if DOC_TYPE == 'business' :> (by default `[AWAITING USER INPUT]` and `\fillme`, the field that prints it)<: endif :>, by file and line; with no `SCOPE`, <: if DOC_TYPE == 'business' :>the brand folders `BRAND_DIRS` names (by default `standards/brand/`), <: endif :>the project brief `.claude/CLAUDE.md` and `00-project.md` too. Give `SCOPE=` for the work in hand<: if DOC_TYPE == 'business' :>; `SCOPE=<file>` lists what stops that document's issue<: endif :>; without a `SCOPE`, never `how-to/src/` (`SCOPE=how-to/src` reads the guide) |
+| `make lint` | Flags lines in `src/` that hold more than one sentence, en_US spellings<: if DOC_TYPE == 'business' :>, em dashes in client copy, and list steps over 20 words outside legal documents (ASD-STE100; a hint for technical text, see method rule 11)<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, and paragraphs with more than three unglossed constructed-language words<: endif :>; without a `SCOPE`, never `how-to/src/` (`SCOPE=how-to/src` reads the guide) |
 | `make provenance` | Prints the per-unit AI-disclosure table from the ledger, counting only `accepted` and `rejected` decisions as AI suggestions (an `author-note` row is the author's own) |
 | `make compare` | Writes `build/compare/<unit>.pdf` for every unit with ledger entries: a cover with the key and the unit's disclosure table, then each section in the brief's plan order, as a redline (each added word marked, and each removed word struck, by who changed it: the AI, the author's note or the author) and a landscape page in three columns (Original, AI edit, Final). An entry written before the record shows the stages it has, unattributed. `UNIT=` and `SECTION=` narrow it; `FORMAT=tex` stops at the LaTeX |
 <: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>| `make lexicon` | Checks every language (inventory, phonotactics, romanisation against IPA, roots, missing fields, a missing real-world model) and the names register against them |
@@ -190,7 +191,7 @@ or a path that ends in it. **`SECTION=<slug>`** narrows `make compare` to one se
 - **Never hand over a lossy conversion as the deliverable.** If a conversion drops a table, a
   footnote or a cross-reference, report it rather than ship it.
 - **Keep the tooling minimal.** Every script in `tooling/` uses the Python standard library only
-  (Python 3.11 or later), and any data file a script reads is TOML.<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> The one exception is
+  (Python 3.14 or later), and any data file a script reads is TOML.<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> The one exception is
   `tooling/font.py`, which declares fontTools inline and runs through `uv run`, so nothing is
   installed globally.<: endif :> Resist turning the pipeline into a project of its own.
 
@@ -200,7 +201,7 @@ or a path that ends in it. **`SECTION=<slug>`** narrows `make compare` to one se
 
 | Tool | For |
 |---|---|
-| `make`, `python3` (3.11 or later) | every target |
+| `make`, `python3` (3.14 or later; on an older Python every target that runs it stops, saying so) | every target |
 | `git` | `make flags`, `make lint` and every other list of files a target reads, to leave out every file Git ignores |
 | `pandoc` | <: if DOC_TYPE == 'business' :>`make docx`, `make pdf` of a Markdown document, `make section-check`<: else :>`make docx`, `make pdf`, `make epub`, `make book`, `make tex`, `make tex-check`<: endif :>, `make compare` |
 | XeLaTeX (TeX Live) | `make pdf`<: if DOC_TYPE != 'business' :>, `make book`, `make print`<: endif :>, `make compare` (with the TeX Live packages `xcolor`, `ulem`, `paracol` and `array`; with `FORMAT=tex` it needs Pandoc alone) |
@@ -209,7 +210,9 @@ or a path that ends in it. **`SECTION=<slug>`** narrows `make compare` to one se
 | `espeak-ng` (optional) | the pronunciation fallback when no speech service is configured |
 <: endif :>
 If a tool is missing, say which one and which target it blocks. Never report a target as passed
-when it could not run.
+when it could not run. When a script, a target or a hook warns that it did not run because Python
+is older than 3.14, tell the author at once, in its words, and ask them to upgrade to Python 3.14;
+a hook that warned let the action through without checking it.
 
 ---
 

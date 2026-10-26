@@ -37,9 +37,11 @@ Code points come from the one assignment tooling/font.py also uses (conlang_comm
 an explicit codepoint wins; the rest follow the highest explicit one in file order, from
 U+E000. So the text --pua prints is exactly what the built font draws.
 
-Standard library only; Python 3.11+ (tomllib).
+Standard library only, on the Python PYTHON_MIN names (below); an older Python is refused,
+loudly, before anything runs.
 Exit codes: 0 = done (warnings may be printed); 1 = text that cannot be written, or
-problems found; 2 = usage error, or a file is missing or cannot be parsed.
+problems found; 2 = usage error, a file is missing or cannot be parsed, or a Python older
+than PYTHON_MIN.
 """
 from __future__ import annotations
 
@@ -50,6 +52,21 @@ import sys
 import unicodedata
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+# ── The Python this script needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this script's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). The file keeps to
+# Python 3.8's grammar, so an older Python still reaches this check, which runs before anything
+# that needs the newer one, and says loudly that nothing ran instead of failing on a SyntaxError.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/script.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from conlang_common import (DEFAULT_LANGUAGES, DIRECTIONS, MEDIUMS, POSITIONS,  # noqa: E402
@@ -421,6 +438,30 @@ def cmd_check(args) -> int:
     return max(check_one(f) for f in folders)
 
 
+def _older_python_refused():
+    """(passed, detail), for the self-test: this file parses under Python 3.8's grammar, and run as
+    Python 3.8 (sys.version_info replaced before it starts) it prints nothing on stdout, says on
+    stderr that it did NOT run and which Python it needs, and exits 2: PYTHON_MIN's check comes
+    before anything an older Python cannot run."""
+    import ast
+    import subprocess
+    path = str(Path(__file__).resolve())
+    try:
+        ast.parse(Path(path).read_text(encoding="utf-8"), feature_version=(3, 8))
+    except SyntaxError as err:
+        return False, "no parse under Python 3.8's grammar: line %s: %s" % (err.lineno, err.msg)
+    as_38 = ("import sys; sys.version_info = (3, 8, 0, 'final', 0); "
+             "p = sys.argv[1]; sys.argv = [p, '--help']; "
+             "exec(compile(open(p, encoding='utf-8').read(), p, 'exec'), "
+             "{'__name__': '__main__', '__file__': p})")
+    proc = subprocess.run([sys.executable, "-I", "-c", as_38, path], capture_output=True, text=True,
+                          encoding="utf-8")
+    passed = (proc.returncode == 2 and not proc.stdout and "did NOT run" in proc.stderr
+              and "needs Python %d.%d or later" % PYTHON_MIN in proc.stderr)
+    return passed, "exit %s; stdout %r; stderr %r" % (proc.returncode, proc.stdout[:200],
+                                                      proc.stderr[-300:])
+
+
 def self_test() -> int:
     """Build a small script in a temporary folder and prove each check still separates."""
     import contextlib
@@ -433,6 +474,8 @@ def self_test() -> int:
         print(f"  {'ok  ' if ok else 'FAIL'} {name}" + (f": {detail}" if detail and not ok else ""))
         if not ok:
             failures.append(name)
+
+    expect("an older Python is refused, loudly, before anything runs", *_older_python_refused())
 
     def svg(width: int, body: str) -> str:
         return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} 1000">{body}'

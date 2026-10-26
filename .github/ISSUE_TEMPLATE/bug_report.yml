@@ -20,7 +20,7 @@ body:
     attributes:
       label: Template version
       description: "`_commit` in your project's `.copier-answers.syntek-author.yml`, the release you generated from, or the release or branch of the file you read."
-      placeholder: v0.4.0
+      placeholder: v0.6.0
     validations:
       required: true
 
@@ -28,8 +28,8 @@ body:
     id: copier-version
     attributes:
       label: Copier version
-      description: The output of `uvx copier --version` (or `copier --version`). Leave it blank if no command was involved, such as a mistake in the README or a shipped file.
-      placeholder: copier 9.11.0
+      description: The output of `uvx --python '>=3.14' copier --version`, and of `uvx --from copier python --version`, which shows the Python a bare `uvx copier` runs on (or `copier --version`). Leave it blank if no command was involved, such as a mistake in the README or a shipped file.
+      placeholder: copier 9.12.0
     validations:
       required: false
 
@@ -91,7 +91,7 @@ body:
       description: The exact command or commands, from the directory you ran them in, with every flag. Leave it blank if you ran none.
       render: shell
       placeholder: |
-        uvx copier update --trust -a .copier-answers.syntek-author.yml
+        uvx --python '>=3.14' copier update --trust -a .copier-answers.syntek-author.yml
     validations:
       required: false
 

@@ -57,8 +57,19 @@ author's explicit instruction for that change. A change to a standard is confirm
 always. When a rule looks wrong, report it with the reason and a proposed wording, and keep
 working under the rule as written until the author decides.
 
+**The user guide is read-only.** Never edit, write, move or delete a file under `how-to/`, even
+when asked, except through a template's update, its recovery and the commands an update report
+prints for a file there (taking the template's version, `git add`, removing a `.rej` file):
+`.claude/settings.json` denies it, the guide guard (`.claude/hooks/how-to-read-only.sh`)
+refuses it, and every update puts the guide's files back. A departure from a guide, chapter or
+procedure there is recorded in `00-project.md` `## Overrides` (a redirect included) or
+`## Workflow aliases`, and the project's own notes go in a layer's `docs/project/` or
+`workflows/local/` (`how-to/src/TEMPLATE-GUIDE/syntek-author/09-customising.md`).
+
 **Why this rule exists.** The rules are the author's, not the model's. A system that edits its own
 rules to fit the task in hand will, sooner or later, edit away the rule that protected the work.
+The guide explains the template version the project runs: an edited copy misleads the next
+session, and the next update puts it back.
 
 ---
 
@@ -78,8 +89,9 @@ version Git still holds is the one nobody thinks to look for.
 **Requirement.** Prose in `src/` artefacts (section files, unit files, planning documents, `.tex`
 bodies) keeps one sentence per line. Apply it only to a paragraph you are already editing; never
 reflow a whole file. Governance and instructional files (`CONTEXT.md`, `CLAUDE.md`, guides,
-workflows, standards, skills) keep their hard wrap. LaTeX table rows and email header lines are
-exempt.
+workflows, standards, skills) keep their hard wrap, except the template's guide chapters in
+`how-to/src/`, which are written one sentence per line by the template. LaTeX table rows and email
+header lines are exempt.
 
 **Why this rule exists.** Pandoc and LaTeX both render a single line break as a space, so the
 output is unchanged, while a diff, a review comment or a ledger comparison then points at one
@@ -92,7 +104,7 @@ sentence. Mass reflow would make every line look changed and destroy `git blame`
 **Requirement.** Every instructional Markdown file (guides, workflows, every `CONTEXT.md` and
 `CLAUDE.md`, skills, mode files, everything under `.claude/`) stays within 300 lines. A file that
 outgrows the cap splits into `SCREAMING-SNAKE-CASE.md` sub-documents behind a thin index. `src/`
-artefacts and `README.md` are exempt.
+artefacts and `README.md` are exempt; the guide's chapters in `how-to/src/` are not.
 
 **Why this rule exists.** A long instruction file is read selectively, and the rule that gets
 skipped is the one near the end.
@@ -160,17 +172,19 @@ hurry is published with the next push.
 
 **Requirement.** The answers given when this project was generated are recorded in
 `.copier-answers.syntek-author.yml`. Never edit that file by hand. A changed answer (a new title, a
-different audience) is re-answered through `copier update` (`README.md`, "Updating from the
-template"), and the seeded files that quote it, such as `00-project.md` `## Brief` and the
-project brief in `.claude/CLAUDE.md`, are then updated by hand, because Copier never rewrites a
-seed.
+different audience) is re-answered through `copier update`
+(`how-to/workflows/syntek-author/01-update-the-template/`), and the seeded files that quote it,
+such as `00-project.md` `## Brief` and the project brief in `.claude/CLAUDE.md`, are then updated
+by hand, because Copier never rewrites a seed.
 
 - **`DOC_TYPE` never changes**: the update refuses it. A different variant is a new project.
 - **Turning an option off deletes every file it generated, seeds included**, even ones the
-  author has filled in. Before such an update, list those files for the author (the README
-  section names them for this project), have them copied out and committed, and only then run
-  it. After any toggle, the seeds that describe the options (`README.md`, `CONTEXT.md`,
-  `.claude/CLAUDE.md`, `00-project.md`, `.claude/settings.json`, `.gitignore`) are edited by hand.
+  author has filled in. Before such an update, list those files for the author (the update
+  prints the list for every variant before it asks;
+  `how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md` explains it), have them copied out
+  and committed, and only then run it. After any toggle, the seeds that describe the options
+  (`README.md`, `CONTEXT.md`, `.claude/CLAUDE.md`, `00-project.md`, `.claude/settings.json`,
+  `.gitignore`) are edited by hand.
 <: if DOC_TYPE == 'business' :>- **Unticking a family in `BUSINESS_FAMILIES` deletes its template files**: its folder's
   signposts (the `CONTEXT.md` and `CLAUDE.md` of the folder and its sub-folders, and
   `drafts/README.md`), its standard `library/docs/reference/<family>-standards.md` and the
@@ -182,7 +196,8 @@ seed.
   skill, its folder pairs) is deleted with it: list those files for the author and have them
   copied out before the update. On any update, a file the project kept at a template path
   comes back with conflict markers whenever the template changed it; keep the project's version
-  (`01-layout-and-routing.md` Section 9).
+  (`01-layout-and-routing.md` Section 9), but never under `how-to/`, which the update restores
+  (Section 3).
 
 **Why this rule exists.** A hand edit in a rendered file and a stale answer diverge silently, and
 the next update turns the difference into a conflict. An option turned off without warning takes

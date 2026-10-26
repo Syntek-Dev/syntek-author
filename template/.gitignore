@@ -39,6 +39,10 @@
 # Claude Code — per-user local settings (the shared .claude/ config IS committed)
 # ----------------------------------------------------------------------------
 .claude/settings.local.json
+# The handoff hooks' markers, one per session: left when a compaction is stopped
+# or run by hand, removed once its note has been shown. (*.tmp, below, ignores
+# them too.)
+/.claude/compaction-marker-*.tmp
 
 # ----------------------------------------------------------------------------
 # code-review-graph — its local map of this repository's code (.mcp.json); never committed

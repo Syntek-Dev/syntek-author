@@ -69,10 +69,11 @@ with the translation or edition named, not as a key at every quotation. A theolo
 default translation is named in `00-project.md` `## Brief` by its key. `make refs` writes the key
 from the Copier answer to `build/nocite.yaml`, which `tooling/defaults.yaml` loads, so it is in
 every reference list without a citation in the text. A change of translation is therefore made
-with `uvx copier update --trust -a .copier-answers.syntek-author.yml --data BIBLE_TRANSLATION=…`
-(`README.md`, 'Updating from the template'), then by hand in `## Brief`. The key still needs its
-row in the database, added with `add-reference`; until it has one the build leaves it out
-without a warning, so check the reference list in the proof for it.
+with `uvx --python '>=3.14' copier update --trust -a .copier-answers.syntek-author.yml --data BIBLE_TRANSLATION=…`
+(`how-to/workflows/syntek-author/01-update-the-template/`, which gives the command with Git's
+housekeeping off), then by hand in `## Brief`. The key still needs its row in the database, added
+with `add-reference`; until it has one the build leaves it out without a warning, so check the
+reference list in the proof for it.
 
 **Why this rule exists.** These sources have reference systems older and more precise than any
 author-date style; forcing them into one helps no reader.

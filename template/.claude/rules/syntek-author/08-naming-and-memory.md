@@ -37,6 +37,9 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 <: endif :>| `standards/style/ledger/<unit>--<section-slug>.md` | 03-the-ford--crossing-at-night.md | a section's provenance record; `<unit>` is the unit's name, number included |
 | `workflows/NN-verb-first-name/` | 01-draft-a-section/ | a template procedure; numbers frozen |
 | `workflows/local/NN-verb-first-name/` | 01-prepare-a-reading/ | the author's own procedure |
+| `how-to/src/TEMPLATE-GUIDE/<template>/NN-kebab-title.md` | 01-overview.md | a chapter of a template's user guide; numbers frozen |
+| `how-to/workflows/<template>/NN-verb-first-name/` | 01-update-the-template/ | a template's how-to procedure; numbers frozen |
+| `TEMPLATE-GUIDE/` | how-to/src/TEMPLATE-GUIDE/ | the one fixed upper-case folder: the guide's chapters |
 | `kebab-case.md` in `docs/` | drafting-with-ai.md | a guide, named for the question it answers |
 | `SCREAMING-SNAKE-CASE.md` | CONTEXT.md, STEPS.md | structural files, and sub-documents behind a thin index |
 | `HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` | HANDOFF-OPENING-SECTIONS-03-10-2026.md | a session handoff, in `handoffs/` (default) |

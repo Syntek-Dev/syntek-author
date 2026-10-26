@@ -8,7 +8,9 @@ Pandoc includes only the works actually cited in the Markdown being built, so th
 exports the *whole* library; unit and section scoping falls out of which files you
 build together. Edit the database, never this output.
 
-Standard library only. Exit codes: 0 = written; 1 = database missing or unreadable.
+Standard library only, on the Python PYTHON_MIN names (below); an older Python is refused,
+loudly, before anything runs.
+Exit codes: 0 = written; 1 = database missing or unreadable; 2 = a Python older than PYTHON_MIN.
 """
 from __future__ import annotations
 
@@ -18,6 +20,21 @@ import os
 import re
 import sqlite3
 import sys
+
+# ── The Python this script needs ──────────────────────────────────────────────────────────
+# PYTHON_MIN is this script's one Python minimum, the same as the Makefile's PYTHON_MIN and every
+# other script's in tooling/ (search for PYTHON_MIN to move them together). The file keeps to
+# Python 3.8's grammar, so an older Python still reaches this check, which runs before anything
+# that needs the newer one, and says loudly that nothing ran instead of failing on a SyntaxError.
+PYTHON_MIN = (3, 14)
+if sys.version_info < PYTHON_MIN:
+    _RULE, _NEED = "=" * 78, "Python %d.%d or later" % PYTHON_MIN
+    sys.stderr.write("\n%s\nERROR: tooling/export_refs.py did NOT run.\n"
+                     "It needs %s, and this is Python %d.%d.%d (%s).\n"
+                     "Nothing was read or written. Upgrade to %s, then run it again.\n%s\n\n"
+                     % ((_RULE, _NEED) + tuple(sys.version_info[:3])
+                        + (sys.executable or "python3", _NEED, _RULE)))
+    sys.exit(2)
 
 # Database column -> CSL-JSON key, where they differ.
 FIELD_MAP = {

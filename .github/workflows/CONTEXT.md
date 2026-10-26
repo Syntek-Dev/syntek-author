@@ -12,11 +12,19 @@ project ships, while it answers `DATA_PROVIDER` google-drive and keeps its files
 CI never sets `SYNTEK_DATA_ROOT` (DESIGN.md D50): every audit unsets it when it sources
 `_common.sh`, the three Python self-tests run under `env -u SYNTEK_DATA_ROOT`, and a case that
 needs a data root makes a temporary one. `UV_PYTHON` pins every `uvx` Copier to the jobs'
-Python 3.12, which the resolver and the permissions script (3.11 or later) and Copier, the newest
-and the declared floor alike (3.10 or later), all accept; locally, `_common.sh` sets it to
-`python3` where it is unset. `_common.sh` also hides the global and system git configuration,
-the runner's `/etc/gitconfig` included, so every audit's git reads the same configuration in CI
-as on a laptop.
+Python, the one minimum for everything the template runs (DESIGN.md D18): the update and
+outside-link scripts (`migrations/`), on the Python every shown Copier command asks for
+(`uvx --python` with that minimum), the resolver, the permissions script, the hooks and the
+tooling scripts; so CI proves that minimum, and Copier, the newest and the declared floor alike,
+accepts it. The workflow names it once, as `UV_PYTHON`'s YAML anchor `python-min`, which every
+setup-python step reads as `*python-min`. The renders and lifecycle jobs also install the Python
+one minor release below it, derived from `UV_PYTHON` and kept under `$RUNNER_TEMP`, and name it
+`SA_OLD_PYTHON`, so the checks that every tool refuses an older Python loudly (tooling-smoke
+73–81, update-test 100–101) run on every push whatever the runner image holds. Locally,
+`_common.sh` sets `UV_PYTHON` to `python3` where it is unset, and refuses a `python3` older than
+its `SA_PYTHON_MIN`. `_common.sh` also hides the global and system git configuration, the
+runner's `/etc/gitconfig` included, so every audit's git reads the same configuration in CI as
+on a laptop.
 
 ## Directory Tree
 
@@ -38,7 +46,9 @@ as on a laptop.
     migration's (`migrations/agents-outside-link.py`); then shellcheck at warning
     level over `migrations/`, `adopt/`, `.github/scripts/` and the template's hooks
     (shellcheck-py, pinned), which runs even when an audit step failed.
-  - **[2/3] Renders** — installs uv and Pandoc, renders every variant and profile once, and runs
+  - **[2/3] Renders** — installs uv and Pandoc, lifts the runner's AppArmor restriction on
+    unprivileged user namespaces so tooling-smoke check 72 can prove the guide guard on a
+    casefold disk, renders every variant and profile once, and runs
     the per-render audits over all of them, then renders four profiles again on the Copier
     floor `copier.yml` declares (`_min_copier_version`) and compares them byte for byte with the
     newest Copier's renders. XeLaTeX is not installed (too slow to be worth it here), so

@@ -13,7 +13,7 @@
 #                    nothing else (Section 3.3), because anything else in them is the template
 #                    writing into the author's space.
 #
-#                    Twenty-four checks:
+#                    Twenty-six checks:
 #                      1. Every DESIGN.md seed is listed in copier.yml's _skip_if_exists.
 #                      2. Every _skip_if_exists entry names a file under template/.
 #                      3. Every seed-once example has its copy-only _exclude line, gated
@@ -37,16 +37,25 @@
 #                     11. A pair-only folder holds something other than its pair, a nested
 #                         .gitignore, a declared seed or a seed-once example.
 #                     12. .claude/settings.json breaks DESIGN.md Section 4.1: model opus,
-#                         autoCompactEnabled false, PreCompact hooks for auto and manual,
+#                         autoCompactEnabled false, idleCompaction false (an idle compaction
+#                         fires PreCompact auto, which the hook blocks, so it stays off even
+#                         where an owner keeps autoCompactEnabled true; D29), PreCompact hooks
+#                         for auto and manual,
 #                         denies AskUserQuestion, Edit(**/*.pdf), Edit(build/**) and D54's
 #                         mcp__code-review-graph__embed_graph_tool, asks for exactly D54's eight
 #                         tools in their order, and no owner-specific key (effortLevel,
 #                         ultracode, enabledPlugins, disable*); its D29 hooks (UserPromptSubmit,
-#                         PreCompact) are the entries migrations/family-refresh.json offers,
-#                         unchanged; and it has exactly one PreToolUse entry, the data-root guard
-#                         of the merged seed (DESIGN.md D50: matcher
-#                         Edit|Write|MultiEdit|NotebookEdit|Grep|Glob, the self-locating
-#                         command, timeout 10). Read in a render, and in the template with its
+#                         PreCompact, and SessionStart for the note after a compaction) are the
+#                         entries migrations/family-refresh.json offers, unchanged, and neither
+#                         a D29 event nor autoCompactEnabled or idleCompaction is missing from
+#                         that file's settings (check 22 compares the values; an entry the seed
+#                         alone holds never reaches an existing project); and exactly
+#                         one PreToolUse entry runs the data-root guard
+#                         (its command is the guard's, or names a dataroot.py), it is the
+#                         first PreToolUse entry, and it is the merged seed's (DESIGN.md D50:
+#                         matcher Edit|Write|MultiEdit|NotebookEdit|Grep|Glob, the
+#                         self-locating command, timeout 10). Any other PreToolUse entry is
+#                         check 26's. Read in a render, and in the template with its
 #                         gates removed (every `<: if :>` block cut out), which must parse as
 #                         JSON too.
 #                     13. In a render, .claude/settings.json carries exactly the gated
@@ -82,7 +91,8 @@
 #                     18. Every copy-only shared path of DESIGN.md Section 3.6 (D47: the other
 #                         coding agents' entrypoints, the .agents/skills link, Antigravity's
 #                         .agents/mcp_config.json, the client settings; D51: the shared skills,
-#                         hooks and handoffs pair) has its anchored
+#                         hooks and handoffs pair; D56: the guide guard and the shared how-to
+#                         files) has its anchored
 #                         _skip_if_exists line, its _exclude line gated
 #                         "_copier_operation == 'update'", and a file (or, for .agents/skills, a
 #                         link) under template/. Without the skip a copy overwrites the author's
@@ -100,27 +110,31 @@
 #                         D54 servers (D48: syntek-media ships the same bytes from its 0.5.0);
 #                         and the retired template/.claude/mcp_config.json is gone.
 #
-#                     21. The shared working practice (D51): every shared skill, hook and
-#                         handoffs file (check 18 holds each to its copy-only lines) is listed in
-#                         migrations/family-refresh.json, which lists nothing else; each hook is
+#                     21. The shared working practice (D51) and the shared how-to files (D56):
+#                         every shared skill, hook (the guide guard among them), handoffs file
+#                         and shared how-to file (check 18 holds each to its copy-only lines) is
+#                         listed in migrations/family-refresh.json, which lists nothing else;
+#                         each hook is
 #                         executable under template/ (Copier compares the bit, so a copy over the
 #                         sibling's 755 copy would conflict); and no _skip_if_exists or
 #                         update-gated _exclude line names a folder above one of them, which
 #                         would freeze or hide this template's own mode files beside it.
 #                     22. In a render, .claude/settings.json wires every hook entry
 #                         migrations/family-refresh.json lists (the context-threshold hook on
-#                         UserPromptSubmit, the PreCompact handoff for auto and manual): the
+#                         UserPromptSubmit, the PreCompact handoff for auto and manual, its
+#                         SessionStart note for compact): the
 #                         refresh adds an entry to an existing project only where the new
 #                         render's settings.json holds it, so a seed without it never wires it.
 #                         And, in the template, the seed template/.claude/settings.json holds
 #                         every permissions.deny and permissions.ask rule that file lists (a
 #                         variant-gated rule still appears in the seed's source), and every
-#                         top-level value it lists ("autoCompactEnabled": false) with the same
-#                         value, for the same reason: an entry listed in family-refresh.json
+#                         top-level value it lists ("autoCompactEnabled": false and
+#                         "idleCompaction": false) with the same value, for the same reason: an entry listed in family-refresh.json
 #                         alone is never offered. The MCP asks and deny of D54 are among those
-#                         rules. family-refresh.json never lists the data-root guard: it is
+#                         rules. family-refresh.json never lists the data-root guard (an entry
+#                         whose command is the guard's or names a dataroot.py): it is
 #                         deliberately seed-only (D50, D51), so no update and no copy over an
-#                         existing settings.json wires it.
+#                         existing settings.json wires it. It may list the guide guard (D56).
 #                     23. The seed .gitignore ignores code-review-graph's local map (D54): it
 #                         holds the anchored line /.code-review-graph/ outside every block, and
 #                         `git check-ignore --no-index .code-review-graph/graph.db` succeeds
@@ -132,10 +146,36 @@
 #                         once, inside a `<: if DATA_STORE == 'external' :>` block, an equality
 #                         like every store test; in a render once under external and not at all
 #                         under repo.
+#                     25. No folder lines under how-to/ (D56): no _skip_if_exists entry and no
+#                         _exclude entry gated on the update names /how-to, or any path under it
+#                         other than the shared how-to files. Each how-to folder also holds this
+#                         template's own files under its syntek-author/ folder, which stay
+#                         template-owned: a folder line would freeze or hide them, and an
+#                         update would never restore them.
+#                     26. The guide guard in the seed (D56), the first problem of: the seed
+#                         .claude/settings.json has exactly one PreToolUse entry whose command
+#                         names .claude/hooks/how-to-read-only.sh; that entry's matcher is
+#                         Edit|Write|MultiEdit|NotebookEdit, with one hook of type command,
+#                         its command exactly the self-locating form that exits 0 where there
+#                         is no git root or no script, and timeout 10; it equals the entry
+#                         migrations/family-refresh.json offers; permissions.deny holds
+#                         Edit(/how-to/**) directly after Edit(build/**). Read in a render, and
+#                         in the template with its gates removed. The guard's executable bit is
+#                         check 21's.
+#                     27. The seed .gitignore ignores the handoff hooks' markers (D29): `git
+#                         check-ignore --no-index .claude/compaction-marker-abc123.tmp` succeeds
+#                         against it, so no session's marker shows in git status or is
+#                         committed.
+#                     28. Chapter 12 of the guide (how-to/src/TEMPLATE-GUIDE/syntek-author/
+#                         12-troubleshooting.md), where the tree ships it, gives as its
+#                         `"command":` lines naming a handoff hook exactly the D29 commands
+#                         migrations/family-refresh.json offers (and check 12 holds the seed's
+#                         to), each a JSON string, so its switch to the silent form by hand is
+#                         never stale text.
 #
-#                    Checks 1–4, 18–21 read copier.yml and template/ (static, once). Checks
-#                    5–17 and 22–24 read every tree given — template/ by default, or renders —
-#                    and skip a seed the tree does not ship.
+#                    Checks 1–4, 18–21 and 25 read copier.yml and template/ (static, once).
+#                    Checks 5–17, 22–24 and 26–28 read every tree given — template/ by
+#                    default, or renders — and skip a seed the tree does not ship.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -147,7 +187,7 @@
 #            proves it clean, then applies one mutation per check and asserts exactly one
 #            finding each.
 #
-# Requirements: bash 4+, grep, awk, git (check 23), python3 (checks 10, 12, 22 and 24). No
+# Requirements: bash 4+, grep, awk, git (checks 23 and 27), python3 (checks 10, 12, 22, 24 and 28). No
 #               network.
 #
 # Usage: shipped-seeds.sh [--root DIR] [--quiet] [--self-test] [--help] [<tree>...]
@@ -170,7 +210,7 @@ shipped-seeds.sh — Verify the seeds ship empty, wired, and only where they bel
 
 Usage: shipped-seeds.sh [--root DIR] [--quiet] [--self-test] [--help] [<tree>...]
 
-  <tree>       A render to check as well (checks 5–17, 22–24); template/ is always checked
+  <tree>       A render to check as well (checks 5–17, 22–24, 26); template/ is always checked
   --root DIR   The template repository (default: this repository)
   --quiet      Print findings only
   --self-test  Prove the checks still fire against a fixture written at runtime
@@ -208,6 +248,7 @@ PROJECT_H2S=("Brief" "Paths" "Memory headings" "Workflow aliases" "Overrides")
 PROJECT_EMPTY_H2S=("Workflow aliases" "Overrides")
 PROJECT_MK="tooling/project.mk"
 REFRESH_DATA="migrations/family-refresh.json"
+CH12="how-to/src/TEMPLATE-GUIDE/syntek-author/12-troubleshooting.md"
 PROJECT_MK_KEYS="BRAND_DIRS LOGO_DIRS DOCX_CONVERTER FLAG_EXTRA_RE ISSUE_STATUSES MAINFONT SANSFONT MONOFONT"
 
 # Block delimiters removed, fenced code and HTML comments dropped: what an entry would look like.
@@ -281,7 +322,7 @@ static_checks() {
   while IFS=$'\t' read -r cond path; do
     [[ "$(norm_expr "$cond")" == "$SA_COPY_ONLY_GATE" ]] && on_update["$path"]=1
   done < <(exclude_gates "$COPIER")
-  for s in $SA_COPY_ONLY $SA_SHARED_PRACTICE; do
+  for s in $SA_COPY_ONLY $SA_SHARED_REFRESH; do
     [[ -n "${skip[$s]:-}" ]] || finding "check 18 — the copy-only $s is not in _skip_if_exists — a copy over a project overwrites the author's file"
     [[ -n "${on_update[$s]:-}" ]] || finding "check 18 — the copy-only $s has no _exclude line gated on the update — an update re-renders it, or brings back a deleted one"
     [[ -e "$TPL/$s" || -L "$TPL/$s" ]] || finding "check 18 — the copy-only $s is not under template/"
@@ -312,12 +353,13 @@ static_checks() {
   # ── 21. The shared working practice (D51) ───────────────────────────────────
   local listed d
   listed="$(python3 -c 'import json,sys; print(" ".join(sorted(json.load(open(sys.argv[1])).get("refresh") or [])))' "$SA_ROOT/$REFRESH_DATA" 2>/dev/null || printf '?')"
-  [[ "$listed" == "$(printf '%s\n' $SA_SHARED_PRACTICE | LC_ALL=C sort | paste -sd' ' -)" ]] \
-    || finding "check 21 — $REFRESH_DATA does not refresh exactly the shared working practice (it lists: ${listed:-nothing}) — a file it leaves out is never refreshed"
+  # shellcheck disable=SC2086  # one word per path
+  [[ "$listed" == "$(printf '%s\n' $SA_SHARED_REFRESH | LC_ALL=C sort | paste -sd' ' -)" ]] \
+    || finding "check 21 — $REFRESH_DATA does not refresh exactly the shared working practice and how-to files (it lists: ${listed:-nothing}) — a file it leaves out is never refreshed"
   for s in $SA_SHARED_HOOKS; do
     [[ ! -f "$TPL/$s" || -x "$TPL/$s" ]] || finding "check 21 — template/$s is not executable (mode 755) — a copy over the sibling's copy would see a conflict"
   done
-  for s in $SA_SHARED_PRACTICE; do
+  for s in $SA_SHARED_REFRESH; do
     d="${s%/*}"
     while [[ "$d" == */* || -n "$d" ]]; do
       if [[ -n "${skip[$d]:-}" || -n "${on_update[$d]:-}" ]]; then
@@ -331,6 +373,23 @@ static_checks() {
   # so the refresh never wires it into an existing project's settings.json.
   while IFS= read -r line; do finding "check 22 — $line"; done \
     < <(rules_missing "$TPL/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA" "$SA_GUARD_CMD")
+
+  # ── 25. No folder lines under how-to/ (D56) ─────────────────────────────────
+  # Only the shared how-to files are copy-only; every other how-to path is template-owned and
+  # restored on update, so neither list may name /how-to or anything else under it.
+  local -A howto_shared=()
+  for s in $SA_SHARED_HOWTO; do howto_shared["$s"]=1; done
+  for s in "${!skip[@]}"; do
+    [[ "$s" == how-to || "$s" == how-to/* ]] || continue
+    [[ -n "${howto_shared[$s]:-}" ]] \
+      || finding "check 25 — _skip_if_exists names /$s — under how-to/ only the shared how-to files are copy-only; every other path there is template-owned and restored on update (D56)"
+  done
+  while IFS=$'\t' read -r cond path; do
+    [[ "$cond" == *_copier_operation* ]] || continue
+    [[ "$path" == how-to || "$path" == how-to/* ]] || continue
+    [[ -n "${howto_shared[$path]:-}" ]] \
+      || finding "check 25 — an _exclude line gated on the update names /$path — under how-to/ only the shared how-to files are copy-only; every other path there is template-owned and restored on update (D56)"
+  done < <(exclude_gates "$COPIER")
   return 0
 }
 
@@ -347,9 +406,10 @@ try:
 except Exception:
     sys.exit(0)  # check 21 reports a refresh file that is missing or does not parse
 hooks = settings.get("hooks") if isinstance(settings.get("hooks"), dict) else {}
-if "PreToolUse" in hooks or any(isinstance(h, dict) and (h.get("command") == sys.argv[3] or "dataroot.py" in str(h.get("command", "")))
-                                for entries in hooks.values() if isinstance(entries, list)
-                                for e in entries if isinstance(e, dict) for h in (e.get("hooks") or [])):
+# The guide guard (D56) may be listed; only an entry that runs the data-root guard is refused.
+if any(isinstance(h, dict) and (h.get("command") == sys.argv[3] or "dataroot.py" in str(h.get("command", "")))
+       for entries in hooks.values() if isinstance(entries, list)
+       for e in entries if isinstance(e, dict) for h in (e.get("hooks") or [])):
     print("migrations/family-refresh.json lists the data-root guard — it is seed-only: no update and no copy over an existing settings.json may wire it (D50, D51)")
 for key, value in settings.items():
     if key in ("hooks", "permissions") or not isinstance(value, (bool, int, float, str)):
@@ -404,6 +464,8 @@ if data.get("model") != "opus":
     print(f"model is {data.get('model')!r}, not 'opus'")
 if data.get("autoCompactEnabled") is not False:
     print("autoCompactEnabled is not false — hand off, never compact (DESIGN.md D29)")
+if data.get("idleCompaction") is not False:
+    print("idleCompaction is not false — an idle compaction fires PreCompact auto, which the hook blocks (DESIGN.md D29)")
 hooks = data.get("hooks") if isinstance(data.get("hooks"), dict) else {}
 matchers = {h.get("matcher") for h in (hooks.get("PreCompact") or []) if isinstance(h, dict)}
 for m in ("auto", "manual"):
@@ -420,25 +482,77 @@ if list(perms.get("ask") or []) != mcp_asks.split():
 for k in data:
     if k in ("effortLevel", "ultracode", "enabledPlugins") or k.startswith("disable"):
         print(f"carries the owner-specific key {k}")
-# Both D29 hooks unchanged: each event the seed wires holds exactly what family-refresh.json offers.
+# The D29 hooks unchanged: each event the seed wires holds exactly what family-refresh.json offers.
 try:
     with open(refresh, encoding="utf-8") as fh:
-        offered = (json.load(fh).get("settings") or {}).get("hooks") or {}
+        listed = json.load(fh).get("settings") or {}
+    offered, read = listed.get("hooks") or {}, True
 except Exception:
-    offered = {}  # check 21 reports a refresh file that is missing or does not parse
-for event in ("UserPromptSubmit", "PreCompact"):
-    if event in hooks and event in offered and hooks[event] != offered[event]:
+    listed, offered, read = {}, {}, False  # check 21 reports a refresh file that is missing or does not parse
+for event in ("UserPromptSubmit", "PreCompact", "SessionStart"):
+    if event in hooks and read and event not in offered:
+        print(f"wires the D29 {event} hook, which migrations/family-refresh.json does not offer — an existing project would never gain it")
+    elif event in hooks and event in offered and hooks[event] != offered[event]:
         print(f"changes the D29 {event} hook — the seed holds it exactly as migrations/family-refresh.json offers it")
-# The data-root guard: the one PreToolUse entry, exactly the merged seed's.
+for key in ("autoCompactEnabled", "idleCompaction"):
+    if key in data and read and key not in listed:
+        print(f"sets {key}, which migrations/family-refresh.json does not list — an existing project would never be offered it (DESIGN.md D29, D51)")
+# The data-root guard: exactly one PreToolUse entry runs it, the first, exactly the merged seed's.
+# Any other PreToolUse entry (the guide guard, D56) is check 26's.
 pre = hooks.get("PreToolUse")
+pre = pre if isinstance(pre, list) else []
 want = {"matcher": guard_matcher, "hooks": [{"type": "command", "command": guard_cmd, "timeout": int(guard_timeout)}]}
-if not isinstance(pre, list) or len(pre) != 1:
-    print(f"has {len(pre) if isinstance(pre, list) else 'no'} PreToolUse entries — the seed has exactly one, the data-root guard (DESIGN.md D50)")
-elif not isinstance(pre[0], dict) or pre[0].get("matcher") != guard_matcher:
-    print(f"wires its PreToolUse entry for {pre[0].get('matcher') if isinstance(pre[0], dict) else None!r}, not for {guard_matcher!r} — the data-root guard covers every tool that edits, writes or searches")
+def runs_guard(e):
+    return isinstance(e, dict) and any(isinstance(h, dict) and (h.get("command") == guard_cmd or "dataroot.py" in str(h.get("command", "")))
+                                       for h in (e.get("hooks") or []) if isinstance(e.get("hooks"), list))
+at = [i for i, e in enumerate(pre) if runs_guard(e)]
+if len(at) != 1:
+    print(f"has {len(at)} PreToolUse entries that run the data-root guard — the seed has exactly one (DESIGN.md D50)")
+elif at[0] != 0:
+    print(f"wires the data-root guard as PreToolUse entry {at[0] + 1}, not the first")
+elif pre[0].get("matcher") != guard_matcher:
+    print(f"wires its PreToolUse entry for {pre[0].get('matcher')!r}, not for {guard_matcher!r} — the data-root guard covers every tool that edits, writes or searches")
 elif pre[0] != want:
     print("does not wire the data-root guard exactly as the merged seed does (DESIGN.md D50: the self-locating "
           "command that runs the first .claude/syntek-*-dataroot.py guard, timeout 10)")
+PY
+}
+
+# The guide guard in a settings.json (check 26): the first problem, or nothing (D56).
+guide_guard_problem() { # $1 = settings.json, $2 = family-refresh.json
+  python3 - "$1" "$2" "$SA_HOWTO_GUARD" "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" <<'PY'
+import json, sys
+path, refresh, script, matcher, cmd, deny = sys.argv[1:7]
+try:
+    data = json.load(open(path, encoding="utf-8"))
+except Exception:
+    sys.exit(0)  # check 12 reports a settings file that does not parse
+if not isinstance(data, dict):
+    sys.exit(0)
+hooks = data.get("hooks") if isinstance(data.get("hooks"), dict) else {}
+pre = hooks.get("PreToolUse") if isinstance(hooks.get("PreToolUse"), list) else []
+def names(e):
+    return isinstance(e, dict) and isinstance(e.get("hooks"), list) and any(
+        isinstance(h, dict) and script in str(h.get("command", "")) for h in e["hooks"])
+mine = [e for e in pre if names(e)]
+want = {"matcher": matcher, "hooks": [{"type": "command", "command": cmd, "timeout": 10}]}
+try:
+    offered = (((json.load(open(refresh, encoding="utf-8")).get("settings") or {}).get("hooks") or {}).get("PreToolUse")) or []
+except Exception:
+    offered = None  # check 21 reports a refresh file that is missing or does not parse
+offered = [e for e in offered if names(e)] if isinstance(offered, list) else None
+perms = data.get("permissions") if isinstance(data.get("permissions"), dict) else {}
+denies = perms.get("deny") if isinstance(perms.get("deny"), list) else []
+if len(mine) != 1:
+    print(f"has {len(mine)} PreToolUse entries that run {script} — the seed wires the guide guard exactly once (DESIGN.md D56)")
+elif mine[0] != want:
+    print(f"does not wire the guide guard exactly as DESIGN.md D56 does (matcher {matcher}, one command hook in the self-locating "
+          f"form that exits 0 where there is no git root or no script, timeout 10)")
+elif offered is not None and mine[0] not in offered:
+    print(f"wires the guide guard otherwise than migrations/family-refresh.json offers it — the refresh adds an entry only where the "
+          f"new render's settings.json holds that entry, so an existing project would never be offered it")
+elif "Edit(build/**)" not in denies or denies.index("Edit(build/**)") + 1 >= len(denies) or denies[denies.index("Edit(build/**)") + 1] != deny:
+    print(f"does not deny {deny} directly after Edit(build/**) (DESIGN.md D56: one anchored Edit rule covers every file-writing tool)")
 PY
 }
 
@@ -512,6 +626,47 @@ crg_ignored() { # $1 = .gitignore
     && git -C "$scratch" -c core.excludesFile=/dev/null check-ignore -q --no-index .code-review-graph/graph.db || ok=1
   rm -rf "${scratch:?}"
   return "$ok"
+}
+
+# Whether a .gitignore ignores a handoff hook's marker, asked of git the same way (check 27).
+marker_ignored() { # $1 = .gitignore
+  local scratch ok=0
+  scratch="$(sa_mktemp)"
+  git -c init.defaultBranch=main init -q "$scratch" 2>/dev/null && cp "$1" "$scratch/.gitignore" \
+    && git -C "$scratch" -c core.excludesFile=/dev/null check-ignore -q --no-index .claude/compaction-marker-abc123.tmp || ok=1
+  rm -rf "${scratch:?}"
+  return "$ok"
+}
+
+# Chapter 12's "command": lines that name a handoff hook, against the D29 commands
+# family-refresh.json offers (check 28): one problem per line, or nothing.
+chapter_commands() { # $1 = the chapter, $2 = family-refresh.json
+  python3 - "$1" "$2" <<'PY'
+import json, re, sys
+try:
+    text = open(sys.argv[1], encoding="utf-8").read()
+    hooks = (json.load(open(sys.argv[2], encoding="utf-8")).get("settings") or {}).get("hooks") or {}
+except Exception:
+    sys.exit(0)  # check 21 reports a refresh file that is missing or does not parse
+want = {h.get("command") for event in ("UserPromptSubmit", "PreCompact", "SessionStart") for e in hooks.get(event) or []
+        if isinstance(e, dict) for h in e.get("hooks") or [] if isinstance(h, dict) and "-handoff.sh" in str(h.get("command"))}
+if len(want) != 4:
+    sys.exit(0)  # a D29 entry missing from the refresh data is check 12's or check 22's finding
+got = set()
+for m in re.finditer(r'^[ \t]*"command": ("(?:[^"\\]|\\.)*")[ \t]*,?[ \t]*$', text, re.M):
+    try:
+        c = json.loads(m.group(1))
+    except ValueError:
+        print(f"gives a \"command\": line that is not a JSON string ({m.group(1)[:60]})"); continue
+    if "-handoff.sh" in c:
+        got.add(c)
+if got != want:
+    gone, odd = sorted(want - got), sorted(got - want)
+    print(f"does not give exactly the {len(want)} D29 commands migrations/family-refresh.json offers"
+          + (f": {len(gone)} missing, the first {gone[0][:90]!r}" if gone else "")
+          + (f"; {len(odd)} not offered, the first {odd[0][:90]!r}" if odd else "")
+          + " — the switch to the silent form by hand would be stale")
+PY
 }
 
 json_gated() { # $1 = file, then specs "+deny X" (must be there) or "-allow X" (must not be)
@@ -618,6 +773,14 @@ tree_checks() { # on TREE
     if grep -qxF "$SA_CRG_IGNORE_LINE" "$f" && ! crg_ignored "$f"; then
       finding "check 23 — .gitignore does not ignore .code-review-graph/graph.db (git check-ignore) — a later rule re-includes code-review-graph's map (D54)"
     fi
+    # ── 27. The handoff hooks' markers ignored (D29) ──
+    marker_ignored "$f" \
+      || finding "check 27 — .gitignore does not ignore .claude/compaction-marker-abc123.tmp (git check-ignore) — a handoff hook's marker would show in git status and could be committed (D29)"
+  fi
+
+  # ── 28. Chapter 12's hand switch: the commands the template offers (D29) ────
+  if [[ -f "$TREE/$CH12" && -f "$SA_ROOT/$REFRESH_DATA" ]]; then
+    while IFS= read -r line; do finding "check 28 — $CH12 $line"; done < <(chapter_commands "$TREE/$CH12" "$SA_ROOT/$REFRESH_DATA")
   fi
 
   # ── 11. Pair-only folders ───────────────────────────────────────────────────
@@ -696,6 +859,15 @@ tree_checks() { # on TREE
       < <(json_check settings <(strip_blocks "$f") "$SA_ROOT/$REFRESH_DATA" "$SA_GUARD_CMD" "$SA_GUARD_MATCHER" "$SA_GUARD_TIMEOUT" "$SA_MCP_DENY" "$SA_MCP_ASKS")
   fi
 
+  # ── 26. The guide guard and its deny in the seed (D56) ──────────────────────
+  if [[ -f "$f" ]] && ! grep -q '<:' "$f"; then
+    while IFS= read -r line; do finding "check 26 — .claude/settings.json $line"; done \
+      < <(guide_guard_problem "$f" "$SA_ROOT/$REFRESH_DATA")
+  elif [[ -f "$f" && "$TREE" == "$TPL" ]]; then
+    while IFS= read -r line; do finding "check 26 — .claude/settings.json, its gates removed, $line"; done \
+      < <(guide_guard_problem <(strip_blocks "$f") "$SA_ROOT/$REFRESH_DATA")
+  fi
+
   # ── 22. settings.json wires every hook the refresh would add ───────────────
   if [[ -f "$f" ]] && ! grep -q '<:' "$f" && [[ -f "$SA_ROOT/$REFRESH_DATA" ]]; then
     while IFS= read -r line; do finding "check 22 — .claude/settings.json $line"; done < <(hooks_missing "$f" "$SA_ROOT/$REFRESH_DATA")
@@ -727,26 +899,35 @@ write_fixture() { # $1 = repo root
   {
     printf '_exclude:\n  - .git\n'
     for s in $SA_EXAMPLES; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_EXAMPLE_GATE" "$s"; done
-    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS $SA_SHARED_PRACTICE; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
+    for s in $SA_COPY_ONLY $SA_COPY_ONLY_DIRS $SA_SHARED_REFRESH; do printf '  - "<: if %s :>/%s<: endif :>"\n' "$SA_COPY_ONLY_GATE" "$s"; done
     printf '_skip_if_exists:\n'
-    for s in $SA_SEEDS $SA_COPY_ONLY $SA_SHARED_PRACTICE; do printf '  - /%s\n' "$s"; done
+    for s in $SA_SEEDS $SA_COPY_ONLY $SA_SHARED_REFRESH; do printf '  - /%s\n' "$s"; done
     printf 'PROJECT_NAME:\n  type: str\n'
   } > "$r/copier.yml"
   for s in $SA_SEEDS; do mkdir -p "$(dirname "$t/$s")"; printf '# %s\n' "${s##*/}" > "$t/$s"; done
-  for s in $SA_COPY_ONLY $SA_SHARED_PRACTICE; do
+  for s in $SA_COPY_ONLY $SA_SHARED_REFRESH; do
     [[ "$s" == .agents/skills ]] && continue
     mkdir -p "$(dirname "$t/$s")"; printf '{}\n' > "$t/$s"
   done
   for s in $SA_SHARED_HOOKS; do chmod +x "$t/$s"; done
+  # This template's own how-to folders (D56), template-owned: a chapter in each.
+  for s in $SA_HOWTO_OWN; do mkdir -p "$t/$s"; printf '# A chapter — of this template\n' > "$t/$s/01-a.md"; done
   mkdir -p "$r/migrations"
-  python3 - "$r/$REFRESH_DATA" "$SA_SHARED_PRACTICE" <<'JSON'
+  python3 - "$r/$REFRESH_DATA" "$SA_SHARED_REFRESH" "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" "$t/$CH12" <<'JSON'
 import json, sys
 hook = lambda name, arg="": [{"type": "command", "command": f"bash .claude/hooks/{name}{arg}"}]
-json.dump({"format": 1, "template": "syntek-author", "refresh": sys.argv[2].split(),
-           "settings": {"hooks": {"UserPromptSubmit": [{"hooks": hook("context-threshold-handoff.sh")}],
-                                  "PreCompact": [{"matcher": "auto", "hooks": hook("pre-compact-handoff.sh", " auto")},
-                                                 {"matcher": "manual", "hooks": hook("pre-compact-handoff.sh", " manual")}]},
-                        "permissions": {"deny": [], "ask": []}}}, open(sys.argv[1], "w"), indent=2)
+json.dump({"format": 1, "template": "syntek-author", "refresh": sys.argv[2].split(), "restore": ["how-to"],
+           "settings": {"hooks": {"PreCompact": [{"matcher": "auto", "hooks": hook("pre-compact-handoff.sh", " auto")},
+                                                 {"matcher": "manual", "hooks": hook("pre-compact-handoff.sh", " manual")}],
+                                  "PreToolUse": [{"matcher": sys.argv[3], "hooks": [{"type": "command", "command": sys.argv[4], "timeout": 10}]}],
+                                  "SessionStart": [{"matcher": "compact", "hooks": hook("pre-compact-handoff.sh", " compacted")}],
+                                  "UserPromptSubmit": [{"hooks": hook("context-threshold-handoff.sh")}]},
+                        "permissions": {"deny": [sys.argv[5]], "ask": []},
+                        "autoCompactEnabled": False, "idleCompaction": False}}, open(sys.argv[1], "w"), indent=2)
+d = json.load(open(sys.argv[1]))["settings"]["hooks"]
+lines = ['"command": %s,' % json.dumps(h["command"]) for ev in ("UserPromptSubmit", "PreCompact", "SessionStart") for e in d[ev] for h in e["hooks"]]
+with open(sys.argv[6], "w", encoding="utf-8") as f:
+    f.write("# Troubleshooting\n\nReplace each with the line below:\n\n```text\n" + "\n".join(lines) + "\n```\n")
 JSON
   ln -s "$SA_AGENTS_LINK_TARGET" "$t/.agents/skills"
   printf '%s' "$SA_MCP_SHARED" > "$t/.agents/mcp_config.json"
@@ -799,24 +980,28 @@ EOF
   printf '# CONTEXT.md\n\n```text\nplanning/docs/project/\n├── CONTEXT.md\n└── <question>.md\n```\n' > "$t/planning/docs/project/CONTEXT.md"
   printf '%s' "$SA_MCP_SHARED" > "$t/.mcp.json"
   # The seed settings.json: the D29 hooks as family-refresh.json offers them, D54's deny and asks,
-  # and the data-root guard, one PreToolUse entry (D50).
-  python3 - "$t/.claude/settings.json" "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" "$SA_MCP_DENY" "$SA_MCP_ASKS" <<'JSON'
+  # the data-root guard as the first PreToolUse entry (D50), and the guide guard as the second,
+  # with its deny straight after Edit(build/**) (D56).
+  python3 - "$t/.claude/settings.json" "$SA_GUARD_MATCHER" "$SA_GUARD_CMD" "$SA_MCP_DENY" "$SA_MCP_ASKS" \
+    "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" <<'JSON'
 import json, sys
-path, matcher, guard, deny, asks = sys.argv[1:6]
+path, matcher, guard, deny, asks, gmatcher, gcmd, gdeny = sys.argv[1:9]
 hook = lambda c: [{"type": "command", "command": c}]
-json.dump({"model": "opus", "autoCompactEnabled": False,
+json.dump({"model": "opus", "autoCompactEnabled": False, "idleCompaction": False,
            "hooks": {"UserPromptSubmit": [{"hooks": hook("bash .claude/hooks/context-threshold-handoff.sh")}],
                      "PreCompact": [{"matcher": "auto", "hooks": hook("bash .claude/hooks/pre-compact-handoff.sh auto")},
                                     {"matcher": "manual", "hooks": hook("bash .claude/hooks/pre-compact-handoff.sh manual")}],
-                     "PreToolUse": [{"matcher": matcher, "hooks": [{"type": "command", "command": guard, "timeout": 10}]}]},
-           "permissions": {"deny": ["AskUserQuestion", "Edit(**/*.pdf)", "Edit(build/**)", deny], "ask": asks.split(),
+                     "SessionStart": [{"matcher": "compact", "hooks": hook("bash .claude/hooks/pre-compact-handoff.sh compacted")}],
+                     "PreToolUse": [{"matcher": matcher, "hooks": [{"type": "command", "command": guard, "timeout": 10}]},
+                                    {"matcher": gmatcher, "hooks": [{"type": "command", "command": gcmd, "timeout": 10}]}]},
+           "permissions": {"deny": ["AskUserQuestion", "Edit(**/*.pdf)", "Edit(build/**)", gdeny, deny], "ask": asks.split(),
                            "allow": ["Bash(make *)"]}},
           open(path, "w", encoding="utf-8"), indent=2)
 JSON
   # The seed .gitignore: code-review-graph's map ignored in every project, and the data-root
   # pointer under external only.
   { printf 'build/\n\n<: if INCLUDE_REFERENCES :># the references database\n<: else :># a database\n<: endif :>*.db-journal\n\n'
-    printf '%s\n\n' "$SA_CRG_IGNORE_LINE"
+    printf '%s\n\n/.claude/compaction-marker-*.tmp\n\n' "$SA_CRG_IGNORE_LINE"
     printf "<: if DATA_STORE == 'external' :># ----\n%s\n# the binaries are filed under the data root\n\n<: endif :># ----\n.DS_Store\n" "$SA_GITIGNORE_DATAROOT_LINE"
   } > "$t/.gitignore"
   for s in $SA_EXAMPLES; do
@@ -881,8 +1066,11 @@ self_test() {
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["refresh"].remove("handoffs/CLAUDE.md"); json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
   probe "check 21 fires when family-refresh.json leaves a shared file out" "check 21 — $REFRESH_DATA does not refresh exactly"
   cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"; cp "$t/.claude/settings.json" "$tmp/h"
-  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["hooks"]["UserPromptSubmit"]; json.dump(d,open(sys.argv[1],"w"))' "$t/.claude/settings.json"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["hooks"]["UserPromptSubmit"]; json.dump(d,open(sys.argv[1],"w"),indent=2)' "$t/.claude/settings.json"
   probe "check 22 fires when the seed settings do not wire the threshold hook" "check 22 — .claude/settings.json does not wire the UserPromptSubmit hook running .claude/hooks/context-threshold-handoff.sh"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["hooks"]["SessionStart"]; json.dump(d,open(sys.argv[1],"w"),indent=2)' "$t/.claude/settings.json"
+  probe "check 22 fires when the seed settings do not wire the note after a compaction" "check 22 — .claude/settings.json does not wire the SessionStart hook for compact running .claude/hooks/pre-compact-handoff.sh"
   cp "$tmp/h" "$t/.claude/settings.json"; cp "$SA_ROOT/$REFRESH_DATA" "$tmp/rd"
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["permissions"]["deny"].append("Bash(git push --force *)"); json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
   probe "check 22 fires when family-refresh.json lists a rule the seed does not hold" "check 22 — template/.claude/settings.json does not hold the deny rule Bash(git push --force *)"
@@ -890,10 +1078,26 @@ self_test() {
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["autoCompactEnabled"]=True; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
   probe "check 22 fires when family-refresh.json lists a top-level value the seed does not hold" "check 22 — template/.claude/settings.json does not hold the top-level \"autoCompactEnabled\": true"
   cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
-  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["hooks"]["PreToolUse"]=[{"matcher": sys.argv[2], "hooks": [{"type": "command", "command": sys.argv[3], "timeout": 10}]}]; json.dump(d,open(sys.argv[1],"w"))' \
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["idleCompaction"]=True; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 22 fires when family-refresh.json lists an idleCompaction the seed does not hold" "check 22 — template/.claude/settings.json does not hold the top-level \"idleCompaction\": true"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["idleCompaction"]; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 12 fires when family-refresh.json does not list the seed's idleCompaction" "check 12 — .claude/settings.json sets idleCompaction, which migrations/family-refresh.json does not list"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["hooks"]["SessionStart"]; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 12 fires when family-refresh.json does not offer the seed's SessionStart entry" "check 12 — .claude/settings.json wires the D29 SessionStart hook, which migrations/family-refresh.json does not offer"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  cp "$t/$CH12" "$tmp/ch12"; sed -i 's/ compacted",$/ compact",/' "$t/$CH12"
+  probe "check 28 fires when chapter 12 gives a stale command" "check 28 — $CH12 does not give exactly the 4 D29 commands migrations/family-refresh.json offers: 1 missing"
+  cp "$tmp/ch12" "$t/$CH12"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["hooks"]["PreToolUse"].append({"matcher": sys.argv[2], "hooks": [{"type": "command", "command": sys.argv[3], "timeout": 10}]}); json.dump(d,open(sys.argv[1],"w"))' \
     "$SA_ROOT/$REFRESH_DATA" "$SA_GUARD_MATCHER" "$SA_GUARD_CMD"
   probe "check 22 fires when family-refresh.json lists the data-root guard" "check 22 — migrations/family-refresh.json lists the data-root guard"
   cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  probe_clean "family-refresh.json may list the guide guard's PreToolUse entry (D56)"
+  cp "$COPIER" "$tmp/c"; sed -i 's#^_skip_if_exists:$#&\n  - /how-to/src/TEMPLATE-GUIDE/syntek-author#' "$COPIER"; SA_SETS_FOR=""
+  probe "check 25 fires on a folder line under how-to/" "check 25 — _skip_if_exists names /how-to/src/TEMPLATE-GUIDE/syntek-author"
+  cp "$tmp/c" "$COPIER"; SA_SETS_FOR=""
   mv "$t/planning/src/units/example-proposal.md" "$tmp/h"
   probe "check 4 fires when an example is missing" "check 4"
   mv "$tmp/h" "$t/planning/src/units/example-proposal.md"
@@ -912,13 +1116,28 @@ self_test() {
   printf '# a handoff\n' > "$t/handoffs/HANDOFF-X-01-01-2027.md";  probe "check 11 fires on a file in a pair-only folder" "check 11 — handoffs/HANDOFF-X"; rm -f "$t/handoffs/HANDOFF-X-01-01-2027.md"
   mkdir -p "$t/learning/a-topic";                                   probe "check 11 fires on a sub-folder in a pair-only folder" "check 11 — learning/a-topic/"; rmdir "$t/learning/a-topic"
   cp "$t/.claude/settings.json" "$tmp/h"
-  sed -i 's/"autoCompactEnabled": false/"autoCompactEnabled": true/' "$t/.claude/settings.json"; probe "check 12 fires when compaction is switched on" "check 12"; cp "$tmp/h" "$t/.claude/settings.json"
+  # The refresh data offers the same value, so only check 12's rule (false, D29) is broken.
+  cp "$SA_ROOT/$REFRESH_DATA" "$tmp/rd"
+  sed -i 's/"autoCompactEnabled": false/"autoCompactEnabled": true/' "$t/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA"; probe "check 12 fires when compaction is switched on" "check 12"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  sed -i 's/"idleCompaction": false/"idleCompaction": true/' "$t/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA"; probe "check 12 fires when idle compaction is switched on" "check 12 — .claude/settings.json idleCompaction is not false"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
   settings_edit() { python3 -c "import json, sys; d = json.load(open(sys.argv[1])); $1; json.dump(d, open(sys.argv[1], 'w'), indent=2)" "$t/.claude/settings.json" "${@:2}"; }
   settings_edit 'h = d["hooks"]["PreToolUse"][0]["hooks"][0]; h["command"] = h["command"].replace(" || exit 0", "")'
   probe "check 12 fires when the guard is not the merged seed's command" "check 12 — .claude/settings.json does not wire the data-root guard exactly"
   cp "$tmp/h" "$t/.claude/settings.json"
-  settings_edit 'd["hooks"]["PreToolUse"].append({"matcher": "Bash", "hooks": [{"type": "command", "command": "true"}]})'
-  probe "check 12 fires on a second PreToolUse entry" "check 12 — .claude/settings.json has 2 PreToolUse entries"
+  settings_edit 'd["hooks"]["PreToolUse"].append(d["hooks"]["PreToolUse"][0])'
+  probe "check 12 fires on a second PreToolUse entry that runs the data-root guard" "check 12 — .claude/settings.json has 2 PreToolUse entries that run the data-root guard"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  settings_edit 'p = d["hooks"]["PreToolUse"]; p[0], p[1] = p[1], p[0]'
+  probe "check 12 fires when the data-root guard is not the first PreToolUse entry" "check 12 — .claude/settings.json wires the data-root guard as PreToolUse entry 2, not the first"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  settings_edit 'h = d["hooks"]["PreToolUse"][1]["hooks"][0]; h["command"] = h["command"].replace("|| exit 0", "&&", 1)'
+  probe "check 26 fires when the guide guard's command is not the self-locating form" "check 26 — .claude/settings.json does not wire the guide guard exactly"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  settings_edit 'd["hooks"]["PreToolUse"][1]["hooks"][0]["timeout"] = 5'
+  probe "check 26 fires when the guide guard's timeout changes" "check 26 — .claude/settings.json does not wire the guide guard exactly"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  settings_edit 'x = d["permissions"]["deny"]; x.remove(sys.argv[2]); x.insert(x.index("Edit(build/**)"), sys.argv[2])' "$SA_HOWTO_DENY"
+  probe "check 26 fires when the guide's deny is not straight after Edit(build/**)" "check 26 — .claude/settings.json does not deny $SA_HOWTO_DENY directly after Edit(build/**)"
   cp "$tmp/h" "$t/.claude/settings.json"
   settings_edit 'd["hooks"]["PreToolUse"][0]["matcher"] = "Edit|Write"'
   probe "check 12 fires when the guard misses the search tools" "check 12 — .claude/settings.json wires its PreToolUse entry for 'Edit|Write'"
@@ -931,6 +1150,9 @@ self_test() {
   cp "$tmp/h" "$t/.claude/settings.json"
   settings_edit 'd["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] += " --quiet"'
   probe "check 12 fires when a D29 hook changes" "check 12 — .claude/settings.json changes the D29 UserPromptSubmit hook"
+  cp "$tmp/h" "$t/.claude/settings.json"
+  settings_edit 'd["hooks"]["SessionStart"][0]["hooks"][0]["command"] = d["hooks"]["SessionStart"][0]["hooks"][0]["command"].replace(" compacted", " manual")'
+  probe "check 12 fires when the note after a compaction changes" "check 12 — .claude/settings.json changes the D29 SessionStart hook"
   cp "$tmp/h" "$t/.claude/settings.json"
   python3 - "$t/.claude/settings.json" <<'GATE'
 import sys
@@ -992,6 +1214,8 @@ GATE
   probe "check 23 fires when the map is ignored only in some projects" "check 23 — .gitignore holds $SA_CRG_IGNORE_LINE only inside a block (INCLUDE_REFERENCES)"
   { cat "$tmp/h"; printf '!/.code-review-graph/\n'; } > "$t/.gitignore"
   probe "check 23 fires when a later rule re-includes the map" "check 23 — .gitignore does not ignore .code-review-graph/graph.db"
+  grep -vxF '/.claude/compaction-marker-*.tmp' "$tmp/h" > "$t/.gitignore"
+  probe "check 27 fires when the seed .gitignore does not ignore the markers" "check 27 — .gitignore does not ignore .claude/compaction-marker-abc123.tmp"
   sed "s#^<: if DATA_STORE == 'external' :>##; s#^<: endif :>\# ----#\# ----#" "$tmp/h" > "$t/.gitignore"
   probe "check 24 fires when the data-root pointer is not gated" "check 24 — .gitignore's data-root pointer is not inside a <: if DATA_STORE == 'external' :> block (it sits under no block)"
   sed "s#DATA_STORE == 'external' :>#DATA_STORE != 'repo' :>#" "$tmp/h" > "$t/.gitignore"
@@ -1005,7 +1229,7 @@ GATE
   mkdir -p "$r/.claude"
   python3 -c 'import json, sys; print(json.dumps(json.loads(sys.argv[1]), indent=4))' "$SA_MCP_SHARED" > "$r/.mcp.json"
   cp "$t/.claude/settings.json" "$r/.claude/settings.json"
-  printf 'build/\n\n%s\n\n# ----\n%s\n\n# ----\n' "$SA_CRG_IGNORE_LINE" "$SA_GITIGNORE_DATAROOT_LINE" > "$r/.gitignore"
+  printf 'build/\n*.tmp\n\n%s\n\n# ----\n%s\n\n# ----\n' "$SA_CRG_IGNORE_LINE" "$SA_GITIGNORE_DATAROOT_LINE" > "$r/.gitignore"
   printf 'DOC_TYPE: business\nINCLUDE_REFERENCES: false\nDATA_STORE: external\n' > "$r/$SA_ANSWERS_FILE"
   TREE="$r"
   probe_clean "a render whose .mcp.json declares the two servers in its own layout, the pointer under external"

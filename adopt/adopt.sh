@@ -57,6 +57,9 @@
 #     a link or a file), with the --exclude the printed copy command then carries; for an
 #     .agents link to a folder outside the repository, the printed copy is wrapped in the two
 #     mv lines that hold the link aside and put it back (never run by this script)
+#   - how-to/ (DESIGN.md D56): how-to that is a file or a link (the copy would stop or write
+#     through it), the repository's own files at the user guide's paths, and its other files
+#     under how-to/
 #
 # THE DATA ROOT, both modes (DESIGN.md Section 8, D50). A fresh copy keeps binary files outside
 # the repository (DATA_STORE external), but an adopted repository usually tracks its scans,
@@ -123,8 +126,9 @@
 #
 # Exit codes:  0 = report printed (and, with --apply, every safe move made)
 #              1 = --apply: one or more moves failed and were left where they were
-#              2 = usage error, --apply refused (not a git work tree, or on main/master), or
-#                  --additive could not render the template (no Copier, a bad answers file)
+#              2 = usage error, --apply refused (not a git work tree, on main/master, or how-to
+#                  a link or a file), or --additive could not render the template (no Copier, a
+#                  bad answers file)
 
 set -euo pipefail
 shopt -s nullglob
@@ -138,17 +142,18 @@ Usage: adopt.sh --kind theology|fiction|business [--apply] [TARGET]
        adopt.sh --kind theology|fiction|business --additive [--answers FILE] [TARGET]
 
 Moving adoption (the default): reports (or, with --apply, makes) the moves an existing
-writing repository needs before `uvx copier copy --trust --overwrite --data-file <answers>
---data SEED_EXAMPLES=false --data DATA_STORE=repo gh:Syntek-Dev/syntek-author .` can adopt
-it. Advisory unless --apply is given. Never overwrites, never deletes.
+writing repository needs before `uvx --python '>=3.14' copier copy --trust --overwrite
+--data-file <answers> --data SEED_EXAMPLES=false --data DATA_STORE=repo
+gh:Syntek-Dev/syntek-author .` can adopt it. Advisory unless --apply is given. Never
+overwrites, never deletes.
 
 Both modes keep your binary files in Git (--data DATA_STORE=repo), unless another syntek
 template's answers file here records a store: the copy then takes that one, and passes none.
 
-Additive adoption (--additive, report only): what `uvx copier copy --trust --skip '*'
---skip-tasks --data-file <answers> --data SEED_EXAMPLES=false <template> .` will add and
-keep, the template paths your ignore rules hide, your files that unticking a family or
-turning an option off would delete, the mode files it writes beside skills you keep
+Additive adoption (--additive, report only): what `uvx --python '>=3.14' copier copy
+--trust --skip '*' --skip-tasks --data-file <answers> --data SEED_EXAMPLES=false <template> .`
+will add and keep, the template paths your ignore rules hide, your files that unticking a
+family or turning an option off would delete, the mode files it writes beside skills you keep
 (inert), the files of yours with a template file's name in a neighbouring folder (and the
 ## Overrides redirect for each), whether each kept file is committed, untracked or ignored,
 and the index files to extend by hand. It previews this clone at HEAD and prints that source
@@ -216,6 +221,11 @@ if [ "$APPLY" -eq 1 ]; then
   case "$BRANCH" in
     main | master) die "--apply will not run on '$BRANCH': git switch -c adopt-syntek-author first" ;;
   esac
+  # The user guide (DESIGN.md D56): a copy stops on how-to as a file or a link outside the
+  # repository, and writes the guide through a link inside it, so nothing is moved before then.
+  if [ -L how-to ] || { [ -e how-to ] && [ ! -d how-to ]; }; then
+    die "how-to is a link or a file, not a folder: a copy would stop, or write the user guide through it. Make it a real folder first (with the author); --apply moved nothing."
+  fi
 fi
 
 MOVED=0
@@ -610,6 +620,22 @@ PY
   fi
 fi
 
+# The top-level values the template offers a kept settings.json (D29, D51), READ from the same
+# refresh data's "settings" (each scalar key, with its value as JSON). Without python3 or the
+# file, the two values the handoff hooks assume, both false.
+TOP_VALUES=()
+if [ -f "$SCRIPT_DIR/../migrations/family-refresh.json" ] && command -v python3 >/dev/null 2>&1; then
+  mapfile -t TOP_VALUES < <(python3 -I - "$SCRIPT_DIR/../migrations/family-refresh.json" 2>/dev/null <<'PY' || true
+import json, re, sys
+s = (json.load(open(sys.argv[1], encoding="utf-8")) or {}).get("settings") or {}
+for k, v in (s.items() if isinstance(s, dict) else []):
+    if isinstance(v, (bool, int, float, str)) and re.fullmatch(r"[A-Za-z0-9_]+", k):
+        print("%s\t%s" % (k, json.dumps(v)))
+PY
+  )
+fi
+[ "${#TOP_VALUES[@]}" -gt 0 ] || TOP_VALUES=($'autoCompactEnabled\tfalse' $'idleCompaction\tfalse')
+
 # What git holds of a path, from the in_head and in_index sets additive_report fills: committed,
 # staged (in the index, not yet in a commit), ignored or untracked; empty outside git.
 kept_state() { # $1 = path
@@ -682,8 +708,80 @@ dataroot_report() { # $1 = moving or additive
   done
   # The seed alone wires the guard, so a kept settings.json never gains it (D50 Section 6).
   if [ -f .claude/settings.json ] && ! grep -q 'dataroot\.py' .claude/settings.json; then
-    note ".claude/settings.json is kept as yours, and no copy or update adds the data-root guard to it (a PreToolUse hook that stops a session writing under a data root): copy that entry by hand from the template's seed, $(tpl_file .claude/settings.json)"
+    note ".claude/settings.json is kept as yours, and no copy or update adds the data-root guard to it (a PreToolUse hook that stops a session writing under a data root): copy the data-root guard's object (the one that runs .claude/syntek-*-dataroot.py) by hand into the \"PreToolUse\" list of its \"hooks\", from the template's seed, $(tpl_file .claude/settings.json)"
   fi
+  return 0
+}
+
+# The user guide, both modes (DESIGN.md D56), read from the template/how-to/ of the clone this
+# runs from: how-to that is not a folder (a copy stops on a file or a link outside the
+# repository, and writes the guide through a link inside it); a root entry that differs from
+# how-to only in letter case; the repository's own files at the guide's paths, which the copy
+# keeps (a shared file, never written over) or replaces (this template's own, moving) and the
+# first update restores; and its other files under how-to/, which no template ships and which
+# from v0.6.0 the rules call the templates' read-only guide (git-listed, D42).
+howto_report() { # $1 = moving or additive
+  local p v e f name n=0
+  local -a shared=() own=() sibs=() listed=()
+  local -A shipped=()
+  [ -d "$TEMPLATE_DIR/how-to" ] || return 0
+  while IFS= read -r p; do
+    shipped[$p]=1
+    case "$p" in */syntek-author/*) own+=("$p") ;; *) shared+=("$p") ;; esac
+  done < <(cd "$TEMPLATE_DIR" && find how-to -type f | LC_ALL=C sort)
+  heading "The user guide — how-to/, read-only in every project (DESIGN.md D56)"
+  if [ -L how-to ]; then
+    note "how-to is a link to $(readlink how-to), not a folder: a copy writes the user guide through a link inside the repository, and stops (exit 1) on a file or a link outside it. Make how-to a real folder before the copy (move this one aside, with the author)."
+    n=$((n + 1))
+  elif [ -e how-to ] && [ ! -d how-to ]; then
+    note "how-to is a file, not a folder: a copy writes the user guide through a link inside the repository, and stops (exit 1) on a file or a link outside it. Make how-to a real folder before the copy (move this one aside, with the author)."
+    n=$((n + 1))
+  fi
+  for e in *; do
+    if [ "$e" != how-to ] && [ "${e,,}" = how-to ]; then
+      note "'$e' differs from how-to only in letter case: on a disk that ignores case the copy writes the user guide's files into it. Rename it, with the author, before the copy."
+      n=$((n + 1))
+    fi
+  done
+  if [ -d how-to ] && [ ! -L how-to ]; then
+    for p in "${shared[@]}"; do
+      if [ -f "$p" ] && [ ! -L "$p" ] && ! cmp -s -- "$p" "$TEMPLATE_DIR/$p"; then
+        note "$p is kept by the copy (a shared file is never written over); the first copier update puts the template's text there, because how-to/ is read-only, and lists it; your text stays in git"
+        n=$((n + 1))
+      fi
+    done
+    # This template's own paths, but a variant chapter the kind never ships.
+    while IFS=$'\t' read -r v p _; do
+      [ "$v" != closed ] || continue
+      if [ "$1" = moving ]; then
+        note "$p is a template path: --overwrite replaces it with the template's"
+      else
+        note "$p is kept by the copy; the first update brings conflict markers into it, then puts the template's text back"
+      fi
+      n=$((n + 1))
+    done < <(for p in "${own[@]}"; do if [ -e "$p" ] || [ -L "$p" ]; then printf '%s\n' "$p"; fi; done \
+               | ship_verdicts "$COPIER_YML" "$KIND" "$STORE")
+    # Another template's own folders, for each answers file at the root.
+    for f in .copier-answers.*.yml; do
+      [ "$f" != .copier-answers.syntek-author.yml ] || continue
+      name=${f#.copier-answers.}; name=${name%.yml}
+      sibs+=("how-to/docs/$name/" "how-to/src/TEMPLATE-GUIDE/$name/" "how-to/workflows/$name/")
+    done
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      mapfile -t listed < <(git ls-files -co --exclude-standard -- how-to/ 2>/dev/null | LC_ALL=C sort -u)
+    else
+      mapfile -t listed < <(find how-to \( -type f -o -type l \) 2>/dev/null | LC_ALL=C sort)
+    fi
+    for p in "${listed[@]}"; do
+      [ -z "${shipped[$p]:-}" ] || continue
+      for f in "${sibs[@]}"; do
+        case "$p" in "$f"*) continue 2 ;; esac
+      done
+      note "$p belongs to no template: from v0.6.0 how-to/ is the templates' read-only guide. Move it first: a guide to a layer's docs/project/, a procedure to its workflows/local/"
+      n=$((n + 1))
+    done
+  fi
+  [ "$n" -gt 0 ] || item clean "nothing of yours under how-to/: the copy writes the user guide there"
   return 0
 }
 
@@ -731,7 +829,9 @@ additive_report() {
   tpl_root=$(cd "$SCRIPT_DIR/.." && pwd)
   [ -f "$tpl_root/copier.yml" ] || die "no copier.yml beside this script: run it from a clone of syntek-author"
   if [ -n "${COPIER_CMD:-}" ]; then copier=$COPIER_CMD
-  elif command -v uvx >/dev/null 2>&1; then copier="uvx copier"
+  # The minimum the shown commands ask for (D18): one word each, as $copier is split and never
+  # parsed again, so the >= is never a redirection, and quotes would reach uv as part of it.
+  elif command -v uvx >/dev/null 2>&1; then copier="uvx --python >=3.14 copier"
   elif command -v copier >/dev/null 2>&1; then copier="copier"
   else die "--additive renders the template to compare it with this repository, and needs uvx (or copier) on PATH"; fi
   render=$(mktemp -d "${TMPDIR:-/tmp}/adopt-additive.XXXXXX") || die "could not create a temporary folder"
@@ -1083,6 +1183,7 @@ additive_report() {
   fi
 
   dataroot_report additive
+  howto_report additive
   mcp_report additive "$pv"
 
   heading "The settings file — where the template reads this repository's conventions"
@@ -1129,18 +1230,18 @@ additive_report() {
   if [ -n "$tag" ] && [ -z "$dirty" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact. This clone is
        clean at the tag $tag, so that published release is the same tree:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=$tag gh:Syntek-Dev/syntek-author .")
+         $(copy_cmd "         " "uvx --python '>=3.14' copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=$tag gh:Syntek-Dev/syntek-author .")
        (Or this clone: $q in place of gh:…, and --vcs-ref=HEAD.)"
   elif [ -n "$ref" ]; then
     step3="    3. Copy from the source and ref this report previewed, or it is not exact:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=HEAD $q .")
+         $(copy_cmd "         " "uvx --python '>=3.14' copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA --vcs-ref=HEAD $q .")
        Copier records that ABSOLUTE path for every later update.${dirty:+ This clone has uncommitted
        changes, which Copier copies too: commit them first, so the version it records is one
        this clone holds.} For a published release of gh:Syntek-Dev/syntek-author instead, check
        this clone out at that release's tag and run this report again."
   else
     step3="    3. Copy from the folder this report previewed, or it is not exact:
-         $(copy_cmd "         " "uvx copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA $q .")
+         $(copy_cmd "         " "uvx --python '>=3.14' copier copy --trust --skip '*' --skip-tasks$AGX --data-file $ans --data SEED_EXAMPLES=false$STORE_DATA $q .")
        It is not a git clone, so Copier records no version and no update can follow: prefer a
        clone of gh:Syntek-Dev/syntek-author at a release tag, and run this report from it."
   fi
@@ -1429,6 +1530,7 @@ fi
 # ── The data root and the MCP servers (D50, D54) ─────────────────────────────
 
 dataroot_report moving
+howto_report moving
 mcp_report moving
 
 # ── Seeds the copy will keep ─────────────────────────────────────────────────
@@ -1447,15 +1549,24 @@ elif [ "$found" -eq 0 ]; then
 fi
 lacks() { note "$1 lacks $2 — compare it with the template's seed"; }
 if [ -f .claude/settings.json ]; then
-  if ! grep -Eq '"autoCompactEnabled"[[:space:]]*:' .claude/settings.json; then
-    note ".claude/settings.json lacks \"autoCompactEnabled\": false (hand off, never compact): the moving copy, or your first copier update after an additive one, adds it"
-  elif ! grep -Eq '"autoCompactEnabled"[[:space:]]*:[[:space:]]*false' .claude/settings.json; then
-    note ".claude/settings.json sets autoCompactEnabled to another value than false: it is kept and reported, never changed; the handoff hooks assume false, so set it to false to use them"
-  fi
+  # The top-level values the template offers (TOP_VALUES, read above): for D29, an idle
+  # compaction is an automatic one, so both autoCompactEnabled and idleCompaction are false.
+  top_list=()
+  for kv in "${TOP_VALUES[@]}"; do
+    top_key=${kv%%$'\t'*}; top_val=${kv#*$'\t'}
+    top_list+=("\"$top_key\": $top_val")
+    top_re=$(printf '%s' "$top_val" | sed 's/[][\.*^$+?(){}|/]/\\&/g')
+    if ! grep -Eq "\"$top_key\"[[:space:]]*:" .claude/settings.json; then
+      note ".claude/settings.json lacks \"$top_key\": $top_val, which the template's settings set: the moving copy, or your first copier update after an additive one, adds it"
+    elif ! grep -Eq "\"$top_key\"[[:space:]]*:[[:space:]]*$top_re([[:space:]]*[,}]|[[:space:]]*\$)" .claude/settings.json; then
+      note ".claude/settings.json sets $top_key to another value than $top_val: it is kept and reported, never changed; the template's settings assume $top_val (the handoff hooks, for autoCompactEnabled and idleCompaction), so set it to $top_val to use them"
+    fi
+  done
   grep -q 'PreCompact' .claude/settings.json || lacks .claude/settings.json 'the PreCompact hook'
+  grep -Eq 'pre-compact-handoff\.sh[^,]*compacted' .claude/settings.json || lacks .claude/settings.json 'the SessionStart hook for the note after a /compact'
   grep -q 'context-threshold-handoff' .claude/settings.json || lacks .claude/settings.json 'the UserPromptSubmit hand-off hook'
   grep -q 'AskUserQuestion' .claude/settings.json || lacks .claude/settings.json 'the AskUserQuestion deny'
-  note ".claude/settings.json is kept, and gains only the hook entries and deny and ask rules the template lists and \"autoCompactEnabled\": false where the key is absent (D51): the moving copy adds the missing ones into your file's own text; the additive copy (--skip-tasks) adds none, and your first copier update does. Nothing is removed or changed: a rule you allow, or an autoCompactEnabled value you set, is reported, never changed"
+  note ".claude/settings.json is kept, and gains only the hook entries and deny and ask rules the template lists, and $(join_and "${top_list[@]}") where each key is absent (D51): the moving copy adds the missing ones into your file's own text; the additive copy (--skip-tasks) adds none, and your first copier update does. Nothing is removed or changed: a rule you allow, or a top-level value you set, is reported, never changed"
   if grep -Eq '"(enabledPlugins|effortLevel)"' .claude/settings.json; then
     note ".claude/settings.json holds owner-specific keys (plugins, effort level): they belong in your user settings, not the project's"
   fi
@@ -1543,7 +1654,7 @@ cat <<EOF
   Next:
     1. Review with \`git add -A && git diff --cached -M\`, then commit on this branch.
     2. Copy and edit an answers file: $SCRIPT_DIR/examples/$KIND.answers.yml$( [ -z "$STORE_FROM" ] || printf '\n       Delete its DATA_STORE: repo line: the copy takes %s from %s.' "$STORE" "$STORE_FROM")
-    3. $(copy_cmd "       " "uvx copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false$STORE_DATA gh:Syntek-Dev/syntek-author .")
+    3. $(copy_cmd "       " "uvx --python '>=3.14' copier copy --trust --overwrite$AGX --data-file <answers> --data SEED_EXAMPLES=false$STORE_DATA gh:Syntek-Dev/syntek-author .")
        (From a local clone: its ABSOLUTE path in place of gh:…, plus --vcs-ref=HEAD. Copier
        records the path for every later update, and a relative one breaks them all.)
     4. Review git diff: recover project text the copy replaced into docs/project/,

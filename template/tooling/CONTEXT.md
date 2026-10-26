@@ -70,9 +70,9 @@ tooling/
   them as `make lexicon`, `make derive`, `make coverage`, `make family`, `make glossary` and
   `make script-sample`. Every string they read is NFC-normalised, so a character typed two ways
   is one character; each has a `--self-test`.
-- `font.py` — the one script with a dependency (fontTools), declared inline and run with
-  `uv run`, so nothing is installed globally: `make font` builds `build/fonts/<slug>.otf`, which
-  native-script words in the printed book use.
+- `font.py` — the one script with a dependency (fontTools), declared inline with the Python it
+  needs and run with `uv run`, which fetches both, so nothing is installed globally: `make font`
+  builds `build/fonts/<slug>.otf`, which native-script words in the printed book use.
 - `conlang_common.py` — not run directly: the one copy of what `lexicon.py`, `script.py` and
   `font.py` must agree on, above all how glyphs get their Private Use Area code points, so the
   text `script.py` writes is the text the font draws.
@@ -85,8 +85,12 @@ tooling/
   it, and writes the comparison as a Pandoc document, in the order of the brief's `sections:`
   list. `compare.yaml` lays it out (read after `defaults.yaml`, never with `-V`), and
   `tooling/latex/compare.tex` gives it its colours and line styles.
-- Every script here is standard-library Python 3.11 or later, with no
-  dependencies<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, except `font.py`<: endif :>.
+- Every script here is standard-library Python 3.14 or later, with no
+  dependencies<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, except `font.py`<: endif :>. **On an older Python nothing runs:** each script refuses
+  before it reads or writes anything, and says loudly on stderr which Python it found and that you
+  need to upgrade to Python 3.14, and every `make` target that runs one does the same first
+  (`make python-check`). The minimum is `PYTHON_MIN`: one line in the `Makefile` and one in each
+  script<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>, which `font.py` repeats in its inline `requires-python` for `uv run`<: endif :>.
 - **Nothing here reads a file git ignores.** `make flags`, `make lint`, every other file list
   the `Makefile` builds, `provenance.py` and `compare.py` pass what they find through
   `git check-ignore` and keep only what git does not ignore (or a negation re-includes),

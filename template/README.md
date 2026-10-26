@@ -44,6 +44,7 @@ The brief above is a starting point. The working versions, kept current, are the
 | `handoffs/` | working | Notes that carry work from one session to the next |
 | `learning/` | working | A practice workspace; nothing in it is the work |
 | `assets/` | working | Images and other binaries |
+| `how-to/` | reference | The user guide: how this project works, step-by-step procedures for updating and setting up, and a glossary. Read-only: every update puts it back |
 | `.claude/` | config | Claude Code's manual, rules, memory, settings, hooks and skills |
 
 Each production layer has `docs/` (guides), `src/` (the work) and `workflows/` (step-by-step
@@ -117,9 +118,10 @@ make clean                # remove build/
 Built files are generated: never edit one by hand; change the source and rebuild. The `build/`
 folder is ignored by Git, and no target ever reads a file Git ignores.
 
-**Requirements:** `git`; `make`; Python 3.11 or later; `pandoc`; TeX Live with XeLaTeX (with the
-`xcolor`, `ulem` and `paracol` packages for `make compare`)<: if INCLUDE_REFERENCES :>;
-`sqlite3`<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>; `espeak-ng` (optional, for pronunciation)<: endif :>; and `uv`, for Copier<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> and for building the script fonts (`make font`)<: endif :>.
+**Requirements:** `git`; `make`; Python 3.14 or later, which every script here needs (on an older
+Python each one stops and says so); `pandoc`; TeX Live with XeLaTeX (with the `xcolor`, `ulem`
+and `paracol` packages for `make compare`)<: if INCLUDE_REFERENCES :>;
+`sqlite3`<: endif :><: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :>; `espeak-ng` (optional, for pronunciation)<: endif :>; and `uv`, for Copier on Python 3.14 or later<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> and for building the script fonts (`make font`)<: endif :>.
 
 ---
 
@@ -233,7 +235,7 @@ The template improves over time. To take its changes, commit or stash your own w
 
 ```sh
 GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \
-  uvx copier update --trust -a .copier-answers.syntek-author.yml
+  uvx --python '>=3.14' copier update --trust -a .copier-answers.syntek-author.yml
 git diff                  # review every change before committing
 ```
 
@@ -241,7 +243,13 @@ The five `GIT_CONFIG_*` variables (bash, zsh and other POSIX shells) turn Git's 
 housekeeping off for that one command, which can otherwise stop an update with
 `OSError: [Errno 39] Directory not empty`; give them to every update command below too. Never
 commit what such an update left: syntek-author's own `README.md`, 'Updating a project', gives
-the recovery.
+the recovery, and so does `how-to/workflows/syntek-author/02-recover-a-failed-update/`.
+`--python '>=3.14'` runs Copier on Python 3.14 or later, which the update report needs: left to
+itself, `uvx` may run Copier on an older Python it already has. Keep the quotes, or the shell
+reads `>` as a redirection.
+
+The steps, with every command: `how-to/workflows/syntek-author/01-update-the-template/`; what
+each answer means and costs to change: `how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md`.
 
 Copier may print a `MissingFileWarning` about `.copier-answers.syntek-author.yml`, and another
 about `.copier-answers.syntek-media.yml`. Both are expected and harmless: the template reads
@@ -249,7 +257,8 @@ your previous answers so it can refuse a changed `DOC_TYPE`, and the other synte
 answers so that both keep one data-root layout; without that template there are none.
 
 - **What updates:** the template's own files: the rules in `.claude/rules/syntek-author/`, the
-  skills, the reference guides, the template workflows, the standards and the tooling.
+  skills, the reference guides, the template workflows, the standards and the tooling, and the
+  user guide in `how-to/`, which every update puts back where it differs.
 - **What never changes:** your work, and the files seeded for you once: this README,
   `CONTEXT.md`, `.claude/CLAUDE.md`, `.claude/MEMORY.md`, `.claude/settings.json`,
   `.claude/rules/syntek-author/00-project.md`, `tooling/project.mk`, the style files and the
@@ -272,7 +281,7 @@ answers so that both keep one data-root layout; without that template there are 
   `00-project.md` and the project brief in `.claude/CLAUDE.md`:
 
   ```sh
-  uvx copier update --trust -a .copier-answers.syntek-author.yml --data READER_TEST='…'
+  uvx --python '>=3.14' copier update --trust -a .copier-answers.syntek-author.yml --data READER_TEST='…'
   ```
 
 - **`DOC_TYPE` never changes.** An update refuses a different variant and touches nothing; a

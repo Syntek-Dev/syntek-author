@@ -29,9 +29,11 @@
 #              Sourcing it unsets SYNTEK_DATA_ROOT, so no audit reaches a real data root.
 #              It also hides the machine's global and system git configuration (CI's
 #              runner has no global file, and its system file is hidden too), and pins
-#              UV_PYTHON to python3 where it is unset (CI sets it).
+#              UV_PYTHON to python3 where it is unset (CI sets it). It refuses to run, with
+#              one message saying why, on a python3 or a UV_PYTHON older than SA_PYTHON_MIN.
 #
-# Requirements: bash 4+, git 2.32+, grep, awk, sed. rsync and uvx only for the rendering helpers.
+# Requirements: bash 4+, git 2.32+, grep, awk, sed; python3 SA_PYTHON_MIN or later. rsync and
+#               uvx only for the rendering helpers.
 
 # This file is a library: its catalogue variables are read by the scripts that source it.
 # shellcheck disable=SC2034
@@ -50,6 +52,20 @@ SA_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SA_ROOT="${SA_ROOT:-$(cd "$SA_SCRIPTS_DIR/../.." && pwd)}"
 SA_ANSWERS_FILE=".copier-answers.syntek-author.yml"
 : "${SCRIPT_NAME:=audit}"
+
+# ── The one Python minimum (DESIGN.md D3, D49–D52; .claude/CLAUDE.md Section 9) ──
+#
+# The oldest Python the project's tools run on (the data-root resolver, the permissions script,
+# the hooks, tooling/ and the Makefile), the update script (migrations/family-update.py, which
+# runs on Copier's own Python) and the audits themselves; every shown Copier command asks uv
+# for it. This is the audits' one copy of the number: each tool holds its own PYTHON_MIN, the
+# Makefile PYTHON_MIN :=, CI's setup-python steps the same number, so moving to the next
+# release is one change in each, found with grep -rn PYTHON_MIN and the number itself.
+SA_PYTHON_MIN="3.14"
+# The house form every shown copy or update command runs Copier in (D3): the minimum quoted,
+# since unquoted the shell reads > as a redirection. docs-pairing.sh check 21 holds the shipped
+# text and the repository's own to it; adopt-test.sh reads adopt.sh's printed plan with it.
+SA_UVX_COPIER="uvx --python '>=$SA_PYTHON_MIN' copier"
 
 # ── Logging and findings ─────────────────────────────────────────────────────
 
@@ -357,7 +373,8 @@ modes_list() { # TFB → THEOLOGY.md FICTION.md BUSINESS.md
 # exactly $SA_AGENTS_LINK_TARGET (the one link the template ships, D47: .agents/skills, never a
 # copy of the skills and never a link at .agents itself, which breaks Codex's Linux sandbox).
 # D50 adds the resolver and its map (always, template-owned), rules 09 (always), and the three
-# data-root ignore files, which ship only under DATA_STORE external.
+# data-root ignore files, which ship only under DATA_STORE external. D56 adds the guide guard
+# and every how-to path (always), but the three variant chapters, each gated on its DOC_TYPE.
 SA_AGENTS_LINK_TARGET="../.claude/skills"
 SA_PATHS=$(cat <<'EOF'
 always             f  .copier-answers.syntek-author.yml
@@ -374,6 +391,74 @@ always             f  .claude/hooks/CONTEXT.md
 always             f  .claude/hooks/CLAUDE.md
 always             f  .claude/hooks/pre-compact-handoff.sh
 always             f  .claude/hooks/context-threshold-handoff.sh
+always             f  .claude/hooks/how-to-read-only.sh
+always             d  how-to
+always             d  how-to/docs
+always             d  how-to/docs/syntek-author
+always             d  how-to/src
+always             d  how-to/src/TEMPLATE-GUIDE
+always             d  how-to/src/TEMPLATE-GUIDE/syntek-author
+always             d  how-to/workflows
+always             d  how-to/workflows/syntek-author
+always             d  how-to/workflows/syntek-author/01-update-the-template
+always             d  how-to/workflows/syntek-author/02-recover-a-failed-update
+always             d  how-to/workflows/syntek-author/03-enable-an-agent-client
+always             d  how-to/workflows/syntek-author/04-set-up-the-data-root
+always             f  how-to/CONTEXT.md
+always             f  how-to/CLAUDE.md
+always             f  how-to/docs/CONTEXT.md
+always             f  how-to/docs/CLAUDE.md
+always             f  how-to/src/CONTEXT.md
+always             f  how-to/src/CLAUDE.md
+always             f  how-to/src/TEMPLATE-GUIDE/CONTEXT.md
+always             f  how-to/src/TEMPLATE-GUIDE/CLAUDE.md
+always             f  how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md
+always             f  how-to/src/TEMPLATE-GUIDE/the-data-root.md
+always             f  how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md
+always             f  how-to/workflows/CONTEXT.md
+always             f  how-to/workflows/CLAUDE.md
+always             f  how-to/docs/syntek-author/CONTEXT.md
+always             f  how-to/docs/syntek-author/CLAUDE.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/CONTEXT.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/CLAUDE.md
+always             f  how-to/workflows/syntek-author/CONTEXT.md
+always             f  how-to/workflows/syntek-author/CLAUDE.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/02-prerequisites.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/03-quickstart.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/05-what-gets-generated.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/06-a-tour-of-the-project.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/07-the-writing-loop.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/08-building-proofs.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/09-customising.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/10-a-second-template.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/11-adopting.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/12-troubleshooting.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/13-a-guide-to-skills.md
+always             f  how-to/src/TEMPLATE-GUIDE/syntek-author/17-glossary.md
+always             f  how-to/docs/syntek-author/updating-the-template.md
+always             f  how-to/docs/syntek-author/enabling-an-agent-client.md
+always             f  how-to/docs/syntek-author/setting-up-the-data-root.md
+always             f  how-to/workflows/syntek-author/01-update-the-template/CONTEXT.md
+always             f  how-to/workflows/syntek-author/01-update-the-template/CLAUDE.md
+always             f  how-to/workflows/syntek-author/01-update-the-template/STEPS.md
+always             f  how-to/workflows/syntek-author/01-update-the-template/CHECKLIST.md
+always             f  how-to/workflows/syntek-author/02-recover-a-failed-update/CONTEXT.md
+always             f  how-to/workflows/syntek-author/02-recover-a-failed-update/CLAUDE.md
+always             f  how-to/workflows/syntek-author/02-recover-a-failed-update/STEPS.md
+always             f  how-to/workflows/syntek-author/02-recover-a-failed-update/CHECKLIST.md
+always             f  how-to/workflows/syntek-author/03-enable-an-agent-client/CONTEXT.md
+always             f  how-to/workflows/syntek-author/03-enable-an-agent-client/CLAUDE.md
+always             f  how-to/workflows/syntek-author/03-enable-an-agent-client/STEPS.md
+always             f  how-to/workflows/syntek-author/03-enable-an-agent-client/CHECKLIST.md
+always             f  how-to/workflows/syntek-author/04-set-up-the-data-root/CONTEXT.md
+always             f  how-to/workflows/syntek-author/04-set-up-the-data-root/CLAUDE.md
+always             f  how-to/workflows/syntek-author/04-set-up-the-data-root/STEPS.md
+always             f  how-to/workflows/syntek-author/04-set-up-the-data-root/CHECKLIST.md
+theology           f  how-to/src/TEMPLATE-GUIDE/syntek-author/14-a-theology-book.md
+fiction            f  how-to/src/TEMPLATE-GUIDE/syntek-author/15-a-novel.md
+business           f  how-to/src/TEMPLATE-GUIDE/syntek-author/16-business-documents.md
 always             f  .claude/skills/CONTEXT.md
 always             f  .claude/skills/CLAUDE.md
 always             f  .claude/rules/syntek-author/01-layout-and-routing.md
@@ -682,15 +767,37 @@ SA_EXAMPLE_GATE="_copier_operation == 'update' or not SEED_EXAMPLES"
 # gated on the update. .agents itself is a real folder, never a link and never copy-only.
 SA_COPY_ONLY="AGENTS.md GEMINI.md .agents/skills .agents/mcp_config.json .codex/config.toml .codex/CONTEXT.md .codex/CLAUDE.md .gemini/settings.json .gemini/CONTEXT.md .gemini/CLAUDE.md opencode.json"
 # The shared working practice (DESIGN.md D51, Section 3.6): the seven working-practice SKILL.md
-# files, the two session hooks (mode 755) with the .claude/hooks/ pair, and the handoffs/ pair
-# (both pairs neutral and token-free, so neither copy order collides), copy-only in every
-# family template and kept current by migrations/family-update.py (D52), which refreshes only what
-# migrations/family-refresh.json lists. Each needs an anchored _skip_if_exists line and an
-# _exclude line gated on the update, file by file (never the folder: the skill folders also
-# hold this template's own mode files). Kept apart from SA_COPY_ONLY, which update-test.sh
-# reads as "a client's files": these ship to every project, whatever AGENT_CLIENTS says.
-SA_SHARED_PRACTICE=".claude/skills/grill-me/SKILL.md .claude/skills/grill-with-docs/SKILL.md .claude/skills/grilling/SKILL.md .claude/skills/handoff/SKILL.md .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md .claude/skills/wayfinder/SKILL.md .claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md handoffs/CONTEXT.md handoffs/CLAUDE.md"
-SA_SHARED_HOOKS=".claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh"
+# files, the two session hooks and the guide guard (D56), all mode 755, with the .claude/hooks/
+# pair, and the handoffs/ pair (both pairs neutral and token-free, so neither copy order
+# collides), copy-only in every family template and kept current by migrations/family-update.py
+# (D52), which refreshes only what migrations/family-refresh.json lists. Each needs an anchored
+# _skip_if_exists line and an _exclude line gated on the update, file by file (never the folder:
+# the skill folders also hold this template's own mode files). Kept apart from SA_COPY_ONLY, which
+# update-test.sh reads as "a client's files": these ship to every project, whatever AGENT_CLIENTS
+# says.
+SA_SHARED_PRACTICE=".claude/skills/grill-me/SKILL.md .claude/skills/grill-with-docs/SKILL.md .claude/skills/grilling/SKILL.md .claude/skills/handoff/SKILL.md .claude/skills/to-questionnaire/SKILL.md .claude/skills/wait-what/SKILL.md .claude/skills/wayfinder/SKILL.md .claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh .claude/hooks/CONTEXT.md .claude/hooks/CLAUDE.md handoffs/CONTEXT.md handoffs/CLAUDE.md .claude/hooks/how-to-read-only.sh"
+SA_SHARED_HOOKS=".claude/hooks/pre-compact-handoff.sh .claude/hooks/context-threshold-handoff.sh .claude/hooks/how-to-read-only.sh"
+# The shared how-to files (DESIGN.md D56, Section 3.6): the five container pairs of the user
+# guide and its three shared chapters, copy-only, family-shared, refreshed by D52's script
+# exactly as the working practice above, and restored by it on every update with the rest of
+# how-to/ (migrations/family-refresh.json "restore").
+SA_SHARED_HOWTO="how-to/CONTEXT.md how-to/CLAUDE.md how-to/docs/CONTEXT.md how-to/docs/CLAUDE.md how-to/src/CONTEXT.md how-to/src/CLAUDE.md how-to/src/TEMPLATE-GUIDE/CONTEXT.md how-to/src/TEMPLATE-GUIDE/CLAUDE.md how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md how-to/src/TEMPLATE-GUIDE/the-data-root.md how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md how-to/workflows/CONTEXT.md how-to/workflows/CLAUDE.md"
+# Every file D52's script refreshes: D51's working practice (the guide guard among it) and
+# D56's shared how-to files.
+SA_SHARED_REFRESH="$SA_SHARED_PRACTICE $SA_SHARED_HOWTO"
+# This template's own how-to folders (D56): template-owned, the only other how-to paths it ships.
+SA_HOWTO_OWN="how-to/docs/syntek-author how-to/src/TEMPLATE-GUIDE/syntek-author how-to/workflows/syntek-author"
+# The folders family-refresh.json lists under "restore" (D56).
+SA_RESTORE_DIRS="how-to"
+# The guide guard (D56): its script, matcher and command, and the one deny the seed and
+# family-refresh.json hold (Claude Code checks every file-writing tool against Edit rules).
+SA_HOWTO_GUARD=".claude/hooks/how-to-read-only.sh"
+SA_HOWTO_GUARD_MATCHER="Edit|Write|MultiEdit|NotebookEdit"
+SA_HOWTO_GUARD_CMD="$(cat <<'EOF'
+bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f "$ROOT/.claude/hooks/how-to-read-only.sh" ] || exit 0; exec bash "$ROOT/.claude/hooks/how-to-read-only.sh"'
+EOF
+)"
+SA_HOWTO_DENY="Edit(/how-to/**)"
 # The folders that hold copy-only paths. Each needs an _exclude line of its own gated on the
 # update: Copier 9.17.1 creates an EMPTY folder on an update that crosses the release which
 # introduced it, even when every path inside it is excluded.
@@ -1090,12 +1197,117 @@ if [[ -z "${SA_GIT_ISOLATED:-}" ]]; then
   unset _sa_n
 fi
 
-# uv prefers a managed interpreter over python3, so an unpinned uvx can resolve Copier on an
-# old managed Python (9.3.1 on 3.8, below the floor). CI sets UV_PYTHON; locally, python3.
-if [[ -z "${UV_PYTHON:-}" ]] && command -v python3 >/dev/null 2>&1; then
-  UV_PYTHON="$(command -v python3)"
-  export UV_PYTHON
-fi
+# ── The audits' own Python ───────────────────────────────────────────────────
+#
+# "X.Y" of an interpreter on stdout; status 1, and nothing, where it does not run.
+sa_py_version() { # $1 = interpreter
+  local v
+  v="$("$1" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null)" || return 1
+  [[ "$v" =~ ^[0-9]+\.[0-9]+$ ]] || return 1
+  printf '%s\n' "$v"
+}
+# True where version $1 (X.Y) is older than $2 (X.Y; SA_PYTHON_MIN by default).
+sa_py_older() { # $1 = X.Y, $2 = X.Y
+  local a="$1" b="${2:-$SA_PYTHON_MIN}"
+  [[ "$a" =~ ^[0-9]+\.[0-9]+$ && "$b" =~ ^[0-9]+\.[0-9]+$ ]] || return 1
+  (( 10#${a%%.*} < 10#${b%%.*} || (10#${a%%.*} == 10#${b%%.*} && 10#${a#*.} < 10#${b#*.}) ))
+}
+
+# The pin. Every audit runs python3 itself (the resolver, the permissions script, the update
+# script's self-test, the JSON and TOML readers), and uvx runs Copier, with the update script
+# inside it, on UV_PYTHON. On a Python older than SA_PYTHON_MIN each of those refuses to run, by
+# design, so every finding would be the interpreter's and none the template's: refuse once, here,
+# loudly, before anything runs. uv prefers a managed interpreter over python3, so an unpinned uvx
+# can resolve Copier on an old managed Python (9.3.1 on 3.8, below the floor): CI sets UV_PYTHON
+# to a version; locally it is pinned to python3. A UV_PYTHON that is a version, a path or any
+# request uv can find without a download is judged too; one uv would download is uv's to fetch.
+# SA_PYTHON_PINNED keeps a child process from judging the same pair again.
+sa_python_pin() {
+  local py v req want
+  py="$(command -v python3 2>/dev/null || true)"
+  [[ "${SA_PYTHON_PINNED:-}" != "$py|${UV_PYTHON:-}" || -z "$py" ]] || return 0
+  if [[ -n "$py" ]]; then
+    v="$(sa_py_version "$py")" || die "python3 ($py) does not run, so nothing ran"
+    if sa_py_older "$v"; then
+      die "python3 is Python $v ($py), and the audits need Python $SA_PYTHON_MIN or later: the minimum of the project's tools, of the update script and of every shown Copier command ($SA_UVX_COPIER …), each of which refuses an older Python. Nothing ran. Upgrade to Python $SA_PYTHON_MIN (or put it first on PATH; CI's setup-python steps name it) and run again."
+    fi
+  fi
+  if [[ -n "${UV_PYTHON:-}" ]]; then
+    req="$UV_PYTHON"; want=""
+    if [[ "$req" =~ ^([0-9]+\.[0-9]+)(\.[0-9]+)?$ ]]; then want="${BASH_REMATCH[1]}"
+    elif [[ "$req" == */* && -x "$req" ]]; then want="$(sa_py_version "$req" || true)"
+    elif command -v uv >/dev/null 2>&1; then
+      want="$(UV_PYTHON_DOWNLOADS=never uv python find "$req" 2>/dev/null || true)"
+      [[ -z "$want" ]] || want="$(sa_py_version "$want" || true)"
+    fi
+    if [[ -n "$want" ]] && sa_py_older "$want"; then
+      die "UV_PYTHON is '$req' (Python $want), so uvx would run Copier, and the update script inside it, on a Python older than $SA_PYTHON_MIN, where that script refuses to run. Nothing ran. Unset UV_PYTHON, or set it to $SA_PYTHON_MIN or later, and run again."
+    fi
+  elif [[ -n "$py" ]]; then
+    UV_PYTHON="$py"
+    export UV_PYTHON
+  fi
+  SA_PYTHON_PINNED="$py|${UV_PYTHON:-}"
+  export SA_PYTHON_PINNED
+}
+sa_python_pin
+
+# The loud message an older Python earns (the maintainer's decision of 23/10/2026): a command
+# refuses and a hook warns, each saying it did not run (or work) because this is Python A.B and
+# it needs SA_PYTHON_MIN or later, and asking for an upgrade. SA_LOUD_DEF defines unloud(text,
+# old, need), the list of what a text lacks of it (nothing when it is loud: the Python it runs on,
+# the minimum, that it did not run, the word upgrade, in any letter case, and no traceback);
+# tooling-smoke.sh's judges and update-test.sh's check 100 read it. sa_loud_lacks prints that
+# list for a file, comma-separated.
+SA_LOUD_DEF='
+import re
+import sys
+
+
+def unloud(text, old, need):
+    t = " ".join(text.lower().split())
+    miss = []
+    if not re.search(r"python[ 3]*(?:is )?" + re.escape(old) + r"(?![0-9])", t):
+        miss.append("the Python it runs on (Python %s)" % old)
+    if not re.search(re.escape(need) + r"(?:\.[0-9]+)? or (?:later|newer)", t):
+        miss.append("the minimum (%s or later)" % need)
+    if not re.search(r"did(?: not|n.t) (?:run|work)", t):
+        miss.append("that it did not run")
+    if "upgrade" not in t:
+        miss.append("the word upgrade")
+    if "traceback (most recent call last)" in t or "syntaxerror" in t:
+        miss.append("no traceback (it printed one)")
+    return miss
+'
+sa_loud_lacks() { # $1 = file, $2 = the older Python's X.Y
+  python3 -I -c "$SA_LOUD_DEF"'
+print(", ".join(unloud(open(sys.argv[1], errors="replace").read(), sys.argv[2], sys.argv[3])))' "$1" "$2" "$SA_PYTHON_MIN"
+}
+
+# An interpreter older than SA_PYTHON_MIN, for the checks that prove every tool refuses one
+# loudly (tooling-smoke.sh checks 73–81, update-test.sh checks 100–101). SA_OLD_PYTHON names one
+# (CI installs one); otherwise the newest Python
+# 3.N below the minimum, down to 3.8 (the oldest grammar the tools must still parse), as
+# python3.N on PATH or as uv finds it (never a download). Prints its path; status 1 and a reason
+# on stdout where there is none. Testing installs belong under TMPDIR (UV_PYTHON_INSTALL_DIR
+# there), never in the home folder.
+sa_old_python() {
+  local c v n major="${SA_PYTHON_MIN%%.*}" minor="${SA_PYTHON_MIN#*.}"
+  if [[ -n "${SA_OLD_PYTHON:-}" ]]; then
+    v="$(sa_py_version "$SA_OLD_PYTHON" || true)"
+    if [[ -n "$v" ]] && sa_py_older "$v" && ! sa_py_older "$v" 3.8; then printf '%s\n' "$SA_OLD_PYTHON"; return 0; fi
+    printf 'SA_OLD_PYTHON (%s) is not a Python from 3.8 to below %s\n' "$SA_OLD_PYTHON" "$SA_PYTHON_MIN"; return 1
+  fi
+  for (( n = 10#$minor - 1; n >= 8; n-- )); do
+    for c in "$(command -v "python$major.$n" 2>/dev/null || true)" \
+             "$(command -v uv >/dev/null 2>&1 && env -u UV_PYTHON UV_PYTHON_DOWNLOADS=never uv python find "$major.$n" 2>/dev/null || true)"; do
+      [[ -n "$c" ]] || continue
+      [[ "$(sa_py_version "$c" || true)" == "$major.$n" ]] && { printf '%s\n' "$c"; return 0; }
+    done
+  done
+  printf 'no Python from 3.8 to below %s here (python3.N on PATH, or uv python find; SA_OLD_PYTHON names one)\n' "$SA_PYTHON_MIN"
+  return 1
+}
 
 sa_git() { # $1 = dir, then git arguments — with an identity, so CI needs no global config
   # Automatic housekeeping stays off: a commit can start a background gc or maintenance run that
@@ -1184,6 +1396,7 @@ _message_before_update: |
     DATA_PROVIDER other than google-drive, or DATA_STORE external
     DATA_STORE=repo
     BUSINESS_FAMILIES, a family unticked
+  From v0.6.0 the template writes its user guide under how-to/ and keeps it read-only (D56).
 _templates_suffix: ""
 _envops:
   variable_start_string: "<%"

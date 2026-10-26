@@ -323,9 +323,9 @@ case "$GUARD" in
     fi
     printf ' It stops Claude Code editing or writing a file under a\n'
     printf '  data root (on macOS, Linux and WSL it stops edits and writes, not searches). To wire\n'
-    printf '  it, add this entry under "hooks" in .claude/settings.json:\n\n'
+    printf '  it, add this object to the "PreToolUse" list under "hooks" in .claude/settings.json\n'
+    printf '  (create the list, "PreToolUse": [ ], where there is none):\n\n'
     cat <<'ENTRY'
-    "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit|Grep|Glob",
         "hooks": [
@@ -336,7 +336,6 @@ case "$GUARD" in
           }
         ]
       }
-    ]
 ENTRY
     ;;
 esac
@@ -350,7 +349,7 @@ case "$STORE" in
   repo)
     printf '\n  To keep binary files outside the repository instead, update with\n'
     printf '    GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=gc.auto GIT_CONFIG_VALUE_0=0 GIT_CONFIG_KEY_1=maintenance.auto GIT_CONFIG_VALUE_1=false \\\n'
-    printf '      uvx copier update --trust -a %s --data DATA_STORE=external\n' "$ANSWERS"
+    printf '      uvx --python %s copier update --trust -a %s --data DATA_STORE=external\n' "'>=3.14'" "$ANSWERS"
     printf '  then run make files-plan.\n'
     ;;
 esac
@@ -386,5 +385,12 @@ if [[ ${#STALE[@]} -gt 0 ]]; then
 fi
 
 printf '\n  This script changed nothing. To run it again:\n'
-printf '    %s\n\n' "$(rerun_cmd "$SCRIPT_BASENAME")"
+printf '    %s\n' "$(rerun_cmd "$SCRIPT_BASENAME")"
+if [[ "$GUARD" == missing || "$GUARD" == unwired ]]; then
+  # The v0.5.0 release this command clones prints the guard as a whole "PreToolUse" key; a
+  # project past v0.6.0 already has that key, and JSON keeps only the last of two.
+  printf '  That copy prints the guard as a whole "PreToolUse" key: where .claude/settings.json\n'
+  printf '  already has a "PreToolUse" list, add only the object above to it, never a second key.\n'
+fi
+printf '\n'
 exit 0

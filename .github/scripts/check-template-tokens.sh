@@ -18,7 +18,7 @@
 #                            byte-identical is not — and a shared skill that renders differently
 #                            per variant is a fork nobody can review.
 #
-#                            Nine checks:
+#                            Ten checks:
 #                              1. Malformed variable — a lower-case name, an empty expression, or
 #                                 a backslash or asterisk inside it (Prettier escaping an
 #                                 underscore, or pairing it with _emphasis_).
@@ -40,6 +40,12 @@
 #                              9. An index file gating a row with an expression that is not a
 #                                 shipping gate: one of DESIGN.md Section 3.5's gates, or the
 #                                 negation of a templated _exclude line in copier.yml.
+#                             10. A chapter of the user guide (every
+#                                 how-to/src/TEMPLATE-GUIDE/**/*.md but the pair; DESIGN.md D56)
+#                                 holds a delimiter, any of the three openers, an identity token
+#                                 or a raw block included: a shared chapter's bytes are compared
+#                                 across templates, and each template renders its own DATE, so
+#                                 no chapter carries one.
 #
 #                            The spine set (DESIGN.md Section 2): the root spine (.claude/CLAUDE.md,
 #                            .claude/rules/syntek-author/*.md, CONTEXT.md, README.md, Makefile,
@@ -255,6 +261,16 @@ run_checks() {
   line="$(grep '^T' "$stats" || true)"
   TOKEN_COUNT="$(cut -f2 <<< "$line")"; FILE_COUNT="$(cut -f3 <<< "$line")"
   rm -f "$manifest" "$stats"
+
+  # ── 10. No delimiter in a chapter of the user guide (D56) ───────────────────
+  local rel hit
+  for f in "${files[@]}"; do
+    rel="${f#"$TPL/"}"
+    [[ "$rel" == how-to/src/TEMPLATE-GUIDE/*.md ]] || continue
+    case "${rel##*/}" in CONTEXT.md|CLAUDE.md) continue ;; esac
+    hit="$(grep -n -m1 -e '<%' -e '<:' -e '<~' "$f" | cut -d: -f1 || true)"
+    [[ -z "$hit" ]] || finding "check 10 — $rel:$hit — a delimiter in a chapter of the user guide; a chapter carries none (DESIGN.md D56)"
+  done
 }
 
 # ── Self-test ────────────────────────────────────────────────────────────────
@@ -280,6 +296,8 @@ DOC_TYPE:
   type: str
 AUTHOR_NAME:
   type: str
+DATE:
+  type: str
 DATA_STORE:
   type: str
 DATA_PROVIDER:
@@ -299,6 +317,8 @@ EOF
   } > "$TPL/research/src/CONTEXT.md"
   printf '# Notes\n\nMaintained by **<%%AUTHOR_NAME%%>**.\n\n<: raw :>Quote <%%X%%> and <: if :> freely.<: endraw :>\n' > "$TPL/notes/plain.md"
   printf '# CONTEXT.md — handoffs/\n' > "$TPL/handoffs/CONTEXT.md"
+  mkdir -p "$TPL/how-to/src/TEMPLATE-GUIDE/syntek-author"
+  printf '# Overview — what a project is\n\nA lede.\n' > "$TPL/how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
   st_baseline "the fixture template"
 
   local shared="$TPL/handoffs/CONTEXT.md" keep
@@ -334,6 +354,9 @@ EOF
   printf '%s\n%s\n' "$store_row" "<: if DATA_STORE != 'repo' :>├── .gitignore<: endif :>" > "$TPL/research/src/CONTEXT.md"
   probe "check 9 fires on an index row gated on the store by != (D50: equality only)" "check 9 — research/src/CONTEXT.md"
   printf '%s\n' "$store_row" > "$TPL/research/src/CONTEXT.md"
+  printf 'Last read on <%%DATE%%>.\n' >> "$TPL/how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
+  probe "check 10 fires on an identity token in a chapter of the user guide" "check 10 — how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md:4"
+  printf '# Overview — what a project is\n\nA lede.\n' > "$TPL/how-to/src/TEMPLATE-GUIDE/syntek-author/01-overview.md"
 
   TPL="$real_tpl"; COPIER="$real_copier"; SA_SETS_FOR=""
   st_finish "well-formed template syntax from broken"

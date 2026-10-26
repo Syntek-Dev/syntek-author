@@ -27,14 +27,19 @@
 #                    shared MCP file declares with one set of pins, one tool list and the same
 #                    blank keys. D50 adds the resolver and seven data-root questions to the
 #                    block, D53 DATA_PROVIDER, whose default alone reads the retired
-#                    INCLUDE_DRIVE_SYNC by name.
+#                    INCLUDE_DRIVE_SYNC by name. D56 adds the user guide's shared files: the
+#                    five container pairs of how-to/ and its three shared chapters, copy-only
+#                    and refreshed exactly as D51's files, and the guide guard
+#                    (.claude/hooks/how-to-read-only.sh) to the working practice; each
+#                    template's own how-to files sit only under folders named for it.
 #
 #                    So the shared files must also be neutral: a shared file may use only the
 #                    seven shared question keys, and may name no syntek-author path (it says
-#                    'every .claude/syntek-*-agents.md' instead). A shared skill, hook or
-#                    handoffs file holds no delimiter at all (D51): the refresh compares bytes.
+#                    'every .claude/syntek-*-agents.md' instead). A shared skill, hook,
+#                    handoffs or how-to file holds no delimiter at all (D51, D56): the refresh
+#                    compares bytes.
 #
-#                    Twenty-seven checks:
+#                    Thirty checks:
 #                      1. family-shared.json exists, is JSON, and has format 1, owner
 #                         syntek-author and release 'unreleased' or 'v' + VERSION: 'v' +
 #                         VERSION on the commit that tag names and on a commit whose VERSION
@@ -55,8 +60,8 @@
 #                         keys, _external_data, _folder_name and UNSET; a migration block one
 #                         other than the seven keys, _copier_conf, _stage and _copier_python;
 #                         or the permissions script, the data-root resolver, the migration
-#                         scripts, the rules-web-tools block and every shared skill, hook and
-#                         handoffs file hold any delimiter at all.
+#                         scripts, the rules-web-tools block and every shared skill, hook,
+#                         handoffs file and how-to file hold any delimiter at all.
 #                      6. A shared file, or a block, names syntek-author in any spelling
 #                         (any case; -, _, a space or nothing between the words).
 #                      7. A block's file (copier.yml; rules 06 for rules-web-tools) holds each
@@ -71,14 +76,16 @@
 #                     10. --sibling DIR: the sibling template's copies of the shared sources
 #                         and its four blocks (rules-web-tools at its destination, under the
 #                         sibling's own name) match ours byte for byte.
-#                     11. A shared file (the agent files, the permissions script, the resolver,
-#                         the shared skills, hooks and handoffs pair, the migration scripts) or
-#                         a block names another template (syntek-<name> in any case, syntek_<name> or
-#                         Syntek<Name>, other than its held name, the syntek-* pattern and the
-#                         names that are not templates: SYNTEK_UPDATE_*, and the data root's
-#                         SYNTEK_DATA_ROOT, .syntek-data-root marker and .syntek-tmp suffix,
-#                         found as SYNTEK_DATA, syntek-data-root and syntek-tmp), or a decision
-#                         number (D<n>); the rules-web-tools block also names no section number.
+#                     11. A shared file (the agent files, the permissions script, the resolver, the
+#                         shared skills, hooks, handoffs and how-to files, the migration scripts)
+#                         or a block names another template (syntek-<name> in any case,
+#                         syntek_<name> or Syntek<Name>, other than its held name, the syntek-*
+#                         pattern and the names that are not templates: SYNTEK_UPDATE_*, and the
+#                         data root's SYNTEK_DATA_ROOT, .syntek-data-root marker and .syntek-tmp
+#                         suffix, found as SYNTEK_DATA, syntek-data-root and syntek-tmp), or a
+#                         decision number (D<n>); the rules-web-tools block and the shared how-to
+#                         files also name no section number, in either case ('Section 3' or
+#                         'section 3'), nor a template's rules file by number ('rules 06').
 #                     12. The migration script's held name is not exactly .agents.syntek-held
 #                         (one HELD assignment), so the templates would hold the link under
 #                         different names and a stranded hold's printed fix would differ.
@@ -89,12 +96,18 @@
 #                     14. The baseline task of migrations/family-update.py, copy only, is the
 #                         last entry of _tasks, line for line: it records the render of what
 #                         every earlier task left.
-#                     15. The refresh set (D51): migrations/family-refresh.json is format 1
-#                         for syntek-author and refreshes exactly the shared skills, hooks and
-#                         handoffs files; each has an anchored _skip_if_exists line and an
-#                         _exclude line gated on the update, file by file, and no such line
-#                         names a folder above it; each hook is executable; each settings hook
-#                         entry runs a hook of the set.
+#                     15. The refresh set (D51, D56): migrations/family-refresh.json is format
+#                         1 for syntek-author and refreshes exactly the shared skills, hooks
+#                         (the guide guard among them), handoffs files and D56's shared how-to
+#                         files; each has an anchored _skip_if_exists line and an _exclude line
+#                         gated on the update, file by file, and no such line names a folder
+#                         above it; each hook is executable; each settings hook entry runs a
+#                         hook of the set. With --sibling, each shared how-to file the sibling
+#                         ships has its anchored skip line, its update-gated exclusion and a
+#                         refresh entry in the sibling's own files, and no skip or update-gated
+#                         exclusion line of the sibling's names /how-to or a folder under it; a
+#                         sibling whose refresh data lists no "restore" gets a note, never a
+#                         finding.
 #                     16. Mode-file names beside the shared skills (D51): no file under
 #                         template/ takes the companion's mode-file prefix (MEDIA-*.md); a
 #                         shared skill's folder under template/ holds only SKILL.md and this
@@ -177,7 +190,35 @@
 #                         permissions entry of exactly that action, resource and effect; the
 #                         same resource anywhere else counts. A resolver folder check 26 already
 #                         reported is not reported again, and a name holding the owner's is
-#                         check 6's.
+#                         check 6's. how-to is a family path (D56), so opencode.json's how-to/*
+#                         edit deny is no finding.
+#                     28. Shared how-to text (D56), the first problem per file: 'make <target>'
+#                         in any case ('Make lint' opening a sentence) for a target
+#                         template/Makefile defines (its ^[a-z][a-z-]*: lines, so plain English
+#                         such as 'make a copy' never matches); a backticked skill name of the
+#                         catalogue other than D51's seven, or a .claude/skills/<name>/ path for
+#                         any other skill; in a command fence (info string bash, sh, shell,
+#                         console or none; a text fence, which holds a tree, is never read) a
+#                         line holding a <word> placeholder, …, [...] or ...; a **Last Updated**
+#                         header.
+#                     29. The how-to namespace (D56): every path under template/how-to/ is a
+#                         shared how-to file or lies under one of this template's own folders
+#                         (how-to/docs/, how-to/src/TEMPLATE-GUIDE/ and how-to/workflows/, each
+#                         with syntek-author/); no folder directly inside those three has
+#                         another name (a MEDIA-* name there is check 16's). With --sibling,
+#                         the sibling ships no how-to path outside the shared set and its own
+#                         folders, and none under a syntek-author/ folder. The first problem
+#                         per path; a file under a folder already reported is not reported
+#                         again.
+#                     30. Restore and guard (D56), the first of: family-refresh.json's
+#                         "restore" is not exactly ["how-to"]; the guide guard is not in the
+#                         shared set; family-refresh.json wires no settings.hooks.PreToolUse
+#                         entry running the guard's script; family-refresh.json's
+#                         settings.permissions.deny lacks the guide's Edit(/how-to/**), so an
+#                         existing project would never be offered it; template/opencode.json
+#                         (its gates removed) lacks exactly one top-level permissions entry
+#                         {"action": "edit", "resource": "how-to/*", "effect": "deny"} after
+#                         every ask.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -197,12 +238,17 @@
 #                    or quoted bare ('research'); it still reads as paths, and so reports, a
 #                    word/word in code comments ('data/research') and a quoted bare name in
 #                    code (('library', 'assets')), which a maintainer rewords rather than
-#                    weakening the check.
+#                    weakening the check. Check 28 cannot see a command that needs a
+#                    template's name written outside a fence, a placeholder in a fence whose
+#                    info string is not a shell's, or a make target named without the word
+#                    make; check 29 cannot see what a sibling ships unless --sibling names
+#                    its checkout.
 #
 # SELF-TEST. --self-test writes a fixture repository at runtime, writes its manifest, proves it
 #            clean, then applies one mutation per check and asserts exactly one finding each.
 #
-# Requirements: bash 4+, python3 3.11+. No network.
+# Requirements: bash 4+, python3 at _common.sh's SA_PYTHON_MIN or later (its pin refuses an older
+#               one). No network.
 #
 # Usage: family-shared.sh [--write] [--sibling DIR] [--root DIR] [--quiet] [--self-test] [--help]
 #
@@ -221,8 +267,9 @@ SELF_TEST=false
 
 # The shared set (DESIGN.md D48, D50, D51, D52): destination path, then source, then the scope
 # when it is not a project path. <template> is the literal placeholder for each template's own
-# name. The shared working practice is $SA_SHARED_PRACTICE (_common.sh), appended below. The
-# data-root map (.claude/syntek-author-dataroot.json) is per template and never listed.
+# name. The shared working practice and D56's shared how-to files are $SA_SHARED_REFRESH
+# (_common.sh), appended below. The data-root map (.claude/syntek-author-dataroot.json) is per
+# template and never listed.
 FS_FILES=(
   ".agents/mcp_config.json|template/.agents/mcp_config.json"
   ".agents/skills|template/.agents/skills"
@@ -241,7 +288,7 @@ FS_FILES=(
   "migrations/family-update.py|migrations/family-update.py|repository"
   "opencode.json|template/opencode.json"
 )
-for _p in $SA_SHARED_PRACTICE; do FS_FILES+=("$_p|template/$_p"); done
+for _p in $SA_SHARED_REFRESH; do FS_FILES+=("$_p|template/$_p"); done
 unset _p
 FS_LINKS=".agents/skills"
 FS_RESOLVER=".claude/syntek-<template>-dataroot.py"
@@ -306,7 +353,9 @@ fs_py() {
   FS_FILES_LIST="$(printf '%s\n' "${FS_FILES[@]}")" FS_LINKS="$FS_LINKS" FS_KEYS="$FS_KEYS" \
   FS_BLOCK_KEYS="$FS_BLOCK_KEYS" FS_RETIRED_KEY="$FS_RETIRED_KEY" FS_RESOLVER="$FS_RESOLVER" \
   FS_BEGIN="$FS_BEGIN" FS_END="$FS_END" FS_MIG_BEGIN="$FS_MIG_BEGIN" FS_MIG_END="$FS_MIG_END" \
-  FS_UPD_BEGIN="$FS_UPD_BEGIN" FS_UPD_END="$FS_UPD_END" FS_REFRESH="$SA_SHARED_PRACTICE" \
+  FS_UPD_BEGIN="$FS_UPD_BEGIN" FS_UPD_END="$FS_UPD_END" FS_REFRESH="$SA_SHARED_REFRESH" \
+  FS_HOWTO="$SA_SHARED_HOWTO" FS_HOWTO_OWN="$SA_HOWTO_OWN" FS_RESTORE_DIRS="$SA_RESTORE_DIRS" \
+  FS_HOWTO_GUARD="$SA_HOWTO_GUARD" FS_HOWTO_DENY="$SA_HOWTO_DENY" FS_SKILL_NAMES="$(awk 'NF { print $1 }' <<< "$SA_SKILLS" | tr '\n' ' ')" \
   FS_RULES_SOURCE="$FS_RULES_SOURCE" FS_RULES_DEST="$FS_RULES_DEST" \
   FS_RULES_BEGIN="$FS_RULES_BEGIN" FS_RULES_END="$FS_RULES_END" \
   FS_MCP_KEYPATHS="$FS_MCP_KEYPATHS" FS_MCP_FILES="$SA_MCP_FILES" FS_MCP_SERVERS="$SA_MCP_SERVERS" \
@@ -342,6 +391,11 @@ BLOCKS = [("questions", COPIER, None, E["FS_BEGIN"], E["FS_END"], block_keys, ("
           ("rules-web-tools", E["FS_RULES_SOURCE"], E["FS_RULES_DEST"], E["FS_RULES_BEGIN"], E["FS_RULES_END"], keys, None)]
 REFRESH = E["FS_REFRESH"].split()
 REFRESH_DATA = E["FS_REFRESH_DATA"]
+HOWTO = E["FS_HOWTO"].split()
+HOWTO_OWN = E["FS_HOWTO_OWN"].split()
+RESTORE_DIRS = E["FS_RESTORE_DIRS"].split()
+HOWTO_GUARD = E["FS_HOWTO_GUARD"]
+HOWTO_DENY = E["FS_HOWTO_DENY"]
 UPDATE = "migrations/family-update.py"
 RUNPY = '"<% _copier_python %>" "<% _copier_conf.src_path %>/'
 UPDATE_ARGS = ' --src "<% _copier_conf.src_path %>" --to <% _copier_conf.vcs_ref_hash %> --answers "<% _copier_conf.answers_file %>"'
@@ -505,7 +559,7 @@ def other_templates(text):
     return sorted({n for n in template_name.findall(re.sub(r"SYNTEK_UPDATE_[A-Z]+", "", text))
                    if n not in NOT_TEMPLATES and not OWN_ANY.match(n)})
 decision = re.compile(r"\bD\d+\b")
-section = re.compile(r"\bSections? \d|§")
+section = re.compile(r"\bsections? \d|\brules \d\d|§", re.I)
 def foreign_keys(text, keyset, extra=()):
     bad = set()
     for m in delim.finditer(text):
@@ -547,7 +601,7 @@ for path, source, scope in sorted(files):
     elif path == resolver and delim.search(text):
         finding(5, f"{source} holds a template delimiter; the data-root resolver is the same bytes in every project")
     elif path in REFRESH and delim.search(text):
-        finding(5, f"{source} holds a template delimiter; a shared skill, hook or handoffs file is token-free, so the refresh can compare its bytes (D51)")
+        finding(5, f"{source} holds a template delimiter; a shared skill, hook, handoffs file or how-to file is token-free, so the refresh can compare its bytes (D51)")
     elif scope == "repository" and delim.search(text):
         finding(5, f"{source} holds a template delimiter; it is run from the template clone and never rendered")
     elif bad:
@@ -555,7 +609,7 @@ for path, source, scope in sorted(files):
     own = OWN_ANY.search(text)
     if own:
         finding(6, f"{source} names {own.group(0)}; say 'every .claude/syntek-*-agents.md' or 'the project's rules in .claude/'")
-    names_check(source, text)
+    names_check(source, text, sections=path in HOWTO)
     if path == MIGRATION:
         helds = re.findall(r"^HELD = '([^']*)'$", text, re.M)
         if helds != [held]:
@@ -1236,7 +1290,7 @@ if src and (root / src).is_file() and tpl.is_dir():
 # where the path is absent: each is passed over only while every entry of exactly that edit
 # deny in the file is a top-level permissions entry.
 FAMILY_TOP = {".claude", ".agents", ".codex", ".gemini", "handoffs"} | {p.split("/")[0] for p, _, sc in files if sc == "project"}
-FAMILY_DIRS = (".claude", ".agents", ".codex", ".gemini", "handoffs")
+FAMILY_DIRS = (".claude", ".agents", ".codex", ".gemini", "handoffs", "how-to")
 HOUSE_ROOT = {"CONTEXT.md", "CLAUDE.md", "README.md", ".gitignore"}
 OC_EXEMPT = ("*.pdf", "build/*", "typeset/src/units/.base/*")
 URL = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"`<>()\[\]]*")
@@ -1310,6 +1364,157 @@ for label, text, names, where, first, prose in scan27:
             finding(27, f"{label} names {', '.join(f'{n} ({where}line {first + l})' for n, l in sorted(mine.items()))} as a path, which only "
                         f"{who} ships; family-shared text names no such path (describe it, as 'the content layer', and let the project's rules name it)")
 
+# ── 28. Shared how-to text (D56): the first problem per file ──
+# The shared chapters and pairs are read by the author of any family template's project, so
+# they name no make target (each template has its own Makefile), no skill but D51's seven,
+# fence no command a reader must edit before it runs, and carry no metadata header.
+SKILL_NAMES = set(E["FS_SKILL_NAMES"].split())
+SHARED_SKILLS = {p.split("/")[2] for p in REFRESH if p.startswith(".claude/skills/") and p.endswith("/SKILL.md")}
+try:
+    TARGETS = set(re.findall(r"^([a-z][a-z-]*):", (tpl / "Makefile").read_text(encoding="utf-8", errors="replace"), re.M))
+except OSError:
+    TARGETS = set()
+MAKE = re.compile(r"(?<![\w-])make\s+([a-z][a-z-]*)(?![\w-])", re.I)
+SKILL_PATH = re.compile(r"\.claude/skills/([A-Za-z0-9_-]+)/")
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})\s*([^\s`]*)")
+SHELLS = ("bash", "sh", "shell", "console", "")
+HOLDER = re.compile(r"<[A-Za-z][A-Za-z0-9 _-]*>|…|\[\.\.\.\]|\.\.\.")
+
+def command_lines(text):
+    """(line number, line) for every line inside a command fence: info string bash, sh, shell,
+    console or none. A text fence (a tree, a sample) is never read."""
+    fence, cmd = None, False
+    for n, line in enumerate(text.splitlines(), 1):
+        m = FENCE.match(line)
+        if fence is None:
+            if m:
+                fence, cmd = m.group(1), m.group(2).lower() in SHELLS
+            continue
+        if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) and not m.group(2):
+            fence = None
+            continue
+        if cmd:
+            yield n, line
+
+def howto_problem(text):
+    for n, line in enumerate(text.splitlines(), 1):
+        for m in MAKE.finditer(line):
+            if m.group(1) in TARGETS:
+                return f"names make {m.group(1)} (line {n}), a target of one template's Makefile; route the reader to the template's own procedure, in its folder under how-to/workflows/"
+    for n, line in enumerate(text.splitlines(), 1):
+        for m in re.finditer(r"`([a-z][a-z0-9-]*)`", line):
+            if m.group(1) in SKILL_NAMES and m.group(1) not in SHARED_SKILLS:
+                return f"names the skill `{m.group(1)}` (line {n}), which only one template ships; shared how-to text names only the seven shared working-practice skills"
+        for m in SKILL_PATH.finditer(line):
+            if m.group(1) not in SHARED_SKILLS:
+                return f"names .claude/skills/{m.group(1)}/ (line {n}), a skill only one template ships; shared how-to text names only the seven shared working-practice skills"
+    for n, line in command_lines(text):
+        m = HOLDER.search(line)
+        if m:
+            return f"fences a command holding {m.group(0)!r} (line {n}), which does not run as written; name the value in prose, or route a command that needs a template's name to its own procedure"
+    for n, line in enumerate(text.splitlines(), 1):
+        if "**Last Updated**" in line:
+            return f"carries a metadata header (line {n}); a shared how-to file has none, because each template would render its own"
+    return None
+
+for path, source, scope in sorted(files):
+    if path not in HOWTO or not (root / source).is_file():
+        continue
+    prob = howto_problem((root / source).read_text(encoding="utf-8", errors="replace"))
+    if prob:
+        finding(28, f"{source} {prob}")
+
+# ── 29. The how-to namespace (D56) ──
+# Every template's own how-to files sit under folders named for it, inside these three; every
+# other path under how-to/ is a shared file. So two templates never ship the same path but as a
+# byte-identical shared file, and neither's update writes into the other's folder.
+NS_PARENTS = ("how-to/docs", "how-to/src/TEMPLATE-GUIDE", "how-to/workflows")
+def howto_paths(base):
+    """(relative path, is a folder) for every entry under base/how-to, sorted; links unread."""
+    out = []
+    top = base / "how-to"
+    if not top.is_dir() or top.is_symlink():
+        return out
+    for dp, dns, fns in os.walk(top):
+        dns.sort()
+        for d in list(dns):
+            full = os.path.join(dp, d)
+            out.append((os.path.relpath(full, base), True))
+            if os.path.islink(full):
+                dns.remove(d)
+        for fn in sorted(fns):
+            out.append((os.path.relpath(os.path.join(dp, fn), base), False))
+    return sorted(out)
+
+def namespace(base, owner, label, sib_mode=False):
+    """Check 29 over one template's how-to/: label '' for this template, "the sibling's " under
+    --sibling. A MEDIA-* name in this template's how-to/ is check 16's, which reads all of
+    template/, so it is not reported twice."""
+    own = tuple(f"{par}/{owner}" for par in NS_PARENTS)
+    who = "the sibling" if label else "this template"
+    bad = []
+    for rel, is_dir in howto_paths(base):
+        if any(rel == b or rel.startswith(b + "/") for b in bad):
+            continue
+        parent, name = rel.rsplit("/", 1)
+        if sib_mode and any(rel == f"{par}/{OWNER}" or rel.startswith(f"{par}/{OWNER}/") for par in NS_PARENTS):
+            finding(29, f"{label}{rel} is, or lies under, a folder named {OWNER}/, which only {OWNER} ships; a template ships its own how-to files only under folders named for it")
+            bad.append(rel)
+            continue
+        if is_dir:
+            if parent in NS_PARENTS and name != owner:
+                finding(29, f"{label}{rel} is a folder named for another template, or for none; {who} ships its own how-to files only under {owner}/ there")
+                bad.append(rel)
+            continue
+        if SIB_MODE.match(name) and not sib_mode:
+            continue
+        if rel not in HOWTO and not any(rel.startswith(o + "/") for o in own):
+            finding(29, f"{label}{rel} is neither a shared how-to file nor under {who}'s own folders ({', '.join(o + '/' for o in own)}); how-to/ holds nothing else")
+
+if tpl.is_dir():
+    namespace(tpl, OWNER, "")
+    for o in HOWTO_OWN:
+        if not o.endswith("/" + OWNER):
+            finding(29, f"_common.sh SA_HOWTO_OWN names {o}; this template's own how-to folders end in {OWNER}/")
+
+# ── 30. Restore and guard (D56): the first problem ──
+def oc_howto_problem():
+    top = parsed.get("opencode.json")
+    if not isinstance(top, dict):
+        return None   # check 18 reports a file that does not parse
+    perms = top.get("permissions") if isinstance(top.get("permissions"), list) else []
+    want = {"action": "edit", "resource": "how-to/*", "effect": "deny"}
+    at = [i for i, x in enumerate(perms) if x == want]
+    asks = [i for i, x in enumerate(perms) if isinstance(x, dict) and x.get("effect") == "ask"]
+    if len(at) != 1:
+        return f"template/opencode.json holds {len(at)} top-level permissions entr{'y' if len(at) == 1 else 'ies'} {json.dumps(want)}; it holds exactly one, which the permissions script derives from the seed's Edit(/how-to/**)"
+    if asks and at[0] < max(asks):
+        return "template/opencode.json's how-to/* edit deny comes before an ask; every ask comes before every deny"
+    return None
+
+def guard_wired(data):
+    entries = (((data.get("settings") or {}).get("hooks") or {}).get("PreToolUse")) if isinstance(data, dict) else None
+    for e in entries if isinstance(entries, list) else []:
+        for h in (e.get("hooks") or []) if isinstance(e, dict) else []:
+            if isinstance(h, dict) and HOWTO_GUARD in str(h.get("command", "")):
+                return True
+    return False
+
+if isinstance(rd, dict):
+    prob30 = None
+    if rd.get("restore") != RESTORE_DIRS:
+        prob30 = f"{REFRESH_DATA} lists \"restore\": {json.dumps(rd.get('restore'))}; it must be exactly {json.dumps(RESTORE_DIRS)}, so every update puts the read-only guide back"
+    elif HOWTO_GUARD not in {p for p, _, _ in files}:
+        prob30 = f"the guide guard {HOWTO_GUARD} is not in the shared set; every family template ships it byte for byte"
+    elif not guard_wired(rd):
+        prob30 = f"{REFRESH_DATA} wires no settings.hooks.PreToolUse entry running {HOWTO_GUARD}; an existing project would never be offered the guard"
+    elif HOWTO_DENY not in ((((rd.get("settings") or {}).get("permissions") or {}).get("deny")) or []):
+        prob30 = f"{REFRESH_DATA} does not list {HOWTO_DENY} under settings.permissions.deny; an existing project would never be offered the guide's deny"
+    else:
+        prob30 = oc_howto_problem()
+    if prob30:
+        finding(30, prob30)
+
 if sibling:
     sroot = Path(sibling)
     try:
@@ -1341,6 +1546,40 @@ if sibling:
             sblk, err = block_lines(sroot / ssrc, begin, end)
             if blks[name][0] is not None and sblk != blks[name][0]:
                 finding(10, f"the sibling's D48 {name} block ({ssrc}) differs from ours{' (' + err + ')' if sblk is None else ''}")
+        # 15 and 29 under --sibling (D56): the shared how-to files it ships are copy-only and
+        # refreshed there too, it names no how-to folder copy-only, and its how-to namespace.
+        sowner = str(sman.get("owner", ""))
+        try:
+            sclines = (sroot / COPIER).read_text(encoding="utf-8").splitlines()
+        except OSError:
+            sclines = []
+        sskips = set(items(top_section(sclines, "_skip_if_exists")))
+        sgate = re.compile(r"<: if _copier_operation == 'update' :>(/[^<]*)<: endif :>")
+        son_update = {m.group(1) for x in items(top_section(sclines, "_exclude")) if (m := sgate.fullmatch(x))}
+        try:
+            srd = json.loads((sroot / REFRESH_DATA).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            srd = None
+        srefresh = set((srd or {}).get("refresh") or []) if isinstance(srd, dict) else set()
+        for p in HOWTO:
+            if not (sroot / "template" / p).is_file():
+                continue
+            if "/" + p not in sskips:
+                finding(15, f"the sibling's shared {p} has no anchored _skip_if_exists line in its copier.yml")
+            elif "/" + p not in son_update:
+                finding(15, f"the sibling's shared {p} has no _exclude line gated on the update in its copier.yml")
+            elif p not in srefresh:
+                finding(15, f"the sibling's {REFRESH_DATA} does not refresh the shared {p}; our update would then never add it where the sibling's recorded render holds it")
+        for line in sorted(sskips | son_update):
+            rel = line.lstrip("/")
+            if rel in HOWTO or not (rel == "how-to" or rel.startswith("how-to/")):
+                continue
+            if rel == "how-to" or line.endswith("/") or (sroot / "template" / rel).is_dir():
+                finding(15, f"the sibling's copier.yml names the how-to folder {line} copy-only; the shared how-to lines are file-level, so each template's own folders stay template-owned")
+        if isinstance(srd, dict) and "restore" not in srd:
+            print(f"NOTE: the sibling's {REFRESH_DATA} lists no \"restore\"; its updates leave the read-only guide as they find it", file=sys.stderr)
+        if sowner and sowner != OWNER:
+            namespace(sroot / "template", sowner, "the sibling's ", sib_mode=True)
 
 print("\n".join(out))
 PY
@@ -1362,7 +1601,7 @@ run_checks() {
 # constants (never copied from template/), with a gate in each that has one in the template.
 fixture_mcp() { # $1 = dir
   FX="$1" FX_SHARED="$SA_MCP_SHARED" FX_PINS="$SA_MCP_PINS" FX_TOOLS="$SA_CRG_TOOLS" \
-  FX_BLANK="$SA_CRG_BLANK_KEYS" FX_ASKS="$SA_MCP_ASKS" FX_DENY="$SA_MCP_DENY" FX_REFRESH="$FS_REFRESH_DATA" \
+  FX_BLANK="$SA_CRG_BLANK_KEYS" FX_ASKS="$SA_MCP_ASKS" FX_DENY="$SA_MCP_DENY" FX_REFRESH="$FS_REFRESH_DATA" FX_HOWTO_DENY="$SA_HOWTO_DENY" \
   python3 -I - <<'FX'
 import json, os, re
 E = os.environ
@@ -1384,7 +1623,7 @@ oc = {"$schema": "https://opencode.ai/config.json", "compaction": {"auto": False
       "mcp": {"servers": {"code-review-graph": {"type": "local", "command": ["uvx"] + crg_args, "environment": env},
                           "scrapling": {"type": "local", "command": ["uvx"] + scr_args}}},
       "permissions": [{"action": f"{s}_{t}", "resource": "*", "effect": "ask"} for s, t in parts]
-                     + [{"action": "edit", "resource": r, "effect": "deny"} for r in ("*.pdf", "build/*", "typeset/src/units/.base/*")]
+                     + [{"action": "edit", "resource": r, "effect": "deny"} for r in ("*.pdf", "build/*", "how-to/*", "typeset/src/units/.base/*")]
                      + [{"action": f"{ds}_{dt}", "resource": "*", "effect": "deny"}]}
 body = json.dumps(oc, indent=2)
 w("template/opencode.json", "{\n<: if 'opencode' in AGENT_CLIENTS and OPENCODE_PROVIDER == 'named' :>  \"model\": <% OPENCODE_MODEL | tojson %>,\n<: endif :>" + body[2:] + "\n")
@@ -1405,7 +1644,7 @@ seed = seed.replace('"Edit(build/**)",\n      "@GATE@",', '"Edit(build/**)",<: i
 w("template/.claude/settings.json", seed + "\n")
 rp = os.path.join(d, E["FX_REFRESH"])
 rd = json.load(open(rp, encoding="utf-8"))
-rd["settings"]["permissions"] = {"deny": ["AskUserQuestion", "Edit(build/**)", deny], "ask": asks}
+rd["settings"]["permissions"] = {"deny": ["AskUserQuestion", "Edit(build/**)", E["FX_HOWTO_DENY"], deny], "ask": asks}
 rd["mcp"] = {"servers": ["code-review-graph", "scrapling"],
              "files": {".agents/mcp_config.json": ["mcpServers"], ".codex/config.toml": ["mcp_servers"], ".gemini/settings.json": ["mcpServers"],
                        ".mcp.json": ["mcpServers"], "opencode.json": ["mcp", "servers"]}}
@@ -1426,14 +1665,20 @@ fixture() { # $1 = dir: a template repository holding the shared set and the fou
   done
   for p in $SA_SHARED_HOOKS; do chmod +x "$t/template/$p"; done
   printf "import os\nOPT_OUT = os.environ.get('SYNTEK_UPDATE_REPORT')\n" > "$t/migrations/family-update.py"
-  python3 - "$t/$FS_REFRESH_DATA" "$SA_SHARED_PRACTICE" <<'JSON'
+  python3 - "$t/$FS_REFRESH_DATA" "$SA_SHARED_REFRESH" "$SA_HOWTO_GUARD_MATCHER" "$SA_HOWTO_GUARD_CMD" "$SA_HOWTO_DENY" <<'JSON'
 import json, sys
 paths = sys.argv[2].split()
 hook = "bash -c 'exec bash .claude/hooks/context-threshold-handoff.sh'"
-json.dump({"format": 1, "template": "syntek-author", "refresh": paths,
-           "settings": {"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": hook}]}]},
-                        "permissions": {"deny": ["Edit(build/**)"], "ask": []}}}, open(sys.argv[1], "w"), indent=2)
+guard = {"matcher": sys.argv[3], "hooks": [{"type": "command", "command": sys.argv[4], "timeout": 10}]}
+json.dump({"format": 1, "template": "syntek-author", "refresh": paths, "restore": ["how-to"],
+           "settings": {"hooks": {"PreToolUse": [guard], "UserPromptSubmit": [{"hooks": [{"type": "command", "command": hook}]}]},
+                        "permissions": {"deny": ["Edit(build/**)", sys.argv[5]], "ask": []}}}, open(sys.argv[1], "w"), indent=2)
 JSON
+  # The guide (D56): a shared pair holding a text tree with the <template> placeholder, which no
+  # check reads as a command, and a Makefile whose targets check 28 knows.
+  printf '%s\n' 'shared text for how-to/CONTEXT.md' '' '```text' 'how-to/' '└── docs/<template>/' '```' '' \
+    'Make sure each command runs as written; make a copy first.' > "$t/template/how-to/CONTEXT.md"
+  printf '%s\n' 'lint: ## report long lines' 'pdf: ## build a proof' > "$t/template/Makefile"
   printf "HELD = '%s'\nprint('the bridge (.claude/syntek-*-agents.md)')\n" "$FS_HELD" > "$t/migrations/agents-outside-link.py"
   # The resolver: the names that are not templates, and 'library' as an English word and in a
   # macOS path, beside a template folder named library/.
@@ -1484,9 +1729,9 @@ JSON
     printf '_exclude:\n  - .git\n'
     printf '  - "%s"\n' "<: if not (DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo') :>/.github<: endif :>" \
       "<: if not (DATA_STORE == 'external') :>/research/src/.gitignore<: endif :>"
-    for p in $SA_SHARED_PRACTICE; do printf '  - "<: if _copier_operation == %s :>/%s<: endif :>"\n' "'update'" "$p"; done
+    for p in $SA_SHARED_REFRESH; do printf '  - "<: if _copier_operation == %s :>/%s<: endif :>"\n' "'update'" "$p"; done
     printf '_skip_if_exists:\n'
-    for p in $SA_SHARED_PRACTICE; do printf '  - /%s\n' "$p"; done
+    for p in $SA_SHARED_REFRESH; do printf '  - /%s\n' "$p"; done
     printf '\n_migrations:\n%s\n' "$FS_MIG_BEGIN"
     printf '  # Runs on every update.\n'
     printf '  - command: %s"<%% _copier_python %%>" "<%% _copier_conf.src_path %%>/migrations/agents-outside-link.py" %s%s\n    when: "<%% _stage == %s %%>"\n' \
@@ -1657,6 +1902,7 @@ PY
   rm "$gfold/NOTES.md" "$gfold/FICTION.md"
 
   st_v050 "$tmp"
+  st_v060 "$tmp"
 
   sib="$tmp/sibling"; cp -a "$SA_ROOT" "$sib"
   printf '# Grilling — media nonfiction mode\n' > "$sib/template/.claude/skills/grilling/MEDIA-NONFICTION.md"
@@ -1692,6 +1938,24 @@ PY
   printf '%s\n' "Render into production/renders/." > "$SA_ROOT/template/GEMINI.md"; cp "$SA_ROOT/template/GEMINI.md" "$sib/template/GEMINI.md"; fs_py write "$SA_ROOT" ""
   probe "check 27 fires when a shared file names a path only the sibling ships" "check 27 — template/GEMINI.md names production (line 1) as a path, which only the sibling ships"
   cp "$tmp/gemini.held" "$SA_ROOT/template/GEMINI.md"; cp "$tmp/gemini.held" "$sib/template/GEMINI.md"; fs_py write "$SA_ROOT" ""
+  # The guide under --sibling (D56): the sibling's own folders pass; its shared how-to lines and
+  # refresh entries, a folder line, and a path under this template's folder fire.
+  mkdir -p "$sib/template/how-to/src/TEMPLATE-GUIDE/syntek-media"; printf '# A — b\n' > "$sib/template/how-to/src/TEMPLATE-GUIDE/syntek-media/01-a.md"
+  probe_clean "with --sibling, the sibling's own how-to folder passes check 29"
+  cp "$sib/copier.yml" "$tmp/sib.c"; grep -vxF '  - /how-to/workflows/CLAUDE.md' "$tmp/sib.c" > "$sib/copier.yml"
+  probe "check 15 fires when the sibling ships a shared how-to file without its skip line" "check 15 — the sibling's shared how-to/workflows/CLAUDE.md has no anchored _skip_if_exists line"
+  cp "$tmp/sib.c" "$sib/copier.yml"; sed -i 's#^  - /handoffs/CONTEXT.md$#&\n  - /how-to/src#' "$sib/copier.yml"
+  probe "check 15 fires when the sibling names a how-to folder copy-only" "check 15 — the sibling's copier.yml names the how-to folder /how-to/src"
+  cp "$tmp/sib.c" "$sib/copier.yml"; cp "$sib/$FS_REFRESH_DATA" "$tmp/sib.rd"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["refresh"].remove("how-to/src/CLAUDE.md"); json.dump(d,open(sys.argv[1],"w"))' "$sib/$FS_REFRESH_DATA"
+  probe "check 15 fires when the sibling does not refresh a shared how-to file it ships" "check 15 — the sibling's $FS_REFRESH_DATA does not refresh the shared how-to/src/CLAUDE.md"
+  cp "$tmp/sib.rd" "$sib/$FS_REFRESH_DATA"; python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d.pop("restore"); json.dump(d,open(sys.argv[1],"w"))' "$sib/$FS_REFRESH_DATA"
+  probe_clean "a sibling whose refresh data lists no restore gets a note, never a finding"
+  cp "$tmp/sib.rd" "$sib/$FS_REFRESH_DATA"; mkdir -p "$sib/template/how-to/docs/syntek-author"; printf 'x\n' > "$sib/template/how-to/docs/syntek-author/x.md"
+  probe "check 29 fires when the sibling ships a path under a syntek-author/ folder" "check 29 — the sibling's how-to/docs/syntek-author is, or lies under, a folder named syntek-author/"
+  rm -r "$sib/template/how-to/docs/syntek-author"; printf 'x\n' > "$sib/template/how-to/stray.md"
+  probe "check 29 fires when the sibling ships a how-to path outside the shared set and its own folders" "check 29 — the sibling's how-to/stray.md is neither a shared how-to file"
+  rm "$sib/template/how-to/stray.md" "$sib/template/how-to/src/TEMPLATE-GUIDE/syntek-media/01-a.md"
   SIBLING=""
 
   SA_ROOT="$real_root"
@@ -1926,8 +2190,62 @@ PY
   st_restore "$c"
 }
 
-command -v python3 >/dev/null 2>&1 || die "python3 is not installed"
-python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' || die "python3 is older than 3.11"
+# The v0.6.0 probes (D56): the shared how-to files and the guide guard. $1 = the self-test's
+# scratch folder. Each mutation is undone before the next.
+st_v060() {
+  local tmp="$1" ctx="$SA_ROOT/template/how-to/CONTEXT.md" wf="$SA_ROOT/template/how-to/workflows/CLAUDE.md"
+  local rd="$SA_ROOT/$FS_REFRESH_DATA" oc="$SA_ROOT/template/opencode.json"
+  fs_py write "$SA_ROOT" ""
+  cp "$ctx" "$tmp/v060.ctx"; cp "$wf" "$tmp/v060.wf"; cp "$rd" "$tmp/v060.rd"; cp "$oc" "$tmp/v060.oc"
+  printf '%s\n' 'Ask the `run-workflow` skill for the procedure.' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on a skill only one template ships" "check 28 — template/how-to/CONTEXT.md names the skill \`run-workflow\`"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' '```bash' "$SA_UVX_COPIER update --trust -a .copier-answers.<template>.yml" '```' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on a placeholder in a command fence" "check 28 — template/how-to/CONTEXT.md fences a command holding '<template>'"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' 'Then run make lint over the guide.' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on a make target in a sentence" "check 28 — template/how-to/CONTEXT.md names make lint"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' '**Last Updated**: 01/01/2027 **Version**: 0.1.0' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on a metadata header" "check 28 — template/how-to/CONTEXT.md carries a metadata header"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' '```bash' 'make pdf' '```' 'See .claude/skills/handoff/SKILL.md and `grill-me`; make a note.' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 reads a make target inside a command fence too" "check 28 — template/how-to/CONTEXT.md names make pdf"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' 'Make lint reports it.' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on a make target opening a sentence" "check 28 — template/how-to/CONTEXT.md names make lint"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' '```bash' 'git log ...' '```' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe "check 28 fires on ASCII ... in a command fence" "check 28 — template/how-to/CONTEXT.md fences a command holding '...'"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' 'See .claude/skills/handoff/SKILL.md and `grill-me`; make a note, and make sure. Make sure.' >> "$ctx"; fs_py write "$SA_ROOT" ""
+  probe_clean "a shared skill, its path, and plain English 'make' in either case pass check 28"
+  cp "$tmp/v060.ctx" "$ctx"; printf '%s\n' 'As Section 3 of the rules says.' >> "$wf"; fs_py write "$SA_ROOT" ""
+  probe "check 11 fires when a shared how-to file names a section number" "check 11 — template/how-to/workflows/CLAUDE.md names a section number"
+  cp "$tmp/v060.wf" "$wf"; printf '%s\n' 'As section 3 of the rules says.' >> "$wf"; fs_py write "$SA_ROOT" ""
+  probe "check 11 fires on a section number in lower case" "check 11 — template/how-to/workflows/CLAUDE.md names a section number (section 3)"
+  cp "$tmp/v060.wf" "$wf"; printf '%s\n' 'As rules 06 says.' >> "$wf"; fs_py write "$SA_ROOT" ""
+  probe "check 11 fires on a rules file named by its number" "check 11 — template/how-to/workflows/CLAUDE.md names a section number (rules 06)"
+  cp "$tmp/v060.wf" "$wf"; fs_py write "$SA_ROOT" ""
+  printf 'x\n' > "$SA_ROOT/template/how-to/notes.md"
+  probe "check 29 fires on a how-to path outside the shared set and this template's folders" "check 29 — how-to/notes.md is neither a shared how-to file"
+  rm "$SA_ROOT/template/how-to/notes.md"; mkdir -p "$SA_ROOT/template/how-to/docs/syntek-media"; printf 'x\n' > "$SA_ROOT/template/how-to/docs/syntek-media/x.md"
+  probe "check 29 fires on another template's folder inside how-to/docs" "check 29 — how-to/docs/syntek-media is a folder named for another template"
+  rm -r "$SA_ROOT/template/how-to/docs/syntek-media"; mkdir -p "$SA_ROOT/template/how-to/docs/syntek-author"; printf 'x\n' > "$SA_ROOT/template/how-to/docs/syntek-author/x.md"
+  probe_clean "this template's own how-to folder passes check 29"
+  rm -r "$SA_ROOT/template/how-to/docs/syntek-author"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["restore"]=[]; json.dump(d,open(sys.argv[1],"w"))' "$rd"
+  probe "check 30 fires when family-refresh.json restores nothing" "check 30 — $FS_REFRESH_DATA lists \"restore\": []"
+  cp "$tmp/v060.rd" "$rd"; python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["hooks"]["PreToolUse"]; json.dump(d,open(sys.argv[1],"w"))' "$rd"
+  probe "check 30 fires when family-refresh.json does not wire the guide guard" "check 30 — $FS_REFRESH_DATA wires no settings.hooks.PreToolUse entry"
+  cp "$tmp/v060.rd" "$rd"; python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["permissions"]["deny"].remove(sys.argv[2]); json.dump(d,open(sys.argv[1],"w"))' "$rd" "$SA_HOWTO_DENY"
+  probe "check 30 fires when family-refresh.json does not offer the guide's deny" "check 30 — $FS_REFRESH_DATA does not list $SA_HOWTO_DENY under settings.permissions.deny"
+  cp "$tmp/v060.rd" "$rd"; python3 - "$oc" <<'PY'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+pat = r'\s*\{\s*"action": "edit",\s*"resource": "how-to/\*",\s*"effect": "deny"\s*\},'
+assert len(re.findall(pat, t)) == 1
+open(p, "w").write(re.sub(pat, "", t))
+PY
+  fs_py write "$SA_ROOT" ""
+  probe "check 30 fires when opencode.json lacks the how-to/* edit deny" "check 30 — template/opencode.json holds 0 top-level permissions entries"
+  cp "$tmp/v060.oc" "$oc"; fs_py write "$SA_ROOT" ""
+}
+
+command -v python3 >/dev/null 2>&1 || die "python3 is not installed"   # _common.sh refused an older one
 if $SELF_TEST; then
   self_test
   exit $?
@@ -1941,7 +2259,7 @@ if $WRITE; then
 fi
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
-  bold "✓ ${#FS_FILES[@]} shared file(s) and the four blocks match $FS_MANIFEST and stay template-neutral; the update entry closes _migrations, its baseline task closes _tasks, $FS_REFRESH_DATA refreshes exactly the shared working practice, the MCP files hold one set of pins, tools, keys and asks, the store is tested by equality only, and no shared file or block names a path only one template ships."
+  bold "✓ ${#FS_FILES[@]} shared file(s) and the four blocks match $FS_MANIFEST and stay template-neutral; the update entry closes _migrations, its baseline task closes _tasks, $FS_REFRESH_DATA refreshes exactly the shared working practice and how-to files and restores how-to/, the MCP files hold one set of pins, tools, keys and asks, the store is tested by equality only, no shared file or block names a path only one template ships, and how-to/ holds only the shared files and this template's own folders."
   exit 0
 fi
 bold "✗ ${#FINDINGS[@]} finding(s):"

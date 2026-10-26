@@ -50,6 +50,11 @@ Run, read and maintain the audits that prove the template keeps every promise `D
 - **Mirror `DESIGN.md`, do not interpret it.** When `DESIGN.md` and `_common.sh` disagree,
   `DESIGN.md` wins and `_common.sh` changes in the same commit.
 - **Never write under `template/`, and never commit a render.** Scratch goes to `${TMPDIR:-/tmp}`.
+- **One Python minimum, named once.** `_common.sh`'s `SA_PYTHON_MIN` is the audits' only copy of
+  it: a check names the minimum through it, or through `SA_UVX_COPIER` for a shown Copier
+  command, never as a literal, so the next minimum is one line here. A Python for testing below
+  it is installed under `${TMPDIR}` (`UV_PYTHON_INSTALL_DIR` there), never in the home folder;
+  `SA_OLD_PYTHON` names one to `sa_old_python`.
 
 ## Output & naming
 
