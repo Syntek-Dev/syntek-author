@@ -5,6 +5,7 @@
     ".claude/hooks/CLAUDE.md",
     ".claude/hooks/CONTEXT.md",
     ".claude/hooks/context-threshold-handoff.sh",
+    ".claude/hooks/how-to-read-only.sh",
     ".claude/hooks/pre-compact-handoff.sh",
     ".claude/skills/grill-me/SKILL.md",
     ".claude/skills/grill-with-docs/SKILL.md",
@@ -14,10 +15,27 @@
     ".claude/skills/wait-what/SKILL.md",
     ".claude/skills/wayfinder/SKILL.md",
     "handoffs/CLAUDE.md",
-    "handoffs/CONTEXT.md"
+    "handoffs/CONTEXT.md",
+    "how-to/CLAUDE.md",
+    "how-to/CONTEXT.md",
+    "how-to/docs/CLAUDE.md",
+    "how-to/docs/CONTEXT.md",
+    "how-to/src/CLAUDE.md",
+    "how-to/src/CONTEXT.md",
+    "how-to/src/TEMPLATE-GUIDE/CLAUDE.md",
+    "how-to/src/TEMPLATE-GUIDE/CONTEXT.md",
+    "how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md",
+    "how-to/src/TEMPLATE-GUIDE/the-data-root.md",
+    "how-to/src/TEMPLATE-GUIDE/updating-and-recovery.md",
+    "how-to/workflows/CLAUDE.md",
+    "how-to/workflows/CONTEXT.md"
+  ],
+  "restore": [
+    "how-to"
   ],
   "settings": {
     "autoCompactEnabled": false,
+    "idleCompaction": false,
     "hooks": {
       "PreCompact": [
         {
@@ -25,7 +43,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" auto'",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] || exit 0; exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" auto'",
               "timeout": 10
             }
           ]
@@ -35,7 +53,31 @@
           "hooks": [
             {
               "type": "command",
-              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" manual'",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] || exit 0; exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" manual'",
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "PreToolUse": [
+        {
+          "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$ROOT/.claude/hooks/how-to-read-only.sh\" ] || exit 0; exec bash \"$ROOT/.claude/hooks/how-to-read-only.sh\"'",
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "matcher": "compact",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" ] || exit 0; exec bash \"$ROOT/.claude/hooks/pre-compact-handoff.sh\" compacted'",
               "timeout": 10
             }
           ]
@@ -46,7 +88,7 @@
           "hooks": [
             {
               "type": "command",
-              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) && [ -f \"$ROOT/.claude/hooks/context-threshold-handoff.sh\" ] && exec bash \"$ROOT/.claude/hooks/context-threshold-handoff.sh\"'",
+              "command": "bash -c 'ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$ROOT/.claude/hooks/context-threshold-handoff.sh\" ] || exit 0; exec bash \"$ROOT/.claude/hooks/context-threshold-handoff.sh\"'",
               "timeout": 10
             }
           ]
@@ -58,6 +100,7 @@
         "AskUserQuestion",
         "Edit(**/*.pdf)",
         "Edit(build/**)",
+        "Edit(/how-to/**)",
         "Edit(typeset/src/units/.base/**)",
         "mcp__code-review-graph__embed_graph_tool"
       ],
