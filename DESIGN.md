@@ -1,6 +1,6 @@
 # DESIGN.md — syntek-author
 
-**Last Updated**: 26/10/2026 **Version**: 0.6.0 **Maintained By**: Syntek Studio
+**Last Updated**: 27/10/2026 **Version**: 0.7.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 The build contract for `syntek-author`, a Copier template that generates writing repositories in three variants:
