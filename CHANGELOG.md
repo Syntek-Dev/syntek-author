@@ -1,6 +1,6 @@
 # Changelog
 
-**Last Updated**: 26/10/2026 **Version**: 0.6.0 **Maintained By**: Syntek Studio
+**Last Updated**: 27/10/2026 **Version**: 0.7.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 All notable changes to syntek-author are documented here.
@@ -12,6 +12,8 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 ---
 
 ## [Unreleased]
+
+## [0.7.0] - 27/10/2026
 
 ### Fixed
 
