@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Fixed
+
+- **The update script never offers a hook entry that names no script in `.claude/hooks/` (D51, D52)**, at the maintainer's approval (27/10/2026). `migrations/family-update.py` knows a hook entry by the scripts it names there, and one that named none matched every entry of its event and matcher, so a listed data-root guard would have been written into an existing `settings.json`, against D17 and D50. No template lists it, so no project was affected. Such an entry is now never offered, recorded or reported, and the script's `--self-test` proves it. `DESIGN.md` D51 and D56 said the script could not offer the guard in any case; they now say why it cannot, and since when. **Companion templates must refresh `migrations/family-update.py`**, which is family-shared.
+
 ## [0.6.0] - 26/10/2026
 
 ### Added

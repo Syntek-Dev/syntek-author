@@ -100,7 +100,8 @@ ask, and top-level values such as autoCompactEnabled) that the new render's
 (a copy, also over an existing settings.json) or by update: present, it is only recorded;
 absent, it is added; a rule the owner allows is reported, never added; a top-level key the
 owner set to another value is kept and reported, never changed; a hook entry whose script is
-not in .claude/hooks/ is reported and offered again; a settings.json that is a link, or lies
+not in .claude/hooks/ is reported and offered again, and one that names no script there is
+never offered (it is known by its scripts); a settings.json that is a link, or lies
 beyond one, is never written, and a link to a file inside the project is read, so only the
 entries it lacks are named for adding by hand; a git-ignored settings.json is never read: one
 line names the entries to add by hand, and none is recorded, so they are offered again. An ask
@@ -1049,6 +1050,10 @@ def hook_scripts(entry):
 
 def has_hook(settings, event, entry):
     want, matcher = hook_scripts(entry), entry.get('matcher', '')
+    # An entry is known by its scripts in .claude/hooks/: one that names none would match every
+    # entry of its event and matcher, so it matches none, and no render ever offers it.
+    if not want:
+        return False
     hooks = settings.get('hooks') if isinstance(settings, dict) else None
     for e in ((hooks if isinstance(hooks, dict) else {}).get(event) or []):
         if isinstance(e, dict) and e.get('matcher', '') == matcher and want <= hook_scripts(e):
@@ -2868,6 +2873,31 @@ def settings_probe(base, check):
               'and it is recorded as offered (%r)' % lines)
         again, _ = settings_merge(data, N, seen, set())
         check(not again and json.loads(open(SETTINGS).read()) == cur, 'old form: a second merge adds nothing (%r)' % again)
+    finally:
+        os.chdir(old)
+    # A hook entry that names no script in .claude/hooks/ (a guard for new projects only) is
+    # never offered, recorded or reported, though the data lists it and the render wires it.
+    d = os.path.join(base, 'scriptless')
+    os.makedirs(os.path.join(d, '.claude', 'hooks'))
+    try:
+        os.chdir(d)
+        git('init', '-q')
+        with open('.claude/hooks/probe-hook.sh', 'w') as f:
+            f.write('exit 0\n')
+        guard = {'matcher': 'Edit|Write', 'hooks': [{'type': 'command', 'command': 'python3 .claude/guard.py guard'}]}
+        listed = {'settings': {'hooks': {'PreToolUse': [guard], 'UserPromptSubmit': [hook]}}}
+        wired = {'hooks': {'PreToolUse': [guard], 'UserPromptSubmit': [hook]}}
+        with open(SETTINGS, 'w', encoding='utf-8') as f:
+            f.write('{\n  "model": "opus"\n}\n')
+        sha = git('hash-object', '-w', '--stdin', inp=json.dumps(wired, indent=2) + '\n').strip()
+        N = {SETTINGS: ('100644', sha)}
+        lines, seen = settings_merge(listed, N, None, set())
+        cur = json.loads(open(SETTINGS).read())
+        check(not has_hook(wired, 'PreToolUse', guard) and 'PreToolUse' not in cur.get('hooks', {})
+              and has_hook(cur, 'UserPromptSubmit', hook) and not any(x.startswith('hook PreToolUse') for x in seen)
+              and 'guard.py' not in '\n'.join(lines),
+              'scriptless: a hook entry that names no script in .claude/hooks/ is never offered, recorded or '
+              'reported, while the rest are added (%r)' % lines)
     finally:
         os.chdir(old)
     setting_probe(os.path.join(base, 'top-level'), check)
