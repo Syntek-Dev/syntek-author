@@ -13,6 +13,11 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Changed
+
+- **The Google Drive workflows run on Node 24**, at the maintainer's request (28/10/2026). GitHub is retiring the Node 20 runtime for actions, so `.github/workflows/google-drive-push.yml` and `google-drive-pull.yml` (business with `DATA_PROVIDER` google-drive and `DATA_STORE` repo, D53) move to `actions/checkout@v7`, `actions/setup-python@v7` and `google-github-actions/auth@v3`, each the latest release line, whose `action.yml` declares `node24`. No input either workflow passes changed; setup-python v7 drops only its `pip-install` input, which neither passes. A self-hosted runner needs version 2.327.1 or later. The workflows are template-owned, so an update delivers them.
+- Development only, nothing ships: the audit workflow (`.github/workflows/audit-template.yml`) moves to `actions/setup-python@v7` and `astral-sh/setup-uv@v10.3.3`, the latest of each, at the maintainer's request (28/10/2026); it already ran on Node 24. The `shipped-variants.sh` self-test's stand-in Drive workflow names the shipped workflows' majors.
+
 ## [0.8.0] - 28/10/2026
 
 ### Added

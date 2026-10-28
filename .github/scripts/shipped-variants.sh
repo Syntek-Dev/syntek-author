@@ -1012,7 +1012,7 @@ PY
 write_drive_workflow() { # $1 = file, $2 = workflow name
   mkdir -p "$(dirname "$1")"
   { printf 'name: %s\n\njobs:\n  sync:\n    runs-on: ubuntu-latest\n    steps:\n' "$2"
-    printf '      - name: Checkout repository\n        uses: actions/checkout@v4\n\n'
+    printf '      - name: Checkout repository\n        uses: actions/checkout@v7\n\n'
     printf '      - name: %s\n' "$SA_DRIVE_GUARD_STEP"
     cat <<'YML'
         run: |
@@ -1026,7 +1026,7 @@ write_drive_workflow() { # $1 = file, $2 = workflow name
           fi
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
 YML
   } > "$1"
 }
