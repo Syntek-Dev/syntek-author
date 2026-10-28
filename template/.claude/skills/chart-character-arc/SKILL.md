@@ -32,9 +32,9 @@ are the procedure of record — do not restate them at length here.
   that procedure in skill form.
 - `world/workflows/01-create-a-character/` — steps 3 (want, need, wound and the lie) and 9 (open the
   arc file) when a character is new.
-- If a layer's `workflows/local/` holds a folder with the same `NN-name` as a procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If a layer's `workflows/local/` holds a folder with the same slug as a procedure above (the name
+  after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `planning/docs/reference/character-arcs.md` — the three arc types and the arc file's shape.
 - `standards/method/FICTION.md` — rule 2 (want against need) is the rule this skill enforces.
 

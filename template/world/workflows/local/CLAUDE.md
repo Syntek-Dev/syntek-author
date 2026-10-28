@@ -14,13 +14,13 @@ procedures the author has chosen.
 ## How to work here
 
 - **Routing:** `run-workflow` resolves local first: a folder here with the same slug as one in
-  `world/workflows/` wins.
+  `world/workflows/` wins, whatever its number.
 - **Model:** **Opus** for writing or changing a procedure; the checklist tags decide each item
   when it runs (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps (adding one):**
   1. Confirm with the author that the job recurs; a one-off needs no procedure.
-  2. Number it in this folder's own sequence (`01-`, `02-` …), or reuse a template slug
-     exactly to override that procedure.
+  2. Number it in this folder's own sequence (`01-`, `02-` …); to override a template procedure,
+     reuse its slug (the name after its number) with any number.
   3. Write all four files in the template's shape: routing frontmatter on `STEPS.md` and
      `CHECKLIST.md`, steps that name their skill and guide and end _Substantive._ or
      _Mechanical._, checklist items tagged with the model tier.

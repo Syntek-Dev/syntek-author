@@ -4,8 +4,8 @@ The families a theology author learns in, and the house sources each practises a
 
 ## Paths and unit
 
-- **Workspace:** `learning/<topic>/`. Practice passages imitate a section of a chapter in
-  `manuscript/src/`, but never sit there.
+- **Workspace:** the topic's folder (`SKILL.md`, 'Where a topic lives'). Practice passages
+  imitate a section of a chapter in `manuscript/src/`, but never sit there.
 - **House sources:** `standards/method/THEOLOGY.md` and `standards/method/method.md`; the guides
   in `manuscript/docs/reference/`, `planning/docs/reference/` and `research/docs/reference/`;
   `standards/style/voice-notes.md`.

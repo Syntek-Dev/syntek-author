@@ -407,6 +407,22 @@
 #                       link; with a link an earlier update held, `restore` exits 0, is loud and
 #                       leaves it held; `--self-test` exits non-zero with the loud message.
 #                       Skipped, by name, where check 100 is.
+#                  102. D51, from 0.8.0, on the report fixture beside checks 55–59: a copy at
+#                       v0.3.0 with --skip-tasks (no record), whose owner wires the threshold
+#                       hook entry and "idleCompaction": false on a side branch, removes both
+#                       there and merges it back with --no-ff, leaving settings.json as it was
+#                       (git's default walk lists one commit of it, or the case proves
+#                       nothing), is updated to v0.4.0: neither is added, autoCompactEnabled
+#                       is, one line names the hook and the key as not added 'because a
+#                       committed version of the file held it', and the next update changes
+#                       nothing in settings.json and names neither again.
+#                  103. D51 and D54, from 0.8.0, on the real template from v0.4.0 (beside checks
+#                       60–70): a project whose owner adds scrapling to .mcp.json on a side
+#                       branch, removes it there and merges it back with --no-ff (git's default
+#                       walk lists one commit of the file, or the case proves nothing) gains
+#                       code-review-graph alone in that file, declared once; one line of the
+#                       update names scrapling as not added 'because a committed version of the
+#                       file held it', and the update to DT_NEXT does not name it again.
 #
 #                  A fresh copy prints a MissingFileWarning (the template reads the previous
 #                  answers through _external_data, and a new project has none). It is expected
@@ -415,9 +431,9 @@
 #                  Numbers are stable identifiers. Append, never renumber.
 #
 #                  What it CANNOT check: an upgrade from any release but v0.1.0 (and v0.3.0 for
-#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85 and 89, v0.5.0 for checks
-#                  92–99), how-to in another letter case on a disk that ignores it (the guard's
-#                  own case is tooling-smoke.sh check 72's), or a migration
+#                  checks 31–34, v0.3.0 and v0.4.0 for checks 60–85, 89 and 103, v0.5.0 for
+#                  checks 92–99), how-to in another letter case on a disk that ignores it (the
+#                  guard's own case is tooling-smoke.sh check 72's), or a migration
 #                  the update does not reach (a later release's script needs its own flow here,
 #                  written with the release that moves the folder: DESIGN.md D26, D44); a real
 #                  syntek-media beside it (an invented sibling answers file stands in: the
@@ -435,11 +451,11 @@
 #            predates its agent questions, stands in for v0.3.0. For checks 40–43 the fixture
 #            is given the real migrations/agents-outside-link.py and the real family-shared
 #            migrations block of copier.yml, and every update runs for real. The report
-#            fixture runs the real D54 lane (checks 47 and 59), and the discarded updates
-#            and the ignored settings.json run on it too (checks 86–88, 90 and 91). Checks 60–85,
-#            89 and 92–99 need the real template, so the self-test writes the trees, logs and
-#            statuses a clean run leaves (dt_synth, ht_synth) and mutates one input per probe,
-#            which proves every judge too.
+#            fixture runs the real D54 lane (checks 47 and 59), and the discarded updates,
+#            the ignored settings.json and the side branch merged back run on it too (checks
+#            86–88, 90, 91 and 102). Checks 60–85, 89, 92–99 and 103 need the real template,
+#            so the self-test writes the trees, logs and statuses a clean run leaves (dt_synth,
+#            ht_synth) and mutates one input per probe, which proves every judge too.
 #
 # Requirements: bash 4+, git, rsync, Python at _common.sh's SA_PYTHON_MIN or later, on PATH as
 #               python3 and as UV_PYTHON (the pin refuses an older one, since the update script
@@ -1693,15 +1709,17 @@ sm_existing() { # the owner's settings.json before the copy: four spaces, permis
 EOF
 }
 # Judges a settings.json: prints "ok", or what is wrong. $2 = how many threshold hooks it must
-# wire (0 or 1); $3 = the owner's own top-level values, as a JSON object (default none). Each
-# value of SM_TOP must be written once: the owner's where $3 names it, the listed one otherwise.
-# The owner's four-space indentation, key order and allow rule must hold.
-sm_judge() { # $1 = settings.json, $2 = hooks wanted, $3 = the owner's values ('{"autoCompactEnabled": true}')
-  local own="${3:-}"
-  python3 - "$1" "$2" "$SM_HOOK" "$SM_TOP" "${own:-null}" <<'PY'
+# wire (0 or 1); $3 = the owner's own top-level values, as a JSON object (default none); $4 = the
+# keys that must be absent, as a JSON list (default none: check 102's values the history held).
+# Each value of SM_TOP not in $4 must be written once: the owner's where $3 names it, the listed
+# one otherwise. The owner's four-space indentation, key order and allow rule must hold.
+sm_judge() { # $1 = settings.json, $2 = hooks wanted, $3 = the owner's values ('{"autoCompactEnabled": true}'), $4 = absent keys ('["idleCompaction"]')
+  local own="${3:-}" absent="${4:-}"
+  python3 - "$1" "$2" "$SM_HOOK" "$SM_TOP" "${own:-null}" "${absent:-[]}" <<'PY'
 import json, re, sys
 path, want, hook = sys.argv[1], int(sys.argv[2]), sys.argv[3]
-expect = {**json.loads(sys.argv[4]), **(json.loads(sys.argv[5]) or {})}
+absent = json.loads(sys.argv[6])
+expect = {k: v for k, v in {**json.loads(sys.argv[4]), **(json.loads(sys.argv[5]) or {})}.items() if k not in absent}
 try:
     text = open(path, encoding="utf-8").read()
     d = json.loads(text)
@@ -1715,6 +1733,9 @@ for key, value in expect.items():
     k = len(re.findall(r'"%s"\s*:' % re.escape(key), text))
     if k != 1 or json.dumps(d.get(key)) != json.dumps(value):
         bad.append(f"{key} written {k} time(s), {json.dumps(d.get(key))}, not {json.dumps(value)} once")
+for key in absent:
+    if key in d or re.search(r'"%s"\s*:' % re.escape(key), text):
+        bad.append(f"{key} written, not absent")
 if list(d)[:2] != ["permissions", "model"]: bad.append(f"the owner's key order changed ({list(d)})")
 if (d.get("permissions") or {}).get("allow") != ["Bash(make *)"]: bad.append("the owner's allow rule changed")
 if any("\t" in l or len(re.match(r" *", l).group(0)) % 4 for l in text.splitlines()): bad.append("the owner's four-space indentation was not kept")
@@ -1742,17 +1763,40 @@ sm_abs() { # $1 = project, $2 = template path, $3 = project path
       | awk '($1 == "mcp:" || $1 == "written-blob:") && ($2 ~ /^[\/~]/ || $2 ~ /^[A-Za-z]:/ || $2 ~ /(^|\/)\.\.(\/|$)/) { print "record line: " $0 }' || true
   } | head -3 | paste -sd' ' -
 }
+# The owner's trial on a side branch (checks 102 and 103): $3 edits the JSON file $2 there and is
+# committed, the file is put back as it was and committed, and the branch is merged back with
+# --no-ff. The file then stands as it did, so git's default walk of it, which follows only the
+# parent of a merge whose file matches the merge's, never reads the branch.
+ut_side() { # $1 = project, $2 = JSON file in it, $3 = Python statement on d
+  local p="$1" f="$2"
+  sa_git "$p" checkout -q -b trial || return 1
+  dt_json "$p/$f" "$3" || return 1
+  sa_git "$p" commit -q -am "trying something in $f" || return 1
+  sa_git "$p" checkout -q HEAD~1 -- "$f" || return 1
+  sa_git "$p" commit -q -m "$f as it was" || return 1
+  sa_git "$p" checkout -q - || return 1
+  sa_git "$p" merge -q --no-ff -m 'merge the trial' trial
+}
 
 SM_COPY=(); SM_UPD=(); SM_A_COPIED=""; SM_A_UPDATED=""; SM_A_AGAIN_DIRTY=""; SM_A_SAME=true
 SM_B_UPDATED=""; SM_B2_UPDATED=""; SM_C_RECORD=""; SM_C_UPDATED=""; SM_ABS=""
 SM_T_COPIED=""; SM_T_UPDATED=""; SM_T_LINES=""
+# Check 102, case c2: its own exit statuses (copy, side branch, update, next update), so check 55's
+# status line keeps its meaning; the control (git's default walk of settings.json, which must
+# list one commit, or the side branch was never set aside); the judge; the history lines of the
+# update and the next ("1 0"); whether the next update left settings.json as it was.
+SM_C2_ST=""; SM_C2_CTRL=""; SM_C2_UPDATED=""; SM_C2_LINES=""; SM_C2_SAME=true
 # The one line a copy prints for an owner's autoCompactEnabled other than false.
 SM_KEPT='kept your "autoCompactEnabled": true in .claude/settings.json: the handoff hooks assume false; set it to false in .claude/settings.json to use them.'
+# Why family-update.py did not add an entry a committed version of its file held (D51, D54):
+# the one line that names it, once (checks 102 and 103).
+HELD_WHY='because a committed version of the file held it (you removed it)'
 run_sm_flow() { # $1 = the report fixture template (tags v0.3.0 and v0.4.0), $2 = work dir
-  local w="$2/sm" log="$2/sm-flow.log" p k before
+  local w="$2/sm" log="$2/sm-flow.log" p k before st
   SM_RAN=true; SM_COPY=(0 0 0 0 0); SM_UPD=(0 0 0 0 0 0); SM_A_SAME=true; SM_ABS=""
+  SM_C2_ST=""; SM_C2_CTRL=""; SM_C2_UPDATED=""; SM_C2_LINES=""; SM_C2_SAME=true
   mkdir -p "$w"
-  for k in a b b2 c t; do
+  for k in a b b2 c c2 t; do
     p="$w/$k"; mkdir -p "$p/.claude"; sm_existing > "$p/.claude/settings.json"
     [[ "$k" == t ]] && sed -i 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": true/' "$p/.claude/settings.json"
     { sa_git "$p" init -q && sa_git "$p" add -A && sa_git "$p" commit -q -m "the owner's own settings"; } >>"$log" 2>&1
@@ -1803,6 +1847,24 @@ PY
   sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, no tasks' >>"$log" 2>&1 || true
   rp_update "$p" v0.4.0 >>"$log" 2>&1 || SM_UPD[3]=$?
   SM_C_UPDATED="$(sm_judge "$p/.claude/settings.json" 1)"
+  # c2 (check 102): as c, but the owner wires the threshold hook entry and "idleCompaction": false
+  # on a side branch, removes both there and merges it back with --no-ff, so settings.json is as
+  # it was and git's default walk lists one commit of it. The update adds neither, adds
+  # autoCompactEnabled, and names the hook and the key in one line; the next update is quiet.
+  p="$w/c2"; st=(0 0 0 0)
+  rp_copy "$1" v0.3.0 "$p" theology --skip-tasks >>"$log" 2>&1 || st[0]=$?
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'copied over my settings, no tasks' >>"$log" 2>&1 || true
+  ut_side "$p" .claude/settings.json "$(printf 'd["hooks"] = {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "%s", "timeout": 10}]}]}; d["idleCompaction"] = False' "$RP_HOOK_CMD")" >>"$log" 2>&1 || st[1]=$?
+  SM_C2_CTRL="$(git -C "$p" log --format=%H HEAD -- .claude/settings.json 2>/dev/null | grep -c . || true)"
+  rp_update "$p" v0.4.0 >"$w/c2-update.log" 2>&1 || st[2]=$?
+  SM_C2_UPDATED="$(sm_judge "$p/.claude/settings.json" 0 '' '["idleCompaction"]')"
+  sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated to v0.4.0' >>"$log" 2>&1 || true
+  before="$(sha1sum < "$p/.claude/settings.json")"
+  rp_update "$p" v0.4.0 >"$w/c2-again.log" 2>&1 || st[3]=$?
+  [[ "$(sha1sum < "$p/.claude/settings.json")" == "$before" ]] || SM_C2_SAME=false
+  SM_C2_LINES="$(grep -F "$HELD_WHY" "$w/c2-update.log" | grep -F "$SM_HOOK" | grep -cF '"idleCompaction"' || true) $(grep -cF "$HELD_WHY" "$w/c2-again.log" || true)"
+  SM_C2_ST="${st[*]}"
+  cat "$w/c2-update.log" "$w/c2-again.log" >>"$log"
   # t: the owner set autoCompactEnabled true; the copy keeps it and says so once, adds the
   # other listed values (idleCompaction false), and the update says nothing more.
   p="$w/t"
@@ -1817,6 +1879,18 @@ PY
 
 sm_checks() {
   local L="[settings fixture]"
+  # 102: case c2, judged on its own status, so a failure here leaves checks 55–59 their meaning.
+  if [[ "$SM_C2_ST" != "0 0 0 0" ]]; then
+    finding "check 102 — $L the side-branch case failed (copy, side branch, update, next update: ${SM_C2_ST:-not run})"
+  elif [[ "$SM_C2_CTRL" != 1 ]]; then
+    finding "check 102 — $L git's default walk lists $SM_C2_CTRL commit(s) of .claude/settings.json, not 1, so the side branch was not set aside and the case proves nothing"
+  else
+    [[ "$SM_C2_UPDATED" == ok ]] \
+      || finding "check 102 — $L after the owner wired the threshold hook and idleCompaction on a side branch, removed both there and merged it back, the update: $SM_C2_UPDATED"
+    [[ "$SM_C2_LINES" == "1 0" ]] \
+      || finding "check 102 — $L the hook and idleCompaction the history held were not named in one line by the update, and never by the next (update, next: $SM_C2_LINES)"
+    $SM_C2_SAME || finding "check 102 — $L the next update rewrote .claude/settings.json"
+  fi
   if [[ "${SM_COPY[*]}" != "0 0 0 0 0" || "${SM_UPD[*]}" != "0 0 0 0 0 0" ]]; then
     finding "check 55 — $L a copy over the owner's settings.json or an update failed (copies: ${SM_COPY[*]}; updates: ${SM_UPD[*]})"
     return 0
@@ -1840,10 +1914,10 @@ sm_checks() {
 
 # ── The data root, the provider and the MCP servers on real updates (D50, D53, D54) ──
 #
-# Checks 60–85, on the real template: a project copied at v0.4.0 (or v0.3.0) is updated to the
-# working tree, tagged as the release its newest _migrations entry names, and then to one later
-# release made here on a side branch (DT_NEXT), so that an update after the crossing one has
-# something to deliver. Each flow keeps what the checks read: copies of the files before and
+# Checks 60–85 and 103, on the real template: a project copied at v0.4.0 (or v0.3.0) is updated
+# to the working tree, tagged as the release its newest _migrations entry names, and then to one
+# later release made here on a side branch (DT_NEXT), so that an update after the crossing one
+# has something to deliver. Each flow keeps what the checks read: copies of the files before and
 # after, the new render's files from the render record (refs/syntek-author/template), the logs
 # and the exit statuses. The judges run when the checks run, so --self-test proves them on
 # synthetic trees it writes (dt_synth) with one mutation per check.
@@ -2132,6 +2206,10 @@ MC_RAN=false; MC_DOC=""; MC_W=""; MC_PROJ=""; MC_LOG=""; MC_NEXT_LOG=""; MC_AGAI
 MC_COPY=0; MC_UPD=0; MC_WRITE=0; MC_CHECK1=0; MC_NEXT_ST=0; MC_CHECK2=0; MC_AGAIN_ST=0; MC_AGAIN_DIRTY=""
 MC_CLIENTS_PRE=""; MC_CLIENTS_MID=""; MC_CLIENTS_END=""; MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""
 MR_PROJ=""; MR_ST=0
+# Check 103: the project whose owner added scrapling to .mcp.json on a side branch and removed it
+# there; its exit statuses (copy, side branch, update, next update), the control (git's default
+# walk of .mcp.json, which must list one commit) and the logs of its two updates.
+MH_PROJ=""; MH_ST=""; MH_CTRL=""; MH_LOG1=""; MH_LOG2=""
 MA_PROJ=""; MA_LOG=""; MA_COPY=0; MA_UPD=0; MA_STAT_PRE=""
 SB_PROJ=""; SB_ST=0
 
@@ -2183,10 +2261,11 @@ dt_sibling() { # $1 = project, then the record's lines: an invented answers file
 }
 
 run_mcp_flow() { # $1 = tagged template, $2 = work dir, $3 = DOC_TYPE
-  local tpl="$1" w="$2/mc" log="$2/mc-flow.log" p
+  local tpl="$1" w="$2/mc" log="$2/mc-flow.log" p st
   MC_RAN=true; MC_DOC="$3"; MC_W="$w"; MC_PROJ="$w/proj"; MC_LOG="$w/up.log"; MC_NEXT_LOG="$w/next.log"; MC_AGAIN_LOG="$w/again.log"
   MC_COPY=0; MC_UPD=0; MC_WRITE=0; MC_CHECK1=0; MC_NEXT_ST=0; MC_CHECK2=0; MC_AGAIN_ST=0; MC_AGAIN_DIRTY=""
   MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""; MR_PROJ="$w/removed"; MR_ST=0
+  MH_PROJ="$w/held"; MH_ST=""; MH_CTRL=""; MH_LOG1="$w/held-1.log"; MH_LOG2="$w/held-2.log"
   MA_PROJ="$w/allowed"; MA_LOG="$w/allowed.log"; MA_COPY=0; MA_UPD=0; MA_STAT_PRE=""; SB_PROJ="$w/sibling"; SB_ST=0
   rm -rf "$w"; mkdir -p "$w"; : > "$MC_LOG"; : > "$MC_NEXT_LOG"; : > "$MC_AGAIN_LOG"; : > "$MA_LOG"
   [[ ${#SA_COPIER[@]} -gt 0 ]] || copier_init
@@ -2232,6 +2311,23 @@ run_mcp_flow() { # $1 = tagged template, $2 = work dir, $3 = DOC_TYPE
   dt_drop_server "$p/.agents/mcp_config.json" scrapling >>"$log" 2>&1 || true
   sa_git "$p" add -A && sa_git "$p" commit -q -m 'no scrapling for Antigravity' >>"$log" 2>&1 || true
   rp_update "$p" "$DT_NEXT" >>"$log" 2>&1 || MR_ST=$?
+
+  # 103: a copy at v0.4.0, whose .mcp.json declares no server, and an owner who adds scrapling to
+  # it on a side branch, removes it there and merges it back with --no-ff: the update adds
+  # code-review-graph alone, names scrapling once, and the update to DT_NEXT names it no more.
+  p="$MH_PROJ"; st=(0 0 0 0)
+  rp_copy "$tpl" "$DT_FROM" "$p" "$3" >>"$log" 2>&1 || st[0]=$?
+  if [[ "${st[0]}" -eq 0 ]]; then
+    [[ -d "$p/.git" ]] || sa_git "$p" init -q
+    sa_git "$p" add -A && sa_git "$p" commit -q -m "copied at $DT_FROM" >>"$log" 2>&1
+    ut_side "$p" .mcp.json 'd.setdefault("mcpServers", {})["scrapling"] = {"command": "uvx", "args": ["--from", "scrapling[ai]==0.4.10", "scrapling", "mcp"]}' >>"$log" 2>&1 || st[1]=$?
+    MH_CTRL="$(git -C "$p" log --format=%H HEAD -- .mcp.json 2>/dev/null | grep -c . || true)"
+    rp_update "$p" HEAD >"$MH_LOG1" 2>&1 || st[2]=$?
+    sa_git "$p" add -A && sa_git "$p" commit -q -m 'updated' >>"$log" 2>&1 || true
+    rp_update "$p" "$DT_NEXT" >"$MH_LOG2" 2>&1 || st[3]=$?
+    cat "$MH_LOG1" "$MH_LOG2" >>"$log"
+  fi
+  MH_ST="${st[*]}"
 
   # 67, 68, 85: an owner who allows every Scrapling tool, keeps .mcp.json out of git and runs a
   # Drive workflow of their own; 77: the same project beside a sibling that records external.
@@ -2291,6 +2387,24 @@ mcp_flow_checks() {
     [[ "$v" == ok ]] || finding "check 65 — $L .mcp.json, whose code-review-graph the owner removed before any commit, $v again"
     v="$(ut_judge absent "$MR_PROJ/.agents/mcp_config.json" .agents/mcp_config.json scrapling)"
     [[ "$v" == ok ]] || finding "check 65 — $L .agents/mcp_config.json, whose scrapling the owner removed after a commit, $v again"
+  fi
+  # 103: scrapling, added and removed on a side branch merged back, is never added and is named once.
+  if [[ "$MH_ST" != "0 0 0 0" ]]; then
+    finding "check 103 — $L the side-branch project failed (copy, side branch, update, next update: ${MH_ST:-not run}) — see $MH_LOG1"
+  elif [[ "$MH_CTRL" != 1 ]]; then
+    finding "check 103 — $L git's default walk lists $MH_CTRL commit(s) of .mcp.json, not 1, so the side branch was not set aside and the case proves nothing"
+  else
+    v="$(ut_judge absent "$MH_PROJ/.mcp.json" .mcp.json scrapling)"
+    n="$(grep -o '"code-review-graph"[[:space:]]*:' "$MH_PROJ/.mcp.json" 2>/dev/null | grep -c . || true)"
+    if [[ "$v" != ok ]]; then
+      finding "check 103 — $L .mcp.json, whose scrapling the owner added and removed on a side branch merged back, $v again"
+    elif [[ "$n" -ne 1 ]]; then
+      finding "check 103 — $L .mcp.json declares code-review-graph $n time(s) after the updates, not once"
+    fi
+    a="$(grep -F "$HELD_WHY" "$MH_LOG1" | grep -F .mcp.json | grep -cF scrapling || true)"
+    b="$(grep -cF "$HELD_WHY" "$MH_LOG2" || true)"
+    [[ "$a" -eq 1 ]] || finding "check 103 — $L the update named scrapling, which a committed .mcp.json held, in $a line(s), not one"
+    [[ "$b" -eq 0 ]] || finding "check 103 — $L the next update named an entry a committed version held again, in $b line(s)"
   fi
   a="$(grep -cF "$DT_DIFF_LINE" "$MC_LOG" || true)"; b="$(grep -cF "$DT_DIFF_LINE" "$MC_NEXT_LOG" || true)"
   v="$(ut_judge same "$MC_W/pre/.mcp.json" "$MC_PROJ/.mcp.json" .mcp.json scrapling)"
@@ -2613,14 +2727,15 @@ ut_rt_again() { # the answers after external again: the defaults re-derived
   verdict "${bad[@]}"
 }
 
-# The trees, logs and statuses every check from 60 to 85 reads, as a clean run leaves them, for
-# --self-test: invented server values, the real file shapes and the real report lines.
+# The trees, logs and statuses every check from 60 to 85, and 103, reads, as a clean run leaves
+# them, for --self-test: invented server values, the real file shapes and the real report lines.
 dt_synth() { # $1 = dir
   local s="$1"
   rm -rf "$s"; mkdir -p "$s"
-  python3 - "$s" "$SA_MCP_ASKS" "$SA_MCP_DENY" "$SA_ANSWERS_FILE" "$DT_EXT_DIR" "$DT_RT_DIR" <<'PY'
+  python3 - "$s" "$SA_MCP_ASKS" "$SA_MCP_DENY" "$SA_ANSWERS_FILE" "$DT_EXT_DIR" "$DT_RT_DIR" "$HELD_WHY" <<'PY'
 import json, os, sys
 s, asks, deny, ans, ext_dir, rt_dir = sys.argv[1], sys.argv[2].split(), sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
+held_why = sys.argv[7]
 T = {"code-review-graph": {"command": "uvx", "args": ["code-review-graph==9.9.9", "serve"]},
      "scrapling": {"command": "uvx", "args": ["scrapling==9.9.9", "mcp"]}}
 def w(rel, text):
@@ -2681,6 +2796,13 @@ w("mc/mig1.out", "▸ v0.5.0 migration — the data root and the provider (DESIG
 w("mc/mig2.out", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n")
 j("mc/removed/.mcp.json", {"mcpServers": mine}, 4)
 j("mc/removed/.agents/mcp_config.json", {"mcpServers": {"code-review-graph": T["code-review-graph"]}})
+# Check 103: scrapling added and removed on a side branch merged back, never added, named once.
+j("mc/held/.mcp.json", {"mcpServers": {"code-review-graph": T["code-review-graph"]}})
+w("mc/held-1.log", "▸ v0.5.0 migration — the data root and the provider (DESIGN.md D50, D53); report only\n"
+  f"▸ syntek-author: not added to .mcp.json, {held_why}: scrapling\n"
+  "▸ syntek-author: added 1 MCP server to .mcp.json: code-review-graph\n"
+  "▸ syntek-author update report, 0.4.0 → 0.5.0\n  The template changed 2 files here: 2 delivered.\n")
+w("mc/held-2.log", "▸ syntek-author update report, 0.5.0 → 0.5.1\n  The template changed 3 files here: 1 delivered, 2 kept back.\n")
 # The owner who allows every Scrapling tool, keeps .mcp.json out of git and runs a workflow.
 j("mc/allowed/.claude/settings.json", {"permissions": {"allow": ["mcp__scrapling__*"], "deny": [deny],
                                                          "ask": [r for r in asks if not r.startswith("mcp__scrapling__")]}})
@@ -2750,6 +2872,7 @@ PY
   MC_CLIENTS_PRE="AGENTS.md GEMINI.md .agents/mcp_config.json .codex/config.toml opencode.json"
   MC_CLIENTS_MID="$MC_CLIENTS_PRE"; MC_CLIENTS_END="$MC_CLIENTS_PRE"; MC_MIG1=0; MC_MIG2=0; MC_MIG_DIRTY=""; MC_ABS=""
   MR_PROJ="$s/mc/removed"; MR_ST=0
+  MH_PROJ="$s/mc/held"; MH_ST="0 0 0 0"; MH_CTRL=1; MH_LOG1="$s/mc/held-1.log"; MH_LOG2="$s/mc/held-2.log"
   MA_PROJ="$s/mc/allowed"; MA_LOG="$s/mc/allowed.log"; MA_COPY=0; MA_UPD=0; MA_STAT_PRE="$(dt_stat "$MA_PROJ/.mcp.json")"
   SB_PROJ="$s/mc/sibling"; SB_ST=0
   TD_RAN=true; TD_DOC=theology; TD_PROJ="$s/td/proj"; TD_LOG="$s/td/up.log"; TD_PRE="$s/td/pre"; TD_TPL="$s/td/tpl"
@@ -2775,7 +2898,7 @@ open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(d, indent=2) + "\n")
 PY
 }
 
-# The probes for checks 60–85, on dt_synth's trees: each mutation is undone before the next.
+# The probes for checks 60–85 and 103, on dt_synth's trees: each mutation is undone before the next.
 dt_self_test() { # $1 = scratch dir
   local s="$1/dt" h="$1/dt-held" r first
   dt_synth "$s"
@@ -2809,6 +2932,16 @@ dt_self_test() { # $1 = scratch dir
   probe "check 65 fires when a server removed before any commit comes back" "check 65 — [theology from v0.4.0] .mcp.json"; back "$s/mc/removed/.mcp.json"
   hold "$s/mc/removed/.agents/mcp_config.json"; dt_json "$s/mc/removed/.agents/mcp_config.json" 'd["mcpServers"]["scrapling"] = {}'
   probe "check 65 fires when a server removed after a commit comes back" "check 65 — [theology from v0.4.0] .agents/mcp_config.json"; back "$s/mc/removed/.agents/mcp_config.json"
+  MH_ST="0 0 1 0"; probe "check 103 fires when the side-branch project fails" "check 103 — [theology from v0.4.0] the side-branch project failed"; MH_ST="0 0 0 0"
+  MH_CTRL=3; probe "check 103 fires when git's default walk reads the side branch" "check 103 — [theology from v0.4.0] git's default walk lists 3"; MH_CTRL=1
+  hold "$MH_PROJ/.mcp.json"; dt_json "$MH_PROJ/.mcp.json" 'd["mcpServers"]["scrapling"] = {}'
+  probe "check 103 fires when scrapling, which the side branch held, is added" "check 103 — [theology from v0.4.0] .mcp.json, whose scrapling the owner added"; back "$MH_PROJ/.mcp.json"
+  hold "$MH_PROJ/.mcp.json"; dt_json "$MH_PROJ/.mcp.json" 'd["mcpServers"].pop("code-review-graph")'
+  probe "check 103 fires when code-review-graph is not added" "check 103 — [theology from v0.4.0] .mcp.json declares code-review-graph 0 time(s)"; back "$MH_PROJ/.mcp.json"
+  hold "$MH_LOG1"; grep -vF "$HELD_WHY" "$h" > "$MH_LOG1" || true
+  probe "check 103 fires when the update does not name scrapling" "check 103 — [theology from v0.4.0] the update named scrapling, which a committed .mcp.json held, in 0 line(s)"; back "$MH_LOG1"
+  hold "$MH_LOG2"; { grep -F "$HELD_WHY" "$MH_LOG1"; cat "$h"; } > "$MH_LOG2"
+  probe "check 103 fires when the next update names scrapling again" "check 103 — [theology from v0.4.0] the next update named an entry"; back "$MH_LOG2"
   hold "$MC_NEXT_LOG"; { grep -F "$DT_DIFF_LINE" "$MC_LOG"; cat "$h"; } > "$MC_NEXT_LOG"
   probe "check 66 fires when the differing entry is reported again" "check 66"; back "$MC_NEXT_LOG"
   hold "$s/mc/proj/.mcp.json"; dt_json "$s/mc/proj/.mcp.json" 'd["mcpServers"]["scrapling"]["args"] = ["the template'"'"'s"]'
@@ -3934,7 +4067,7 @@ self_test() {
   SH_DIRTY=" M README.md"; probe "check 54 fires when a second update changes a file" "check 54"; SH_DIRTY=""
   SH_RAN=false
 
-  # Checks 55–59: settings.json copied over the owner's own, on the same fixture (v0.3.0 to v0.4.0).
+  # Checks 55–59 and 102: settings.json over the owner's own, on the same fixture (v0.3.0 to v0.4.0).
   run_sm_flow "$RP_TPL" "$tmp"
   st_baseline "settings.json across a copy over the owner's own, a removal and a copy without tasks"
   SM_UPD[0]=1; probe "check 55 fires when an update fails" "check 55 — [settings fixture] a copy over"; SM_UPD[0]=0
@@ -3953,6 +4086,10 @@ self_test() {
   sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false,\n    "idleCompaction": false/' "$tmp/sj.json" > "$tmp/sj3.json"
   [[ "$(sm_judge "$tmp/sj3.json" 0)" == ok && "$(sm_judge "$tmp/sj3.json" 0 '{"autoCompactEnabled": true}')" == *"not true once"* ]] || sj+=" value"
   [[ "$(sm_judge "$tmp/sj3.json" 0 '{"idleCompaction": true}')" == *"idleCompaction written 1 time(s), false, not true once"* ]] || sj+=" idle-value"
+  # A key that must be absent (check 102): left out, it passes; written, it is named.
+  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false/' "$tmp/sj.json" > "$tmp/sj4.json"
+  [[ "$(sm_judge "$tmp/sj4.json" 0 '' '["idleCompaction"]')" == ok ]] || sj+=" absent-kept"
+  [[ "$(sm_judge "$tmp/sj3.json" 0 '' '["idleCompaction"]')" == "idleCompaction written, not absent" ]] || sj+=" absent-written"
   [[ -z "$sj" ]] || { printf '\033[31m  ✗ sm_judge misjudges the top-level values:%s\033[0m\n' "$sj" >&2; exit 2; }
   SM_A_UPDATED="the threshold hook wired 2 time(s), not 1"
   probe "check 55 fires when the update wires the hook twice" "check 55 — [settings fixture] after the update"; SM_A_UPDATED=ok
@@ -3963,6 +4100,13 @@ self_test() {
   SM_C_UPDATED="the threshold hook wired 0 time(s), not 1"
   probe "check 57 fires when a project without a record never gets the hook" "check 57 — [settings fixture] a copy without tasks"; SM_C_UPDATED=ok
   SM_C_RECORD="0123abc"; probe "check 57 fires when the no-record case had a record" "check 57 — [settings fixture] a copy with --skip-tasks"; SM_C_RECORD=""
+  SM_C2_ST="0 0 1 0"; probe "check 102 fires when the side-branch case fails" "check 102 — [settings fixture] the side-branch case failed"; SM_C2_ST="0 0 0 0"
+  SM_C2_CTRL=3; probe "check 102 fires when git's default walk reads the side branch" "check 102 — [settings fixture] git's default walk lists 3"; SM_C2_CTRL=1
+  SM_C2_UPDATED="the threshold hook wired 1 time(s), not 0; idleCompaction written, not absent"
+  probe "check 102 fires when an entry the history held is added back" "check 102 — [settings fixture] after the owner wired the threshold hook"; SM_C2_UPDATED=ok
+  SM_C2_LINES="0 0"; probe "check 102 fires when the history line is not printed" "check 102 — [settings fixture] the hook and idleCompaction the history held"; SM_C2_LINES="1 0"
+  SM_C2_LINES="1 1"; probe "check 102 fires when the next update names them again" "check 102 — [settings fixture] the hook and idleCompaction the history held"; SM_C2_LINES="1 0"
+  SM_C2_SAME=false; probe "check 102 fires when the next update rewrites settings.json" "check 102 — [settings fixture] the next update rewrote"; SM_C2_SAME=true
   SM_A_SAME=false; probe "check 58 fires when a second update rewrites settings.json" "check 58"; SM_A_SAME=true
   SM_ABS="/tmp/x/tpl"; probe "check 59 fires when the record names a path" "check 59"; SM_ABS=""
   # sm_abs itself: a record whose tree holds a rendered answers file naming Copier's clone.
@@ -3984,7 +4128,7 @@ self_test() {
   probe "check 59 finds an MCP record line naming a path outside the project" "check 59 — [settings fixture] the render record names a path of this machine: record line: written-blob: ../outside"; SM_ABS=""
   SM_RAN=false
 
-  # Checks 60–85: the trees, logs and statuses of real updates across D50, D53 and D54.
+  # Checks 60–85 and 103: the trees, logs and statuses of real updates across D50, D53 and D54.
   dt_self_test "$tmp"
   ht_self_test "$tmp"
   ou_self_test "$tmp"
@@ -4075,11 +4219,11 @@ for doc in ${DOC_TYPES//,/ }; do
     $OL_RAN && log "  ✓ $doc — .agents linked outside the project: held and restored by the update with its target untouched, a second update a no-op, a stranded hold fixed by the printed mv and by restore, a real .agents/ with an outside skills link updated"
     $RP_RAN && log "  ✓ $doc — the update report: every section on its fixture (inline and rej), the refresh and the owner's edit, settings add-only, every printed command run offline, a rerun and a second update quiet, the opt-out and the limits one line each; an update discarded by reset and clean, or by stash, delivered again by the second run, whose hand rerun changes nothing; an update discarded and followed by one to a later release giving a direct update's result, offers and written blobs; an ignored settings.json never read, its entries named once per update"
     $SH_RAN && log "  ✓ $doc — updates from $TRAP_FROM and from $PRE_D51_REF: unedited shared files refreshed or added, the edited one kept and reported, the threshold hook wired once, add-only, a second update quiet"
-    $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds each listed top-level value once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a second update a no-op, the record names no path of this machine"
+    $SM_RAN && log "  ✓ $doc — settings.json: a copy over the owner's own wires the hook and adds each listed top-level value once in the owner's formatting, keeps an owner's true and says so once, an update keeps them once, a removed hook stays removed, a project without a record gets it once, a hook and a value wired and removed on a side branch merged back never added and named once, a second update a no-op, the record names no path of this machine"
     $CL_RAN && log "  ✓ $doc — AGENT_CLIENTS emptied: nothing deleted, the bridge and entrypoints kept, only rules 01, rules 05 and the answers changed; opencode removed: only its rules 05 row went"
     $SET_RAN && log "  ✓ $doc — upgrade from $MIGRATION_FROM: the audience set in .claude/CLAUDE.md Section 1 reached 00-project.md ## Brief, the reader test answered during the update kept with the older hand edit reported as a conflict, a second run a no-op"
     $TD_RAN && log "  ✓ $doc — update from $TRAP_FROM across v0.5.0: the nine rules and both MCP servers once, DATA_STORE repo with no layout answer, the resolver and no ignore file, no guard wired, DATA_PROVIDER none and no .github/, no false report line"
-    $MC_RAN && log "  ✓ $doc — MCP servers from $DT_FROM: added once to each existing file in the owner's order, a differing entry kept and said once, no client file created or restored, Codex's prompts, --write then --check clean, held back from a catch-all opencode.json until --write, removed servers never re-added, an ignored .mcp.json untouched, allowed Scrapling asks left out, a quiet second update; the v0.5.0 migration before the report and the same twice; a sibling at external followed"
+    $MC_RAN && log "  ✓ $doc — MCP servers from $DT_FROM: added once to each existing file in the owner's order, a differing entry kept and said once, no client file created or restored, Codex's prompts, --write then --check clean, held back from a catch-all opencode.json until --write, removed servers never re-added, one added and removed on a side branch merged back named once, an ignored .mcp.json untouched, allowed Scrapling asks left out, a quiet second update; the v0.5.0 migration before the report and the same twice; a sibling at external followed"
     $RT_RAN && log "  ✓ $doc — the round trip: external with its own layout, repo, external re-derived, the old folder named from filed_under and restored by --data; a case-only area change refused, the tree clean"
     $OU_RAN && log "  ✓ $doc — the update script on Python ${OU[ver]}: update and baseline exit 0 with the loud line and the rerun uvx --python '>=$SA_PYTHON_MIN', the project untouched, --self-test refused"
     $OX_RAN && log "  ✓ $doc — the outside-link script on Python ${OX[ver]}: hold, and restore beside a held link, exit 0 with the loud message and the rerun uvx --python '>=$SA_PYTHON_MIN', nothing held or moved, --self-test refused"

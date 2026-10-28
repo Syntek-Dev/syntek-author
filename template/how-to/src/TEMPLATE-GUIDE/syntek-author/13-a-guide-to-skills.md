@@ -43,7 +43,7 @@ These skills help you decide before anything is written, and keep long work on t
 | `prototype` | Writes a throwaway test of a passage to answer one question, then deletes it | 'try the opening three ways' |
 | `to-questionnaire` | Turns a question only someone else can answer into a questionnaire, and never sends it | 'make a questionnaire for my editor' |
 | `handoff` | Writes a handoff so the next session can carry on, then stops | 'hand this off' |
-| `teach` | Opens a practice workspace in `learning/`, where you learn a skill without touching the real work | 'teach me how to write a strong ending' |
+| `teach` | Opens a practice workspace in `learning/`, where you learn a skill without touching the real work; beside another template, its topics go in a folder named after this one | 'teach me how to write a strong ending' |
 | `wait-what` | Explains the last reply again, in plain words, with the context it assumed | 'wait, what?' |
 
 A session never decides for you: each of these skills recommends, and you choose.

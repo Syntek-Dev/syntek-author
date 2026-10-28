@@ -16,9 +16,10 @@ world/workflows/local/
 
 ## What's here
 
-No local procedures yet. **A folder here with the same slug as a template procedure (for
-example 03-name-something) replaces that procedure for this project**; `run-workflow` checks
-this folder first. A folder with a new slug adds a procedure.
+No local procedures yet. **A folder here with the same slug as a template procedure (the name
+after its number), whatever its number, replaces that procedure for this project**: a local
+03-name-something or 12-name-something replaces `world/workflows/03-name-something/`.
+`run-workflow` checks this folder first. A folder with a new slug adds a procedure.
 
 | Procedure | What it does | Overrides |
 |---|---|---|

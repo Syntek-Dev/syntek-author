@@ -19,8 +19,11 @@ every client. Nothing here adds a rule; it says how to reach the rules that alre
    `CONTEXT.md`). An `@` line is a pointer to read, even when this client does not expand it;
    Codex and OpenCode pass it through as plain text.
 3. Read every Markdown file under `.claude/rules/`, recursively, including each other
-   template's folder. Claude Code loads them at launch; no other client does, so read them
-   explicitly before working.
+   template's folder, before working: no client but Claude Code loads them.
+   `.claude/rules/syntek-author/04-build-pipeline.md` and `09-data-root.md` open with `paths`
+   frontmatter and may wait until the work reads or edits a file they list, or reaches a
+   command `.claude/rules/syntek-author/01-layout-and-routing.md` Section 8 names; read each
+   then, before acting.
 4. Read `.claude/MEMORY.md`, then the `CONTEXT.md` and `CLAUDE.md` of the folder you are about
    to work in, in that order. A folder's `CLAUDE.md` opens with `@./CONTEXT.md`: read that file
    too. Follow its routing to project guides (`docs/project/`) and local workflows
@@ -194,9 +197,15 @@ template's guide sits beside it, in folders named for that template.
 
 A companion template (`syntek-media`, for example) ships its own bridge beside this one, named
 `.claude/<template>-agents.md`, and may share the entrypoints, `.agents` and the client
-settings. Read every such bridge present, and every rules folder under `.claude/rules/`. Where
-two templates' rules meet, this project's settings and `.claude/CLAUDE.md` decide; ask the
-author when they do not.
+settings. Read every such bridge present, and every rules folder under `.claude/rules/` (step 3
+says when two files may wait). Where two templates' rules meet, this project's settings and
+`.claude/CLAUDE.md` decide; ask the author when they do not.
+
+Each template's teaching skill keeps its own lessons in `learning/`: straight under it while one
+template is applied, and in a folder named for itself, `learning/<template>/<topic>/`, while
+another template's answers file stands at the project root. A topic stays where it was begun, its
+`MISSION.md` names its template, and another template's folder or topics follow that template's
+rules (`learning/CONTEXT.md`).
 
 ## Enabling a client in an existing project
 

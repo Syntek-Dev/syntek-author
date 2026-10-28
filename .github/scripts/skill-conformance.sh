@@ -11,7 +11,7 @@
 #                        the contract once; this script holds every skill to it, and holds each
 #                        mode file to the four headings that let the procedure find its additions.
 #
-#                        Twenty-one checks:
+#                        Twenty-two checks:
 #                          1. The skill folder has a SKILL.md.
 #                          2. Frontmatter opens on line 1 with --- and is closed.
 #                          3. `name` equals the folder name.
@@ -46,6 +46,11 @@
 #                             template's mode files and, outside template/, the companion's
 #                             MEDIA-*.md (the neutral Mode paragraph reads every upper-case .md
 #                             there, so anything else would be read as a mode).
+#                         22. Reserved names (D58, DESIGN.md Section 9 rule 4): under template/,
+#                             no skill folder, and no skill in the catalogue _common.sh
+#                             transcribes from DESIGN.md Section 5, starts with the companion's
+#                             skill prefix media-, in any letter case (read at the start of the
+#                             name, so social-media-documents passes).
 #
 #                        Run on template/ (the default) the H1 and locale line must carry the
 #                        literal PROJECT_NAME and TIMEZONE tokens; on a render, any value. The
@@ -288,6 +293,14 @@ run_checks() {
   for d in agents commands; do
     [[ -e "$TREE/.claude/$d" ]] && finding "check 18 — .claude/$d/ exists; this template ships skills only (DESIGN.md D5)"
   done
+  # ── 22. Reserved names (D58) ────────────────────────────────────────────────
+  # Before the folder test, so a catalogued name is judged before any folder exists.
+  if $SOURCE; then
+    while IFS= read -r d; do
+      ! is_sibling_skill "$d" || finding "check 22 — $d takes syntek-media's skill prefix (media-), which DESIGN.md D58 and Section 9 rule 4 reserve to it"
+    done < <({ printf '%s\n' "${!CAT_GATE[@]}"
+               [[ -d "$TREE/.claude/skills" ]] && find "$TREE/.claude/skills" -mindepth 1 -maxdepth 1 -type d -printf '%f\n'; } | LC_ALL=C sort -u)
+  fi
   [[ -d "$TREE/.claude/skills" ]] || return 0
   while IFS= read -r d; do check_skill "$d"; done \
     < <(find "$TREE/.claude/skills" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | LC_ALL=C sort)
@@ -388,6 +401,18 @@ self_test() {
   rm "$ds/MEDIA-BUSINESS.md"
   printf '# x\n' > "$wf/NOTES.md";                             probe "check 21 fires on another upper-case file beside a shared skill" "check 21 — wayfinder/NOTES.md sits beside"
   rm "$wf/NOTES.md"
+  # Reserved names (check 22, D58): the companion's media- prefix, in the catalogue or as a folder,
+  # in any letter case; anchored, so a name holding media- after its start passes. The catalogue
+  # entry keeps check 19 quiet, and the sorted list names a folder and its entry once.
+  CAT_GATE[media-teach]=always; CAT_MODES[media-teach]=-
+  write_skill "$sk/media-teach" media-teach false;             probe "check 22 fires on a catalogued skill under the reserved prefix" "check 22 — media-teach takes"
+  rm -rf "$sk/media-teach";                                    probe "check 22 fires on a catalogued name before its folder lands" "check 22 — media-teach takes"
+  unset 'CAT_GATE[media-teach]' 'CAT_MODES[media-teach]'
+  CAT_GATE[Media-Tone]=business; CAT_MODES[Media-Tone]=-
+  write_skill "$sk/Media-Tone" Media-Tone false;               probe "check 22 fires in any letter case" "check 22 — Media-Tone takes"
+  rm -rf "$sk/Media-Tone"; unset 'CAT_GATE[Media-Tone]' 'CAT_MODES[Media-Tone]'
+  write_skill "$sk/social-media-documents" social-media-documents false
+  probe_clean "the anchored prefix leaves social-media-documents (D39) alone"; rm -rf "$sk/social-media-documents"
   # The same tree read as a project: one mode file per moded skill, as a render ships it.
   SOURCE=false
   rm "$ds/FICTION.md" "$ds/BUSINESS.md" "$wf/FICTION.md" "$wf/BUSINESS.md"

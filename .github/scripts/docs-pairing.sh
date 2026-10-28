@@ -9,12 +9,14 @@
 #                   only those (.claude/rules/syntek-author/01-layout-and-routing.md): build/,
 #                   .git/, .claude/rules/ (a CONTEXT.md there would LOAD AS A RULE), the inside
 #                   of each skill folder, each drafts/ and each typeset/src/units/.base/
-#                   (Pandoc bases, DESIGN.md Section 4.4), which carry only README.md. The
-#                   project root carries CONTEXT.md; its CLAUDE.md is .claude/CLAUDE.md. audio/
-#                   is generated and git-ignored, so it is exempt like build/. The root .agents/
-#                   (DESIGN.md D47) is a client-discovery folder, the same in every template of
-#                   the family: it holds the skills link and Antigravity's mcp_config.json and
-#                   no pair, and the bridge and the root CONTEXT.md explain it.
+#                   (Pandoc bases, DESIGN.md Section 4.4), which carry only README.md, and
+#                   every folder below learning/ (made at run time, D57), which carries none:
+#                   the learning/ pair governs it. The project root carries CONTEXT.md; its
+#                   CLAUDE.md is .claude/CLAUDE.md. audio/ is generated and git-ignored, so it
+#                   is exempt like build/. The root .agents/ (DESIGN.md D47) is a
+#                   client-discovery folder, the same in every template of the family: it holds
+#                   the skills link and Antigravity's mcp_config.json and no pair, and the
+#                   bridge and the root CONTEXT.md explain it.
 #
 #                   The same audit holds the shapes the routing depends on: a CLAUDE.md that
 #                   does not import its CONTEXT.md loads half a folder; a workflow without its
@@ -22,7 +24,7 @@
 #                   nowhere; a guide without its Governing standard section restates a rule it
 #                   should cite.
 #
-#                   Twenty-one checks:
+#                   Twenty-four checks:
 #                     1. A directory has no CONTEXT.md.
 #                     2. A directory has no CLAUDE.md (the root excepted).
 #                     3. A CLAUDE.md does not open with @./CONTEXT.md.
@@ -102,6 +104,27 @@
 #                        another minimum would accept, or refuse, a Python the rest do not, and
 #                        a move to the next minimum would miss it. A file that is absent is not
 #                        read.
+#                    23. A file that states the workflow override rule does not say that a
+#                        local procedure overrides by its slug 'whatever its number' (DESIGN.md
+#                        D26): rules 01, the run-workflow skill, each workflows/CLAUDE.md whose
+#                        folder holds a local/, and each workflows/local/ CONTEXT.md and
+#                        CLAUDE.md. A workflow's slug is its folder name after the number. A
+#                        procedure numbered in its folder's own sequence and given a template
+#                        workflow's slug replaces that workflow in run-workflow, so a file that
+#                        says the number must match tells the author it adds one, and a skill
+#                        that reads it runs the template's. A file that is absent is not read.
+#                    24. A .md file states the override in a wording that drifted before
+#                        (DESIGN.md D26), the first found: in any file, 'the same `NN-name`',
+#                        'same folder name', 'exactly the same name', 'slug exactly', 'exact
+#                        slug' or 'local/<slug>/'; in a file check 23 reads, 'number included'
+#                        or 'including its number' (a unit's name stays 'number included' in
+#                        rules 08, the ledger and the drafting modes, which is right for a
+#                        unit); in a file under a workflows/ folder or .claude/skills/,
+#                        'same-named folder', 'same-named local', 'same-named one' or
+#                        'same-named override' (D27's same-named guide stays right everywhere).
+#                        Checks 23 and 24 read a file as one line, block delimiters removed and
+#                        every run of whitespace folded to one space, so a phrase wrapped across
+#                        two lines reads as written.
 #
 #                   Numbers are stable identifiers. Append, never renumber.
 #
@@ -113,15 +136,20 @@
 #                   heading and a tree exist; only a reader can tell whether they orient. Nor
 #                   whether a fenced command runs as written: check 20 sees a placeholder, never
 #                   a command that needs a value it does not name; check 21 sees the form of a
-#                   Copier command, never whether its other flags are right.
+#                   Copier command, never whether its other flags are right. Nor whether a file
+#                   states the workflow override rightly in words of its own: check 23 reads
+#                   only the files that must say it, and check 24 refuses only the wordings
+#                   that drifted before.
 #
 # SELF-TEST. --self-test builds a conformant tree at runtime — pairs, a skill, the rules folder,
-#            a drafts/ folder, a workflow, a guide, a standard, and a how-to tree with its
-#            pairs, one chapter, one guide and one procedure, inside a scratch repository whose
-#            README.md shows the house form of a Copier command — proves it clean, then applies
-#            one mutation per check and asserts exactly one finding each.
+#            a drafts/ folder, a workflow beside a workflows/local/ pair, a guide, a standard,
+#            and a how-to tree with its pairs, one chapter, one guide and one procedure, inside
+#            a scratch repository whose README.md shows the house form of a Copier command —
+#            proves it clean, then applies one mutation per check and asserts exactly one
+#            finding each.
 #
-# Requirements: bash 4+, grep, awk, sed, find; git for check 21's repository files. No network.
+# Requirements: bash 4+, grep, awk, sed, tr, find, xargs; git for check 21's repository files.
+#               No network.
 #
 # Usage: docs-pairing.sh [--root DIR] [--quiet] [--self-test] [--help] [<tree>...]
 #        With no tree, checks template/ in the repository.
@@ -173,11 +201,58 @@ FILES_CHECKED=0
 PHASES="plan research produce review publish convert author"
 CLAUDE_H2='Purpose (one line)|How to work here|Guardrails|Output & naming'
 BANNED='^#{2,3} +(Rules|Guardrails|Conventions|Requirements|Constraints|How to work here|Definition of done)( |$)'
+# Checks 23–24 (DESIGN.md D26): what a file that states the workflow override rule must say, and
+# the wordings, '|'-separated, that drifted from it before.
+OVERRIDE_SAID='whatever its number'
+OVERRIDE_DRIFT_ANY='the same `NN-name`|same folder name|exactly the same name|slug exactly|exact slug|local/<slug>/'
+OVERRIDE_DRIFT_RULE='number included|including its number'
+OVERRIDE_DRIFT_ROUTED='same-named folder|same-named local|same-named one|same-named override'
 
 # Read a file with every block delimiter removed, so a gated row reads as the row it renders to.
 unblocked() { sed -E 's/<:([^:]|:[^>])*:>//g' "$1"; }
 # …and with fenced code removed, so a heading quoted in a sample is not read as one.
 unfenced() { unblocked "$1" | awk '/^[[:space:]]*```/ { f = !f; next } !f'; }
+# …and as one line, every run of whitespace (line breaks included) folded to one space, so a
+# phrase wrapped across two lines reads as written (checks 23–24).
+folded() { unblocked "$1" | tr -s '[:space:]' ' '; }
+
+# Check 23: the files that state the workflow override rule, tree-relative, one a line: rules 01,
+# run-workflow, and for each layer's workflows/local/ its parent's CLAUDE.md and its own pair.
+override_files() {
+  local d f
+  for f in .claude/rules/syntek-author/01-layout-and-routing.md .claude/skills/run-workflow/SKILL.md; do
+    [[ -f "$TREE/$f" ]] && printf '%s\n' "$f"
+  done
+  while IFS= read -r d; do
+    [[ -f "$TREE/${d%/local}/CLAUDE.md" ]] && printf '%s\n' "${d%/local}/CLAUDE.md"
+    for f in CONTEXT.md CLAUDE.md; do
+      [[ -f "$TREE/$d/$f" ]] && printf '%s\n' "$d/$f"
+    done
+  done < <(cd "$TREE" && find . -name .git -prune -o -type d -path '*/workflows/local' -printf '%P\n' | LC_ALL=C sort)
+  return 0
+}
+
+# Check 24 in one awk pass over every .md file (mawk runs it: no ENDFILE). Each file, named
+# ./path so that no name reads as an awk assignment, is judged folded, and prints
+# 'path<TAB>wording' for the first drifted wording it holds.
+OVERRIDE_AWK='
+function first(t, list,   w, n, i) {
+  n = split(list, w, "|")
+  for (i = 1; i <= n; i++) if (w[i] != "" && index(t, w[i])) return w[i]
+  return ""
+}
+function judge(f, t,   hit) {
+  gsub(/[[:space:]]+/, " ", t)
+  hit = first(t, any)
+  if (hit == "" && (f in rule)) hit = first(t, ruled)
+  if (hit == "" && (f ~ /(^|\/)workflows\// || f ~ /^\.claude\/skills\//)) hit = first(t, routed)
+  if (hit != "") print f "\t" hit
+}
+BEGIN { n = split(rules, r, "|"); for (i = 1; i <= n; i++) if (r[i] != "") rule[r[i]] = 1 }
+FNR == 1 { if (cur != "") judge(cur, buf); cur = FILENAME; sub(/^\.\//, "", cur); buf = "" }
+{ s = $0; gsub(/<:([^:]|:[^>])*:>/, "", s); buf = buf " " s }
+END { if (cur != "") judge(cur, buf) }
+'
 
 frontmatter() { # the lines between the opening --- and the closing --- (empty if none)
   awk 'NR == 1 && $0 != "---" { exit } NR == 1 { next } /^---[[:space:]]*$/ { exit } { print }' "$1"
@@ -194,6 +269,7 @@ exempt_dir() { # tree-relative dir; true when it needs no pair
     /.claude/skills/*/*) return 0 ;;
     */drafts/*) return 0 ;;
     */.base/*) return 0 ;;
+    /learning/*/*) return 0 ;;
   esac
   return 1
 }
@@ -557,6 +633,20 @@ run_checks() {
   # ── 22. One Python minimum, set once in each place (D18) ────────────────────
   python_min_findings
 
+  # ── 23–24. The workflow override: the slug decides, whatever the number (D26) ──
+  local rules="" text wording
+  while IFS= read -r f; do
+    rules+="$f|"
+    text="$(folded "$TREE/$f")"
+    [[ "$text" == *"$OVERRIDE_SAID"* ]] \
+      || finding "check 23 — $f does not say that a local procedure overrides by its slug '$OVERRIDE_SAID' (DESIGN.md D26)"
+  done < <(override_files)
+  while IFS=$'\t' read -r f wording; do
+    finding "check 24 — $f states the workflow override as '$wording': a local procedure overrides by its slug, the name after its number, whatever its number (DESIGN.md D26)"
+  done < <(cd "$TREE" && find . \( -name .git -o -path ./build -o -name node_modules \) -prune -o -type f -name '*.md' -print0 \
+             | LC_ALL=C sort -z | xargs -0r awk -v any="$OVERRIDE_DRIFT_ANY" -v ruled="$OVERRIDE_DRIFT_RULE" \
+                 -v routed="$OVERRIDE_DRIFT_ROUTED" -v rules="$rules" "$OVERRIDE_AWK")
+
   if [[ -d "$TREE/standards" ]]; then
     while IFS= read -r -d '' f; do
       f="${f#./}"
@@ -588,12 +678,18 @@ write_fixture() { # $1 = tree
   mkdir -p "$t/.claude/rules/syntek-author" "$t/.claude/skills/flow"
   printf '# CLAUDE.md — Probe\n\nThe project brief.\n' > "$t/.claude/CLAUDE.md"
   printf '# CONTEXT.md — .claude/\n\nOrientation.\n\n## Directory Tree\n\n```text\n.claude/\n└── CLAUDE.md   ← the brief\n```\n' > "$t/.claude/CONTEXT.md"
-  printf '# 01 — layout\n' > "$t/.claude/rules/syntek-author/01-layout-and-routing.md"
+  printf '# 01 — layout\n\nA same-slug local procedure, whatever its number, overrides the template one.\n' \
+    > "$t/.claude/rules/syntek-author/01-layout-and-routing.md"
   write_pair "$t" .claude/rules; rm -f "$t/.claude/rules/CONTEXT.md" "$t/.claude/rules/CLAUDE.md"
   write_pair "$t" .claude/skills
   printf -- '---\nname: flow\n---\n' > "$t/.claude/skills/flow/SKILL.md"
-  for d in manuscript manuscript/docs manuscript/docs/reference manuscript/workflows "$wf" manuscript/src manuscript/src/01-the-ford standards standards/method; do
+  for d in manuscript manuscript/docs manuscript/docs/reference manuscript/workflows "$wf" manuscript/workflows/local \
+           manuscript/src manuscript/src/01-the-ford standards standards/method; do
     write_pair "$t" "$d"
+  done
+  # Checks 23–24 (D26): the workflows pair and the local/ pair say the override rule.
+  for f in manuscript/workflows/CLAUDE.md manuscript/workflows/local/CONTEXT.md manuscript/workflows/local/CLAUDE.md; do
+    printf -- '- A local procedure with a template slug overrides it, whatever its\n  number.\n' >> "$t/$f"
   done
   mkdir -p "$t/manuscript/src/01-the-ford/drafts"
   printf '# Work in progress\n' > "$t/manuscript/src/01-the-ford/drafts/README.md"
@@ -663,6 +759,9 @@ self_test() {
   mkdir -p "$t/typeset/src/units/.base"; write_pair "$t" typeset; write_pair "$t" typeset/src; write_pair "$t" typeset/src/units
   printf '# Pandoc bases\n' > "$t/typeset/src/units/.base/README.md"
   probe_clean "a typeset/src/units/.base/ with only README.md is a declared exception"; rm -rf "$t/typeset"
+  write_pair "$t" learning; mkdir -p "$t/learning/syntek-author/a-topic/LESSONS"; printf '# Mission\n' > "$t/learning/syntek-author/a-topic/MISSION.md"
+  probe_clean "a folder below learning/ with no pair is a declared exception (D57)"
+  rm "$t/learning/CONTEXT.md"; probe "check 1 still fires on learning/ itself, which keeps its pair" "check 1 — learning/"; rm -rf "$t/learning"
 
   mv "$t/manuscript/src/CONTEXT.md" "$tmp/h"; probe "check 1 fires on a folder with no CONTEXT.md" "check 1 — manuscript/src/"; mv "$tmp/h" "$t/manuscript/src/CONTEXT.md"
   mv "$t/manuscript/src/CLAUDE.md" "$tmp/h";  probe "check 2 fires on a folder with no CLAUDE.md" "check 2 — manuscript/src/"; mv "$tmp/h" "$t/manuscript/src/CLAUDE.md"
@@ -748,6 +847,33 @@ self_test() {
   rm -rf "$SA_ROOT/migrations"
   printf '\n```bash\ngit log ...\n```\n' >> "$t/$ch";            probe "check 20 fires on ASCII ... in a command fence" "check 20 — $ch fences a command holding a placeholder (line"; cp "$tmp/h" "$t/$ch"
   printf '\n```text\nhow-to/workflows/<template>/  ← a sample, never run\n```\n' >> "$t/$ch"; probe_clean "a text fence holding a placeholder is never read as a command"; cp "$tmp/h" "$t/$ch"
+  # Checks 23–24: the workflow override rule (D26).
+  local lc="manuscript/workflows/local/CONTEXT.md" ll="manuscript/workflows/local/CLAUDE.md"
+  cp "$t/$ll" "$tmp/h5"
+  sed -i '/whatever its$/,/^  number\.$/d' "$t/$ll"
+  probe "check 23 fires on a local pair that no longer says 'whatever its number'" "check 23 — $ll does not say"
+  cp "$tmp/h5" "$t/$ll"
+  cp "$t/$lc" "$tmp/h5"
+  printf -- '- An override keeps its slug, number included.\n' >> "$t/$lc"
+  probe "check 24 fires on 'number included' in a local pair" "check 24 — $lc states the workflow override as 'number included'"
+  cp "$tmp/h5" "$t/$lc"
+  cp "$t/manuscript/CONTEXT.md" "$tmp/h5"
+  printf -- '- A local procedure with the same folder\n  name wins.\n' >> "$t/manuscript/CONTEXT.md"
+  probe "check 24 reads a wording wrapped across two lines in any file" "check 24 — manuscript/CONTEXT.md states the workflow override as 'same folder name'"
+  cp "$tmp/h5" "$t/manuscript/CONTEXT.md"
+  cp "$t/manuscript/workflows/CONTEXT.md" "$tmp/h5"
+  printf -- '- `local/`: a same-named one wins.\n' >> "$t/manuscript/workflows/CONTEXT.md"
+  probe "check 24 fires on 'same-named one' under workflows/" "check 24 — manuscript/workflows/CONTEXT.md states the workflow override as 'same-named one'"
+  cp "$tmp/h5" "$t/manuscript/workflows/CONTEXT.md"
+  mkdir -p "$t/.claude/skills/build"
+  printf -- '---\nname: build\n---\n\n- A folder with the same `NN-name` replaces it.\n' > "$t/.claude/skills/build/SKILL.md"
+  probe "check 24 reads a skill folder named build (only the root build/ is output)" "check 24 — .claude/skills/build/SKILL.md states the workflow override as 'the same \`NN-name\`'"
+  rm -rf "$t/.claude/skills/build"
+  cp "$t/manuscript/docs/CONTEXT.md" "$tmp/h5"; cp "$t/standards/CONTEXT.md" "$tmp/h6"
+  printf -- '- A same-named one in project/ overrides the reference guide.\n' >> "$t/manuscript/docs/CONTEXT.md"
+  printf -- '- A unit is named by its folder, number included.\n' >> "$t/standards/CONTEXT.md"
+  probe_clean "D27's same-named guide outside workflows/, and a unit's name with its number, pass checks 23–24"
+  cp "$tmp/h5" "$t/manuscript/docs/CONTEXT.md"; cp "$tmp/h6" "$t/standards/CONTEXT.md"
   st_finish "a paired, well-shaped tree from a broken one"
 }
 

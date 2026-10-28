@@ -31,8 +31,8 @@ document in `library/src/social-media/`, the conventions and checklist here bind
 - `library/workflows/14-create-a-social-media-document/` — the procedure of record for a new social
   media document; this skill is its domain in skill form. Run its `STEPS.md` with `CHECKLIST.md`
   open. Where this file and the procedure disagree, the procedure wins and the disagreement is
-  reported to the author. An alias in `00-project.md` `## Workflow aliases`, then a same-named
-  folder in `library/workflows/local/`, replaces it (`run-workflow`).
+  reported to the author. An alias in `00-project.md` `## Workflow aliases`, then a same-slug
+  folder in `library/workflows/local/`, whatever its number, replaces it (`run-workflow`).
 - `library/docs/reference/social-media-standards.md` — the family standard: naming, document
   control rows, platform naming and review cycle. Route there; do not restate it.
 - `.claude/rules/syntek-author/00-project.md` — `## Brief` (trading name, voice, audience)

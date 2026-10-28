@@ -14,11 +14,11 @@ procedure in order.
 ## How to work here
 
 - **Routing:** the `run-workflow` skill matches the author's request to a procedure using the
-  table in this folder's `CONTEXT.md`. It looks in `local/<slug>/` first: a local procedure with
-  the same slug as a template one replaces it, and a procedure `00-project.md ## Workflow aliases`
-  names replaces the template one it is mapped to. A new document starts at its family's create
-  procedure, which drives the loop procedures in turn. Each `STEPS.md` names its skills in its
-  routing frontmatter; load them before step 1.
+  table in this folder's `CONTEXT.md`. It looks in `local/` first: a local procedure with the same
+  slug as a template one (the name after its number), whatever its number, replaces it, and a
+  procedure `00-project.md ## Workflow aliases` names replaces the template one it is mapped to.
+  A new document starts at its family's create procedure, which drives the loop procedures in
+  turn. Each `STEPS.md` names its skills in its routing frontmatter; load them before step 1.
 - **Model:** the checklist tags are authoritative. `_opus_` marks substantive work; `_sonnet_`
   names the mechanical tier, which runs on the model set in
   `.claude/rules/syntek-author/05-model-allocation.md` and never lower.
@@ -38,8 +38,8 @@ procedure in order.
 - **Bias towards producing the document.** A procedure that ends in more planning and no prose has
   not been run; scaffolding is not progress.
 - **Never edit a template procedure to suit this project.** These folders are template-owned and
-  updated by `copier update`. Copy the folder to `local/` under exactly the same name and change
-  the copy.
+  updated by `copier update`. Copy the folder to `local/` under the same slug, whatever its
+  number, and change the copy.
 - **Change all four files together** when writing a local procedure; a step without its checklist
   item is a step nobody checks.
 - **Numbering is frozen and append-only.** Template numbers never change; local procedures use

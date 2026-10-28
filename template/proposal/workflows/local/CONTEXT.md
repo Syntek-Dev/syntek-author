@@ -18,8 +18,10 @@ proposal/workflows/local/
 ## What's here
 
 - **Local procedures** use their own numbering, starting at `01`, independent of the template's.
-- **Overrides** share the template procedure's slug exactly (for example
-  `02-approach-a-reader/`); `run-workflow` resolves `local/` first, so the local version wins.
+- **Overrides** share the template procedure's slug, the name after its number, whatever its
+  number (a local 02-approach-a-reader or 04-approach-a-reader replaces
+  `proposal/workflows/02-approach-a-reader/`); `run-workflow` resolves `local/` first, so the
+  local version wins.
 - When you add one, add a row to this table:
 
 | Procedure | What it is for | Overrides |

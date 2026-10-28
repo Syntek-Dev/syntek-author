@@ -27,9 +27,9 @@ edits anything under `build/` and never changes a source to make a build pass.
 
 - The content layer's `workflows/06-build-a-proof/` — this skill is that procedure in skill form;
   the mode file names its path and any other procedure that uses this skill.
-- If a layer's `workflows/local/` holds a folder with the same `NN-name` as a procedure named
-  here or in the mode file, follow that procedure instead: the author's local procedure replaces
-  the template's (`run-workflow`, step 2).
+- If a layer's `workflows/local/` holds a folder with the same slug as a procedure named here or
+  in the mode file (the name after its number), whatever its number, follow that procedure
+  instead: the author's local procedure replaces the template's (`run-workflow`, step 3).
 - `.claude/rules/syntek-author/04-build-pipeline.md` — the pipeline, the targets and their rules;
   where it and `make help` disagree, `make help` is right.
 - `standards/verification/verification.md` Section 5 — proofs are ungated; release is not.

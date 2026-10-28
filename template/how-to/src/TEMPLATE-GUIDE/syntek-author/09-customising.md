@@ -32,8 +32,8 @@ Claude keeps working under the rule as written until you decide, and never rewri
 Each production layer has two folders for your own way of working.
 
 - A guide you write in a layer's `docs/project/`, with the same name as a guide in its `docs/reference/`, is read instead of the template's.
-- A procedure you write in a layer's `workflows/local/`, with the same folder name as one of the template's workflows, replaces it.
-- A new guide or procedure of your own needs no matching name; give your procedures their own numbering.
+- A procedure you write in a layer's `workflows/local/` replaces the template's workflow with the same name after the number, whatever number you give it, so `workflows/local/05-improve-your-draft/` replaces `workflows/03-improve-your-draft/`.
+- A new guide or procedure of your own needs no matching name; give your procedures their own numbering, and avoid a template workflow's name after the number unless you mean to replace that workflow.
 
 Add a row for each one to the `CONTEXT.md` and `CLAUDE.md` of its folder, which are seeds and yours to edit.
 Ask Claude to write one with you, such as 'write a procedure for how I review a chapter'.

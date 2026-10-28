@@ -17,7 +17,7 @@ typeset/workflows/
 ├── 02-typeset-a-chapter/          ← Pandoc base, house styling, the check, the print
 ├── 03-retypeset-after-edits/      ← carry the styling onto a chapter's new words
 ├── 04-typeset-the-book/           ← every chapter, front and back matter, one print-ready PDF
-└── local/                         ← the author's own procedures; a same-named one wins
+└── local/                         ← the author's own procedures; a same-slug one wins
 ```
 
 Each procedure folder holds four files: `CONTEXT.md` (when to reach for it), `CLAUDE.md` (how to
@@ -38,7 +38,7 @@ The author's procedures are numbered separately in `typeset/workflows/local/`.
 
 ## Cross-references
 
-- `typeset/workflows/local/` — the author's procedures, and same-named overrides of these.
+- `typeset/workflows/local/` — the author's procedures, and same-slug overrides of these.
 - `typeset/docs/reference/the-typesetting-pipeline.md` — how `02-typeset-a-chapter`,
   `03-retypeset-after-edits` and `04-typeset-the-book` fit together.
 - `.claude/rules/syntek-author/05-model-allocation.md` — what the checklist model tags mean.

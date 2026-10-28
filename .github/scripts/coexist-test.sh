@@ -15,7 +15,7 @@
 #                   runtime (its own answers file, its own rules file, its own skill, and the
 #                   D17 root files as seeds), changes both templates, updates both, and checks.
 #
-#                   Fifty checks:
+#                   Fifty-two checks:
 #                     1. The second template applies over the project without --overwrite —
 #                        nothing it ships collides with what is there.
 #                     2. Both answers files exist, under different names.
@@ -252,6 +252,23 @@
 #                    50. GEMINI_MODEL reads the sibling's record too: in 47's copy, beside a
 #                        sibling record that also holds gemini-cli and an invented
 #                        GEMINI_MODEL, syntek-author records that model.
+#
+#                   Lessons in learning/ with two templates (DESIGN.md D57): each template's
+#                   teaching skill keeps its own topics there, in a folder named for it while
+#                   another template's answers file stands at the root, and only syntek-author
+#                   ships the folder's pair. After the first copy, in both orders, three lessons
+#                   are planted and committed where the teaching skills would write them: one at
+#                   the top of learning/ with no Template: line (learning/old-topic/), one in
+#                   syntek-author's folder (learning/syntek-author/a-topic/) and one in the
+#                   sibling's (learning/dummy-media/m-topic/):
+#                    51. Each lesson is byte for byte as planted after both copies (and, author
+#                        first, both updates), nothing under learning/ holds a conflict marker or
+#                        a .rej, and no report of either template lists a path under learning/.
+#                    52. learning/CONTEXT.md and learning/CLAUDE.md hold the bytes
+#                        refs/syntek-author/template holds for them, and
+#                        refs/dummy-media/template holds no path under learning/. Skipped, by
+#                        name, where the template ships no learning/ pair or the repository has
+#                        no migrations/family-update.py (no render record).
 #                   Checks 25, 26 and 29–36 run the resolver, which needs Python at
 #                   _common.sh's SA_PYTHON_MIN or later (its pin refuses an older python3); on
 #                   a python3 without tomllib they are skipped, by name. Every resolver run gets
@@ -273,7 +290,10 @@
 #                   answers taken out, not a copy from the v0.3.0 tag (update-test.sh's checks
 #                   31–34 update from that tag, with no sibling). The sibling records of checks
 #                   45, 47, 49 and 50 are written by hand, and check 48's is the dummy's with
-#                   its agent answers rewritten, not records a real sibling's copy wrote.
+#                   its agent answers rewritten, not records a real sibling's copy wrote. Nor
+#                   what a teaching skill does at run time (D57): checks 51 and 52 plant the
+#                   lessons by hand where the skills would write them, and prove only that no
+#                   copy or update touches them.
 #
 # SELF-TEST. --self-test runs the whole flow with a fixture syntek-author, proves it clean, then
 #            mutates the result once per check and asserts exactly one finding each.
@@ -593,6 +613,8 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
     if [[ -L "$PROJ/$path" ]]; then A_KEPT["$path"]="link:$(readlink "$PROJ/$path")"
     elif [[ -f "$PROJ/$path" ]]; then A_KEPT["$path"]="$(sha256sum < "$PROJ/$path")"; fi
   done
+  # The lessons of checks 51–52, after the first copy (D57).
+  ln_plant "$PROJ"
 
   "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref=HEAD --data "PROJECT_NAME=$SA_RENDER_NAME" "$b" "$w/b-alone" </dev/null >>"$log" 2>&1 || true
   while read -r kind path; do
@@ -635,7 +657,10 @@ run_flow() { # $1 = syntek-author repo, $2 = work dir
   "${SA_COPIER[@]}" copy --trust --defaults --vcs-ref="$B_FIRST" --data "PROJECT_NAME=$SA_RENDER_NAME" "$b" "$MF" </dev/null >>"$log" 2>&1 || MF_B_COPY=$?
   [[ -d "$MF/.git" ]] || sa_git "$MF" init -q
   sa_git "$MF" add -A && sa_git "$MF" commit -q -m 'dummy-media first' >>"$log" 2>&1 || true
-  sa_render "$a" "$MF" theology >>"$log" 2>&1 || MF_A_COPY=$?
+  ln_plant "$MF"   # the lessons of checks 51–52, after the first copy (D57)
+  MF_A_LOG="$w/mf-a-copy.log"
+  sa_render "$a" "$MF" theology >"$MF_A_LOG" 2>&1 || MF_A_COPY=$?
+  cat "$MF_A_LOG" >>"$log"
   MF_SRC="$a"
 
   # A sibling at the D48 set only, in both orders, which later adopts the shared set.
@@ -691,6 +716,7 @@ run_checks() {
   $D48_RAN && d48_checks
   $PEER_RAN && peer_checks
   howto_checks
+  ln_checks
   return 0
 }
 
@@ -2055,6 +2081,89 @@ PY
   sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the user guide'
 }
 
+# ── Lessons in learning/ with two templates (DESIGN.md D57; checks 51–52) ──────
+#
+# Each template's teaching skill keeps its own topics in learning/, in a folder named for it while
+# another template's answers file stands at the root; only syntek-author ships the folder's pair.
+# No audit runs a skill, so the lessons are planted by hand where the skills would write them, in
+# both orders after the first copy: a topic at the top of learning/ with no Template: line (as
+# before D57, or adopted), one in syntek-author's folder and one in the sibling's.
+LN_LESSONS=(learning/old-topic/PROGRESS.md learning/syntek-author/a-topic/MISSION.md learning/dummy-media/m-topic/MISSION.md)
+LN_PAIR="learning/CONTEXT.md learning/CLAUDE.md"
+declare -A LN_WANT=()
+MF_A_LOG=""
+
+ln_plant() { # $1 = project: the three lessons, committed
+  local p="$1" f
+  for f in "${LN_LESSONS[@]}"; do mkdir -p "$p/${f%/*}"; done
+  printf '# Progress\n\n- 01/01/2027: a lesson from before the template folders; its topic names no template.\n' > "$p/${LN_LESSONS[0]}"
+  printf '# Mission\n\nTemplate: syntek-author\n\nPunctuate dialogue without help.\n' > "$p/${LN_LESSONS[1]}"
+  printf '# Mission\n\nTemplate: dummy-media\n\nCut a scene to its one beat.\n' > "$p/${LN_LESSONS[2]}"
+  for f in "${LN_LESSONS[@]}"; do LN_WANT["$f"]="$(ht_sha "$p/$f")"; done
+  commit_all "$p" 'lessons in learning/'
+}
+
+ln_checks() {
+  local L p f r n t log sec c52=true
+  if [[ ! -f "$MF_SRC/template/learning/CONTEXT.md" ]]; then
+    c52=false; NOTES+=("check 52 skipped — the template ships no learning/ pair")
+  elif [[ ! -f "$MF_SRC/migrations/family-update.py" ]]; then
+    c52=false; NOTES+=("check 52 skipped — the repository has no migrations/family-update.py, so no render record")
+  fi
+  for L in author-first media-first; do
+    p="$PROJ"; [[ "$L" == media-first ]] && p="$MF"
+    [[ "$L" == author-first && ( "$A_UPDATE" -ne 0 || "$B_UPDATE" -ne 0 ) ]] && continue   # checks 3 and 4
+    [[ "$L" == media-first && ( "$MF_A_COPY" -ne 0 || "$MF_B_COPY" -ne 0 ) ]] && continue   # check 9
+    n="after both copies"; [[ "$L" == author-first ]] && n+=" and both updates"
+    # 51. Each lesson as planted, no conflict under learning/, and no report naming a path there.
+    r=""
+    for f in "${LN_LESSONS[@]}"; do
+      if [[ ! -f "$p/$f" || -L "$p/$f" ]]; then r="$f is missing, or not a file"; break; fi
+      [[ "$(ht_sha "$p/$f")" == "${LN_WANT[$f]:-}" ]] || { r="$f is not byte for byte the lesson planted there"; break; }
+    done
+    if [[ -z "$r" ]]; then
+      f="$( { find "$p/learning" -name '*.rej' -print; grep -rlI -e '^<<<<<<< ' "$p/learning"; } 2>/dev/null | LC_ALL=C sort | head -n 1 || true)"
+      [[ -z "$f" ]] || r="${f#"$p"/} holds a conflict"
+    fi
+    if [[ -z "$r" ]]; then
+      for t in syntek-author dummy-media; do
+        log="$A_LOG"; [[ "$t" == dummy-media ]] && log="$B_LOG"
+        if [[ "$L" == media-first ]]; then [[ "$t" == syntek-author ]] || continue; log="$MF_A_LOG"; fi
+        [[ -n "$log" && -f "$log" ]] || continue
+        while IFS=$'\t' read -r sec f; do
+          [[ "$f" == learning/* ]] && { r="$t's report lists $f under '$sec'"; break 2; }
+        done < <(report_paths "$log" "$t")
+      done
+    fi
+    [[ -z "$r" ]] || finding "check 51 — [$L] $n: $r — lessons in learning/ are the author's, and no template's copy or update touches them (DESIGN.md D57)"
+    # 52. The pair is syntek-author's render; the sibling's record holds no path under learning/.
+    $c52 || continue
+    git -C "$p" rev-parse -q --verify refs/syntek-author/template >/dev/null 2>&1 || continue   # check 11's
+    r=""
+    for f in $LN_PAIR; do
+      if ! git -C "$p" cat-file -e "refs/syntek-author/template:$f" 2>/dev/null; then r="syntek-author's render record holds no $f"; break; fi
+      [[ "$(ht_sha "$p/$f")" == "$(git -C "$p" cat-file blob "refs/syntek-author/template:$f" | sha256sum | cut -d' ' -f1)" ]] \
+        || { r="$f does not hold the bytes syntek-author's render record holds"; break; }
+    done
+    if [[ -z "$r" ]] && git -C "$p" rev-parse -q --verify refs/dummy-media/template >/dev/null 2>&1; then
+      f="$(git -C "$p" ls-tree -r --name-only refs/dummy-media/template -- learning 2>/dev/null | head -n 1 || true)"
+      [[ -z "$f" ]] || r="dummy-media's render record holds $f, but no other template ships a path under learning/"
+    fi
+    [[ -z "$r" ]] || finding "check 52 — [$L] $n: $r — the learning/ pair is syntek-author's alone (DESIGN.md D57)"
+  done
+  return 0
+}
+
+# The fixture's learning/ pair, as this release's syntek-author ships it (checks 51–52): rendered,
+# so the render record and the project hold the same rendered bytes. Commits.
+extend_fixture_learning() { # $1 = fixture template repo
+  local t="$1" d="$1/template/learning"
+  mkdir -p "$d"
+  printf '# CONTEXT.md — learning/\n\nThe practice folder of <%% AUTHOR_NAME %%>, shared with any companion template.\n' > "$d/CONTEXT.md"
+  printf '@./CONTEXT.md\n\n# CLAUDE.md — learning/\n\nWrite only inside the topic'"'"'s folder.\n' > "$d/CLAUDE.md"
+  sa_git "$t" add -A && sa_git "$t" commit -q -m 'fixture: the learning/ pair'
+}
+
 media_first_checks() {
   local kind path sum source now
   if [[ "$MF_B_COPY" -ne 0 ]]; then finding "check 9 — the dummy second template did not render on its own (exit $MF_B_COPY)"; return 0; fi
@@ -2145,6 +2254,7 @@ self_test() {
     || die "could not give the fixture the update script"
   extend_fixture_peer "$tmp/fixture" || die "could not give the fixture the data-root questions and the resolver"
   extend_fixture_howto "$tmp/fixture" || die "could not give the fixture the user guide"
+  extend_fixture_learning "$tmp/fixture" || die "could not give the fixture the learning/ pair"
   # The fixture's settings.json wires the hook its family-refresh.json offers, as the real seed does.
   python3 - "$tmp/fixture/template/.claude/settings.json" "$tmp/fixture/migrations/family-refresh.json" <<'PY'
 import json, sys
@@ -2409,6 +2519,14 @@ PY
   else
     finding "self-test: the fixture ran no D56 flow (checks 38–42)"
   fi
+  # 51–52: lessons in learning/ with two templates (D57).
+  local ln_f="$PROJ/learning/syntek-author/a-topic/MISSION.md"
+  cp "$ln_f" "$tmp/h"; sed -i '1s/^#/=/' "$ln_f"
+  probe "check 51 fires when a lesson in a template's folder changes by one byte" "check 51 — [author-first] after both copies and both updates: learning/syntek-author/a-topic/MISSION.md is not byte for byte"
+  cp "$tmp/h" "$ln_f"
+  cp "$PROJ/learning/CLAUDE.md" "$tmp/h"; printf 'x\n' >> "$PROJ/learning/CLAUDE.md"
+  probe "check 52 fires when the learning/ pair is not syntek-author's render" "check 52 — [author-first] after both copies and both updates: learning/CLAUDE.md does not hold"
+  cp "$tmp/h" "$PROJ/learning/CLAUDE.md"
   st_finish "templates that coexist from templates that collide"
 }
 
@@ -2432,6 +2550,7 @@ if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   $CL_RAN && log "  ✓ one set of agent clients and models: the second template takes the first's clients and models in both orders (Gemini CLI's model and the OpenCode address included) and writes no client file the first left out, a sibling's empty list included; a sibling's value this release does not offer is filtered; a changed provider inherits none of the sibling's OpenCode answers; the template's own record comes first; and the update that first asks the clients takes the sibling's"
   $PEER_RAN && $PY_DR && log "  ✓ the manifest role rules with both maps: the sibling map's evidence roles filed and add --force refused on them, a role the maps define differently treated as evidence and reported, a newer or unparseable sibling map refusing only its own folders, a \"repo\": \"skip\" role writing nothing under repo, working output never listed, a map role named after a shared role or a kind refused"
   $HT_RAN && log "  ✓ the user guide: each shared how-to file once with the manifest's bytes in both orders; a sibling's revision kept, attributed and never written over while it stands unchanged, also in a plain clone and on the crossing; make lint and make flags clean with SCOPE=how-to/src and blind to it without; an owner's edit to a shared how-to file restored by one template and left quiet by the other; the guard wired once"
+  log "  ✓ lessons in learning/, at the top and in each template's folder, kept byte for byte through both copies and, author first, both updates, and named in no report; the learning/ pair syntek-author's render, and nothing under learning/ in the sibling's record"
   $D48_RAN && log "  ✓ a sibling at the D48 set only, in both orders: syntek-author's report and refresh work beside it, its copy wires the hooks once into the sibling's settings.json, and the sibling's later adoption of the shared set converges (its own refs, no conflict, no hook twice, its MEDIA-* mode file its own)"
   rm -rf "$work"
   bold "✓ A second template shares the project cleanly."

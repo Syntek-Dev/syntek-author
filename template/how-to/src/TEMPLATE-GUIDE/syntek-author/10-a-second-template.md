@@ -83,13 +83,26 @@ The guide is read-only in every template's folders alike: read it, and never edi
 Only a template's update, its recovery and the commands its report prints change a file there.
 To work differently from this template's guide, record the difference in `.claude/rules/syntek-author/00-project.md`, as `how-to/src/TEMPLATE-GUIDE/syntek-author/09-customising.md` explains.
 
+## Lessons with two templates
+
+Each template can bring a teaching skill that runs lessons in `learning/`, the practice folder, and each keeps its own lessons there.
+With one template, each new topic goes straight into `learning/`.
+When another template's answers file is at the top of the project, each template puts a new topic in a folder named after itself, such as `learning/syntek-author/<topic>/`.
+A topic you began earlier stays where it is, and no lesson is ever moved.
+Each new topic's `MISSION.md` names the template that teaches it.
+If a topic at the top of `learning/` does not say, the teaching skill asks you once whose it is and writes your answer there.
+Each template leaves the other's lessons alone.
+When you remove a template, remove its answers file too, or new topics keep going into each template's own folder.
+
 ## Which version you need
 
 A project that carries a companion's guide needs syntek-author v0.6.0 or later.
 Update this template to it before you take the companion's release that adds its guide.
 An older syntek-author treats every `src/` folder as your work, so its checks would read the guide's chapters as if they were your text.
 It also puts nothing back in `how-to/`, so a change made there would stand until a newer update.
-A project that already runs this release or a later one needs nothing more.
+A project where both templates run lessons needs syntek-author v0.8.0 or later, updated before the companion's release that keeps its lessons in a folder of its own.
+An older syntek-author would read the companion's lesson folder as one of your topics, and the companion's earlier topics as its own.
+A project that already runs v0.8.0 or a later one needs nothing more.
 
 ## Where the rules live
 
@@ -97,6 +110,7 @@ A project that already runs this release or a later one needs nothing more.
 - `.claude/syntek-author-agents.md` tells the other coding agents to read every template's bridge and rules folder, and who decides where two templates' rules meet.
 - `.claude/rules/syntek-author/09-data-root.md` holds the rules for the one data-root layout.
 - `how-to/workflows/syntek-author/01-update-the-template/` gives every step and command for updating this template.
+- `learning/CONTEXT.md` says where each template keeps its lessons, and how a topic names its template.
 
 ## Next
 

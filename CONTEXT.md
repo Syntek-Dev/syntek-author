@@ -13,7 +13,7 @@ syntek-author/
 ├── README.md                 ← the landing page: generating, the questions in short, updating, adopting, audits; the rest is in the user guide (template/how-to/)
 ├── DESIGN.md                 ← the build contract; where any file disagrees with it, DESIGN.md wins
 ├── copier.yml                ← questions, gated _exclude, _skip_if_exists, _tasks, _migrations
-├── VERSION                   ← the template's release number (0.7.0)
+├── VERSION                   ← the template's release number (0.8.0)
 ├── CHANGELOG.md              ← the template's history, Keep a Changelog
 ├── LICENSE                   ← MIT, Copyright (c) 2026 Sam Bailey t/a Syntek: the template only, never an author's writing (never shipped)
 ├── CONTRIBUTING.md           ← the front door for changes to the template: issue first, DESIGN.md approval, run-all.sh, pull requests
@@ -68,7 +68,7 @@ syntek-author/
 
 ## What's here
 
-- `DESIGN.md` — the decisions (D1–D56), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
+- `DESIGN.md` — the decisions (D1–D59), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
 - `copier.yml` — the contract Copier executes. **Every gated path is one `_exclude` line whose gate is copied verbatim from DESIGN.md Section 3.5** (a business document family's read `DOC_TYPE == 'business' and '<family>' in BUSINESS_FAMILIES`), and the mode-file block between its `BEGIN`/`END generated mode excludes` markers is written by `.github/scripts/gen-mode-excludes.sh`, never by hand.
 - `template/` — the product. **Every file in it is rendered**, so the delimiters `<%`, `<:` and `<~` appear only where a token is meant (token discipline: `.claude/CLAUDE.md` Section 4).
 - `AGENTS.md`, `GEMINI.md`, `.codex/` — the development entrypoints for the other coding agents. They route to the development manual and say to start every session at the repository root, which has no `.agents`, so no client loads a product skill (D47). `.codex/config.toml` is a snippet to copy into the Codex user config; Codex ignores its skill list in a project file.

@@ -21,7 +21,7 @@ manuscript/workflows/
 ├── 06-build-a-proof/              ← render a chapter or the book, and read the proof
 ├── 07-learn-from-your-edits/      ← mine the ledger; propose voice notes for approval
 <: if DOC_TYPE == 'theology' :>├── 10-steelman-the-objections/    ← the good-faith audit of a chapter's objections
-<: endif :>└── local/                         ← the author's own procedures; a same-named one wins
+<: endif :>└── local/                         ← the author's own procedures; a same-slug one wins
 ```
 
 Each procedure folder holds four files: `CONTEXT.md` (when to reach for it), `CLAUDE.md` (how to
@@ -46,7 +46,7 @@ The author's procedures are numbered separately in `manuscript/workflows/local/`
 
 ## Cross-references
 
-- `manuscript/workflows/local/` — the author's procedures, and same-named overrides of these.
+- `manuscript/workflows/local/` — the author's procedures, and same-slug overrides of these.
 - `manuscript/docs/reference/drafting-with-ai.md` — how `01-draft-a-section` to
   `04-promote-a-section` and `07-learn-from-your-edits` fit together.
 - `standards/verification/verification.md` — the gates the review procedure runs.

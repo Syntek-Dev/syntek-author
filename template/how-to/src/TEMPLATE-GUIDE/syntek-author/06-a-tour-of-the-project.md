@@ -27,7 +27,7 @@ Every production layer splits into the same parts, so once you know one you know
 - `docs/project/` holds your own guides; one with the same name as a reference guide is read instead of it.
 - `src/` holds the work itself: the prose, the plans or the evidence.
 - Numbered workflows, such as `planning/workflows/01-plan-a-unit/`, are the template's procedures, each with its steps and a checklist.
-- `workflows/local/` holds your own procedures; one with the same folder name as a template workflow replaces it.
+- `workflows/local/` holds your own procedures; one with the same name after the number as a template workflow replaces it, whatever its number.
 
 Workflow numbers never change, and a number is never reused, because other files cite them.
 So a workflow is always named by its full folder name, never by its number alone.

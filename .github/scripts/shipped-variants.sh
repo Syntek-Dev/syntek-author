@@ -16,7 +16,7 @@
 #                       Sections 3–5 transcribed), evaluated against the answers the render
 #                       recorded in .copier-answers.syntek-author.yml.
 #
-#                       Twenty-three checks:
+#                       Twenty-five checks:
 #                         1. The answers file is present and records DOC_TYPE.
 #                         2. Every skill the variant needs is present, with its SKILL.md.
 #                         3. No skill the variant must not have, and no skill DESIGN.md does
@@ -136,14 +136,32 @@
 #                            ships (its absence is check 6's), is executable. Without the entry
 #                            or the bit, nothing stops a session's file tools in the read-only
 #                            guide but the deny, which a session started in a subfolder escapes.
+#                        24. The render's always-loaded instruction set is over
+#                            SA_STARTUP_BUDGET characters (DESIGN.md D59): .claude/CLAUDE.md, a
+#                            root CLAUDE.md or CLAUDE.local.md if one ships, each file they
+#                            import with an @ line (outside code spans and fences, relative to
+#                            the importing file, four hops), and every .claude/rules/**/*.md that
+#                            does not open with paths frontmatter; or a path-scoped rule is over
+#                            SA_SCOPED_LIMIT, past which Claude Code reads only its start.
+#                        25. Rules 04 and 09 do not open with exactly DESIGN.md Section 4.1's
+#                            frontmatter (---, paths:, one double-quoted glob a line equal to
+#                            SA_RULE_PATHS_04 or _09, in order, ---), their brace expansion
+#                            passes 1,000 patterns, 09's binary globs miss an extension the
+#                            shipped resolver counts (its EXTENSIONS table, check 22's reading)
+#                            in lower or upper case, or another syntek-author rules file opens
+#                            with frontmatter; or, under DATA_STORE repo, the shipped resolver's
+#                            EXTENSIONS table cannot be read. Any error in the check is itself a
+#                            check 25 finding. Frontmatter Claude Code cannot parse loads the
+#                            rule at launch, silently.
 #
 #                       Numbers are stable identifiers. Append, never renumber.
 #
-#                       What it CANNOT check: a file's CONTENT — a gated row inside an index
-#                       file that names an absent path is doc-references.sh's, and a shared file
-#                       that differs between variants is byte-identity.sh's. Nor can it see a
-#                       path DESIGN.md never named; check 7 covers workflows, the one family
-#                       whose numbering is frozen.
+#                       What it CANNOT check: whether a file's CONTENT is right beyond the facts
+#                       its checks name — a gated row inside an index file that names an absent
+#                       path is doc-references.sh's, and a shared file that differs between
+#                       variants is byte-identity.sh's. Nor can it see a path DESIGN.md never
+#                       named; check 7 covers workflows, the one family whose numbering is
+#                       frozen.
 #
 # SELF-TEST. --self-test builds a theology tree from the catalogue at runtime, proves it clean,
 #            then applies one mutation per check and asserts exactly one finding each; then
@@ -787,6 +805,87 @@ PY
       finding "check 23 — $SA_HOWTO_GUARD is not executable — the seed's entry runs it with bash, but the copy task and every family template ship it at mode 755"
     fi
   fi
+
+  # ── 24–25. The always-loaded instruction set and the path-scoped rules (D59) ─
+  local sa_ext=""; gate_true ext && sa_ext=1
+  while IFS=$'\t' read -r n msg; do
+    [[ -n "$n" ]] && finding "check $n — $msg"
+  done < <(SA_RULE_PATHS_04="$SA_RULE_PATHS_04" SA_RULE_PATHS_09="$SA_RULE_PATHS_09" SA_EXT="$sa_ext" \
+    python3 - "$TREE" "$SA_STARTUP_BUDGET" "$SA_SCOPED_LIMIT" "$SA_DATAROOT_PY" <<'PY'
+import ast, os, re, sys
+def main():
+    tree, budget, limit, resolver = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
+    R = ".claude/rules/syntek-author/"
+    want = {R + "04-build-pipeline.md": os.environ["SA_RULE_PATHS_04"].split("\n"),
+            R + "09-data-root.md": os.environ["SA_RULE_PATHS_09"].split("\n")}
+    FM = re.compile(r'---\npaths:\n((?:  - "[^"\n]+"\n)+)---\n')
+    def read(p):
+        with open(p, encoding="utf-8") as fh:
+            return fh.read()
+    def scoped(t):
+        m = FM.match(t)
+        return [l[5:-1] for l in m.group(1).splitlines()] if m else None
+    loaded, seen = [], set()
+    def take(p, depth):
+        p = os.path.normpath(p)
+        if depth > 4 or p in seen or not os.path.isfile(p):
+            return
+        seen.add(p); t = read(p); loaded.append((p, len(t))); fence = False
+        for line in t.splitlines():
+            if line.lstrip().startswith("```"):
+                fence = not fence; continue
+            if not fence:
+                for m in re.finditer(r'(?:^|\s)@([^\s`]+)', re.sub(r'`[^`]*`', '', line)):
+                    take(os.path.join(os.path.dirname(p), m.group(1)), depth + 1)
+    for s in (".claude/CLAUDE.md", "CLAUDE.md", "CLAUDE.local.md"):
+        take(os.path.join(tree, s), 0)
+    for root, dirs, files in os.walk(os.path.join(tree, ".claude", "rules")):
+        dirs.sort()
+        for f in sorted(x for x in files if x.endswith(".md")):
+            p = os.path.join(root, f); t = read(p); rel = os.path.relpath(p, tree)
+            if scoped(t) is None:
+                take(p, 0)
+            elif len(t) > limit:
+                print(f"24\t{rel} is {len(t):,} characters; Claude Code reads only the first {limit:,} of a rule it loads on demand (D59)")
+            if rel.startswith(R) and rel not in want and t.startswith("---\n"):
+                print(f"25\t{rel} opens with frontmatter; only 04 and 09 are path-scoped (D59)")
+    total = sum(n for _, n in loaded)
+    if total > budget:
+        top = ", ".join(f"{os.path.relpath(p, tree)} {n:,}" for p, n in sorted(loaded, key=lambda x: -x[1])[:5])
+        print(f"24\tthe always-loaded instruction files total {total:,} characters; the budget is {budget:,} (D59): {top}")
+    def expand(g):
+        m = re.search(r'\{([^{}]*)\}', g)
+        return [g] if not m else [x for a in m.group(1).split(",") for x in expand(g[:m.start()] + a + g[m.end():])]
+    for rel, globs in want.items():
+        p = os.path.join(tree, rel)
+        if not os.path.isfile(p):
+            continue  # check 6 reports a missing file
+        got = scoped(read(p))
+        if got is None:
+            print(f"25\t{rel} does not open with D59's frontmatter (---, paths:, one double-quoted glob a line, ---): Claude Code would load it at launch"); continue
+        if got != globs:
+            print(f"25\t{rel}'s paths differ from DESIGN.md Section 4.1 (D59)"); continue
+        if sum(len(expand(g)) for g in got if "{" in g) > 1000:
+            print(f"25\t{rel}'s braces expand past 1,000 patterns; Claude Code would match the excess literally"); continue
+        if rel.endswith("09-data-root.md"):
+            try:
+                table = next(ast.literal_eval(n.value) for n in ast.parse(read(os.path.join(tree, resolver))).body
+                             if isinstance(n, ast.Assign) and any(getattr(x, "id", "") == "EXTENSIONS" for x in n.targets))
+                exts = {f for es in table.values() for e in es for f in (e.lower(), e.upper())}
+            except Exception:
+                if os.environ.get("SA_EXT") != "1":
+                    print(f"25\t{rel}: the resolver's EXTENSIONS table cannot be read, so 09's binary globs go unchecked (D59)")
+                continue  # under external, check 22 reports it
+            named = {e for g in got if "/**/*.{" in g for e in g.rsplit("{", 1)[1].rstrip("}").split(",")}
+            miss = sorted(exts - named)
+            if miss:
+                print(f"25\t{rel}'s binary globs miss {', '.join(miss)}, which the resolver counts as binaries (D59)")
+try:
+    main()
+except Exception as e:
+    print(f"25\tthe D59 check could not run: {e!r}")
+PY
+)
   return 0
 }
 
@@ -998,6 +1097,14 @@ JSON
     write_drive_workflow "$t/.github/workflows/google-drive-push.yml" "Push Documents to Google Drive"
     write_drive_workflow "$t/.github/workflows/google-drive-pull.yml" "Pull Documents from Google Drive"
   fi
+  # Rules 04 and 09 with D59's frontmatter (checks 24 and 25); .claude/CLAUDE.md imports CONTEXT.md.
+  local rn globs
+  for rn in 04-build-pipeline 09-data-root; do
+    [[ "$rn" == 04-* ]] && globs="$SA_RULE_PATHS_04" || globs="$SA_RULE_PATHS_09"
+    { printf -- '---\npaths:\n'; while IFS= read -r g; do printf '  - "%s"\n' "$g"; done <<< "$globs"; printf -- '---\n\n# %s\n' "${rn%%-*}"; } \
+      > "$t/.claude/rules/syntek-author/$rn.md"
+  done
+  printf '@../CONTEXT.md\n' > "$t/.claude/CLAUDE.md"
   # Rules 05: Section 4 and one row per client chosen.
   { printf '# 05 — model allocation\n\n## 3. Why\n'
     if [[ -n "${A_CLIENTS// /}" ]]; then
@@ -1262,6 +1369,28 @@ self_test() {
   printf 'import sys\nsys.exit(0)\n' > "$TREE/$SA_DATAROOT_PY"
   probe "check 22 fires when the resolver holds no kind table to read" "check 22 — $SA_DATAROOT_PY holds no EXTENSIONS table"
   cp "$tmp/dr" "$TREE/$SA_DATAROOT_PY"
+  # D59: the always-loaded set, its imports, the on-demand limit and the frontmatter's shape.
+  local r="$TREE/.claude/rules/syntek-author"
+  cp "$r/01-layout-and-routing.md" "$tmp/r01"
+  head -c "$SA_STARTUP_BUDGET" /dev/zero | tr '\0' x >> "$r/01-layout-and-routing.md"
+  probe "check 24 fires when the always-loaded instruction files pass the budget" "check 24 — the always-loaded instruction files total"
+  cp "$tmp/r01" "$r/01-layout-and-routing.md"
+  cp "$TREE/.claude/CLAUDE.md" "$tmp/cm"; cp "$TREE/.claude/MEMORY.md" "$tmp/mem"
+  printf '@MEMORY.md\n' >> "$TREE/.claude/CLAUDE.md"
+  head -c "$SA_STARTUP_BUDGET" /dev/zero | tr '\0' x >> "$TREE/.claude/MEMORY.md"
+  probe "check 24 counts a file .claude/CLAUDE.md imports" "check 24 — the always-loaded instruction files total"
+  cp "$tmp/cm" "$TREE/.claude/CLAUDE.md"; cp "$tmp/mem" "$TREE/.claude/MEMORY.md"
+  cp "$r/04-build-pipeline.md" "$tmp/r04"
+  head -c "$SA_SCOPED_LIMIT" /dev/zero | tr '\0' x >> "$r/04-build-pipeline.md"
+  probe "check 24 fires when a path-scoped rule passes the on-demand limit" "check 24 — .claude/rules/syntek-author/04-build-pipeline.md is"
+  cp "$tmp/r04" "$r/04-build-pipeline.md"
+  sed -i 's#^  - "\(\*\*/\*\.{cls.*\)"$#  - \1#' "$r/04-build-pipeline.md"
+  probe "check 25 fires when a glob is not quoted" "check 25 — .claude/rules/syntek-author/04-build-pipeline.md does not open with D59's frontmatter"
+  cp "$tmp/r04" "$r/04-build-pipeline.md"
+  cp "$r/07-session-boundaries.md" "$tmp/r07"
+  { printf -- '---\npaths:\n  - "x"\n---\n'; cat "$tmp/r07"; } > "$r/07-session-boundaries.md"
+  probe "check 25 fires when another rules file opens with frontmatter" "check 25 — .claude/rules/syntek-author/07-session-boundaries.md opens with frontmatter"
+  cp "$tmp/r07" "$r/07-session-boundaries.md"
 
   # A business tree with two of the six families chosen: the family gates in both directions.
   # Claude Code only: no other client's file may ship. Its documents stay in the repository,
@@ -1327,6 +1456,13 @@ PY
   sed -i 's/^            exit 1$/            exit 0/' "$wf/google-drive-push.yml"
   probe "check 21 fires when the guard does not stop the job" "check 21 — .github/workflows/google-drive-push.yml: the store guard step does not read DATA_STORE"
   cp "$tmp/push" "$wf/google-drive-push.yml"; cp "$tmp/pull" "$wf/google-drive-pull.yml"
+  # D59 under the repository store, where check 22 does not read the resolver.
+  cp "$TREE/$SA_DATAROOT_PY" "$tmp/dr"
+  sed -i 's/"videos": ("m2ts",)/"videos": ("m2ts", "xyz")/' "$TREE/$SA_DATAROOT_PY"
+  probe "check 25 fires when 09's binary globs miss an extension the resolver counts" "check 25 — .claude/rules/syntek-author/09-data-root.md's binary globs miss XYZ, xyz"
+  sed -i 's/^EXTENSIONS = /KINDS = /' "$TREE/$SA_DATAROOT_PY"
+  probe "check 25 fires when the resolver's table cannot be read under repo" "check 25 — .claude/rules/syntek-author/09-data-root.md: the resolver's EXTENSIONS table cannot be read"
+  cp "$tmp/dr" "$TREE/$SA_DATAROOT_PY"
   A_FAMILIES=""; A_PROVIDER=none; A_STORE=repo
   OPENCODE_BIN="$real_oc"; CODEX_BIN="$real_cx"
 

@@ -13,7 +13,8 @@ same way every time, before drafting needs them.
 
 ## How to work here
 
-- **Routing:** pick by what you have in hand; check `local/` for a same-slug override first.
+- **Routing:** pick by what you have in hand; check `local/` first for a same-slug override,
+  whatever its number.
 
 | You want to… | Procedure |
 |---|---|

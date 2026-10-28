@@ -2,9 +2,10 @@
 
 Planning procedures written for this project. The template seeds only this pair, once; from then
 on the pair and every procedure in the folder are yours, and `copier update` never changes them.
-A procedure here with the same slug as a template procedure (for example one named
-`01-plan-a-unit`) overrides it, because `run-workflow` looks in this folder first. A new slug
-adds a procedure the template does not have.
+A procedure here with the same slug as a template procedure (the name after its number),
+whatever its number, overrides it: a local 01-plan-a-unit or 04-plan-a-unit replaces
+`planning/workflows/01-plan-a-unit/`, because `run-workflow` looks in this folder first. A new
+slug adds a procedure the template does not have.
 
 ## Directory Tree
 
@@ -19,8 +20,8 @@ planning/workflows/local/
 
 - Your own procedures, numbered in this folder's own sequence from `01`, independent of the
   template's numbers. **Until you write one, this folder holds only its pair.**
-- An override keeps the template procedure's slug, including its number, so that the router
-  matches it.
+- An override keeps the template procedure's slug, the name after its number, and takes any
+  number; the router matches the slug alone.
 - When you add one, add a row to this table:
 
 | Procedure | What it is for | Overrides |

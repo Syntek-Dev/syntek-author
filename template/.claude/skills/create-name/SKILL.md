@@ -35,9 +35,9 @@ are the procedure of record — do not restate them at length here.
 - Step 4 of `world/workflows/01-create-a-character/` and of `world/workflows/02-create-a-place/` —
   the same steps inside a larger job; the culture and people procedures of the worldbuilding kit
   call them too.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `world/docs/reference/naming.md` — names come from somewhere, clashes and false friends,
   respellings and the read-aloud test.
 - `standards/method/FICTION.md` — rule 6: the register is part of the story bible.

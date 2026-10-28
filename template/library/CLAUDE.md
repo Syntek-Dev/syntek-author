@@ -16,7 +16,7 @@ reaches a client, a member of staff or the public is one the author has seen and
   - A new document → its family's create procedure in `workflows/` (for the business family,
     `library/workflows/10-create-a-business-document/`), which drives the loop.
   - Writing, revising or finishing a document → `src/`, through the matching procedure in
-    `workflows/`. The `run-workflow` skill resolves the request, `workflows/local/<slug>/` first.
+    `workflows/`. The `run-workflow` skill resolves the request, `workflows/local/` first.
   - Learning how something is done → `docs/reference/` (a same-named guide in `docs/project/`
     wins).
   - Any document with no unit brief → `planning/workflows/01-plan-a-unit/` before it is drafted.

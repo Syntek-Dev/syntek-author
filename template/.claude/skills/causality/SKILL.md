@@ -36,9 +36,9 @@ are the procedure of record — do not restate them at length here.
 - `planning/workflows/04-chart-a-character-arc/` — step 6 ties each arc shift to a beat here; the
   quest procedure, where the worldbuilding kit is installed, does the same for a quest's trigger and
   reversals.
-- If a layer's `workflows/local/` holds a folder with the same `NN-name` as a procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If a layer's `workflows/local/` holds a folder with the same slug as a procedure above (the name
+  after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `standards/method/FICTION.md` — rules 1 (because and therefore), 4 (set-up and payoff) and 7
   (coincidence may make trouble, never resolve it).
 - `standards/verification/FICTION.md` — gate V4.2.

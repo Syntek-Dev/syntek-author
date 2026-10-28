@@ -33,9 +33,9 @@ are the procedure of record — do not restate them at length here.
 
 - `world/workflows/08-design-a-script/` — this skill is that procedure in skill form; its steps and
   these are numbered alike.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `world/docs/reference/writing-systems.md` — script types, real-world inspiration, the em grid,
   transliteration, code points and the font.
 - `world/docs/reference/building-a-language.md` — the house conlang method the script serves.

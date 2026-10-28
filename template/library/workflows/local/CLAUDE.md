@@ -9,13 +9,13 @@ folder's `CONTEXT.md` (imported above) → this file.
 ## Purpose (one line)
 
 Hold the author's own library procedures, which run before any template procedure of the same
-name.
+slug.
 
 ## How to work here
 
 - **Routing:** write a procedure here when the author asks for one, or propose one when the same
   job has been done the same way twice. To change a template procedure, copy its folder here under
-  exactly the same name, number included, and edit the copy.
+  the same slug (the name after its number), whatever its number, and edit the copy.
 - **Model:** **Opus** for writing a procedure; its checklist tags then govern each run.
 - **Concrete steps:**
   1. Settle the procedure with the author first (the `grill-with-docs` skill).

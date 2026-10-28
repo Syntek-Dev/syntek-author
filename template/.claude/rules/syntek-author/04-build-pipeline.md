@@ -1,3 +1,16 @@
+---
+paths:
+  - "Makefile"
+  - "tooling/**"
+  - "build/**"
+  - "typeset/**"
+  - "**/*.{cls,sty,bib,csl,latex,lua}"
+  - "{manuscript,library}/workflows/*-build-a-proof/**"
+  - "{manuscript,library}/workflows/local/*-build-a-proof/**"
+  - ".claude/skills/{build,typeset}/**"
+  - "how-to/src/TEMPLATE-GUIDE/syntek-author/08-building-proofs.md"
+---
+
 # 04-build-pipeline.md — how sources become proofs, and the make targets
 
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>

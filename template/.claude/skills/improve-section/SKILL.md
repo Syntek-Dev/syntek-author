@@ -28,9 +28,9 @@ author's own text as it was before the first pass, and each accepted pass as a r
 
 - The content layer's `workflows/03-improve-your-draft/` — this skill is that procedure in skill
   form; the mode file names its path.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `.claude/rules/syntek-author/03-authorship.md` Section 6 — suggest, do not rewrite; preserve
   deliberate oddities.
 - `.claude/rules/syntek-author/06-global-rules.md` Section 7 — proofreading is supportive, and a

@@ -16,7 +16,8 @@ way, checked the same way and recorded in the same place, whoever runs the job.
 Two modes: **running** a procedure (the normal case) and **changing** one (rare).
 
 **Running one.** Pick by what you are doing. Check `world/workflows/local/` first: a local
-procedure with the same slug replaces the one here (`run-workflow` does this for you).
+procedure with the same slug, whatever its number, replaces the one here (`run-workflow` does
+this for you).
 
 | You want to… | Procedure |
 |---|---|

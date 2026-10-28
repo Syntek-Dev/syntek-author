@@ -30,8 +30,8 @@ changes an archived thread. The procedure of record is the create workflow.
 - `library/workflows/12-write-an-email/` — the procedure of record for a new email; this skill is
   its domain in skill form. Run its `STEPS.md` with `CHECKLIST.md` open. Where this file and the
   procedure disagree, the procedure wins and the disagreement is reported to the author. An alias
-  in `00-project.md` `## Workflow aliases`, then a same-named folder in `library/workflows/local/`,
-  replaces it (`run-workflow`).
+  in `00-project.md` `## Workflow aliases`, then a same-slug folder in `library/workflows/local/`,
+  whatever its number, replaces it (`run-workflow`).
 - `library/docs/reference/email-standards.md` and its sub-document
   `library/docs/reference/EMAIL-ANATOMY-AND-NAMING.md` — the family standard: filing, naming and
   the email checks. Route there; this skill does not change them.

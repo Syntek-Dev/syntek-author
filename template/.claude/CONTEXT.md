@@ -19,8 +19,8 @@ which is which.
 ├── syntek-author-dataroot.py     ← the data-root resolver and guard: make root and make files-* (template-owned)
 ├── syntek-author-dataroot.json   ← this template's filing folders and the kind each fixes (template-owned)
 ├── hooks/                  ← context-threshold-handoff.sh, pre-compact-handoff.sh, how-to-read-only.sh and the pair (all shared)
-├── rules/                  ← rules loaded at launch, one folder per template (no pair here)
-│   └── syntek-author/      ← the template's rules, loaded at launch
+├── rules/                  ← the rules, one folder per template (no pair here)
+│   └── syntek-author/      ← the template's rules: at launch, but 04 and 09 with the files they cover
 │       ├── 00-project.md   ← this project's settings: brief, paths, memory headings, aliases, overrides (yours)
 │       ├── 01-layout-and-routing.md   ← 01 to 09: template-owned; never edit
 │       ├── 02-skills.md
@@ -45,9 +45,10 @@ which is which.
   answers and never overwritten; it outranks everything else in the rules folder and
   `CLAUDE.md`'s project rules.
 - `rules/syntek-author/` — the template's rules, `01-…` to `09-…`. Claude Code loads every
-  Markdown file under `rules/` at launch with the same weight as `CLAUDE.md`, which is why this
-  folder holds no `CONTEXT.md` or `CLAUDE.md` of its own. Another template applied to this
-  project would add its own folder beside it.
+  Markdown file under `rules/` as a rule with the same weight as `CLAUDE.md`: at launch, or,
+  where its frontmatter lists `paths` (`04-…` and `09-…`), once a session reads a file that
+  matches. That is why this folder holds no `CONTEXT.md` or `CLAUDE.md` of its own. Another
+  template applied to this project would add its own folder beside it.
 - `MEMORY.md` — the durable memory every session reads second. Template files name its headings;
   `00-project.md` maps each to the heading this project uses. It splits into `memory/<topic>.md`
   files once it passes 300 lines, unless an override keeps it whole.

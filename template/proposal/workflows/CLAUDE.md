@@ -13,7 +13,8 @@ and updating the tracker happen the same way every time.
 
 ## How to work here
 
-- **Routing:** pick by what you are doing; check `local/` for a same-slug override first.
+- **Routing:** pick by what you are doing; check `local/` first for a same-slug override, whatever
+  its number.
 
 | You want to… | Procedure |
 |---|---|

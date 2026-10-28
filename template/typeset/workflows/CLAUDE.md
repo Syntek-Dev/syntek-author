@@ -36,7 +36,7 @@ call).
 - **Concrete steps (running):** pick the procedure → read its files → work `STEPS.md` in order →
   tick `CHECKLIST.md` → hand back with anything waived and why.
 - **Concrete steps (changing one):** confirm with the author first. A template procedure is
-  changed by overriding it in `typeset/workflows/local/` under the same folder name, never in
+  changed by overriding it in `typeset/workflows/local/` under the same slug, never in
   place. Change all four files together, and date the decision in `.claude/MEMORY.md` Decisions
   (mapped in `00-project.md` `## Memory headings`).
 - **Definition of done (running):** every checklist item ticked or explicitly waived with a

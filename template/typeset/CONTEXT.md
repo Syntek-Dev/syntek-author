@@ -30,7 +30,7 @@ typeset/
   `typeset/src/units/.base/`.
 - `typeset/workflows/` — four procedures: design the page, typeset a chapter, re-typeset a
   chapter after its Markdown changes, typeset the whole book. `typeset/workflows/local/` holds the
-  author's own; **a local procedure with the same folder name wins**.
+  author's own; **a local procedure with the same slug wins**, whatever its number.
 
 ## Key concepts
 

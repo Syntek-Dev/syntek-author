@@ -17,8 +17,10 @@ research/workflows/local/
 ## What's here
 
 - **Local procedures** use their own numbering, starting at `01`, independent of the template's.
-- **Overrides** share the template procedure's slug exactly (for example `02-verify-a-claim/`);
-  `run-workflow` resolves `local/` first, so the local version wins.
+- **Overrides** share the template procedure's slug, the name after its number, whatever its
+  number (a local 02-verify-a-claim or 04-verify-a-claim replaces
+  `research/workflows/02-verify-a-claim/`); `run-workflow` resolves `local/` first, so the local
+  version wins.
 - When you add one, add a row to this table:
 
 | Procedure | What it is for | Overrides |

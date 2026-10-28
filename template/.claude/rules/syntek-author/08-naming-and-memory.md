@@ -21,6 +21,11 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 `standards/style/ledger/provenance.md` and the value of `make provenance UNIT=`. The brief's
 `slug:` key is the short name without the number, and is never used in those places.
 
+**A workflow's slug** is its folder name after the number (`improve-your-draft` in
+`03-improve-your-draft`). A procedure in a layer's `workflows/local/` with a template workflow's
+slug overrides that workflow, whatever its number; give a new local procedure a slug no template
+workflow uses.
+
 | Pattern | Example | Used for |
 |---|---|---|
 <: if DOC_TYPE != 'business' :>| `manuscript/src/NN-kebab-title/NN-kebab-title.md` | 03-the-ford/03-the-ford.md | a chapter and its promoted prose; numbers set the running order |
@@ -36,7 +41,7 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 <: else :>| `% section: <slug>` … `% end section: <slug>` | % section: payment-terms | where a promoted section sits in a `.tex` document |
 <: endif :>| `standards/style/ledger/<unit>--<section-slug>.md` | 03-the-ford--crossing-at-night.md | a section's provenance record; `<unit>` is the unit's name, number included |
 | `workflows/NN-verb-first-name/` | 01-draft-a-section/ | a template procedure; numbers frozen |
-| `workflows/local/NN-verb-first-name/` | 01-prepare-a-reading/ | the author's own procedure |
+| `workflows/local/NN-verb-first-name/` | 01-prepare-a-reading/ | the author's own procedure, in the folder's own numbering; with a template workflow's slug, whatever its number, it overrides that workflow |
 | `how-to/src/TEMPLATE-GUIDE/<template>/NN-kebab-title.md` | 01-overview.md | a chapter of a template's user guide; numbers frozen |
 | `how-to/workflows/<template>/NN-verb-first-name/` | 01-update-the-template/ | a template's how-to procedure; numbers frozen |
 | `TEMPLATE-GUIDE/` | how-to/src/TEMPLATE-GUIDE/ | the one fixed upper-case folder: the guide's chapters |
@@ -47,7 +52,7 @@ and of a ledger entry, the first half of a ledger filename, the Unit column of
 | `QUESTIONNAIRE-<SLUG>-DD-MM-YYYY.md` | QUESTIONNAIRE-FORD-CROSSING-14-11-2026.md | a questionnaire for someone outside the session, in `planning/src/questionnaires/`; its returned copy adds `-RETURNED` |
 | `REVIEW-<scope>-DD-MM-YYYY.md` | REVIEW-whole-work-03-10-2026.md | a structural review (advice only), in `planning/src/reviews/` |
 | `SPIKE-<slug>.md` | drafts/SPIKE-second-person.md | a throwaway prototype, deleted once answered |
-| `learning/<kebab-topic>/` | learning/dialogue-punctuation/ | a learning topic: `MISSION.md`, `RESOURCES.md`, `PROGRESS.md`, `LESSONS/` |
+| `learning/<kebab-topic>/` | learning/dialogue-punctuation/ | a learning topic: `MISSION.md` (with its `Template:` line), `RESOURCES.md`, `PROGRESS.md`, `LESSONS/`; in `learning/syntek-author/<kebab-topic>/` while another template shares the project; never a template's name |
 <: if DOC_TYPE == 'theology' :>| `planning/src/arguments/NN-kebab-title.md` | 03-the-ford.md | a chapter's argument map |
 | `research/src/contested-readings/<kebab-passage>.md` | genesis-1-26-28.md | a contested-reading map: exegesis, not a decision map |
 <: endif :><: if DOC_TYPE == 'fiction' :>| `world/src/characters/<slug>.md` | ilse-varga.md | a character; places follow the same pattern |
