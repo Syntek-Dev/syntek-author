@@ -2,7 +2,7 @@
 
 **A Copier template that generates writing repositories — a theology book, a novel or a business document library — with their own folder system, standards and a Claude Code skill suite.**
 
-![Version](https://img.shields.io/badge/version-0.7.0-blue)
+![Version](https://img.shields.io/badge/version-0.8.0-blue)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 ![Template: Copier](https://img.shields.io/badge/template-copier-blue)
 
