@@ -30,7 +30,7 @@ manuscript/
   the book.
 - `manuscript/workflows/` — the procedures a task starts from: draft, adapt, improve, promote,
   review, build and learn. `manuscript/workflows/local/` holds the author's own; **a local
-  procedure with the same folder name wins** over the template's.
+  procedure with the same slug wins** over the template's, whatever its number.
 
 ## Key concepts
 

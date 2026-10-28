@@ -28,7 +28,7 @@ library/workflows/
 <: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>├── 13-create-an-accounting-document/   ← a new invoice, report, budget or forecast
 <: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>├── 14-create-a-social-media-document/  ← a new plan, calendar, profile set or campaign
 <: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>├── 15-create-an-msp-scp-document/      ← a new IT policy, runbook or service report
-<: endif :>└── local/                              ← your own procedures; a same-named one overrides these
+<: endif :>└── local/                              ← your own procedures; a same-slug one overrides these
 ```
 
 ## What's here

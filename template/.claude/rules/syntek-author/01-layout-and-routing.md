@@ -27,7 +27,7 @@ than restating it.
 <: endif :>| `standards/` | supporting | The rules the prose answers to: style, method, risk, verification<: if INCLUDE_REFERENCES :>, referencing<: endif :><: if DOC_TYPE == 'business' :>, brand<: endif :> |
 | `tooling/` | supporting | The build: Pandoc metadata and the house filter, the LaTeX house files, the scripts behind `make`, and this project's build settings (`tooling/project.mk`) |
 | `handoffs/` | working | Session bridges written by the `handoff` skill; pruned once the work resumes |
-| `learning/` | working | The `teach` workspace; nothing in it is the work |
+| `learning/` | working | The `teach` workspace, shared with any companion template's teaching skill, each keeping its own topics (`learning/CONTEXT.md`); nothing in it is the work |
 | `assets/` | working | Images and other binaries the work uses |
 | `how-to/` | reference | The user guide: shared chapters, and this template's guides, chapters and procedures in `how-to/docs/syntek-author/`, `how-to/src/TEMPLATE-GUIDE/syntek-author/` and `how-to/workflows/syntek-author/`; read, never produced in, and read-only |
 <: if DOC_TYPE == 'business' and (DATA_PROVIDER | default('google-drive')) == 'google-drive' and (DATA_STORE | default('repo')) == 'repo' :>| `.github/` | config | The Google Drive push and pull workflows |
@@ -59,7 +59,7 @@ than restating it.
 | `docs/project/` | The author's own guides; a same-named file here overrides the reference guide | how this project departs |
 | `src/` | The artefact: the prose, the plans, the evidence (never `how-to/src/`, the template's guide) | the work itself |
 | `workflows/NN-name/` | Template procedures: `CONTEXT.md` + `CLAUDE.md` + `STEPS.md` + `CHECKLIST.md` | the steps to follow |
-| `workflows/local/NN-name/` | The author's procedures, in their own numbering; a same-slug folder overrides the template's | the author's steps |
+| `workflows/local/NN-name/` | The author's procedures, in their own numbering; a same-slug folder (the name after its number), whatever its number, overrides the template's | the author's steps |
 
 Template workflow numbers are **frozen and append-only**: a number is never reused or renumbered,
 because other files and the author's habits cite it. Gaps are deliberate. The `run-workflow` skill
@@ -129,10 +129,10 @@ would stay true if nobody worked here again. `CLAUDE.md` is operating rules: it 
 The exceptions, and why each is exempt:
 
 - `build/` and `.git/` are generated; nothing in them is read for guidance.
-- `.claude/rules/` holds rules only: Claude Code loads every Markdown file there at launch, so a
-  `CONTEXT.md` placed there would load as a rule.
+- `.claude/rules/` holds rules only: Claude Code loads every Markdown file there as a rule, at
+  launch or, where its `paths` frontmatter scopes it, with a matching file (Section 8), so a `CONTEXT.md` placed there would load as a rule.
 - The inside of each `.claude/skills/<skill>/` folder: a skill is its own manual.
-- Each `drafts/` folder carries only a `README.md`; its parent's pair governs it.
+- Each `drafts/` folder carries only a `README.md`; its parent's pair governs it. A folder below `learning/` carries no pair: the `learning/` pair is its only manual.
 <: if DOC_TYPE != 'business' :>- `typeset/src/units/.base/` carries only a `README.md`: it holds the Pandoc bases `make tex`
   writes, which are never hand-edited, and its parent's pair governs it.
 <: endif :>
@@ -223,16 +223,16 @@ Override instead: a same-named guide in `docs/project/`, a same-slug workflow in
 
 Before editing anything, read in this order:
 
-1. `.claude/CLAUDE.md`: the project brief. It imports the root `CONTEXT.md`, and these rules load
-   with it, `00-project.md` (the project's settings) among them.
+1. `.claude/CLAUDE.md`: the project brief. It imports the root `CONTEXT.md`, and these rules load with it, `00-project.md` (the project's settings) among them, but for the two below.
 2. `.claude/MEMORY.md`: facts, decisions, feedback, status, open questions and sensitivities,
    under the headings `00-project.md` `## Memory headings` maps them to.
 3. Each ancestor folder's `CONTEXT.md` then `CLAUDE.md`, from the top down.
 4. The target folder's `CONTEXT.md` (imported by its `CLAUDE.md`), then its `CLAUDE.md`.
 5. The routing frontmatter of the file you are about to open (Section 6).
 
-Every folder `CLAUDE.md` repeats this chain in its own `Read order:` line, so a session that
-starts deep in the tree still climbs it.
+Every folder `CLAUDE.md` repeats this chain in its own `Read order:` line, so a session that starts deep in the tree still climbs it.
+
+**Two rules load only with their files.** `04-build-pipeline.md` and `09-data-root.md` carry `paths` frontmatter: Claude Code loads each once a session reads or edits a file it lists, with a file tool or a one-file `cat`, `head`, `grep` or the like; a command that runs something, such as `make` or the data-root tool, loads neither. So read `04-build-pipeline.md` before you run a `make` target other than `help`, `flags`, `lint` or `provenance`<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> (or the language checks `lexicon`, `derive`, `coverage` and `family`)<: endif :>, before you run `pandoc`, XeLaTeX or a `tooling/` script by hand, and before you report a build that failed; read `09-data-root.md` before `make root`, a `make files-*` target<: if DOC_TYPE == 'business' :>, an issue (`ISSUE=1`)<: endif :> or `.claude/syntek-author-dataroot.py` run by hand; each unless it is already in this session.
 
 ---
 

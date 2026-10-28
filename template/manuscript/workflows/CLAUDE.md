@@ -41,7 +41,7 @@ call).
   tick `CHECKLIST.md` → hand back with anything waived and why.
 - **Concrete steps (changing one):** confirm with the author first, because a procedure change
   alters how every later chapter is made. A template procedure is changed by overriding it in
-  `manuscript/workflows/local/` under the same folder name, never in place. Change all four files
+  `manuscript/workflows/local/` under the same slug, never in place. Change all four files
   together, and date the decision in `.claude/MEMORY.md` Decisions (mapped in `00-project.md`
   `## Memory headings`).
 - **Definition of done (running):** every checklist item ticked or explicitly waived with a reason;

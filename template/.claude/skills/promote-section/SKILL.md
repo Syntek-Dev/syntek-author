@@ -28,9 +28,9 @@ workflow and the author's word.
 
 - The content layer's `workflows/04-promote-a-section/` — this skill is that procedure in skill
   form; the mode file names its path.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `.claude/rules/syntek-author/03-authorship.md` — the two flags (Section 5), provenance and AI
   disclosure (Section 8), promotion and `final` (Section 9).
 - `standards/verification/verification.md` — V2 (draft → structural-review), whose section-level

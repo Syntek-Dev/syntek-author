@@ -7,8 +7,9 @@
 
 > Read this file first, then `.claude/MEMORY.md`, then the `CONTEXT.md` and `CLAUDE.md` of
 > whichever folder you are about to work in — in that order — before editing anything. The
-> template's rules in `.claude/rules/syntek-author/` load automatically with this file, and so
-> does this project's settings file, `.claude/rules/syntek-author/00-project.md`.
+> template's rules in `.claude/rules/syntek-author/` load automatically with this file (`04-`
+> and `09-` once the work reaches their files, Section 2), and so does this project's settings
+> file, `.claude/rules/syntek-author/00-project.md`.
 > Codex, Gemini CLI, Antigravity and OpenCode load none of them by themselves: they start
 > from `.claude/syntek-author-agents.md`.
 
@@ -42,9 +43,12 @@ live in `.claude/MEMORY.md`.
 
 ## 2. Where the rules live
 
-The rules are the ten files in `.claude/rules/syntek-author/`. Claude Code loads them at
-launch, alongside this file, so there is no need to open them before working; open one when a
-task turns on its subject.
+The rules are the ten files in `.claude/rules/syntek-author/`. Claude Code loads eight of them at
+launch, alongside this file, so there is no need to open those before working; open one when a
+task turns on its subject. `04-build-pipeline.md` and `09-data-root.md` load only once a session
+reads or edits a file their `paths` frontmatter lists, never for a command such as `make` that
+runs rather than reads: read the one a task needs before running a `make` target
+(`.claude/rules/syntek-author/01-layout-and-routing.md` Section 8).
 
 | File | Owns |
 |---|---|

@@ -32,9 +32,9 @@ These are the procedure of record — do not restate them at length here.
 - `manuscript/workflows/10-steelman-the-objections/` — the good-faith audit, step for step.
 - `manuscript/workflows/05-review-a-chapter/` — the structural stage, where this skill is gate
   V4.4 (`standards/verification/THEOLOGY.md`), run after V4.1 to V4.3.
-- If a layer's `workflows/local/` holds a folder with the same `NN-name` as a procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If a layer's `workflows/local/` holds a folder with the same slug as a procedure above (the name
+  after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `standards/method/THEOLOGY.md` — rules 5 to 8 (concede before rebutting, the three tests, an
   objection left standing, bias declared) are the rules this skill applies.
 - `standards/risk/THEOLOGY.md` — rule 1: examine the practice, never despise the practitioner.

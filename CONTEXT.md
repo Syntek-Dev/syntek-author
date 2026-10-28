@@ -68,7 +68,7 @@ syntek-author/
 
 ## What's here
 
-- `DESIGN.md` — the decisions (D1–D56), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
+- `DESIGN.md` — the decisions (D1–D59), the questions, the ownership classes and gating table, the generated tree, the skills and the formats. **Read the sections your change touches before changing anything**; comments in `copier.yml` cite it by section.
 - `copier.yml` — the contract Copier executes. **Every gated path is one `_exclude` line whose gate is copied verbatim from DESIGN.md Section 3.5** (a business document family's read `DOC_TYPE == 'business' and '<family>' in BUSINESS_FAMILIES`), and the mode-file block between its `BEGIN`/`END generated mode excludes` markers is written by `.github/scripts/gen-mode-excludes.sh`, never by hand.
 - `template/` — the product. **Every file in it is rendered**, so the delimiters `<%`, `<:` and `<~` appear only where a token is meant (token discipline: `.claude/CLAUDE.md` Section 4).
 - `AGENTS.md`, `GEMINI.md`, `.codex/` — the development entrypoints for the other coding agents. They route to the development manual and say to start every session at the repository root, which has no `.agents`, so no client loads a product skill (D47). `.codex/config.toml` is a snippet to copy into the Codex user config; Codex ignores its skill list in a project file.

@@ -30,9 +30,9 @@ approval is not theirs.
 
 - The content layer's `workflows/07-learn-from-your-edits/` — this skill is that procedure in
   skill form; the mode file names its path.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `standards/style/voice-notes.md` — what is already recorded, and the format of a `## Learned`
   bullet.
 - `standards/style/ledger/CONTEXT.md` — the entries this skill reads and the `learned` key it sets.

@@ -4,8 +4,9 @@ The families a business writer learns in, and the house sources each practises a
 
 ## Paths and unit
 
-- **Workspace:** `learning/<topic>/`. Practice documents imitate a document in `library/src/`,
-  but never sit there, are never registered and are never given a `DOC-NNN`.
+- **Workspace:** the topic's folder (`SKILL.md`, 'Where a topic lives'). Practice documents
+  imitate a document in `library/src/`, but never sit there, are never registered and are never
+  given a `DOC-NNN`.
 - **House sources:** `standards/method/BUSINESS.md`, the brand folder named in `00-project.md`
   `## Paths` (by default `standards/brand/`), the guides and family standards in
   `library/docs/reference/` and `planning/docs/reference/`, and the template instruments in each

@@ -32,8 +32,8 @@ and checklist here bind it too. Nothing here is security, compliance or legal ad
 - `library/workflows/15-create-an-msp-scp-document/` — the procedure of record for a new msp-scp
   document; this skill is its domain in skill form. Run its `STEPS.md` with `CHECKLIST.md` open.
   Where this file and the procedure disagree, the procedure wins and the disagreement is reported to
-  the author. An alias in `00-project.md` `## Workflow aliases`, then a same-named folder in
-  `library/workflows/local/`, replaces it (`run-workflow`).
+  the author. An alias in `00-project.md` `## Workflow aliases`, then a same-slug folder in
+  `library/workflows/local/`, whatever its number, replaces it (`run-workflow`).
 - `library/docs/reference/msp-scp-standards.md` and its sub-document
   `library/docs/reference/MSP-SCP-POLICY-SUITE.md` — the family standard: the suite's numbering
   and order, the structure every policy follows, Document Control, names, review cycles and the

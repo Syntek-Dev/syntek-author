@@ -13,8 +13,8 @@ time, whoever runs it.
 
 ## How to work here
 
-- **Routing:** pick by what you want; `run-workflow` checks `local/<slug>/` before the
-  template's folder of the same slug.
+- **Routing:** pick by what you want; `run-workflow` checks `local/` before the template's
+  folder of the same slug, and a local folder with that slug wins, whatever its number.
 
 | You want to… | Procedure |
 |---|---|

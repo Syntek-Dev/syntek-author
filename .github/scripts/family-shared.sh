@@ -39,7 +39,7 @@
 #                    handoffs or how-to file holds no delimiter at all (D51, D56): the refresh
 #                    compares bytes.
 #
-#                    Thirty checks:
+#                    Thirty-one checks:
 #                      1. family-shared.json exists, is JSON, and has format 1, owner
 #                         syntek-author and release 'unreleased' or 'v' + VERSION: 'v' +
 #                         VERSION on the commit that tag names and on a commit whose VERSION
@@ -219,6 +219,12 @@
 #                         (its gates removed) lacks exactly one top-level permissions entry
 #                         {"action": "edit", "resource": "how-to/*", "effect": "deny"} after
 #                         every ask.
+#                     31. With --sibling only (D57): the sibling's template/ ships no path under
+#                         learning/, the one layer where each template's teaching skill keeps
+#                         its own topics apart, whose pair only syntek-author ships; a second
+#                         template's copy of either file would conflict on the other's update.
+#                         One finding per path. Without --sibling it is skipped, by name: this
+#                         template's own learning/ is shipped-seeds.sh check 11's.
 #
 #                    Numbers are stable identifiers. Append, never renumber.
 #
@@ -1580,6 +1586,21 @@ if sibling:
             print(f"NOTE: the sibling's {REFRESH_DATA} lists no \"restore\"; its updates leave the read-only guide as they find it", file=sys.stderr)
         if sowner and sowner != OWNER:
             namespace(sroot / "template", sowner, "the sibling's ", sib_mode=True)
+        # 31 under --sibling (D57): learning/ is the one layer where each template's teaching skill
+        # keeps its own topics apart, and its pair is this template's alone, so the sibling ships
+        # no path there (found as check 29 finds its how-to/, links unread).
+        slearn = sroot / "template" / "learning"
+        if os.path.islink(slearn) or slearn.is_file():
+            finding(31, f"the sibling's template/learning is not a folder; learning/ is a layer whose pair only {OWNER} ships, and no other template ships a path there")
+        elif slearn.is_dir():
+            for dp, dns, fns in os.walk(slearn):
+                dns.sort()
+                held = [d for d in dns if os.path.islink(os.path.join(dp, d))]
+                for d in held:
+                    dns.remove(d)
+                for fn in sorted(fns + held):
+                    rel = os.path.relpath(os.path.join(dp, fn), sroot)
+                    finding(31, f"the sibling's {rel} lies under learning/, whose pair only {OWNER} ships; no other template ships a path there, and each teaching skill writes its topics at run time")
 
 print("\n".join(out))
 PY
@@ -1956,7 +1977,16 @@ PY
   rm -r "$sib/template/how-to/docs/syntek-author"; printf 'x\n' > "$sib/template/how-to/stray.md"
   probe "check 29 fires when the sibling ships a how-to path outside the shared set and its own folders" "check 29 — the sibling's how-to/stray.md is neither a shared how-to file"
   rm "$sib/template/how-to/stray.md" "$sib/template/how-to/src/TEMPLATE-GUIDE/syntek-media/01-a.md"
+  # Check 31 (D57): with --sibling, a sibling shipping a path under learning/ fires; this
+  # template's own learning/ pair, with or without --sibling, is never check 31's.
+  mkdir -p "$sib/template/learning"; printf '# CONTEXT.md — learning/\n' > "$sib/template/learning/CONTEXT.md"
+  probe "check 31 fires when the sibling ships a path under learning/" "check 31 — the sibling's template/learning/CONTEXT.md lies under learning/"
+  rm -r "$sib/template/learning"
+  mkdir -p "$SA_ROOT/template/learning"; printf '# CONTEXT.md — learning/\n' > "$SA_ROOT/template/learning/CONTEXT.md"
+  probe_clean "with --sibling, this template's own learning/ pair is not check 31's"
   SIBLING=""
+  probe_clean "without --sibling, check 31 is not run"
+  rm -r "$SA_ROOT/template/learning"
 
   SA_ROOT="$real_root"
   st_finish "a shared set in step with its manifest from one that has drifted"
@@ -2257,6 +2287,7 @@ if $WRITE; then
   fs_py write "$SA_ROOT" "" || exit 2
   log "  wrote $FS_MANIFEST"
 fi
+[[ -n "$SIBLING" ]] || log "  - check 31 skipped — it reads a sibling's template/, which only --sibling names; this template's own learning/ is shipped-seeds.sh check 11's"
 run_checks
 if [[ ${#FINDINGS[@]} -eq 0 ]]; then
   bold "✓ ${#FS_FILES[@]} shared file(s) and the four blocks match $FS_MANIFEST and stay template-neutral; the update entry closes _migrations, its baseline task closes _tasks, $FS_REFRESH_DATA refreshes exactly the shared working practice and how-to files and restores how-to/, the MCP files hold one set of pins, tools, keys and asks, the store is tested by equality only, no shared file or block names a path only one template ships, and how-to/ holds only the shared files and this template's own folders."

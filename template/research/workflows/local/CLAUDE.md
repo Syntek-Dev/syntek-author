@@ -13,7 +13,7 @@ Hold the author's own research procedures, which extend or override the template
 ## How to work here
 
 - **Routing:** `run-workflow` checks here before `research/workflows/`; a same-slug folder here
-  wins.
+  wins, whatever its number.
 - **Model:** **Opus** for writing or changing a procedure
   (`.claude/rules/syntek-author/05-model-allocation.md`).
 - **Concrete steps to add a procedure:**
@@ -39,5 +39,5 @@ Hold the author's own research procedures, which extend or override the template
 ## Output & naming
 
 - **Hand-written:** every procedure here.
-- **Folders:** `NN-verb-first-kebab-name/`, numbered from `01` in this folder's own sequence, or
-  the exact slug of the template procedure being overridden.
+- **Folders:** `NN-verb-first-kebab-name/`, numbered from `01` in this folder's own sequence; an
+  override takes the slug of the template procedure it replaces (the name after its number).

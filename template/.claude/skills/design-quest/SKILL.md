@@ -28,9 +28,9 @@ Route to the one that matches the task and follow its `STEPS.md` against its `CH
 are the procedure of record — do not restate them at length here.
 
 - `planning/workflows/05-design-a-quest/` — this skill is that procedure in skill form.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `planning/docs/reference/quest-design.md` — the parts of a quest and the quest file's shape.
 - `planning/docs/reference/causality-chains.md` — how the trigger and reversals cite their beats.
 - `standards/method/FICTION.md` — rules 1 (because and therefore), 4 (set-up and payoff) and 7

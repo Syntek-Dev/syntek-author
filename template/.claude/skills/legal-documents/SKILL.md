@@ -31,8 +31,8 @@ advice: no document is fit to rely on until a qualified professional has reviewe
 - `library/workflows/11-create-a-legal-document/` — the procedure of record for a new legal
   document; this skill is its domain in skill form. Run its `STEPS.md` with `CHECKLIST.md` open.
   Where this file and the procedure disagree, the procedure wins and the disagreement is reported to
-  the author. An alias in `00-project.md` `## Workflow aliases`, then a same-named folder in
-  `library/workflows/local/`, replaces it (`run-workflow`).
+  the author. An alias in `00-project.md` `## Workflow aliases`, then a same-slug folder in
+  `library/workflows/local/`, whatever its number, replaces it (`run-workflow`).
 - `library/docs/reference/legal-standards.md` — the family standard: naming, document control
   rows, review cycle and status values. Route there; do not restate it.
 - `.claude/rules/syntek-author/00-project.md` — `## Brief` (trading name, jurisdiction, currency,

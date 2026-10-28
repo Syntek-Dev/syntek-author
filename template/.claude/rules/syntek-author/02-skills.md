@@ -102,7 +102,7 @@ project's `SKILL.md` is the whole skill.
 | `prototype` | A throwaway spike in a `drafts/` folder answering one question about the writing, deleted once answered | moded |
 | `handoff` | Writes a handoff to `handoffs/` and stops; run instead of compacting, and when either session hook fires (`.claude/rules/syntek-author/07-session-boundaries.md`) | moded |
 | `to-questionnaire` | Turns a decision only someone outside the session can answer into a questionnaire in `planning/src/questionnaires/`, records the block, and resolves the decision when the answers return; runs only on the author's word (a grilling pass or a decision map may propose it, never run it unasked), and never sends anything | moded |
-| `teach` | A practice workspace under `learning/`; the project is read-only during a lesson | moded |
+| `teach` | A practice workspace under `learning/`, each new topic in `learning/syntek-author/<topic>/` while another template shares the project; resumes a topic where it stands and never moves one; the project is read-only during a lesson | moded |
 | `wait-what` | Re-pitches a reply that did not land, in plain language, with the context it assumed | neutral; no mode file |
 
 They compose: `grilling` is the engine `grill-me` and `grill-with-docs` wrap, `wayfinder`
@@ -227,5 +227,5 @@ ships: it names a **role**, and this table gives the role its path in this proje
 | Record of provenance (where each passage came from) | the ledger, `standards/style/ledger/` (`00-project.md` `## Paths`): one entry per section (`03-authorship.md` Section 8) |
 | Record of permissions and approvals | <: if DOC_TYPE == 'fiction' :>the permissions register, `research/src/permissions.md` (a permission to quote); there are no approval records<: elif DOC_TYPE == 'business' :>`planning/src/approvals/` for an approval, as `00-project.md` `## Paths` names each record; a permission has none, and waits under the `Open questions` heading of `MEMORY.md` until it is granted<: else :>none: a permission waits under the `Open questions` heading of `MEMORY.md` until it is granted<: endif :> |
 | Open-flags check | `make flags`, with any extra marker `tooling/project.mk` adds |
-| Fact-checking, research, prototyping and teaching skills | `fact-check`, `research`, `prototype`, `teach` (Section 4) |
-| Learning workspace | `learning/<topic>/`, written by `teach` |
+| Fact-checking, research, prototyping and teaching skills | `fact-check`, `research`, `prototype`, `teach` (Section 4); beside another template, the teaching skill of the template whose work the gap arose in (ask where unclear), and for a topic another template keeps, that template's rules name its skill |
+| Learning workspace | `learning/<topic>/`, written by `teach`; while another template's answers file stands at the project root, a new topic goes in `learning/syntek-author/<topic>/`. A topic is found there first, then at the top of `learning/`, and resumed where it stands; another template's folder, and a topic whose `MISSION.md` `Template:` line names another template, follow that template's rules (`learning/CONTEXT.md`) |

@@ -30,9 +30,9 @@ Route to the one that matches the task and follow its `STEPS.md` against its `CH
 are the procedure of record — do not restate them at length here.
 
 - `world/workflows/04-create-a-creature/` — this skill is that procedure in skill form.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `world/docs/reference/creatures.md` — the entry's sections, ecology first, lore against truth.
 - `standards/method/FICTION.md` — rules 4 (set-up and payoff) and 6 (the story bible is the source
   of truth).

@@ -18,6 +18,7 @@
 #                  pair-only folders, the spine set;
 #                - the two MCP servers of D54 (the shared bytes, pins, tool list, rules, the
 #                  install markers) and the data root of D50 (its paths, the guard command);
+#                - the start-up budget, the on-demand limit and rules 04 and 09's globs of D59;
 #                - a reader for a rendered tree's answers file, and a gate evaluator;
 #                - the rendering helpers (snapshot a working tree, render with Copier) and the
 #                  minimal fixture template the integration self-tests run against.
@@ -352,6 +353,12 @@ SA_MODE_FILES="THEOLOGY.md FICTION.md BUSINESS.md"
 # fails one anywhere under template/: this template's mode files never take the sibling's prefix.
 SA_SIBLING_MODE_RE='^MEDIA-[A-Z0-9-]+\.md$'
 is_sibling_mode() { [[ "${1##*/}" =~ $SA_SIBLING_MODE_RE ]]; } # a basename or a path
+# Skill names reserved for the companion (DESIGN.md D58, Section 9 rule 4): syntek-media names
+# its own skills media-<name> (media-research, media-teach, media-tone). Anchored at the start and
+# read in lower case, so social-media-documents (D39) is untouched and Media-Teach is caught.
+# No template skill takes the prefix, so no root Skill() deny line or Codex entry names one.
+SA_SIBLING_SKILL_RE='^media-'
+is_sibling_skill() { local n="${1##*/}"; [[ "${n,,}" =~ $SA_SIBLING_SKILL_RE ]]; } # a name or a path
 
 mode_for_doc() { # theology → THEOLOGY.md
   case "$1" in theology) echo THEOLOGY.md ;; fiction) echo FICTION.md ;; business) echo BUSINESS.md ;; esac
@@ -911,6 +918,33 @@ SA_GITIGNORE_DATAROOT_LINE="# Binary records — filed under the data root (DATA
 # The store guard step both Drive workflows hold (D53), after 'Checkout repository' and before
 # 'Authenticate to Google Cloud'.
 SA_DRIVE_GUARD_STEP="Stop unless the documents are kept in the repository"
+
+# The path-scoped rules and the start-up budget (DESIGN.md D59, Section 4.1). The budget holds a
+# render's always-loaded instruction files (the seed .claude/CLAUDE.md, its imports and every
+# rules file without paths frontmatter); the limit is Claude Code's on-demand per-file limit on
+# a 200K window. The globs are Section 4.1's two frontmatter blocks, one a line, in order.
+SA_STARTUP_BUDGET=110000
+SA_SCOPED_LIMIT=40000
+SA_RULE_PATHS_04='Makefile
+tooling/**
+build/**
+typeset/**
+**/*.{cls,sty,bib,csl,latex,lua}
+{manuscript,library}/workflows/*-build-a-proof/**
+{manuscript,library}/workflows/local/*-build-a-proof/**
+.claude/skills/{build,typeset}/**
+how-to/src/TEMPLATE-GUIDE/syntek-author/08-building-proofs.md'
+SA_RULE_PATHS_09='**/external.toml
+.claude/syntek-*-dataroot.*
+{library,research,proposal,world}/src/.gitignore
+{library,research,proposal,world}/src/**/*.{pdf,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,zip,7z,tar,gz,eml,msg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,ODT,ODS,ODP,ZIP,7Z,TAR,GZ,EML,MSG}
+{library,research,proposal,world}/src/**/*.{png,jpg,jpeg,tif,tiff,heic,webp,gif,psd,bmp,dng,exr,PNG,JPG,JPEG,TIF,TIFF,HEIC,WEBP,GIF,PSD,BMP,DNG,EXR}
+{library,research,proposal,world}/src/**/*.{mp3,wav,flac,m4a,ogg,aac,aif,aiff,opus,pcm,MP3,WAV,FLAC,M4A,OGG,AAC,AIF,AIFF,OPUS,PCM}
+{library,research,proposal,world}/src/**/*.{mp4,mov,mkv,webm,mxf,m4v,mts,m2ts,avi,braw,r3d,MP4,MOV,MKV,WEBM,MXF,M4V,MTS,M2TS,AVI,BRAW,R3D}
+assets/**
+how-to/src/TEMPLATE-GUIDE/the-data-root.md
+how-to/docs/syntek-author/setting-up-the-data-root.md
+how-to/workflows/syntek-author/04-set-up-the-data-root/**'
 
 # The root spine (DESIGN.md Section 2, Token discipline), plus the answers file, which differs
 # between every pair of renders by construction.

@@ -21,11 +21,12 @@ library/workflows/local/
 | *(no local procedures yet)* | — |
 
 - **Own numbering.** A new procedure here takes the next free two-digit number in this folder; the
-  template's numbering does not constrain it.
-- **Overrides.** A copy of a template procedure under exactly the same folder name, number
-  included, replaces that procedure for this project: a copy of
-  `library/workflows/03-improve-your-draft/` placed here is the one that runs. The `run-workflow`
-  skill looks here first.
+  template's numbering does not constrain it. Give it a slug (the name after its number) that no
+  template procedure uses, or it replaces that procedure.
+- **Overrides.** A procedure here with the same slug as a template procedure, whatever its number,
+  replaces that procedure for this project: a local 03-improve-your-draft or 09-improve-your-draft
+  runs instead of `library/workflows/03-improve-your-draft/`. The `run-workflow` skill looks here
+  first.
 
 ## Cross-references
 

@@ -4,8 +4,9 @@ The families a novelist learns in, and the house sources each practises against.
 
 ## Paths and unit
 
-- **Workspace:** `learning/<topic>/`. Practice scenes imitate a section of a chapter in
-  `manuscript/src/`, but never sit there, and never use the book's characters.
+- **Workspace:** the topic's folder (`SKILL.md`, 'Where a topic lives'). Practice scenes imitate
+  a section of a chapter in `manuscript/src/`, but never sit there, and never use the book's
+  characters.
 - **House sources:** `standards/method/FICTION.md`; the guides in `manuscript/docs/reference/`,
   `planning/docs/reference/`, `world/docs/reference/` and `research/docs/reference/`;
   `standards/style/voice-notes.md` and `standards/style/style-sheet.md`.

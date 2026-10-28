@@ -28,9 +28,9 @@ fact rather than a recollection.
 
 - The content layer's `workflows/01-draft-a-section/` — this skill is that procedure in skill
   form; the mode file names its path. Run its `STEPS.md` with `CHECKLIST.md` open.
-- If the layer's `workflows/local/` holds a folder with the same `NN-name` as the procedure above,
-  follow that procedure instead: the author's local procedure replaces the template's
-  (`run-workflow`, step 2).
+- If the layer's `workflows/local/` holds a folder with the same slug as the procedure above (the
+  name after its number), whatever its number, follow that procedure instead: the author's local
+  procedure replaces the template's (`run-workflow`, step 3).
 - `.claude/rules/syntek-author/03-authorship.md` — section size (Section 3), never fabricate
   (Section 4), the two flags (Section 5) and provenance (Section 8).
 - `standards/method/method.md` and its mode file — evidence before prose, and the doc-type method.

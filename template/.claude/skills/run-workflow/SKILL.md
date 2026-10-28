@@ -2,7 +2,7 @@
 name: run-workflow
 description: >-
   The router: turn what the author asks for into one workflow and run it as written. Resolves
-  00-project.md ## Workflow aliases first, then the author's workflows/local/ (a same-named local
+  00-project.md ## Workflow aliases first, then the author's workflows/local/ (a same-slug local
   folder replaces the template's), then each layer's 'You want to… | Procedure' table, or its
   workflow folders where an index has none; loads STEPS.md with CHECKLIST.md open, obeys every gate,
   and hands back with the next move. Biased towards prose: scaffolding is not progress. Use when the
@@ -82,14 +82,15 @@ This skill runs procedures; it never replaces one, and it never paraphrases one 
 3. **Resolve to one procedure.** An alias replaces the template workflow it names. A local folder
    with the same slug as a template folder (the name after its number), whatever its number
    (`workflows/local/03-improve-your-draft/` or `workflows/local/12-improve-your-draft/` over
-   `workflows/03-improve-your-draft/`), replaces it entirely. A local procedure with a slug of its
-   own competes on its row like any other. A
-   workflow is named by its full folder name, never by its number alone: where a number the author
-   gives matches more than one folder in a layer (a template workflow beside a project's own), list
-   each by full name and ask. If two still fit, offer the one that produces or approves prose and
-   say why. If none fits, say so and stop: never improvise a procedure or stitch two together, and
-   never write a new one without the author's agreement (`workflows/local/CLAUDE.md` in the layer
-   says how).
+   `workflows/03-improve-your-draft/`), replaces it entirely, even where a layer's
+   `workflows/local/` pair from an older release says the number must match too. Where more than
+   one local folder has that slug, list each by full name and ask. A local procedure with a slug
+   of its own competes on its row like any other. A workflow is named by its full folder name,
+   never by its number alone: where a number the author gives matches more than one folder in a
+   layer (a template workflow beside a project's own), list each by full name and ask. If two
+   still fit, offer the one that produces or approves prose and say why. If none fits, say so and
+   stop: never improvise a procedure or stitch two together, and never write a new one without
+   the author's agreement (`workflows/local/CLAUDE.md` in the layer says how).
    *Complete when:* one procedure is chosen by its full name, and you can say whether it is an
    alias, local or the template's.
 
@@ -135,7 +136,8 @@ This skill runs procedures; it never replaces one, and it never paraphrases one 
 - **Scaffolding as progress.** Creating folders, briefs, maps, trackers or index rows the
   procedure did not ask for, or re-planning a unit whose brief already passed its gate when the
   next section is waiting to be drafted.
-- Running a template procedure when an alias or a same-named local one replaces it, or the reverse.
+- Running a template procedure when an alias or a same-slug local one replaces it, whatever its
+  number, or the reverse.
 - Naming a workflow by its number alone, or stopping because a layer's index has no table when its
   folders can be listed.
 - Working from a remembered version of `STEPS.md`. A remembered procedure is an old procedure.

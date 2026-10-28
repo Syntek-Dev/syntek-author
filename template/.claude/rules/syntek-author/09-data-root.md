@@ -1,3 +1,18 @@
+---
+paths:
+  - "**/external.toml"
+  - ".claude/syntek-*-dataroot.*"
+  - "{library,research,proposal,world}/src/.gitignore"
+  - "{library,research,proposal,world}/src/**/*.{pdf,doc,docx,xls,xlsx,ppt,pptx,odt,ods,odp,zip,7z,tar,gz,eml,msg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,ODT,ODS,ODP,ZIP,7Z,TAR,GZ,EML,MSG}"
+  - "{library,research,proposal,world}/src/**/*.{png,jpg,jpeg,tif,tiff,heic,webp,gif,psd,bmp,dng,exr,PNG,JPG,JPEG,TIF,TIFF,HEIC,WEBP,GIF,PSD,BMP,DNG,EXR}"
+  - "{library,research,proposal,world}/src/**/*.{mp3,wav,flac,m4a,ogg,aac,aif,aiff,opus,pcm,MP3,WAV,FLAC,M4A,OGG,AAC,AIF,AIFF,OPUS,PCM}"
+  - "{library,research,proposal,world}/src/**/*.{mp4,mov,mkv,webm,mxf,m4v,mts,m2ts,avi,braw,r3d,MP4,MOV,MKV,WEBM,MXF,M4V,MTS,M2TS,AVI,BRAW,R3D}"
+  - "assets/**"
+  - "how-to/src/TEMPLATE-GUIDE/the-data-root.md"
+  - "how-to/docs/syntek-author/setting-up-the-data-root.md"
+  - "how-to/workflows/syntek-author/04-set-up-the-data-root/**"
+---
+
 # 09-data-root.md — where the binary files are kept: the store, the data root and its manifests
 
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>

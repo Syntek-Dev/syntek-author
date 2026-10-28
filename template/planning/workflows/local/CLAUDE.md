@@ -23,8 +23,8 @@ same slug.
   2. Write all four files in the template's shape: routing frontmatter (`workflow`, `phase`,
      `skills`, `model`) on `STEPS.md` and `CHECKLIST.md`, the metadata header, numbered steps
      ending _Substantive._ or _Mechanical._, and checklist items tagged with their tier.
-  3. Number a new procedure next in this folder's sequence; keep the template's slug for an
-     override.
+  3. Number a new procedure next in this folder's sequence; keep the template's slug (the name
+     after its number) for an override, whatever its number.
   4. Add a row to the table in this folder's `CONTEXT.md`.
 - **Definition of done:** the author has approved all four files, and the router would pick the
   procedure for the request it is meant for.

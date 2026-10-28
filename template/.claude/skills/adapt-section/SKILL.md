@@ -30,9 +30,9 @@ with whose change it was.
 
 - The content layer's `workflows/02-adapt-a-draft/` — this skill is that procedure in skill form;
   the mode file names its path and any other procedure that uses this skill.
-- If a layer's `workflows/local/` holds a folder with the same `NN-name` as a procedure named
-  here or in the mode file, follow that procedure instead: the author's local procedure replaces
-  the template's (`run-workflow`, step 2).
+- If a layer's `workflows/local/` holds a folder with the same slug as a procedure named here or
+  in the mode file (the name after its number), whatever its number, follow that procedure
+  instead: the author's local procedure replaces the template's (`run-workflow`, step 3).
 - `.claude/rules/syntek-author/03-authorship.md` — who decides (Section 1), never fabricate
   (Section 4), suggest rather than rewrite and preserve deliberate oddities (Section 6).
 - `standards/style/voice-notes.md` and `standards/style/style-sheet.md` — the voice and mechanics

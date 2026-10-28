@@ -71,6 +71,7 @@ Every file under `template/` is rendered (`_templates_suffix: ""`) with the hous
 - **Guides** follow DESIGN.md Section 4.4 (54–82 lines). **Skills** follow DESIGN.md Section 5, moded skills carry the mode paragraph verbatim, and mode files use the four H2s of D6.
 - **How-to chapters** follow DESIGN.md Section 6 ('Template-guide chapter'): plain English for the author, one sentence per line, no header or delimiter, every command fence runnable as written; guides also live in `how-to/docs/<template>/`.
 - **Every instructional `.md` stays within 300 lines** (D25); an oversized one splits into `SCREAMING-SNAKE-CASE.md` sub-documents behind a thin index.
+- **A render's always-loaded instructions stay within 110,000 characters** (D59): the seed `.claude/CLAUDE.md`, its imports and every rules file without `paths` frontmatter (`shipped-variants.sh` check 24). Text only some work needs goes into a path-scoped rule, never into an `@` import, which loads at launch too; only 04 and 09 carry `paths`, with D59's exact frontmatter (check 25).
 - **Locale:** en_GB, single quotation marks, DD/MM/YYYY in prose, `DD-MM-YYYY` in filenames, "Section 3.2" and never the section sign.
 
 ## 7. How to change the template
@@ -80,7 +81,7 @@ Each recipe ends the same way: run the audits (Section 8) and add a `CHANGELOG.m
 **7.1 Add a skill.**
 
 1. Add its row to DESIGN.md Section 5 (approved first, Section 2 above).
-2. Write `template/.claude/skills/<name>/SKILL.md` to the conformance rules of DESIGN.md Section 5. A moded skill gets one mode file per variant it ships in (7.2).
+2. Write `template/.claude/skills/<name>/SKILL.md` to the conformance rules of DESIGN.md Section 5. A moded skill gets one mode file per variant it ships in (7.2). Never name it `media-…`: that prefix is `syntek-media`'s (DESIGN.md D58).
 3. A variant-only or option skill gets one `_exclude` line in its block of `copier.yml`: `"<: if not (GATE) :>/.claude/skills/<name><: endif :>"`.
 4. Add its row to `template/.claude/rules/syntek-author/02-skills.md` and to the skills index, wrapped in its gate.
 5. Propose its `Skill(<name>)` deny line for the root `.claude/settings.json` and its `[[skills.config]]` entry for the root `.codex/config.toml` (Section 3).

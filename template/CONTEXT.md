@@ -16,7 +16,7 @@ rules live beside it in `.claude/rules/syntek-author/`. This file is orientation
 ├── .claude/                ← Claude Code: the manual, the template's rules, memory, settings, hooks, skills
 │   ├── CLAUDE.md           ← the project brief and where the rules live (read first)
 │   ├── MEMORY.md           ← project memory (read second)
-│   ├── rules/syntek-author/ ← loaded at launch: 00-project.md (this project's settings; yours) and the template's rules (never edit)
+│   ├── rules/syntek-author/ ← 00-project.md (this project's settings; yours) and the template's rules (never edit): at launch, but 04 and 09 with the files they cover
 │   ├── syntek-author-agents.md ← the bridge every other coding agent reads first
 │   ├── syntek-author-permissions.py ← passes settings.json's denies and asks to the other clients
 │   ├── syntek-author-dataroot.py ← the data-root resolver: make root and make files-*
