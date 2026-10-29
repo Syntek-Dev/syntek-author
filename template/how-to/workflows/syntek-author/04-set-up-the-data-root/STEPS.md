@@ -107,12 +107,14 @@ filed, the role it proposes, and every conflict; it changes nothing:
 make files-plan
 ```
 
-It ends with a line such as `plan: 2 to file, 0 filed already, 0 conflicts`. Read the list with
-the author. A conflict is settled with them first; a file that needs a role other than the one
-proposed is filed on its own first, with `make files-add` and its `FILE=` and `ROLE=`, as
+It ends with a line such as `plan: 2 to file, 1 need a role, 0 filed already, 0 conflicts`. Read
+the list with the author. A conflict is settled with them first. A row marked `role ?` is one whose
+role it could not show (its line says why), and `COPY=1` never files it. Such a row, and a file
+that needs a role other than the one proposed, is filed on its own with the role the author
+chooses, with `make files-add` and its `FILE=` and `ROLE=`, as
 `.claude/rules/syntek-author/09-data-root.md` Section 6 says. Then, only on the author's word
-for this run, this command files a copy of each file without a conflict, and moves and untracks
-nothing:
+for this run, this command files a copy of each file with a role and no conflict, and moves and
+untracks nothing:
 
 ```bash
 make files-plan COPY=1

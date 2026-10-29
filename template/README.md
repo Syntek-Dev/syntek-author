@@ -149,7 +149,7 @@ make files-add FILE=… ROLE=…    # file a copy under the root and list it (AS
 make files-status               # the loss check: binaries Git ignores that no manifest lists
 make files-verify               # check every listed file against its checksum
 make files-pull                 # copy listed files into the work tree, where Git ignores them
-make files-plan                 # tracked binaries and where each would go (COPY=1 copies them)
+make files-plan                 # tracked binaries, where each would go and its role (COPY=1 copies those with one)
 ```
 
 - **Text work needs no root.** Drafting, proofs, lint and `make flags` run without one;

@@ -33,8 +33,10 @@ without one.
 ## Moving files out
 
 Moving is a copy, never a move. `make files-plan` lists every binary Git still holds in a filing
-folder and where each would go, and changes nothing. With `COPY=1`, it files a copy of each one
-that has no conflict and writes its row in that folder's `external.toml`. `make files-verify`
+folder, where each would go and its role, and changes nothing. A role it cannot show from
+evidence is marked `?`: the author chooses it and files that file with `make files-add`. With
+`COPY=1`, it files a copy of each one that has a role and no conflict and writes its row in that
+folder's `external.toml`. `make files-verify`
 then checks every filed copy against its checksum. Only once verify passes, on every machine
 that will use the files, does the author take the originals out of Git with `git rm --cached`,
 which leaves them on disk, where Git now ignores them. Taking a file out of Git deletes it from

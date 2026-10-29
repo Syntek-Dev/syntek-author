@@ -39,15 +39,16 @@
 #                     12. .claude/settings.json breaks DESIGN.md Section 4.1: model opus,
 #                         autoCompactEnabled false, idleCompaction false (an idle compaction
 #                         fires PreCompact auto, which the hook blocks, so it stays off even
-#                         where an owner keeps autoCompactEnabled true; D29), PreCompact hooks
-#                         for auto and manual,
+#                         where an owner keeps autoCompactEnabled true; D29), outputStyle
+#                         "Concise" (the house output style, D60), PreCompact hooks for auto
+#                         and manual,
 #                         denies AskUserQuestion, Edit(**/*.pdf), Edit(build/**) and D54's
 #                         mcp__code-review-graph__embed_graph_tool, asks for exactly D54's eight
 #                         tools in their order, and no owner-specific key (effortLevel,
 #                         ultracode, enabledPlugins, disable*); its D29 hooks (UserPromptSubmit,
 #                         PreCompact, and SessionStart for the note after a compaction) are the
 #                         entries migrations/family-refresh.json offers, unchanged, and neither
-#                         a D29 event nor autoCompactEnabled or idleCompaction is missing from
+#                         a D29 event nor any of the three top-level values is missing from
 #                         that file's settings (check 22 compares the values; an entry the seed
 #                         alone holds never reaches an existing project); and exactly
 #                         one PreToolUse entry runs the data-root guard
@@ -128,8 +129,9 @@
 #                         And, in the template, the seed template/.claude/settings.json holds
 #                         every permissions.deny and permissions.ask rule that file lists (a
 #                         variant-gated rule still appears in the seed's source), and every
-#                         top-level value it lists ("autoCompactEnabled": false and
-#                         "idleCompaction": false) with the same value, for the same reason: an entry listed in family-refresh.json
+#                         top-level value it lists ("autoCompactEnabled": false,
+#                         "idleCompaction": false and "outputStyle": "Concise") with the same
+#                         value, for the same reason: an entry listed in family-refresh.json
 #                         alone is never offered. The MCP asks and deny of D54 are among those
 #                         rules. family-refresh.json never lists the data-root guard (an entry
 #                         whose command is the guard's or names a dataroot.py): it is
@@ -466,6 +468,8 @@ if data.get("autoCompactEnabled") is not False:
     print("autoCompactEnabled is not false — hand off, never compact (DESIGN.md D29)")
 if data.get("idleCompaction") is not False:
     print("idleCompaction is not false — an idle compaction fires PreCompact auto, which the hook blocks (DESIGN.md D29)")
+if data.get("outputStyle") != "Concise":
+    print(f"outputStyle is {data.get('outputStyle')!r}, not 'Concise' — the house output style (DESIGN.md D60)")
 hooks = data.get("hooks") if isinstance(data.get("hooks"), dict) else {}
 matchers = {h.get("matcher") for h in (hooks.get("PreCompact") or []) if isinstance(h, dict)}
 for m in ("auto", "manual"):
@@ -494,9 +498,9 @@ for event in ("UserPromptSubmit", "PreCompact", "SessionStart"):
         print(f"wires the D29 {event} hook, which migrations/family-refresh.json does not offer — an existing project would never gain it")
     elif event in hooks and event in offered and hooks[event] != offered[event]:
         print(f"changes the D29 {event} hook — the seed holds it exactly as migrations/family-refresh.json offers it")
-for key in ("autoCompactEnabled", "idleCompaction"):
+for key in ("autoCompactEnabled", "idleCompaction", "outputStyle"):
     if key in data and read and key not in listed:
-        print(f"sets {key}, which migrations/family-refresh.json does not list — an existing project would never be offered it (DESIGN.md D29, D51)")
+        print(f"sets {key}, which migrations/family-refresh.json does not list — an existing project would never be offered it (DESIGN.md D29, D51, D60)")
 # The data-root guard: exactly one PreToolUse entry runs it, the first, exactly the merged seed's.
 # Any other PreToolUse entry (the guide guard, D56) is check 26's.
 pre = hooks.get("PreToolUse")
@@ -923,7 +927,7 @@ json.dump({"format": 1, "template": "syntek-author", "refresh": sys.argv[2].spli
                                   "SessionStart": [{"matcher": "compact", "hooks": hook("pre-compact-handoff.sh", " compacted")}],
                                   "UserPromptSubmit": [{"hooks": hook("context-threshold-handoff.sh")}]},
                         "permissions": {"deny": [sys.argv[5]], "ask": []},
-                        "autoCompactEnabled": False, "idleCompaction": False}}, open(sys.argv[1], "w"), indent=2)
+                        "autoCompactEnabled": False, "idleCompaction": False, "outputStyle": "Concise"}}, open(sys.argv[1], "w"), indent=2)
 d = json.load(open(sys.argv[1]))["settings"]["hooks"]
 lines = ['"command": %s,' % json.dumps(h["command"]) for ev in ("UserPromptSubmit", "PreCompact", "SessionStart") for e in d[ev] for h in e["hooks"]]
 with open(sys.argv[6], "w", encoding="utf-8") as f:
@@ -987,7 +991,7 @@ EOF
 import json, sys
 path, matcher, guard, deny, asks, gmatcher, gcmd, gdeny = sys.argv[1:9]
 hook = lambda c: [{"type": "command", "command": c}]
-json.dump({"model": "opus", "autoCompactEnabled": False, "idleCompaction": False,
+json.dump({"model": "opus", "autoCompactEnabled": False, "idleCompaction": False, "outputStyle": "Concise",
            "hooks": {"UserPromptSubmit": [{"hooks": hook("bash .claude/hooks/context-threshold-handoff.sh")}],
                      "PreCompact": [{"matcher": "auto", "hooks": hook("bash .claude/hooks/pre-compact-handoff.sh auto")},
                                     {"matcher": "manual", "hooks": hook("bash .claude/hooks/pre-compact-handoff.sh manual")}],
@@ -1084,6 +1088,12 @@ self_test() {
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["idleCompaction"]; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
   probe "check 12 fires when family-refresh.json does not list the seed's idleCompaction" "check 12 — .claude/settings.json sets idleCompaction, which migrations/family-refresh.json does not list"
   cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["outputStyle"]; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 12 fires when family-refresh.json does not list the seed's outputStyle" "check 12 — .claude/settings.json sets outputStyle, which migrations/family-refresh.json does not list"
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"]["outputStyle"]="Explanatory"; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 22 fires when family-refresh.json lists an outputStyle the seed does not hold" "check 22 — template/.claude/settings.json does not hold the top-level \"outputStyle\": \"Explanatory\""
+  cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); del d["settings"]["hooks"]["SessionStart"]; json.dump(d,open(sys.argv[1],"w"))' "$SA_ROOT/$REFRESH_DATA"
   probe "check 12 fires when family-refresh.json does not offer the seed's SessionStart entry" "check 12 — .claude/settings.json wires the D29 SessionStart hook, which migrations/family-refresh.json does not offer"
   cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
@@ -1120,6 +1130,12 @@ self_test() {
   cp "$SA_ROOT/$REFRESH_DATA" "$tmp/rd"
   sed -i 's/"autoCompactEnabled": false/"autoCompactEnabled": true/' "$t/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA"; probe "check 12 fires when compaction is switched on" "check 12"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
   sed -i 's/"idleCompaction": false/"idleCompaction": true/' "$t/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA"; probe "check 12 fires when idle compaction is switched on" "check 12 — .claude/settings.json idleCompaction is not false"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  # The seed with another style, offered the same by the refresh data (only check 12's pin breaks),
+  # and the seed and the refresh data without one (only check 12's pin again).
+  sed -i 's/"outputStyle": "Concise"/"outputStyle": "Explanatory"/' "$t/.claude/settings.json" "$SA_ROOT/$REFRESH_DATA"; probe "check 12 fires when the seed's output style is not Concise" "check 12 — .claude/settings.json outputStyle is 'Explanatory', not 'Concise'"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d.pop("outputStyle", None); d.get("settings", {}).pop("outputStyle", None); json.dump(d,open(sys.argv[1],"w"),indent=2)' "$t/.claude/settings.json"
+  python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["settings"].pop("outputStyle", None); json.dump(d,open(sys.argv[1],"w"),indent=2)' "$SA_ROOT/$REFRESH_DATA"
+  probe "check 12 fires when the seed sets no output style" "check 12 — .claude/settings.json outputStyle is None, not 'Concise'"; cp "$tmp/h" "$t/.claude/settings.json"; cp "$tmp/rd" "$SA_ROOT/$REFRESH_DATA"
   settings_edit() { python3 -c "import json, sys; d = json.load(open(sys.argv[1])); $1; json.dump(d, open(sys.argv[1], 'w'), indent=2)" "$t/.claude/settings.json" "${@:2}"; }
   settings_edit 'h = d["hooks"]["PreToolUse"][0]["hooks"][0]; h["command"] = h["command"].replace(" || exit 0", "")'
   probe "check 12 fires when the guard is not the merged seed's command" "check 12 — .claude/settings.json does not wire the data-root guard exactly"
