@@ -175,9 +175,9 @@ anything that decides meaning; when in doubt, the work is substantive.
   administrator rights:
 
   ```bash
-  uvx --from 'scrapling[ai]==0.4.15' --with 'playwright==1.63.0' --with 'patchright==1.63.0' scrapling --version
+  uvx --from 'scrapling[ai]==0.4.15' --with 'playwright==1.64.0' --with 'patchright==1.64.3' scrapling --version
   uvx code-review-graph==2.3.9 --version
-  uvx --from 'playwright==1.63.0' playwright install chromium
+  uvx --from 'playwright==1.64.0' playwright install chromium
   ```
 
   Where that Chromium then fails to start for missing system libraries, Playwright's
