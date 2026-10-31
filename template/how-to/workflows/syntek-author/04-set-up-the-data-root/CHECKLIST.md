@@ -35,7 +35,7 @@ model: opus
 
 **The copies**
 
-- [ ] `make files-plan` read with the author; every conflict settled, and every file needing another role filed first with `make files-add`. · _opus_
+- [ ] `make files-plan` read with the author; every conflict settled, and every `role ?` row and every file needing another role filed with `make files-add` on the author's choice of role. · _opus_
 - [ ] `make files-plan COPY=1` run only on the author's word for this run. · _sonnet_
 - [ ] `make files-verify` reports nothing missing, changed or unlisted, and `make files-status` was read to the author. · _sonnet_
 

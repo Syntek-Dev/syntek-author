@@ -64,6 +64,17 @@ The build reads fixed paths and ignores redirects, so redirect a drafts folder o
 Build settings, such as fonts and extra open-item marks, are not overrides: they go in `tooling/project.mk`.
 Ask Claude to add any of these for you, and check what it wrote.
 
+## Claude's output style
+
+A new project sets Claude Code's output style to Concise, a built-in style that keeps Claude's replies short.
+It is the line `"outputStyle": "Concise"` in `.claude/settings.json`, which the project shares.
+To choose another style for yourself, type `/output-style` in Claude Code, or change it in `/config`.
+Either writes your choice to `.claude/settings.local.json`, which Git ignores and which wins over `.claude/settings.json`.
+So the shared file keeps the template's style, and your choice stays yours.
+Claude Code older than 2.1.237 does not know the Concise style, and uses Default instead without a warning.
+An update adds the line to an older project's `.claude/settings.json` where it has none, once, and keeps another style you set there, saying so once.
+The other agent clients have no output styles, so the line changes nothing for them.
+
 ## The guide is read-only
 
 `how-to/` explains the template version this project runs, so it stays exactly as the template wrote it.

@@ -23,6 +23,7 @@ This chapter names the kinds, then says what a copy and an update each do; the g
 - If you delete one, the next update puts back a fresh, empty copy, because the skills read it by its path.
 - An update does add to two seeds, once each and never again.
 - It adds the hook entries and permission rules the template lists to `.claude/settings.json`, and the two MCP servers to `.mcp.json`.
+- It also adds each top-level setting the template lists, such as `"outputStyle": "Concise"`, where your `.claude/settings.json` has no such key, and keeps a value you set yourself.
 - The cost of a seed is that it never receives the template's later improvements.
 - A release that must change one ships a migration, a small script that edits your copy only where exactly one change is right, and lists the rest for you.
 

@@ -58,7 +58,7 @@ It delivers the ignore files and asks for the layout answers
 (`how-to/workflows/syntek-author/01-update-the-template/`). Then, on each machine, the author sets
 `SYNTEK_DATA_ROOT`, creates the marker and runs `make root`. After that, `make files-plan` lists
 the binaries still tracked and where each would go, and `make files-plan COPY=1` files a copy of
-each one without a conflict. A copy never untracks a file: the author removes the tracked ones from
+each one with a role and no conflict. A copy never untracks a file: the author removes the tracked ones from
 Git once `make files-verify` passes. This file then describes the external store.
 <: endif :>
 **One project, one store.** Every template applied to this project records its own answers, and
@@ -208,7 +208,7 @@ template's map adds belongs to that template's work.
 | `make files-status` | The loss check: binaries Git ignores in a filing folder that no row lists, which exist on this machine only; files over a folder's size warning; folders holding files under older answers; online-only copies; and copies under the root that no row lists, with a hint where a name looks like a provider's conflict copy |
 | `make files-verify` | Hashes every current copy against its row and fails on a missing, changed or unlisted one. `GLOB=` narrows it; an online-only copy is skipped unless `HYDRATE=1`, which downloads it |
 | `make files-pull` | Copies filed copies into the work tree, where Git ignores them, checking each hash; never replaces a different file. `GLOB=` narrows it; reading an online-only copy downloads it |
-| `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, the role it proposes from the name and every conflict; `COPY=1` files the ones without a conflict, and never moves or untracks one |
+| `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, the role it proposes and every conflict; a role it cannot prove shows as `?`, with the reason. `COPY=1` files the ones with a role and no conflict, never a `?` row, and never moves or untracks one. A `?` row, like a conflict, makes it exit `1` |
 <: if DOC_TYPE == 'business' :>| `make pdf FILE=… ISSUE=1` | Issues a document: the copy is filed with role `issued` and the document as its source (`04-build-pipeline.md` Section 1) |
 <: endif :>
 **Exit codes** (the tool's; `make` shows them as `Error 1` or `Error 2`): `0` done; `1` a check
@@ -217,9 +217,15 @@ root, answers that disagree, a refused name or role). Report a failure to the au
 tool's own line, and never work round it by copying, moving or editing a file yourself.
 
 - **File a copy only where a skill or a workflow step says so, or the author asks.** `FORCE=1`
-  and `COPY=1` need the author's word for that run. `make files-plan` proposes `signed`,
-  `ingested`, `issued`, `asset` or `archive` from each name: file a copy that needs another role
-  with `make files-add` first.
+  and `COPY=1` need the author's word for that run. `make files-plan` proposes a role only from
+  evidence it can check: `signed` or `received` from a whole word of the name (`signed`,
+  `countersigned`, `executed`; `receipt`, `remittance`, `statement` but not 'statement of work',
+  `received`, and `received` never for a copy the house build made), `ingested` from a reading
+  note beside it, and `issued` only for a PDF the house build made from a same-stem source at an
+  issuing status (`final` unless `tooling/project.mk` sets `ISSUE_STATUSES`), with no digital
+  signature (one makes it `signed`) and, where Git holds both, not committed before its source. A file with no source beside it is `asset` or
+  `archive`. A row marked `?` is the author's to choose, never yours: `COPY=1` never files it, so
+  file it, and any copy that needs another role, with `make files-add FILE=… ROLE=…`.
 - **A generated file** (pronunciation audio, say) is written into its git-ignored folder in the
   work tree, never straight under the root, then filed with `make files-add FILE=… ROLE=generated`.
 <: if DOC_TYPE == 'business' :>- **A sent Word copy** is filed by hand:

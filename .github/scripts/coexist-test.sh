@@ -75,12 +75,14 @@
 #                    14. syntek-author's update beside it succeeds, prints one report, refreshes
 #                        the shared skill, keeps only syntek-author's refs, and wires each hook
 #                        of family-refresh.json exactly once (and holds each top-level value it
-#                        lists, autoCompactEnabled and idleCompaction, once, with that value).
+#                        lists, autoCompactEnabled, idleCompaction and outputStyle, once, with
+#                        that value).
 #                    15. Sibling first: syntek-author's copy over the sibling's own
 #                        settings.json (tab-indented, no hooks, no top-level value of ours)
 #                        wires each hook exactly once, adds each top-level value
 #                        family-refresh.json lists (autoCompactEnabled and idleCompaction, both
-#                        false) once, and keeps the sibling's lines as they were.
+#                        false, and outputStyle "Concise") once, and keeps the sibling's lines
+#                        as they were.
 #                    16. The sibling's later update to its release with the shared set (whose
 #                        family-refresh.json and seed carry the same top-level values too)
 #                        succeeds, records refs/dummy-media/template and yours, leaves no
@@ -774,7 +776,7 @@ report_checks() {
 
 # Judges a project's settings.json against syntek-author's family-refresh.json: prints "ok", or
 # each hook entry that is not wired exactly once, and each top-level value it lists
-# (autoCompactEnabled, idleCompaction) that the file's text does not hold exactly once with that
+# (autoCompactEnabled, idleCompaction, outputStyle) that the file's text does not hold exactly once with that
 # value (a key written twice parses silently to the last). $3 = tabs: the file must still be
 # the sibling's own, tab-indented with its own first key.
 hooks_once() { # $1 = settings.json, $2 = family-refresh.json, $3 = tabs (optional)
@@ -2345,6 +2347,12 @@ PY
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == "idleCompaction written 0 time(s)"* ]] || judged+=" idle-missing"
   printf '{\n  "autoCompactEnabled": false,\n  "idleCompaction": false\n}\n' > "$tmp/st.json"
   [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == ok ]] || judged+=" once"
+  # A string value (the output style): another string is named, the listed one passes.
+  printf '{"settings": {"outputStyle": "Concise"}}\n' > "$tmp/rf.json"
+  printf '{\n  "outputStyle": "Explanatory"\n}\n' > "$tmp/st.json"
+  [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == *'value "Explanatory", not "Concise"'* ]] || judged+=" style"
+  printf '{\n  "outputStyle": "Concise"\n}\n' > "$tmp/st.json"
+  [[ "$(hooks_once "$tmp/st.json" "$tmp/rf.json")" == ok ]] || judged+=" style-once"
   if [[ -n "$judged" ]]; then
     printf '\033[31m  ✗ hooks_once misjudges a top-level value:%s\033[0m\n' "$judged" >&2; exit 2
   fi

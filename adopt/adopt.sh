@@ -620,9 +620,10 @@ PY
   fi
 fi
 
-# The top-level values the template offers a kept settings.json (D29, D51), READ from the same
-# refresh data's "settings" (each scalar key, with its value as JSON). Without python3 or the
-# file, the two values the handoff hooks assume, both false.
+# The top-level values the template offers a kept settings.json (D29, D51, D60), READ from the
+# same refresh data's "settings" (each scalar key, with its value as JSON). Without python3 or
+# the file, the three the seed sets: the two the handoff hooks assume, both false, and the house
+# output style.
 TOP_VALUES=()
 if [ -f "$SCRIPT_DIR/../migrations/family-refresh.json" ] && command -v python3 >/dev/null 2>&1; then
   mapfile -t TOP_VALUES < <(python3 -I - "$SCRIPT_DIR/../migrations/family-refresh.json" 2>/dev/null <<'PY' || true
@@ -634,7 +635,7 @@ for k, v in (s.items() if isinstance(s, dict) else []):
 PY
   )
 fi
-[ "${#TOP_VALUES[@]}" -gt 0 ] || TOP_VALUES=($'autoCompactEnabled\tfalse' $'idleCompaction\tfalse')
+[ "${#TOP_VALUES[@]}" -gt 0 ] || TOP_VALUES=($'autoCompactEnabled\tfalse' $'idleCompaction\tfalse' $'outputStyle\t"Concise"')
 
 # What git holds of a path, from the in_head and in_index sets additive_report fills: committed,
 # staged (in the index, not yet in a commit), ignored or untracked; empty outside git.
@@ -1550,16 +1551,22 @@ fi
 lacks() { note "$1 lacks $2 — compare it with the template's seed"; }
 if [ -f .claude/settings.json ]; then
   # The top-level values the template offers (TOP_VALUES, read above): for D29, an idle
-  # compaction is an automatic one, so both autoCompactEnabled and idleCompaction are false.
+  # compaction is an automatic one, so both autoCompactEnabled and idleCompaction are false;
+  # outputStyle is the house output style (D60). Each note names who relies on the value.
   top_list=()
   for kv in "${TOP_VALUES[@]}"; do
     top_key=${kv%%$'\t'*}; top_val=${kv#*$'\t'}
     top_list+=("\"$top_key\": $top_val")
     top_re=$(printf '%s' "$top_val" | sed 's/[][\.*^$+?(){}|/]/\\&/g')
+    case $top_key in
+      autoCompactEnabled|idleCompaction) top_why="the handoff hooks assume $top_val"; top_them=them ;;
+      outputStyle) top_why="the template's output style is $top_val"; top_them=it ;;
+      *) top_why="the template's settings assume $top_val"; top_them=them ;;
+    esac
     if ! grep -Eq "\"$top_key\"[[:space:]]*:" .claude/settings.json; then
       note ".claude/settings.json lacks \"$top_key\": $top_val, which the template's settings set: the moving copy, or your first copier update after an additive one, adds it"
     elif ! grep -Eq "\"$top_key\"[[:space:]]*:[[:space:]]*$top_re([[:space:]]*[,}]|[[:space:]]*\$)" .claude/settings.json; then
-      note ".claude/settings.json sets $top_key to another value than $top_val: it is kept and reported, never changed; the template's settings assume $top_val (the handoff hooks, for autoCompactEnabled and idleCompaction), so set it to $top_val to use them"
+      note ".claude/settings.json sets $top_key to another value than $top_val: it is kept and reported, never changed; $top_why, so set it to $top_val to use $top_them"
     fi
   done
   grep -q 'PreCompact' .claude/settings.json || lacks .claude/settings.json 'the PreCompact hook'

@@ -188,9 +188,10 @@
 #                  rule) before the copy at v0.3.0.
 #                   55. A copy over it wires the template's threshold hook exactly once (the
 #                       copy-time baseline), and adds every top-level value the real
-#                       family-refresh.json lists ("autoCompactEnabled": false and
-#                       "idleCompaction": false; the fixture's third release, which the copy
-#                       takes, offers them all, and its fourth keeps them) once each, with
+#                       family-refresh.json lists ("autoCompactEnabled": false,
+#                       "idleCompaction": false and "outputStyle": "Concise"; the fixture's
+#                       third release, which the copy takes, offers them all, and its fourth
+#                       keeps them) once each, with
 #                       the listed value, keeping the owner's indentation, key order and allow
 #                       rule; the update to v0.4.0 leaves them there exactly once. A fifth
 #                       project whose own settings.json holds autoCompactEnabled
@@ -4083,11 +4084,14 @@ self_test() {
   [[ "$(sm_judge "$tmp/sj.json" 0)" == *"idleCompaction written 0 time(s)"* ]] || sj+=" idle-absent"
   sed 's/^    "model": "opus"$/    "autoCompactEnabled": false,\n    "autoCompactEnabled": false,\n    "idleCompaction": false,\n    "model": "opus"/' "$tmp/sj.json" > "$tmp/sj2.json"
   [[ "$(sm_judge "$tmp/sj2.json" 0)" == *"autoCompactEnabled written 2 time(s)"* ]] || sj+=" twice"
-  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false,\n    "idleCompaction": false/' "$tmp/sj.json" > "$tmp/sj3.json"
+  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false,\n    "idleCompaction": false,\n    "outputStyle": "Concise"/' "$tmp/sj.json" > "$tmp/sj3.json"
   [[ "$(sm_judge "$tmp/sj3.json" 0)" == ok && "$(sm_judge "$tmp/sj3.json" 0 '{"autoCompactEnabled": true}')" == *"not true once"* ]] || sj+=" value"
   [[ "$(sm_judge "$tmp/sj3.json" 0 '{"idleCompaction": true}')" == *"idleCompaction written 1 time(s), false, not true once"* ]] || sj+=" idle-value"
+  # A string value (the output style, D60): absent or another string is named.
+  [[ "$(sm_judge "$tmp/sj.json" 0)" == *'outputStyle written 0 time(s)'* ]] || sj+=" style-absent"
+  [[ "$(sm_judge "$tmp/sj3.json" 0 '{"outputStyle": "Explanatory"}')" == *'outputStyle written 1 time(s), "Concise", not "Explanatory" once'* ]] || sj+=" style-value"
   # A key that must be absent (check 102): left out, it passes; written, it is named.
-  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false/' "$tmp/sj.json" > "$tmp/sj4.json"
+  sed 's/^    "model": "opus"$/    "model": "opus",\n    "autoCompactEnabled": false,\n    "outputStyle": "Concise"/' "$tmp/sj.json" > "$tmp/sj4.json"
   [[ "$(sm_judge "$tmp/sj4.json" 0 '' '["idleCompaction"]')" == ok ]] || sj+=" absent-kept"
   [[ "$(sm_judge "$tmp/sj3.json" 0 '' '["idleCompaction"]')" == "idleCompaction written, not absent" ]] || sj+=" absent-written"
   [[ -z "$sj" ]] || { printf '\033[31m  ✗ sm_judge misjudges the top-level values:%s\033[0m\n' "$sj" >&2; exit 2; }

@@ -308,7 +308,7 @@ build_existing() { # $1 = dir
 - **14/03/2026** — **Chapter two leads with the parable.** The history waits until chapter three.
 EOF
   # The author's own settings.json holds no top-level value the template lists (autoCompactEnabled,
-  # idleCompaction): the copy adds each of the template's (check 30).
+  # idleCompaction, outputStyle): the copy adds each of the template's (check 30).
   printf '{\n  "model": "opus"\n}\n' > "$p/.claude/settings.json"
   printf '# The Lantern Road\n\nA book in progress, by an invented author.\n' > "$p/README.md"
   printf 'build/\n.claude/settings.local.json\n' > "$p/.gitignore"
@@ -728,8 +728,8 @@ have = [h.get("command") for g in sum(a.get("hooks", {}).values(), []) for h in 
 for c in cmds:
     if have.count(c) != 1:
         print("a hook of the template is wired %d times, not once: %s" % (have.count(c), c)); sys.exit(1)
-# Each top-level value the refresh file lists (autoCompactEnabled, idleCompaction) is added where the
-# author had none.
+# Each top-level value the refresh file lists (autoCompactEnabled, idleCompaction, outputStyle) is
+# added where the author had none.
 for k, v in ref.items():
     if k not in ("hooks", "permissions") and isinstance(v, (bool, int, float, str)) and k not in b and k not in a:
         print("settings.%s, which the refresh file lists, was not added to a file that had none" % k); sys.exit(1)

@@ -76,6 +76,11 @@ If the session is too full to write a handoff, Claude says so: type `/compact` y
 Claude Code can also compact a long session you leave idle, and the project turns that off too, with `"idleCompaction": false` in `.claude/settings.json`.
 An update adds that line to an older project's file where it is missing, and keeps a value you set yourself, saying so once.
 
+**Claude's replies are shorter than you expected.**
+The project sets Claude Code's Concise output style, which keeps replies short.
+To choose another style for yourself, type `/output-style`: your choice goes to `.claude/settings.local.json`, which wins.
+`how-to/src/TEMPLATE-GUIDE/syntek-author/09-customising.md` says more.
+
 **A note says the session was compacted by hand.**
 You typed `/compact`, and the project lets you: the session goes on from a summary of itself.
 A handoff gives a cleaner break, so next time type `/handoff`, then `/clear`.

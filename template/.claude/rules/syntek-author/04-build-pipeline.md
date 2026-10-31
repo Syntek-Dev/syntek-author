@@ -144,7 +144,7 @@ standards/style/ledger/ (each section's record) + the brief's sections: list (th
 | `make files-status` | The loss check: binaries Git ignores in a filing folder that no manifest lists (so they exist on this machine only), files over a folder's size warning, and copies under the root that no row lists |
 | `make files-verify` | Hashes every filed copy against its row and fails on a missing, changed or unlisted one; `GLOB=` narrows it, and an online-only copy is skipped unless `HYDRATE=1` |
 | `make files-pull` | Copies filed copies back into the work tree, where Git ignores them, checking each hash; never replaces a different file. `GLOB=` narrows it |
-| `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, its role and every conflict; `COPY=1` files them, and never moves or untracks one |
+| `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, its role and every conflict; `issued` only for a PDF the house build made from its source at an issuing status, and `?` where a role cannot be shown, for the author to choose. `COPY=1` files those with a role, never a `?` row, and never moves or untracks one |
 | `make clean` | Removes `build/`; never touches a source<: if INCLUDE_REFERENCES :> or the database<: endif :> |
 
 <: if DOC_TYPE != 'business' :>**`SCOPE`** is any folder (the default is `manuscript/src`). The build takes every Markdown file

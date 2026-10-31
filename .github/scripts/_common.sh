@@ -820,7 +820,7 @@ SA_COPY_ONLY_GATE="_copier_operation == 'update'"
 SA_MCP_SERVERS="code-review-graph scrapling"
 SA_MCP_FILES=".mcp.json .agents/mcp_config.json .codex/config.toml .gemini/settings.json opencode.json"
 # The pins, one word each. One word holds [ai], a glob: split it with read -ra, or under set -f.
-SA_MCP_PINS="code-review-graph==2.3.9 scrapling[ai]==0.4.15 playwright==1.63.0 patchright==1.63.0"
+SA_MCP_PINS="code-review-graph==2.3.9 scrapling[ai]==0.4.15 playwright==1.64.0 patchright==1.64.3"
 # code-review-graph's --tools value: 29 names, comma-joined, 636 characters, and never
 # embed_graph_tool. The tool validates none of it: an unknown name is ignored, a misspelt one
 # silently drops that tool, and an empty value exposes all 30.
@@ -870,9 +870,9 @@ SA_MCP_SHARED="$(cat <<EOF
         "--from",
         "scrapling[ai]==0.4.15",
         "--with",
-        "playwright==1.63.0",
+        "playwright==1.64.0",
         "--with",
-        "patchright==1.63.0",
+        "patchright==1.64.3",
         "scrapling",
         "mcp"
       ]

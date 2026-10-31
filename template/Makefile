@@ -737,9 +737,11 @@ files-status: | python-check ## the loss check: binaries git ignores that no man
 files-pull: | python-check ## copy filed copies into the work tree, checking each hash (GLOB= narrows it)
 	@$(DR) pull$(if $(GLOB), $(call DR_Q,$(GLOB)))
 
-files-plan: | python-check ## list the binaries still tracked, where each would be filed and every conflict (COPY=1 files them)
+# files-plan proposes issued only for a PDF the house build made from a source at one of
+# ISSUE_STATUSES (final where the project sets none); a row it cannot prove shows role ?.
+files-plan: | python-check ## list the binaries still tracked, where each would be filed, its role (? to choose) and every conflict (COPY=1 files those with a role)
 	@case '$(call SWITCH,COPY)' in bad) echo "error: COPY takes 1, yes or true; leave it out to list the plan only"; exit 2 ;; esac
-	@$(DR) plan$(if $(filter on,$(call SWITCH,COPY)), --copy)
+	@$(DR) plan --issue-statuses=$(call DR_Q,$(or $(strip $(ISSUE_STATUSES)),final))$(if $(filter on,$(call SWITCH,COPY)), --copy)
 
 clean: ## remove build/ (never touches a source, the ledger or the reference database)
 	rm -rf $(BUILD)
