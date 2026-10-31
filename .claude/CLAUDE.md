@@ -1,6 +1,6 @@
 # CLAUDE.md — syntek-author (template development)
 
-**Last Updated**: 30/10/2026 **Version**: 0.9.0 **Maintained By**: Syntek Studio
+**Last Updated**: 31/10/2026 **Version**: 0.9.1 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB) **Timezone**: Europe/London
 
 @../CONTEXT.md
