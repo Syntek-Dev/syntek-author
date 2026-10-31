@@ -134,6 +134,7 @@ A companion template vendors these bytes, so say in the `CHANGELOG.md` entry tha
   Audits never see your data root or your git configuration: `_common.sh` unsets `SYNTEK_DATA_ROOT`, hides the global and system git configuration and sets `UV_PYTHON` to `python3` where it is unset, and a case that needs a root makes a temporary one. `generate-all.sh` renders every variant and profile from a copy of the working tree; `shipped-variants.sh <tree>` checks one rendered tree. A change to `copier.yml`, a gate or a seed is not done until a render proves it.
 - **Never commit rendered output.** Renders go to a temporary directory and stay there.
 - **Commit only when the maintainer asks**, on a branch, with a `CHANGELOG.md` entry.
+- **Handoffs are temporary.** `handoffs/` holds working state only. A decision, a deferral or a known limitation goes into `DESIGN.md`, with its wording approved, before the handoff that recorded it is pruned, and nothing durable cites a handoff.
 
 ## 9. Releasing
 

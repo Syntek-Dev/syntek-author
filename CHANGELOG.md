@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Changed
+
+- Development only, nothing ships: `.claude/CLAUDE.md` Section 8 says handoffs are temporary, at the maintainer's decision (31/10/2026). `handoffs/` holds working state only; a decision, a deferral or a known limitation goes into `DESIGN.md`, with its wording approved, before the handoff that recorded it is pruned, and nothing durable cites a handoff. `family-shared.json` is `unreleased` again after v0.9.0.
+
 ## [0.9.0] - 30/10/2026
 
 ### Added
