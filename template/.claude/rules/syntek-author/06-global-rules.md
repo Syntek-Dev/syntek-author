@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 These hold everywhere, whatever the layer or the skill. A folder's `CLAUDE.md` may add to them;
 it never relaxes them.
@@ -215,15 +215,13 @@ covers only the files Git tracks or would track
 opened only when the author names that file, or when it is output in `build/` that a skill has
 just made in order to read it.
 
-**The data root is off-limits too, whatever the store.** A data root is a folder outside every
-repository that holds a `.syntek-data-root` marker; this machine's is the one `SYNTEK_DATA_ROOT`
-names. Never search, list, edit or write anything under one, by any tool or shell command.
-Reach its files only through the data-root commands, and open one only at the path they print
-for it (`.claude/rules/syntek-author/09-data-root.md` Section 2); those commands are the one
-exception to the paragraph above, listing an ignored binary by its name and size, never its
-contents. The guard hook stops edits and writes there, and searches only where the client offers
-`Grep` and `Glob`: on macOS, Linux and WSL Claude Code searches through the shell, which the hook
-does not read, so there this rule alone keeps a search out of the root.
+**The data root is off-limits too, whatever the store.** Never search, list, edit or write
+anything under a data root (a folder outside every repository holding a `.syntek-data-root`
+marker; this machine's is the one `SYNTEK_DATA_ROOT` names), by any tool or shell command, and
+open a file there only at the path a data-root command prints. Reach its files only through the
+data-root commands (`.claude/rules/syntek-author/09-data-root.md`
+Section 2), the one exception to the paragraph above: they list an ignored binary by its name and
+size, never its contents.
 
 **Why this rule exists.** Ignored folders are where credentials, client copies and local-only
 material are kept, precisely because they must never be committed. A search that reads them

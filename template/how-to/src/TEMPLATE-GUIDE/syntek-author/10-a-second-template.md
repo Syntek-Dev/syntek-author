@@ -102,7 +102,17 @@ An older syntek-author treats every `src/` folder as your work, so its checks wo
 It also puts nothing back in `how-to/`, so a change made there would stand until a newer update.
 A project where both templates run lessons needs syntek-author v0.8.0 or later, updated before the companion's release that keeps its lessons in a folder of its own.
 An older syntek-author would read the companion's lesson folder as one of your topics, and the companion's earlier topics as its own.
-A project that already runs v0.8.0 or a later one needs nothing more.
+A project that carries syntek-media 0.7.0 or later needs syntek-author v0.9.1 or later, updated before the companion.
+That companion carries the shared files of syntek-author v0.9.1, and an older syntek-author leaves them as another template's newer files rather than its own.
+A project that already runs v0.9.1 or a later one needs nothing more.
+
+## What two templates cost a session
+
+Every session starts by reading both templates' rules, and together they come to about 200,000 characters.
+That is past the 150,000 at which Claude Code warns that its instructions are large, so the warning is expected in a project with two templates.
+It means each session starts with more of its context window in use, which leaves less room for the work before a handoff.
+The family keeps the figure from growing: this template's share stays within 105,000 characters, a companion's within 100,000, and neither raises its share without the other agreeing.
+Keep your own additions to the rules and memory short, since they come out of the same room.
 
 ## Where the rules live
 

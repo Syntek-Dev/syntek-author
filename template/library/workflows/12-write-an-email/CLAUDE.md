@@ -22,8 +22,8 @@ every other unsent email to the same correspondent, and waiting at Draft for the
   fixed parts and ticks.
 - **Concrete steps:** follow `STEPS.md` in order and tick `CHECKLIST.md` as you go; each loop
   procedure it names is run with its own `CHECKLIST.md` open.
-- **Definition of done:** the email is in its correspondent's folder under the right family, named
-  from its subject line, with the four-part anatomy, an internal note that records its sources and
+- **Definition of done:** the email is in its own dated folder in its correspondent's leaf under
+  the right family, named from its subject line, with the four-part anatomy, an internal note that records its sources and
   decisions, no unflagged placeholder, nothing that contradicts another unsent email, listed and
   registered, and its `**Status:**` at Draft.
 
@@ -42,7 +42,8 @@ every other unsent email to the same correspondent, and waiting at Draft for the
 ## Output & naming
 
 - **Produces:** the brief; the body draft and its ledger entry; the authored email
-  `<subject-line>-<DD-MM-YYYY>.md`.
+  `<YYYY-MM-DD-HH-MM>-<topic>/<subject-line>-<DD-MM-YYYY>.md`, its folder made without asking and
+  without a pair.
 - **Also writes:** client or matter folders and leaves with their pairs, on the author's
-  confirmation; the folder's `CONTEXT.md` list; the register row.
+  confirmation; the leaf's `CONTEXT.md` list; the register row.
 - **Does not touch:** any archived thread, standard or other correspondent's folder.

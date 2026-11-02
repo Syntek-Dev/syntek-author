@@ -21,7 +21,7 @@ substance. Load both, always. The anatomy, the naming rules and the checklist ar
 |---|---|---|
 | What it is | an email the business writes to send | a mail-client export of what was sent and received |
 | Structure | the four-part anatomy | whatever the mail client printed |
-| Name | the subject line in kebab-case, then the date | its export name, unchanged |
+| Name | the subject line in kebab-case, then the date, in its own folder | its export name, unchanged |
 | Internal note and Status line | required | never |
 | Editable | yes, until sent | never |
 | PDF | optional, derived | the evidential copy: never regenerated |
@@ -32,12 +32,12 @@ including anything that now reads awkwardly.
 ## Filing
 
 `client-emails/<client-slug>/<family>/` for clients, `supplier-emails/<matter-slug>/` for
-suppliers. The family leaf is decided by the engagement that owns the matter, not by a fresh
-reading of the email's subject; where the call is not obvious, the internal note records it. A
-formal notice served under a contract is an instrument and is filed with the instruments.
-An exported thread (a PDF, `.eml` or `.msg`) is evidence, kept under its export name and never
-edited: committed under the `repo` store, or under `external` filed under the data root with
-`make files-add FILE=<export> ROLE=evidence` (`.claude/rules/syntek-author/09-data-root.md`).
+suppliers, one `<YYYY-MM-DD-HH-MM>-<topic>/` folder per email in the leaf, with no folder pair
+(flat emails from before v0.10.0 stay put). The engagement that owns the matter decides the leaf;
+the internal note records a call that is not obvious. A formal notice under a contract is an
+instrument, filed with the instruments. An exported thread (a PDF, `.eml` or `.msg`) is evidence,
+kept under its export name, never edited: committed under the `repo` store, or under `external`
+filed with `make files-add FILE=<export> ROLE=evidence` (`.claude/rules/syntek-author/09-data-root.md`).
 
 ## Subject lines, length and follow-ups
 

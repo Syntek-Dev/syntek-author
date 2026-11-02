@@ -96,7 +96,8 @@
 #                   name (.copier-answers.syntek-media.yml, copier.yml's _external_data.peer),
 #                   it carries the data-root questions of the family-shared block read from its
 #                   own answers and syntek-author's, the resolver under its own name, a map of
-#                   its own (media/src, fixed to the videos kind), the marked rules-web-tools
+#                   its own (syntek-media 0.7.0's, as it ships: production/src/footage, with
+#                   the roles footage and approved-take), the marked rules-web-tools
 #                   block in its own rules file, the MCP lane, and the MCP files and settings.json
 #                   a render of syntek-author holds (the same shared bytes, rendered with the
 #                   same answers). In a business project, both orders, each first copy with a
@@ -135,48 +136,65 @@
 #                    28. Both resolvers are the same bytes (and, where family-shared.json lists
 #                        the resolver, carry its sha256).
 #                    29. Both resolvers print the same root report and the same path for a file
-#                        in each template's filing folder: a .pdf under media/src lands in the
-#                        videos kind the sibling's map fixes, and a .png under library/src in the
-#                        docs kind syntek-author's map fixes, so each reads both maps.
+#                        in each template's filing folder: a .mp4 under production/src/footage
+#                        lands in videos by its extension, and a .png under library/src in the
+#                        docs kind syntek-author's map fixes. On a scratch copy with a root of
+#                        its own, each resolver's add of a .mp4 under production/src/footage
+#                        with the role footage exits 0 and files it under videos: only the
+#                        sibling's map names that folder and that role, and path never refuses
+#                        a file outside every filing folder, so add is what shows each resolver
+#                        read both maps. Then, with the sibling's map as a later release might
+#                        ship it (the shipped map fixes no kind), production/src/footage fixed
+#                        to videos: path of a .wav there gives videos, not audio, from both.
 #                    30. A DATA_PROVIDER difference never refuses (D53): the sibling's copy with
 #                        another provider succeeds, and syntek-author's resolver's path exits 0
 #                        with a 'differ on DATA_PROVIDER' warning.
 #
-#                   The manifest role rules with both maps present (DESIGN.md D50, as syntek-media
-#                   asked in its B0.4 reply): the sibling's map defines three roles of its own,
-#                   all evidence (take and approved-master marked "repo": "skip", brand-export
-#                   committed under repo, as media's reply sets them), and marks media/src/renders,
-#                   inside its media/src, "rows": "none" (working output). Each case runs on a
-#                   scratch copy of a project above, with a data root of its own:
+#                   The manifest role rules with both maps present (DESIGN.md D50; media's D86):
+#                   the sibling's map is syntek-media 0.7.0's, verbatim, one filing folder,
+#                   production/src/footage, and two roles of its own, footage and approved-take,
+#                   both evidence and both "repo": "skip". The capabilities it no longer uses
+#                   keep their cases on the map a later release might ship (peer_map_later,
+#                   hypothetical), written on that case's scratch copy alone: a fixed kind
+#                   (check 29), production/src/footage/proxies, nested inside the filing folder
+#                   and marked "rows": "none" (check 35), and brand-export, a role committed
+#                   under repo (check 34). Each case runs on a scratch copy of a project above, with a
+#                   data root of its own:
 #                    31. The sibling map's own roles are roles to both resolvers: syntek-author's
 #                        files a copy under each (exit 0), each row recording evidence = true,
 #                        and both verify then pass; add --force on each, by either resolver,
 #                        exits 2 ('file a new version under its own name'), the manifest and
 #                        every filed copy under the data root byte for byte unchanged.
 #                    32. A role the two maps define differently (syntek-author's map, as a later
-#                        release might ship it, defines brand-export as not evidence) is treated
+#                        release might ship it, defines approved-take as not evidence) is treated
 #                        as evidence: the filed row records evidence = true and add --force on
 #                        it exits 2; both resolvers' status report the difference once, saying
 #                        evidence wins, and exit 0.
 #                    33. A sibling map the resolvers cannot read refuses only the commands that
-#                        touch its folders. At format 2: path into media/src exits 2 from both,
-#                        while syntek-author's add of a library/src file exits 0 and verify of
-#                        'library/*' exits 0 from both; a whole verify leaves media/src alone
-#                        (every refusal line names it), verifies the library row and exits 2.
+#                        touch its folders. At format 2: path into production/src/footage exits
+#                        2 from both, while syntek-author's add of a library/src file exits 0
+#                        and verify of 'library/*' exits 0 from both; a whole verify leaves the
+#                        footage alone (every refusal line names it), verifies the library row
+#                        and exits 2.
 #                        Unparseable (its folders unknown): the same add, and a whole verify by
 #                        either resolver, exit 0, each with one warning naming the map.
-#                    34. Under repo, a sibling role marked "repo": "skip" (take): add by either
-#                        resolver exits 0 with one 'not filed:' line and writes nothing in the
-#                        project or the data root; a role without it (brand-export) exits 2,
-#                        'commit the file instead'.
-#                    35. The sibling's media/src/renders ("rows": "none") is never listed by
-#                        either resolver's status or verify: an ignored binary in it and a file
-#                        under its place at the data root go unnamed, while the same two in
-#                        media/src (the controls) are named; add refuses to file there (exit 2).
+#                    34. Under repo, a sibling role marked "repo": "skip" (footage): add by
+#                        either resolver exits 0 with one 'not filed:' line and writes nothing in
+#                        the project or the data root; a role without it (brand-export, on the
+#                        later-release map: both shipped roles skip) exits 2, 'commit the file
+#                        instead'.
+#                    35. The sibling's production/src/footage/proxies, nested inside the filing
+#                        folder and marked "rows": "none" on the later-release map (the shipped
+#                        map marks no folder so), is never listed by either resolver's status or
+#                        verify: an ignored binary in it and a file under its place at the data
+#                        root go unnamed, while the same two in production/src/footage (the
+#                        controls) are named; add refuses to file there (exit 2). The nesting
+#                        proves the longest path wins: the inner folder's "rows": "none"
+#                        overrides the filing folder around it, whose files are still judged.
 #                    36. A sibling map that defines a role under a shared role's name (signed) or
-#                        a kind's (videos) cannot be read: path into media/src exits 2 from both
-#                        resolvers, naming the role, while path into syntek-author's library/src
-#                        exits 0.
+#                        a kind's (videos) cannot be read: path into production/src/footage exits
+#                        2 from both resolvers, naming the role, while path into syntek-author's
+#                        library/src exits 0.
 #
 #                   The user guide shared by both (DESIGN.md D56): the sibling ships the shared
 #                   how-to files byte for byte, its own files under how-to/docs/<sibling>/,
@@ -282,8 +300,11 @@
 #                   What it CANNOT check: the real syntek-media. The dummies follow Section 9's
 #                   rules and media 0.4.2's .agents/ layout; family-shared.sh --sibling compares
 #                   a real syntek-media checkout's vendored sources. The sibling's map is a
-#                   stand-in written from media's B0.4 reply (its roles, their evidence and
-#                   "repo": "skip", a renders/ working-output folder), not media's shipped map.
+#                   copy of syntek-media 0.7.0's shipped map (DESIGN.md D50; media's D86),
+#                   typed here, not read from a checkout, so a later media release that changes
+#                   it goes unseen until this copy follows; peer_map_later's fixed kind,
+#                   working-output folder and committed role are hypothetical, kept so the
+#                   resolver's handling of each stays proved beside a sibling.
 #                   It never copies syntek-author at v0.4.0 beside a fresh sibling (check 27 runs
 #                   the other way round, which exercises syntek-author's own copier.yml), and it
 #                   never syncs a data root. Check 39's release before the guide is the working
@@ -550,14 +571,14 @@ Template-owned by %s.
     printf '%s' "$MEDIA04_CODEX" > "$b/template/.codex/config.toml"
   fi
   if [[ "$mode" == peer ]]; then
-    # The resolver under its own name, the same bytes (D50), and a map of its own: one filing
-    # folder, whose fixed kind tells which map a resolver read, a working-output folder inside it,
-    # and the three roles of media's B0.4 reply, all evidence (checks 31–36).
+    # The resolver under its own name, the same bytes (D50), and syntek-media 0.7.0's shipped map
+    # (media's D86): one filing folder, production/src/footage, with its two roles (checks 29,
+    # 31–36). renders/ sits beside it, as in media's production/src/, outside the shipped map.
     [[ -f "$src/template/$SA_DATAROOT_PY" ]] && cp "$src/template/$SA_DATAROOT_PY" "$b/template/.claude/syntek-$short-dataroot.py"
     peer_map > "$b/template/.claude/syntek-$short-dataroot.json"
-    mkdir -p "$b/template/$PEER_RENDERS"
-    printf '# CONTEXT.md — media/src/\n' > "$b/template/media/src/CONTEXT.md"
-    printf '@./CONTEXT.md\n\n# CLAUDE.md — media/src/\n' > "$b/template/media/src/CLAUDE.md"
+    mkdir -p "$b/template/$PEER_FOOTAGE" "$b/template/$PEER_RENDERS"
+    printf '# CONTEXT.md — %s/ (camera footage, filed under the data root)\n' "$PEER_FOOTAGE" > "$b/template/$PEER_FOOTAGE/CONTEXT.md"
+    printf '@./CONTEXT.md\n\n# CLAUDE.md — %s/\n' "$PEER_FOOTAGE" > "$b/template/$PEER_FOOTAGE/CLAUDE.md"
     printf '# CONTEXT.md — %s/ (working output: re-rendered, never filed)\n' "$PEER_RENDERS" > "$b/template/$PEER_RENDERS/CONTEXT.md"
     printf '@./CONTEXT.md\n\n# CLAUDE.md — %s/\n' "$PEER_RENDERS" > "$b/template/$PEER_RENDERS/CLAUDE.md"
     # The rules-web-tools block in its own rules file, under a heading of its own numbering.
@@ -916,27 +937,54 @@ PEER_ORDERS="author-first media-first"
 PEER_AREA="personal"; PEER_SLUG="lantern-road"; PEER_PHOTOS="images"; PEER_OTHER_SLUG="another-project"
 PEER_PIN_OLD="code-review-graph==1.0.0"
 declare -A PEER=()
-# The sibling map's own roles, all evidence, as media's B0.4 reply defines them (DESIGN.md D50):
-# take and approved-master are never filed under repo ("repo": "skip"); brand-export is
-# committed there. Its working output (renders) is a folder that never takes rows.
-PEER_ROLES="take approved-master brand-export"
-PEER_SKIP_ROLE="take"; PEER_COMMIT_ROLE="brand-export"
-PEER_RENDERS="media/src/renders"
+# The sibling map's own roles, both evidence and both "repo": "skip", as syntek-media 0.7.0
+# ships them (DESIGN.md D50; media's D86): footage and approved-take, filed from its one filing
+# folder, production/src/footage. Its renders/ beside that folder is not in the shipped map.
+PEER_ROLES="footage approved-take"
+PEER_SKIP_ROLE="footage"; PEER_DIFFER_ROLE="approved-take"
+PEER_FOOTAGE="production/src/footage"
+PEER_RENDERS="production/src/renders"
+# Only peer_map_later names this folder: working output nested inside the filing folder, hypothetical.
+PEER_PROXIES="$PEER_FOOTAGE/proxies"
+# Only peer_map_later defines this role: committed under repo (no "repo": "skip"), hypothetical.
+PEER_LATER_COMMIT_ROLE="brand-export"
 PEER_MAP_FILE=".claude/syntek-${PEER_NAME#syntek-}-dataroot.json"
 
-# The sibling's map (format 1): media/src fixed to videos, its renders/ marked "rows": "none".
+# The sibling's map (format 1), exactly as syntek-media 0.7.0 ships it: one filing folder with no
+# fixed kind, no working-output folder, and two roles that are never filed under repo.
 peer_map() {
   cat <<EOF
 {
   "format": 1,
   "folders": [
-    {"path": "media/src", "kind": "videos"},
-    {"path": "$PEER_RENDERS", "rows": "none"}
+    {"path": "$PEER_FOOTAGE"}
   ],
   "roles": [
-    {"name": "take", "evidence": true, "repo": "skip"},
-    {"name": "approved-master", "evidence": true, "repo": "skip"},
-    {"name": "brand-export", "evidence": true}
+    {"name": "footage", "evidence": true, "repo": "skip"},
+    {"name": "approved-take", "evidence": true, "repo": "skip"}
+  ]
+}
+EOF
+}
+
+# The sibling's map as a later release might ship it: hypothetical, never media's shipped map.
+# It keeps the resolver capabilities the shipped map does not use in reach of the cases that
+# need them, each written on that case's scratch copy only: a fixed kind on the filing folder
+# (check 29), a proxies/ folder nested inside it and marked "rows": "none", so the longest path
+# must win (check 35), and a role committed under repo (check 34). The shipped map's two roles
+# stay as they are; renders/ stays in the dummy's tree, outside every map, as in media's.
+peer_map_later() {
+  cat <<EOF
+{
+  "format": 1,
+  "folders": [
+    {"path": "$PEER_FOOTAGE", "kind": "videos"},
+    {"path": "$PEER_PROXIES", "rows": "none"}
+  ],
+  "roles": [
+    {"name": "footage", "evidence": true, "repo": "skip"},
+    {"name": "approved-take", "evidence": true, "repo": "skip"},
+    {"name": "$PEER_LATER_COMMIT_ROLE", "evidence": true}
   ]
 }
 EOF
@@ -1073,21 +1121,45 @@ peer_refused() { # $1 = author|media (who copies second), $2 = its template, $3 
   return 0
 }
 
-# After both copies: both records' layouts, and both resolvers' root report and paths.
+# After both copies: both records' layouts, and both resolvers' root report and paths; then, on
+# a scratch copy with a root of its own, each resolver's add under the sibling's filing folder
+# and role, and its path under the later-release map's fixed kind (check 29).
 peer_probe() { # $1 = order
-  local o="$1" p="$PEER_W/$1" t rc
+  local o="$1" p="$PEER_W/$1" t rc s r
   PEER[$o.layout_author]="$(layout_of "$p/$SA_ANSWERS_FILE")"
   PEER[$o.layout_media]="$(layout_of "$p/$SA_PEER_ANSWERS_FILE")"
   $PY_DR || return 0
   for t in author media; do
     rc=0; dr_run "$p" "$t" "$PEER_W/$o-$t-root" root || rc=$?
     PEER[$o.root_$t]="$rc $(cat "$PEER_W/$o-$t-root.out")"
-    rc=0; dr_run "$p" "$t" "$PEER_W/$o-$t-pm" path media/src/cue-sheet.pdf || rc=$?
+    rc=0; dr_run "$p" "$t" "$PEER_W/$o-$t-pm" path "$PEER_FOOTAGE/cue-29.mp4" || rc=$?
     PEER[$o.pm_$t]="$rc $(cat "$PEER_W/$o-$t-pm.out")"
     rc=0; dr_run "$p" "$t" "$PEER_W/$o-$t-pl" path library/src/logo.png || rc=$?
     PEER[$o.pl_$t]="$rc $(cat "$PEER_W/$o-$t-pl.out")"
   done
   PEER[$o.provider_warn]="$(grep -c 'differ on DATA_PROVIDER' "$PEER_W/$o-author-pm.err" || true)"
+  # path never refuses a file outside every filing folder, so add proves the sibling's map was
+  # read: only that map names production/src/footage and the role footage. A resolver that
+  # ignores it refuses ('not a role here', or 'in no filing folder') and files nothing.
+  s="$PEER_W/$o-29"; r="$PEER_W/$o-29-root"
+  rm -rf "$s" "$r"; cp -a "$p" "$s"; mkdir -p "$r"; : > "$r/$SA_DATAROOT_MARKER"; r="$(cd "$r" && pwd -P)"
+  for t in author media; do
+    printf 'a take filed by the %s resolver\n' "$t" > "$s/$PEER_FOOTAGE/take-29-$t.mp4"
+    rc=0
+    (cd "$s" && SYNTEK_DATA_ROOT="$r" python3 ".claude/syntek-$t-dataroot.py" add "$PEER_FOOTAGE/take-29-$t.mp4" --role "$PEER_SKIP_ROLE") \
+      >"$PEER_W/$o-$t-fa.out" 2>"$PEER_W/$o-$t-fa.err" || rc=$?
+    PEER[$o.fa_$t]="$rc no"
+    [[ -f "$r/$PEER_AREA/videos/$PEER_SLUG/$PEER_FOOTAGE/take-29-$t.mp4" ]] && PEER[$o.fa_$t]="$rc yes"
+  done
+  # The fixed kind the shipped map no longer uses, on the map a later release might ship: a .wav
+  # (audio by its extension) under production/src/footage lands in videos only from that map.
+  peer_map_later > "$s/$PEER_MAP_FILE"
+  for t in author media; do
+    rc=0
+    (cd "$s" && SYNTEK_DATA_ROOT="$r" python3 ".claude/syntek-$t-dataroot.py" path "$PEER_FOOTAGE/sound-29.wav") \
+      >"$PEER_W/$o-$t-fk.out" 2>"$PEER_W/$o-$t-fk.err" || rc=$?
+    PEER[$o.fk_$t]="$rc $(cat "$PEER_W/$o-$t-fk.out") $r"
+  done
   return 0
 }
 
@@ -1181,7 +1253,7 @@ run_peer_flow() { # $1 = syntek-author snapshot, $2 = work dir
 }
 
 peer_checks() {
-  local o L p f got want line rec msha rsha
+  local o L p f got want line rec msha rsha t rc r bad
   local -a pins
   read -r -a pins <<< "$SA_MCP_PINS"
   if [[ -n "$PEER_MANIFEST" ]]; then IFS=$'\t' read -r msha _ _ < <(manifest_block "$PEER_MANIFEST" rules-web-tools) || msha=""; else msha=""; fi
@@ -1230,9 +1302,18 @@ peer_checks() {
     if $PY_DR; then
       [[ "${PEER[$o.root_author]}" == "0 "* && "${PEER[$o.root_author]}" == "${PEER[$o.root_media]}" ]] \
         || finding "check 29 — $L the two resolvers' root reports differ, or one did not exit 0"
-      want="0 $PEER_ROOT/$PEER_AREA/videos/$PEER_SLUG/media/src/cue-sheet.pdf"
+      want="0 $PEER_ROOT/$PEER_AREA/videos/$PEER_SLUG/$PEER_FOOTAGE/cue-29.mp4"
       [[ "${PEER[$o.pm_author]}" == "$want" && "${PEER[$o.pm_media]}" == "$want" ]] \
-        || finding "check 29 — $L path media/src/cue-sheet.pdf gives '${PEER[$o.pm_author]}' (syntek-author) and '${PEER[$o.pm_media]}' ($PEER_NAME), not '$want' from both: each must read the sibling's map, whose media/src is fixed to videos"
+        || finding "check 29 — $L path $PEER_FOOTAGE/cue-29.mp4 gives '${PEER[$o.pm_author]}' (syntek-author) and '${PEER[$o.pm_media]}' ($PEER_NAME), not '$want' from both: a .mp4 lands in videos by its extension"
+      [[ "${PEER[$o.fa_author]:-unrun}" == "0 yes" && "${PEER[$o.fa_media]:-unrun}" == "0 yes" ]] \
+        || finding "check 29 — $L add $PEER_FOOTAGE/take-29-<resolver>.mp4 --role $PEER_SKIP_ROLE gave 'exit filed' of '${PEER[$o.fa_author]:-unrun}' (syntek-author's resolver) and '${PEER[$o.fa_media]:-unrun}' ($PEER_NAME's), not '0 yes' from both: each must read the sibling's map, which alone names $PEER_FOOTAGE and the role $PEER_SKIP_ROLE"
+      bad=""
+      for t in author media; do
+        read -r rc got r <<< "${PEER[$o.fk_$t]:-unrun none none}"
+        [[ "$rc $got" == "0 $r/$PEER_AREA/videos/$PEER_SLUG/$PEER_FOOTAGE/sound-29.wav" ]] || bad+=" $t's '$rc $got',"
+      done
+      [[ -z "$bad" ]] \
+        || finding "check 29 — $L with the sibling's map as a later release might ship it ($PEER_FOOTAGE fixed to videos), path $PEER_FOOTAGE/sound-29.wav gave${bad%,}, not exit 0 and a path under videos: each must read the fixed kind of the sibling's map"
       want="0 $PEER_ROOT/$PEER_AREA/docs/$PEER_SLUG/library/src/logo.png"
       [[ "${PEER[$o.pl_author]}" == "$want" && "${PEER[$o.pl_media]}" == "$want" ]] \
         || finding "check 29 — $L path library/src/logo.png gives '${PEER[$o.pl_author]}' (syntek-author) and '${PEER[$o.pl_media]}' ($PEER_NAME), not '$want' from both: each must read syntek-author's map, whose library/src is fixed to docs"
@@ -1366,34 +1447,34 @@ run_roles_flow() {
     # 31: the sibling map's own roles, filed and verified by both; add --force refused on each.
     roles_project "$base" own
     for r in $PEER_ROLES; do
-      printf '%s: the approved version\n' "$r" > "$RP/media/src/$r-01.wav"
-      rc=0; rr_run author "own-add-$r" add "media/src/$r-01.wav" --role "$r" || rc=$?; PEER[own.add_$r]=$rc
+      printf '%s: the approved version\n' "$r" > "$RP/$PEER_FOOTAGE/$r-01.mov"
+      rc=0; rr_run author "own-add-$r" add "$PEER_FOOTAGE/$r-01.mov" --role "$r" || rc=$?; PEER[own.add_$r]=$rc
     done
-    PEER[own.rows]="$(rows_evidence "$RP/media/src/external.toml")"
+    PEER[own.rows]="$(rows_evidence "$RP/$PEER_FOOTAGE/external.toml")"
     for who in author media; do rc=0; rr_run "$who" "own-verify-$who" verify || rc=$?; PEER[own.verify_$who]=$rc; done
-    before="$(file_sum "$RP/media/src/external.toml") $(tree_sum "$RR")"
+    before="$(file_sum "$RP/$PEER_FOOTAGE/external.toml") $(tree_sum "$RR")"
     for r in $PEER_ROLES; do
-      printf '%s: a later version\n' "$r" > "$RP/media/src/$r-01.wav"
+      printf '%s: a later version\n' "$r" > "$RP/$PEER_FOOTAGE/$r-01.mov"
       for who in author media; do
-        rc=0; rr_run "$who" "own-force-$who-$r" add "media/src/$r-01.wav" --role "$r" --force || rc=$?
+        rc=0; rr_run "$who" "own-force-$who-$r" add "$PEER_FOOTAGE/$r-01.mov" --role "$r" --force || rc=$?
         PEER[own.force_${who}_$r]="$rc $(rr_count "own-force-$who-$r" '^refused: .*file a new version under its own name')"
       done
     done
     PEER[own.kept]=false
-    if [[ "$(file_sum "$RP/media/src/external.toml") $(tree_sum "$RR")" == "$before" ]]; then PEER[own.kept]=true; fi
+    if [[ "$(file_sum "$RP/$PEER_FOOTAGE/external.toml") $(tree_sum "$RR")" == "$before" ]]; then PEER[own.kept]=true; fi
 
-    # 32: syntek-author's map, as a later release might ship it, defines brand-export as not
-    # evidence beside the sibling's evidence: evidence wins, and status says so once.
+    # 32: syntek-author's map, as a later release might ship it, defines approved-take as not
+    # evidence beside the sibling's shipped evidence: evidence wins, and status says so once.
     roles_project "$base" differ
-    map_set "$RP/$SA_DATAROOT_MAP" "$PEER_COMMIT_ROLE:false"
-    printf 'a brand export\n' > "$RP/media/src/brand-02.png"
-    rc=0; rr_run author differ-add add media/src/brand-02.png --role "$PEER_COMMIT_ROLE" || rc=$?
-    PEER[differ.add]="$rc $(rows_evidence "$RP/media/src/external.toml")"
-    printf 'a brand export, revised\n' > "$RP/media/src/brand-02.png"
-    rc=0; rr_run author differ-force add media/src/brand-02.png --role "$PEER_COMMIT_ROLE" --force || rc=$?; PEER[differ.force]=$rc
+    map_set "$RP/$SA_DATAROOT_MAP" "$PEER_DIFFER_ROLE:false"
+    printf 'an approved take\n' > "$RP/$PEER_FOOTAGE/approved-32.mov"
+    rc=0; rr_run author differ-add add "$PEER_FOOTAGE/approved-32.mov" --role "$PEER_DIFFER_ROLE" || rc=$?
+    PEER[differ.add]="$rc $(rows_evidence "$RP/$PEER_FOOTAGE/external.toml")"
+    printf 'an approved take, regraded\n' > "$RP/$PEER_FOOTAGE/approved-32.mov"
+    rc=0; rr_run author differ-force add "$PEER_FOOTAGE/approved-32.mov" --role "$PEER_DIFFER_ROLE" --force || rc=$?; PEER[differ.force]=$rc
     for who in author media; do
       rc=0; rr_run "$who" "differ-status-$who" status || rc=$?
-      PEER[differ.status_$who]="$rc $(rr_count "differ-status-$who" "^warning: the maps define the role '$PEER_COMMIT_ROLE' differently .*evidence wins")"
+      PEER[differ.status_$who]="$rc $(rr_count "differ-status-$who" "^warning: the maps define the role '$PEER_DIFFER_ROLE' differently .*evidence wins")"
     done
 
     # 33: a sibling map the resolvers cannot read: at format 2 it refuses only what touches its
@@ -1401,14 +1482,14 @@ run_roles_flow() {
     roles_project "$base" newer
     map_set "$RP/$PEER_MAP_FILE" format2
     for who in author media; do
-      rc=0; rr_run "$who" "newer-path-$who" path media/src/cue-sheet.pdf || rc=$?
-      PEER[newer.path_$who]="$rc $(rr_count "newer-path-$who" "^refused: media/src is named by .*${PEER_MAP_FILE##*/}, which cannot be read")"
+      rc=0; rr_run "$who" "newer-path-$who" path "$PEER_FOOTAGE/cue-33.mp4" || rc=$?
+      PEER[newer.path_$who]="$rc $(rr_count "newer-path-$who" "^refused: $PEER_FOOTAGE is named by .*${PEER_MAP_FILE##*/}, which cannot be read")"
     done
     printf 'a scan\n' > "$RP/library/src/scan-33.pdf"
     rc=0; rr_run author newer-add add library/src/scan-33.pdf --role archive || rc=$?; PEER[newer.add]=$rc
     for who in author media; do rc=0; rr_run "$who" "newer-lib-$who" verify 'library/*' || rc=$?; PEER[newer.lib_$who]=$rc; done
     rc=0; rr_run author newer-verify verify || rc=$?
-    PEER[newer.verify]="$rc $(rr_count newer-verify '^refused: verify leaves media/src') $(rr_count newer-verify '^refused:') $(rr_count newer-verify '^verified 1,')"
+    PEER[newer.verify]="$rc $(rr_count newer-verify "^refused: verify leaves $PEER_FOOTAGE") $(rr_count newer-verify '^refused:') $(rr_count newer-verify '^verified 1,')"
     roles_project "$base" broken
     map_set "$RP/$PEER_MAP_FILE" unparseable
     printf 'a scan\n' > "$RP/library/src/scan-33.pdf"
@@ -1420,22 +1501,26 @@ run_roles_flow() {
     done
 
     # 35: the sibling's working output, in the work tree (ignored) and at its place under the
-    # root, beside the controls in media/src that status and verify must name.
+    # root, beside the controls in production/src/footage that status and verify must name. The
+    # shipped map marks no folder "rows": "none", so this case writes the map a later release
+    # might ship, whose proxies/ is marked so and nested inside footage/: the longest path wins.
     roles_project "$base" work
-    printf '*.mp4\n' > "$RP/media/src/.gitignore"
-    printf 'a working render\n' > "$RP/$PEER_RENDERS/master-draft.mp4"
-    printf 'a clip no row lists\n' > "$RP/media/src/clip-35.mp4"
+    peer_map_later > "$RP/$PEER_MAP_FILE"
+    printf '*.mp4\n' > "$RP/production/src/.gitignore"
+    mkdir -p "$RP/$PEER_PROXIES"
+    printf 'a working proxy\n' > "$RP/$PEER_PROXIES/master-draft.mp4"
+    printf 'a clip no row lists\n' > "$RP/$PEER_FOOTAGE/clip-35.mp4"
     m="$RR/$PEER_AREA/videos/$PEER_SLUG"
-    mkdir -p "$m/$PEER_RENDERS"
-    printf 'an earlier render\n' > "$m/$PEER_RENDERS/master-old.mp4"
-    printf 'a stray take\n' > "$m/media/src/stray-35.mp4"
+    mkdir -p "$m/$PEER_PROXIES" "$m/$PEER_FOOTAGE"
+    printf 'an earlier proxy\n' > "$m/$PEER_PROXIES/master-old.mp4"
+    printf 'a stray take\n' > "$m/$PEER_FOOTAGE/stray-35.mp4"
     for who in author media; do
       for verb in status verify; do
         rc=0; rr_run "$who" "work-$verb-$who" "$verb" || rc=$?
-        PEER[work.${verb}_$who]="$rc $(rr_count "work-$verb-$who" "$PEER_RENDERS/") $(rr_count "work-$verb-$who" 'media/src/clip-35[.]mp4') $(rr_count "work-$verb-$who" 'media/src/stray-35[.]mp4')"
+        PEER[work.${verb}_$who]="$rc $(rr_count "work-$verb-$who" "$PEER_PROXIES/") $(rr_count "work-$verb-$who" "$PEER_FOOTAGE/clip-35[.]mp4") $(rr_count "work-$verb-$who" "$PEER_FOOTAGE/stray-35[.]mp4")"
       done
     done
-    rc=0; rr_run author work-add add "$PEER_RENDERS/master-draft.mp4" --role "$PEER_SKIP_ROLE" || rc=$?
+    rc=0; rr_run author work-add add "$PEER_PROXIES/master-draft.mp4" --role "$PEER_SKIP_ROLE" || rc=$?
     PEER[work.add]="$rc $(rr_count work-add '^refused: .*marks as working output')"
 
     # 36: a sibling map role under a shared role's or a kind's name makes the map unreadable.
@@ -1444,7 +1529,7 @@ run_roles_flow() {
       roles_project "$base" "name-$n"
       map_set "$RP/$PEER_MAP_FILE" "$n:true"
       for who in author media; do
-        rc=0; rr_run "$who" "name-$n-media-$who" path media/src/cue-sheet.pdf || rc=$?
+        rc=0; rr_run "$who" "name-$n-media-$who" path "$PEER_FOOTAGE/cue-36.mp4" || rc=$?
         PEER[name.${n}_$who]="$rc $(rr_count "name-$n-media-$who" "^refused: .*'$n' is a ${what#*:}")"
         rc=0; rr_run "$who" "name-$n-library-$who" path library/src/logo.png || rc=$?; PEER[name.${n}_library_$who]=$rc
       done
@@ -1452,18 +1537,21 @@ run_roles_flow() {
   fi
   if [[ "${PEER[roles.repo]}" == true ]]; then
     # 34: under repo, a "repo": "skip" role is never filed and writes nothing; another is refused.
+    # The shipped map's roles are both "repo": "skip", so this case writes the map a later release
+    # might ship, which adds a role committed under repo (brand-export, hypothetical).
     roles_project "$PEER_W/author-first" skip
-    printf 'a take\n' > "$RP/media/src/take-34.wav"
+    peer_map_later > "$RP/$PEER_MAP_FILE"
+    printf 'a take\n' > "$RP/$PEER_FOOTAGE/take-34.mov"
     before="$(tree_sum "$RP" "$RR")"
     for who in author media; do
-      rc=0; rr_run "$who" "skip-add-$who" add media/src/take-34.wav --role "$PEER_SKIP_ROLE" || rc=$?
+      rc=0; rr_run "$who" "skip-add-$who" add "$PEER_FOOTAGE/take-34.mov" --role "$PEER_SKIP_ROLE" || rc=$?
       PEER[skip.add_$who]="$rc $(rr_count "skip-add-$who" '^not filed: ')"
     done
     PEER[skip.wrote]=nothing
     if [[ "$(tree_sum "$RP" "$RR")" != "$before" || -n "$(find "$RP" -name .git -prune -o -name external.toml -print)" ]]; then
       PEER[skip.wrote]=something
     fi
-    rc=0; rr_run author skip-commit add media/src/take-34.wav --role "$PEER_COMMIT_ROLE" || rc=$?
+    rc=0; rr_run author skip-commit add "$PEER_FOOTAGE/take-34.mov" --role "$PEER_LATER_COMMIT_ROLE" || rc=$?
     PEER[skip.commit]="$rc $(rr_count skip-commit '^refused: .*commit the file instead')"
   fi
   return 0
@@ -1476,7 +1564,7 @@ roles_checks() {
     # 31: the sibling map's own roles.
     bad=""; for r in $PEER_ROLES; do [[ "${PEER[own.add_$r]:-unrun}" == 0 ]] || bad+=" $r exit ${PEER[own.add_$r]:-unrun},"; done
     [[ -z "$bad" ]] || finding "check 31 — syntek-author's resolver did not file a copy under the sibling map's role(s)${bad%,}: a role a present map defines is a role to every resolver"
-    want=""; for r in $PEER_ROLES; do want+="media/src/$r-01.wav $r true;"; done
+    want=""; for r in $PEER_ROLES; do want+="$PEER_FOOTAGE/$r-01.mov $r true;"; done
     [[ "${PEER[own.rows]:-unrun}" == "$want" ]] \
       || finding "check 31 — the rows filed under the sibling map's roles read '${PEER[own.rows]:-unrun}', not '$want': a role the map makes evidence is recorded evidence = true at filing"
     [[ "${PEER[own.verify_author]:-unrun}" == 0 && "${PEER[own.verify_media]:-unrun}" == 0 ]] \
@@ -1489,21 +1577,21 @@ roles_checks() {
     [[ "${PEER[own.kept]:-unrun}" == true ]] \
       || finding "check 31 — add --force on the evidence rows changed the manifest or a filed copy under the data root: an evidence row's file and hash are never replaced"
     # 32: a role the two maps define differently.
-    want="0 media/src/brand-02.png $PEER_COMMIT_ROLE true;"
+    want="0 $PEER_FOOTAGE/approved-32.mov $PEER_DIFFER_ROLE true;"
     [[ "${PEER[differ.add]:-unrun}" == "$want" ]] \
-      || finding "check 32 — with '$PEER_COMMIT_ROLE' evidence in the sibling's map and not in syntek-author's, add gave '${PEER[differ.add]:-unrun}' (exit, rows), not '$want': where two maps define a role differently, evidence wins"
+      || finding "check 32 — with '$PEER_DIFFER_ROLE' evidence in the sibling's map and not in syntek-author's, add gave '${PEER[differ.add]:-unrun}' (exit, rows), not '$want': where two maps define a role differently, evidence wins"
     [[ "${PEER[differ.force]:-unrun}" == 2 ]] \
       || finding "check 32 — add --force on the row of the role the maps define differently exited ${PEER[differ.force]:-unrun}, not 2: a role either map makes evidence is protected"
     [[ "${PEER[differ.status_author]:-unrun}" == "0 1" && "${PEER[differ.status_media]:-unrun}" == "0 1" ]] \
       || finding "check 32 — status gave 'exit warnings' of '${PEER[differ.status_author]:-unrun}' (syntek-author's resolver) and '${PEER[differ.status_media]:-unrun}' ($PEER_NAME's), not '0 1' each: a role the maps define differently is reported once, evidence winning, and never refuses"
     # 33: a sibling map the resolvers cannot read.
     [[ "${PEER[newer.path_author]:-unrun}" == "2 1" && "${PEER[newer.path_media]:-unrun}" == "2 1" ]] \
-      || finding "check 33 — with the sibling's map at format 2, path media/src/cue-sheet.pdf gave 'exit refusals' of '${PEER[newer.path_author]:-unrun}' (syntek-author's resolver) and '${PEER[newer.path_media]:-unrun}' ($PEER_NAME's), not '2 1' from both: a map that cannot be read refuses the commands that touch its folders"
+      || finding "check 33 — with the sibling's map at format 2, path $PEER_FOOTAGE/cue-33.mp4 gave 'exit refusals' of '${PEER[newer.path_author]:-unrun}' (syntek-author's resolver) and '${PEER[newer.path_media]:-unrun}' ($PEER_NAME's), not '2 1' from both: a map that cannot be read refuses the commands that touch its folders"
     [[ "${PEER[newer.add]:-unrun}" == 0 && "${PEER[newer.lib_author]:-unrun}" == 0 && "${PEER[newer.lib_media]:-unrun}" == 0 ]] \
       || finding "check 33 — with the sibling's map at format 2, syntek-author's add of library/src/scan-33.pdf exited ${PEER[newer.add]:-unrun}, and verify 'library/*' exited ${PEER[newer.lib_author]:-unrun} and ${PEER[newer.lib_media]:-unrun}, not 0: a sibling's newer map refuses only the commands that touch its folders"
     read -r rc a b v <<< "${PEER[newer.verify]:-unrun 0 0 0}"
     [[ "$rc" == 2 && "$a" =~ ^[1-9][0-9]*$ && "$a" == "$b" && "$v" == 1 ]] \
-      || finding "check 33 — with the sibling's map at format 2, a whole verify exited $rc with $a of $b refusal line(s) leaving media/src alone and $v 'verified 1' line(s): it must leave media/src alone in every refusal, verify the library row and exit 2"
+      || finding "check 33 — with the sibling's map at format 2, a whole verify exited $rc with $a of $b refusal line(s) leaving $PEER_FOOTAGE alone and $v 'verified 1' line(s): it must leave $PEER_FOOTAGE alone in every refusal, verify the library row and exit 2"
     [[ "${PEER[broken.add]:-unrun}" == "0 1" && "${PEER[broken.verify_author]:-unrun}" == "0 1" && "${PEER[broken.verify_media]:-unrun}" == "0 1" ]] \
       || finding "check 33 — with the sibling's map unparseable, syntek-author's add gave '${PEER[broken.add]:-unrun}' and verify '${PEER[broken.verify_author]:-unrun}' (syntek-author's resolver) and '${PEER[broken.verify_media]:-unrun}' ($PEER_NAME's) ('exit warnings'), not '0 1' each: a map whose folders are unknown refuses nothing, and is named once"
     # 35: the working-output folder is never listed; the controls are.
@@ -1512,7 +1600,7 @@ roles_checks() {
       read -r _ a _ _ <<< "${PEER[work.${verb}_$who]:-unrun unrun 0 0}"
       [[ "$a" == 0 ]] || bad+=" $who's $verb ($a line(s)),"
     done; done
-    [[ -z "$bad" ]] || finding "check 35 — a file under the sibling's $PEER_RENDERS, marked \"rows\": \"none\", was listed by${bad%,}: working output is never listed"
+    [[ -z "$bad" ]] || finding "check 35 — a file under the sibling's $PEER_PROXIES, nested in $PEER_FOOTAGE and marked \"rows\": \"none\" in the later-release map, was listed by${bad%,}: working output is never listed"
     bad=""
     for who in author media; do
       read -r _ _ a b <<< "${PEER[work.status_$who]:-unrun 0 0 0}"
@@ -1520,15 +1608,15 @@ roles_checks() {
       read -r _ _ _ b <<< "${PEER[work.verify_$who]:-unrun 0 0 0}"
       [[ "$b" != 0 ]] || bad+=" $who's verify (the stray file $b),"
     done
-    [[ -z "$bad" ]] || finding "check 35 — the controls in media/src (an ignored binary and a file under the data root that no row lists) went unnamed by${bad%,}: beside the working-output folder, the filing folder is still judged"
+    [[ -z "$bad" ]] || finding "check 35 — the controls in $PEER_FOOTAGE (an ignored binary and a file under the data root that no row lists) went unnamed by${bad%,}: around the working-output folder nested in it, the filing folder is still judged"
     [[ "${PEER[work.add]:-unrun}" == "2 1" ]] \
-      || finding "check 35 — add of a file under $PEER_RENDERS gave '${PEER[work.add]:-unrun}' (exit, refusal lines), not exit 2 naming it working output: a folder marked \"rows\": \"none\" never takes rows"
+      || finding "check 35 — add of a file under $PEER_PROXIES gave '${PEER[work.add]:-unrun}' (exit, refusal lines), not exit 2 naming it working output: a folder marked \"rows\": \"none\" never takes rows"
     # 36: a sibling map role under a shared role's or a kind's name.
     bad=""
     for what in $PEER_BAD_NAMES; do n="${what%%:*}"; for who in author media; do
       [[ "${PEER[name.${n}_$who]:-unrun}" == "2 1" ]] || bad+=" '$n' by $who '${PEER[name.${n}_$who]:-unrun}',"
     done; done
-    [[ -z "$bad" ]] || finding "check 36 — a sibling map role named after a shared role or a kind did not make path media/src/cue-sheet.pdf refuse, naming the role (exit, refusal lines):${bad%,}"
+    [[ -z "$bad" ]] || finding "check 36 — a sibling map role named after a shared role or a kind did not make path $PEER_FOOTAGE/cue-36.mp4 refuse, naming the role (exit, refusal lines):${bad%,}"
     bad=""
     for what in $PEER_BAD_NAMES; do n="${what%%:*}"; for who in author media; do
       [[ "${PEER[name.${n}_library_$who]:-unrun}" == 0 ]] || bad+=" '$n' by $who exit ${PEER[name.${n}_library_$who]:-unrun},"
@@ -1542,7 +1630,7 @@ roles_checks() {
     [[ "${PEER[skip.wrote]:-unrun}" == nothing ]] \
       || finding "check 34 — under repo, add with the sibling's \"repo\": \"skip\" role wrote into the project or the data root: it writes nothing"
     [[ "${PEER[skip.commit]:-unrun}" == "2 1" ]] \
-      || finding "check 34 — under repo, add --role $PEER_COMMIT_ROLE (no \"repo\": \"skip\") gave '${PEER[skip.commit]:-unrun}' (exit, refusal lines), not exit 2 with 'commit the file instead'"
+      || finding "check 34 — under repo, add --role $PEER_LATER_COMMIT_ROLE (the later-release map's role, no \"repo\": \"skip\") gave '${PEER[skip.commit]:-unrun}' (exit, refusal lines), not exit 2 with 'commit the file instead'"
   fi
   return 0
 }
@@ -2412,20 +2500,24 @@ PY
       # 25, 29 and 30: what the resolvers printed.
       held_v="${PEER[store.refuse_media]}"; PEER[store.refuse_media]=0
       probe "check 25 fires when a resolver acts while the stores disagree" "check 25"; PEER[store.refuse_media]="$held_v"
-      held_v="${PEER[author-first.pm_media]}"; PEER[author-first.pm_media]="0 $PEER_ROOT/$PEER_AREA/docs/$PEER_SLUG/media/src/cue-sheet.pdf"
-      probe "check 29 fires when a resolver does not read the other template's map" "check 29 — [author-first] path media/src/cue-sheet.pdf"; PEER[author-first.pm_media]="$held_v"
+      held_v="${PEER[author-first.pm_media]}"; PEER[author-first.pm_media]="0 $PEER_ROOT/$PEER_AREA/docs/$PEER_SLUG/$PEER_FOOTAGE/cue-29.mp4"
+      probe "check 29 fires when a resolver gives another path into the sibling's folder" "check 29 — [author-first] path $PEER_FOOTAGE/cue-29.mp4"; PEER[author-first.pm_media]="$held_v"
+      held_v="${PEER[author-first.fa_author]}"; PEER[author-first.fa_author]="2 no"
+      probe "check 29 fires when a resolver does not read the other template's map" "check 29 — [author-first] add $PEER_FOOTAGE/take-29-<resolver>.mp4"; PEER[author-first.fa_author]="$held_v"
+      held_v="${PEER[media-first.fk_media]}"; PEER[media-first.fk_media]="${held_v/\/videos\//\/audio\/}"
+      probe "check 29 fires when a resolver ignores the fixed kind of the sibling's map" "check 29 — [media-first] with the sibling's map as a later release"; PEER[media-first.fk_media]="$held_v"
       held_v="${PEER[media-first.root_media]}"; PEER[media-first.root_media]="$held_v x"
       probe "check 29 fires when the two root reports differ" "check 29 — [media-first] the two resolvers' root reports differ"; PEER[media-first.root_media]="$held_v"
       held_v="${PEER[author-first.provider_warn]}"; PEER[author-first.provider_warn]=0
       probe "check 30 fires when a provider difference is not warned" "check 30"; PEER[author-first.provider_warn]="$held_v"
       # 31–36: the manifest role rules with both maps present.
-      held_v="${PEER[own.force_author_take]}"; PEER[own.force_author_take]="0 0"
+      held_v="${PEER[own.force_author_footage]}"; PEER[own.force_author_footage]="0 0"
       probe "check 31 fires when add --force supersedes an evidence row of a sibling map role" "check 31 — add --force on an evidence row of the sibling map's roles was not refused"
-      PEER[own.force_author_take]="$held_v"
-      held_v="${PEER[own.rows]}"; PEER[own.rows]="${held_v/ take true;/ take false;}"
+      PEER[own.force_author_footage]="$held_v"
+      held_v="${PEER[own.rows]}"; PEER[own.rows]="${held_v/ footage true;/ footage false;}"
       probe "check 31 fires when a sibling map role's row records evidence false" "check 31 — the rows filed under the sibling map's roles"; PEER[own.rows]="$held_v"
       held_v="${PEER[differ.add]}"; PEER[differ.add]="${held_v% true;} false;"
-      probe "check 32 fires when a role the maps define differently is not filed as evidence" "check 32 — with '$PEER_COMMIT_ROLE' evidence"; PEER[differ.add]="$held_v"
+      probe "check 32 fires when a role the maps define differently is not filed as evidence" "check 32 — with '$PEER_DIFFER_ROLE' evidence"; PEER[differ.add]="$held_v"
       held_v="${PEER[differ.status_media]}"; PEER[differ.status_media]="0 0"
       probe "check 32 fires when status does not report a role the maps define differently" "check 32 — status gave"; PEER[differ.status_media]="$held_v"
       held_v="${PEER[newer.add]}"; PEER[newer.add]=2
@@ -2435,7 +2527,7 @@ PY
       held_v="${PEER[skip.wrote]}"; PEER[skip.wrote]=something
       probe "check 34 fires when a \"repo\": \"skip\" role writes under repo" "check 34 — under repo, add with the sibling's"; PEER[skip.wrote]="$held_v"
       held_v="${PEER[work.status_media]}"; PEER[work.status_media]="1 1 1 1"
-      probe "check 35 fires when status lists a file in the working-output folder" "check 35 — a file under the sibling's $PEER_RENDERS"; PEER[work.status_media]="$held_v"
+      probe "check 35 fires when status lists a file in the working-output folder" "check 35 — a file under the sibling's $PEER_PROXIES"; PEER[work.status_media]="$held_v"
       held_v="${PEER[name.videos_author]}"; PEER[name.videos_author]="0 0"
       probe "check 36 fires when a map role named after a kind is accepted" "check 36 — a sibling map role named after a shared role or a kind did not"
       PEER[name.videos_author]="$held_v"

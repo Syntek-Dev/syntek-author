@@ -66,8 +66,11 @@ holds `.copier-answers.syntek-author.yml`), and never record the answer anywhere
   exactly this form for this skill's topics: `Template: syntek-author`. While another template
   shares the project, a topic at the top of `learning/` without the line is
   <%AUTHOR_FIRST_NAME%>'s to name: take its family as a hint only, ask once, and write the answer
-  as its `Template:` line, the one line this skill writes in a topic that may not be its own.
-  Never decide by which template was applied first.
+  as its `Template:` line, the one line this skill writes in a topic that may not be its own
+  (with the topic's H1 where it needs a new `MISSION.md`, below). Never decide by which template
+  was applied first. A topic holding a `PROGRESS.md` but no `MISSION.md` takes the line in a new
+  `MISSION.md` holding only the topic's H1 and the line, the one file this skill creates there;
+  write no mission until that template's own session clarifies one.
 - **Another template's topics follow its rules.** Another template's folder, and a topic whose
   `Template:` line names another template, are governed by that template's teaching skill and
   rules, never this one's, and stay <%AUTHOR_FIRST_NAME%>'s work: never resume, list or edit

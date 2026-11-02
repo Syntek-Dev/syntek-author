@@ -44,10 +44,10 @@ author before writing a word. _Substantive._
 
 > **Skill:** `email-documents` · **Guide:** `library/docs/reference/EMAIL-ANATOMY-AND-NAMING.md`
 
-Find `library/src/email/client-emails/<client-slug>/<family>/` or
+Find the leaf: `library/src/email/client-emails/<client-slug>/<family>/` or
 `library/src/email/supplier-emails/<matter-slug>/`. A missing client folder, family leaf or matter
 folder is created only with the author's confirmation, with its pair at once and the client's slug
-from its business folder. _Mechanical._
+from its business folder. The email's own folder is made with the file at step 6. _Mechanical._
 
 ## 4. Plan the one section
 
@@ -73,9 +73,11 @@ fits, never adding length; the greeting and relationship text keep the voice. _S
 > **Skill:** `email-documents` · **Guide:** `library/docs/reference/EMAIL-ANATOMY-AND-NAMING.md`
 
 Settle the subject (the matter first, 50 characters or fewer, 60 at most), name the file from it,
-and create the authored email at its path: the frontmatter, the title, the metadata block with
-`**Status:**` at Draft, the internal note (decisions, dated sources, departures, anything to
-resolve), the rule, the subject, and the empty `body` marker pair. _Mechanical._
+make its folder `<YYYY-MM-DD-HH-MM>-<topic>/` in the leaf without asking (the filename's date, the
+time drafted, the stem without its date; no folder pair), and create the authored email there: the
+frontmatter, the title, the metadata block with `**Status:**` at Draft, the internal note
+(decisions, dated sources, departures, anything to resolve), the rule, the subject, and the empty
+`body` marker pair. _Mechanical._
 
 ## 7. Promote the body
 
@@ -99,6 +101,6 @@ _Substantive._
 > **Skill:** `email-documents` · **Guide:** `library/docs/reference/email-standards.md`
 
 Read every other unsent email to the same correspondent once more beside this one. List the email
-in its folder's `CONTEXT.md`; regenerate any paste copy the project makes. Report the path, the
-subject line, every flag and any contradiction found. The email waits at Draft: sending, and
-moving `**Status:**` to sent, are the author's. _Mechanical._
+in its leaf's `CONTEXT.md`; regenerate, in the email's folder, any paste copy the project makes.
+Report the path, the subject line, every flag and any contradiction found. The email waits at
+Draft: sending, and moving `**Status:**` to sent, are the author's. _Mechanical._

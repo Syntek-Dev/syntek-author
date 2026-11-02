@@ -12,3 +12,6 @@ __pycache__/
 
 # code-review-graph's local SQLite graph of this repository (.mcp.json); development only.
 /.code-review-graph/
+
+# graphify's local knowledge graph of this repository (graphify-out/); development only.
+/graphify-out/

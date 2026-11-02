@@ -52,6 +52,10 @@ first.
 - A refusal is reported with the tool's own line, and never worked round by copying, moving or
   editing a file by hand.
 - Each `external.toml` is committed with the work it lists, and never edited by hand.
+- A filing folder another template's map names is filed, pulled and verified only as that
+  template's rules say: never `make files-add` there with a shared role, and `make files-pull`
+  runs narrowed by `GLOB=` to this template's own folders, one at a time, unless the author
+  names that folder.
 - A project answered `repo` moves its files out only through an update that re-answers
   `DATA_STORE`, which is the author's decision.
 

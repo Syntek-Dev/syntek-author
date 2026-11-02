@@ -34,10 +34,10 @@ applies to it).
 - **A one-section brief** at `planning/src/units/<unit-slug>.md`: the correspondent, the matter,
   the one ask, and what the email must not promise.
 - **A body draft** at `library/src/email/drafts/<unit-slug>/01-body.md`, with its ledger entry.
-- **The authored email** at
-  `library/src/email/client-emails/<client-slug>/<family>/<subject-line>-<DD-MM-YYYY>.md` (or in
-  `supplier-emails/<matter-slug>/`), its `**Status:**` at Draft, listed in its folder's
-  `CONTEXT.md` and registered.
+- **The authored email** `<subject-line>-<DD-MM-YYYY>.md`, in its own folder
+  `<YYYY-MM-DD-HH-MM>-<topic>/` inside its leaf,
+  `library/src/email/client-emails/<client-slug>/<family>/` (or `supplier-emails/<matter-slug>/`),
+  its `**Status:**` at Draft, listed in the leaf's `CONTEXT.md` and registered.
 
 ## The failure this procedure exists to prevent
 

@@ -27,5 +27,6 @@ planning/src/questionnaires/
 ## Cross-references
 
 - `.claude/skills/to-questionnaire/SKILL.md` — the procedure and the document shape.
-- `.claude/rules/syntek-author/08-naming-and-memory.md` — the filename form.
+- `CLAUDE.md` (this folder), `## Output & naming` — the filename form, unless `00-project.md`
+  `## Paths` gives another.
 - `.claude/MEMORY.md` — `Open questions`, where each block is recorded until the answers return.

@@ -23,10 +23,11 @@ Hold each client's correspondence in that client's folder, split by the family t
      every other unsent email to the same client.
   3. Create a client folder or a family leaf only when the first email needs it, with the
      author's confirmation, and give it its pair at once.
-  4. List each new email in its leaf's `CONTEXT.md` when it is created.
-- **Definition of done:** the email is in the right client and family folder, named from its
-  subject line, listed in the leaf's `CONTEXT.md`, and consistent with every other unsent email to
-  that client.
+  4. Create each new email in its own `<YYYY-MM-DD-HH-MM>-<topic>/` folder in the leaf, without
+     asking and without a pair, and list it in the leaf's `CONTEXT.md`.
+- **Definition of done:** the email is in its own folder in the right client and family leaf,
+  named from its subject line, listed in the leaf's `CONTEXT.md`, and consistent with every other
+  unsent email to that client.
 
 ## Guardrails
 
@@ -34,6 +35,9 @@ Hold each client's correspondence in that client's folder, split by the family t
   restate an entity detail, a job title or an address here.
 - **A blank contact means 'not confirmed'.** Never fill one in from a website.
 - **Never pre-create empty leaves.** A folder exists because an email needed it.
+- **Never move an email filed flat before v0.10.0,** or edit a record naming its old path. That
+  path names the file where it stands; if the author has moved it, it is at
+  `<leaf>/<YYYY-MM-DD-HH-MM>-<topic>/<stem>.md` (find the folder ending `-<topic>`).
 - **One slug per client, everywhere;** never a second name for a client that already has one.
 - **Never edit, rename or re-render an archived thread.**
 - **Never name another client in an email,** and never copy content across client folders.
@@ -41,5 +45,5 @@ Hold each client's correspondence in that client's folder, split by the family t
 ## Output & naming
 
 - **Hand-written:** client folders and family leaves with their pairs; authored emails
-  `<subject-line>-<DD-MM-YYYY>.md`.
+  `<YYYY-MM-DD-HH-MM>-<topic>/<subject-line>-<DD-MM-YYYY>.md`, the email folder without a pair.
 - **Kept as received:** archived threads, under their export name.

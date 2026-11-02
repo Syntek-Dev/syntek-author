@@ -14,6 +14,7 @@ library/src/email/client-emails/
 ├── CLAUDE.md               ← operating rules
 └── <client-slug>/          ← one folder per client, with its pair
     └── <family>/           ← one leaf per governing family, created when first needed
+        └── <YYYY-MM-DD-HH-MM>-<topic>/   ← one folder per email, no pair
 ```
 
 ## What's here
@@ -29,6 +30,9 @@ library/src/email/client-emails/
 - **Each folder carries its pair.** A client folder's `CONTEXT.md` lists its leaves; a leaf's
   `CONTEXT.md` lists its emails, one bullet each: the file, its register ID, its status and what it
   is. A client folder's `CLAUDE.md` holds recipients' recorded preferences.
+- **One folder per email,** `<YYYY-MM-DD-HH-MM>-<topic>/` in the leaf, holding the email, its
+  `.html` and anything only it uses; it has no pair, since the leaf's `CONTEXT.md` lists it. Emails
+  filed flat in a leaf before v0.10.0 stay there, and a record naming one is never edited.
 
 ## Cross-references
 

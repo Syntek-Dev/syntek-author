@@ -18,7 +18,7 @@ paths:
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 This file owns where the project's binary files are kept: scans, signed and received copies,
 archives, issued copies, images, audio and video. Git keeps text well and binaries badly: every
@@ -195,7 +195,11 @@ superseded. `make files-verify` fails on a committed row that was removed or cha
 in), `received`, `archive`, `evidence`, `asset` or `generated` (made by a tool, such as audio).
 `signed`, `evidence`, `ingested` and `received` are evidence: an evidence copy is never replaced
 (`FORCE=1` refuses it), and a changed file is a failure, never an update. A role another
-template's map adds belongs to that template's work.
+template's map adds belongs to that template's work, and so does a folder another template's map
+names: file, pull or verify a file there only as that template's rules say. Never run
+`make files-add` there with a shared role, and run `make files-pull` only narrowed by `GLOB=` to
+this template's own folders, one at a time (`GLOB='research/src/*'`), unless the author names
+that folder; the tool refuses neither.
 
 ---
 

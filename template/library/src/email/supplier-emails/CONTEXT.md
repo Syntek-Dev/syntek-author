@@ -13,6 +13,7 @@ library/src/email/supplier-emails/
 ├── CONTEXT.md              ← this file (add a tree line for each matter folder)
 ├── CLAUDE.md               ← operating rules
 └── <matter-slug>/          ← one folder per matter (a quote round, a purchase), with its pair
+    └── <YYYY-MM-DD-HH-MM>-<topic>/   ← one folder per email, no pair
 ```
 
 ## What's here
@@ -20,6 +21,9 @@ library/src/email/supplier-emails/
 - Nothing yet. A matter folder is created with the first email that needs it.
 - **No family leaf.** In `client-emails/` the leaf names the governing standard; here the matter
   folder's `CONTEXT.md` states it (buying equipment or a service is usually a business matter).
+- **One folder per email,** `<YYYY-MM-DD-HH-MM>-<topic>/` in the matter folder, holding the
+  email, its `.html` and anything only it uses; it has no pair, since the matter folder's
+  `CONTEXT.md` lists it. Emails filed flat before v0.10.0 stay where they are.
 - **Supplier facts.** Each matter folder's `CONTEXT.md` carries the suppliers' details under
   `## Facts`, with the date and source of every fact.
 - **The consequence to hold:** one supplier's correspondence on two matters sits in two folders.
