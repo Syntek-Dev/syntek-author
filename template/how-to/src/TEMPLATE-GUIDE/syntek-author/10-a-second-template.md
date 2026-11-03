@@ -103,7 +103,7 @@ It also puts nothing back in `how-to/`, so a change made there would stand until
 A project where both templates run lessons needs syntek-author v0.8.0 or later, updated before the companion's release that keeps its lessons in a folder of its own.
 An older syntek-author would read the companion's lesson folder as one of your topics, and the companion's earlier topics as its own.
 A project that carries syntek-media 0.7.0 or later needs syntek-author v0.9.1 or later, updated before the companion.
-That companion carries the shared files of syntek-author v0.9.1, and an older syntek-author leaves them as another template's newer files rather than its own.
+That is because syntek-media 0.7.0 carries the shared files of syntek-author v0.9.1.
 A project that already runs v0.9.1 or a later one needs nothing more.
 
 ## What two templates cost a session

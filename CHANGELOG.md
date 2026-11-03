@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Changed
+
+- **Chapter 10 ('A second template') gives syntek-media's own reason for its v0.9.1 floor**, at the maintainer's approval (03/11/2026), as syntek-media asked: syntek-media 0.7.0 carries the shared files of syntek-author v0.9.1 (its D86). v0.10.0's further clause, that an older syntek-author would leave those files as another template's, is dropped: syntek-media has no record of it. `family-shared.json` is `unreleased` again after v0.10.0.
+
 ## [0.10.0] - 03/11/2026
 
 ### Changed
