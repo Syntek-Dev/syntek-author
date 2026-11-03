@@ -103,7 +103,13 @@
 #                            evidence true or false and repo, if given, only "skip". A value the
 #                            resolver refuses makes the whole map unreadable, and every command
 #                            that touches its folders then exits 2. A key it does not know is
-#                            kept and never judged.
+#                            kept and never judged. A folder's roles and pull (D61) are judged
+#                            more strictly than the resolver reads them, as shipped bytes: roles
+#                            a non-empty list of role names, none twice, each a shared role or
+#                            one the map defines (the resolver warns of another and lets it match
+#                            nothing); pull only "named" (the resolver reads another value as
+#                            "named", with a warning); neither on a "rows": "none" folder, where
+#                            the resolver ignores them.
 #                        18. `python3 .claude/syntek-author-dataroot.py --self-test` exits 0 in
 #                            the render: the resolver every project runs proves itself where it
 #                            landed.
@@ -594,6 +600,26 @@ for i, r in enumerate(roles):
         print(f"{rel} gives the role {name!r} evidence {r.get('evidence')!r}, not true or false")
     if "repo" in r and r["repo"] != "skip":
         print(f"{rel} gives the role {name!r} repo {r['repo']!r}: the one value is \"skip\" (never filed under repo)")
+# D61: a folder's "roles" and "pull", stricter than the resolver, which warns and reads on.
+for f in folders:
+    p = f["path"]
+    if "rows" in f and ("roles" in f or "pull" in f):
+        print(f"{rel} gives {p} roles or pull beside \"rows\": \"none\" — a folder that takes no rows binds no role and holds nothing to pull")
+        continue
+    if "roles" in f:
+        bound = f["roles"]
+        if not isinstance(bound, list) or not all(isinstance(b, str) and ROLE_NAME.fullmatch(b) for b in bound):
+            print(f"{rel} gives {p} roles {bound!r}, not a list of role names — the resolver cannot read the map at all")
+        elif not bound:
+            print(f"{rel} gives {p} roles [] — an empty list makes the map unreadable; a folder that takes no rows is \"rows\": \"none\"")
+        else:
+            for j, b in enumerate(bound):
+                if b in bound[:j]:
+                    print(f"{rel} gives {p} roles naming {b!r} twice")
+                elif b not in SHARED_ROLES and b not in named:
+                    print(f"{rel} gives {p} roles naming {b!r}, neither a shared role nor one the map defines — it matches nothing")
+    if "pull" in f and f["pull"] != "named":
+        print(f"{rel} gives {p} pull {f['pull']!r}: the one value is \"named\" (a whole pull leaves the folder out)")
 PY
 )
   fi
@@ -1313,12 +1339,26 @@ self_test() {
   probe "check 17 fires on a map of a later format" "check 17 — $SA_DATAROOT_MAP is not format 1"
   # The keys a map may carry beyond this template's own (K8): roles, a working-output folder,
   # and keys the resolver does not know; then one value it refuses at a time.
-  st_dr_map() { # $1 = the roles list as JSON, $2 = extra keys for the world/src entry
-    printf '{\n  "format": 1,\n  "folders": [\n    {"path": "library/src", "kind": "docs"},\n    {"path": "research/src"},\n    {"path": "proposal/src"},\n    {"path": "assets", "warn_over_kib": 1024},\n    {"path": "world/src"%s}\n  ],\n  "roles": %s\n}\n' \
-      "$2" "$1" > "$TREE/$SA_DATAROOT_MAP"
+  st_dr_map() { # $1 = the roles list as JSON, $2 = extra keys for the world/src entry, $3 = for research/src
+    printf '{\n  "format": 1,\n  "folders": [\n    {"path": "library/src", "kind": "docs"},\n    {"path": "research/src"%s},\n    {"path": "proposal/src"},\n    {"path": "assets", "warn_over_kib": 1024},\n    {"path": "world/src"%s}\n  ],\n  "roles": %s\n}\n' \
+      "${3:-}" "$2" "$1" > "$TREE/$SA_DATAROOT_MAP"
   }
-  st_dr_map '[{"name": "take", "evidence": true, "repo": "skip"}, {"name": "brand-export", "evidence": true, "rights": "x"}, {"name": "draft-cut", "evidence": false}]' ', "rows": "none", "id": 7'
-  probe_clean "check 17 holds a map with its own roles, a working-output folder and keys it does not know"
+  st_dr_map '[{"name": "take", "evidence": true, "repo": "skip"}, {"name": "brand-export", "evidence": true, "rights": "x"}, {"name": "draft-cut", "evidence": false}]' ', "rows": "none", "id": 7' ', "roles": ["take", "archive"], "pull": "named"'
+  probe_clean "check 17 holds a map with its own roles, a working-output folder, a bound and marked folder (D61) and keys it does not know"
+  # D61: the folder keys roles and pull, one failure at a time (research/src takes rows).
+  DR_TAKE='[{"name": "take", "evidence": true}]'
+  st_dr_map "$DR_TAKE" '' ', "roles": "take"'
+  probe "check 17 fires on folder roles that are not a list" "check 17 — $SA_DATAROOT_MAP gives research/src roles 'take', not a list of role names"
+  st_dr_map "$DR_TAKE" '' ', "roles": []'
+  probe "check 17 fires on an empty folder roles list" "check 17 — $SA_DATAROOT_MAP gives research/src roles []"
+  st_dr_map "$DR_TAKE" '' ', "roles": ["take", "take"]'
+  probe "check 17 fires on a folder role named twice" "check 17 — $SA_DATAROOT_MAP gives research/src roles naming 'take' twice"
+  st_dr_map "$DR_TAKE" '' ', "roles": ["take", "brand-export"]'
+  probe "check 17 fires on a folder role neither shared nor defined in the map" "check 17 — $SA_DATAROOT_MAP gives research/src roles naming 'brand-export', neither a shared role nor one the map defines"
+  st_dr_map "$DR_TAKE" '' ', "pull": "never"'
+  probe "check 17 fires on a pull value other than named" "check 17 — $SA_DATAROOT_MAP gives research/src pull 'never'"
+  st_dr_map "$DR_TAKE" ', "rows": "none", "pull": "named"'
+  probe "check 17 fires on roles or pull beside rows none" "check 17 — $SA_DATAROOT_MAP gives world/src roles or pull beside"
   st_dr_map '[{"name": "photos", "evidence": true}]' ''
   probe "check 17 fires on a role named after a kind" "check 17 — $SA_DATAROOT_MAP defines the role 'photos', a kind's name"
   st_dr_map '[{"name": "signed", "evidence": true}]' ''

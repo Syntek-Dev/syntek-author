@@ -197,9 +197,12 @@ in), `received`, `archive`, `evidence`, `asset` or `generated` (made by a tool, 
 (`FORCE=1` refuses it), and a changed file is a failure, never an update. A role another
 template's map adds belongs to that template's work, and so does a folder another template's map
 names: file, pull or verify a file there only as that template's rules say. Never run
-`make files-add` there with a shared role, and run `make files-pull` only narrowed by `GLOB=` to
-this template's own folders, one at a time (`GLOB='research/src/*'`), unless the author names
-that folder; the tool refuses neither.
+`make files-add` there with a shared role, and never name such a folder in `GLOB=` unless the
+author does. The tool refuses a role the folder's map does not allow, and a whole
+`make files-pull` leaves out a folder its map marks so and says which; another template's older
+copy of the tool may not. Where that map does neither, or an older copy runs, run
+`make files-pull` only narrowed by `GLOB=` to this template's own folders, one at a time
+(`GLOB='research/src/*'`).
 
 ---
 
@@ -211,7 +214,7 @@ that folder; the tool refuses neither.
 | `make files-add FILE=… ROLE=…` | Files a copy, checked by its checksum before its row is written. `AS=` is the path in the repository it belongs at (default: `FILE`'s own), `SOURCE=` what it was made from, `LABEL=` where else a copy is kept (a label, never a link), `FORCE=1` supersedes a filed copy and keeps the old one. It never overwrites, and refuses a name that is not Windows-safe or that differs only in case from one already there |
 | `make files-status` | The loss check: binaries Git ignores in a filing folder that no row lists, which exist on this machine only; files over a folder's size warning; folders holding files under older answers; online-only copies; and copies under the root that no row lists, with a hint where a name looks like a provider's conflict copy |
 | `make files-verify` | Hashes every current copy against its row and fails on a missing, changed or unlisted one. `GLOB=` narrows it; an online-only copy is skipped unless `HYDRATE=1`, which downloads it |
-| `make files-pull` | Copies filed copies into the work tree, where Git ignores them, checking each hash; never replaces a different file. `GLOB=` narrows it; reading an online-only copy downloads it |
+| `make files-pull` | Copies filed copies into the work tree, where Git ignores them, checking each hash; never replaces a different file. `GLOB=` narrows it; a folder another template marks is left out unless `GLOB=` names it; reading an online-only copy downloads it |
 | `make files-plan` | Lists the binaries still tracked in a filing folder, where each would be filed, the role it proposes and every conflict; a role it cannot prove shows as `?`, with the reason. `COPY=1` files the ones with a role and no conflict, never a `?` row, and never moves or untracks one. A `?` row, like a conflict, makes it exit `1` |
 <: if DOC_TYPE == 'business' :>| `make pdf FILE=… ISSUE=1` | Issues a document: the copy is filed with role `issued` and the document as its source (`04-build-pipeline.md` Section 1) |
 <: endif :>
