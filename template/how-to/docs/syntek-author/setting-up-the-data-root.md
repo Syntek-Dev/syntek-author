@@ -53,9 +53,10 @@ first.
   editing a file by hand.
 - Each `external.toml` is committed with the work it lists, and never edited by hand.
 - A filing folder another template's map names is filed, pulled and verified only as that
-  template's rules say: never `make files-add` there with a shared role, and `make files-pull`
-  runs narrowed by `GLOB=` to this template's own folders, one at a time, unless the author
-  names that folder.
+  template's rules say: never `make files-add` there with a shared role, and never name it in
+  `GLOB=` unless the author does; the tool refuses a role its map does not allow and leaves out
+  of a whole `make files-pull` a folder its map marks; where the map does neither, or an older
+  copy of the tool runs, `make files-pull` runs narrowed to this template's own folders.
 - A project answered `repo` moves its files out only through an update that re-answers
   `DATA_STORE`, which is the author's decision.
 

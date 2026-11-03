@@ -13,6 +13,10 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+### Added
+
+- **Roles bound to a folder (D61)**, at the maintainer's approval (03/11/2026), with syntek-media's review. A data-root map's folder entry may carry `"roles"`, the only roles filed there, and `"pull": "named"`, which leaves the folder out of a whole `pull` while a `GLOB` that names it still pulls it; map format stays 1, and an older resolver ignores both keys. The resolver refuses another role there (exit 2) under either store, by the path as written and the path its links lead to, before `--force` is weighed and, under `repo`, before the roles that write nothing; `plan --copy` never files one; a whole `pull` says in one line which folders it left out. A role name or `pull` value it does not know is warned of and read on the safe side, never a refusal of the map. This template's map uses neither key. Rules 09 and the data-root guide say the tool now refuses what the rules forbid, and keep the rules as the guard where an older copy runs. `shipped-variants.sh` check 17 judges the two keys in this template's own map; `coexist-test.sh` gives the sibling syntek-media's new map (its D89) and adds checks 53 and 54. The resolver is family-shared (D48): companion templates must refresh its bytes (`family-shared.json`), and syntek-media ships the keys in its map with them (its D89).
+
 ### Changed
 
 - **Chapter 10 ('A second template') gives syntek-media's own reason for its v0.9.1 floor**, at the maintainer's approval (03/11/2026), as syntek-media asked: syntek-media 0.7.0 carries the shared files of syntek-author v0.9.1 (its D86). v0.10.0's further clause, that an older syntek-author would leave those files as another template's, is dropped: syntek-media has no record of it. `family-shared.json` is `unreleased` again after v0.10.0.

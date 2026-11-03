@@ -15,7 +15,7 @@
 #                   runtime (its own answers file, its own rules file, its own skill, and the
 #                   D17 root files as seeds), changes both templates, updates both, and checks.
 #
-#                   Fifty-two checks:
+#                   Fifty-four checks:
 #                     1. The second template applies over the project without --overwrite —
 #                        nothing it ships collides with what is there.
 #                     2. Both answers files exist, under different names.
@@ -96,8 +96,9 @@
 #                   name (.copier-answers.syntek-media.yml, copier.yml's _external_data.peer),
 #                   it carries the data-root questions of the family-shared block read from its
 #                   own answers and syntek-author's, the resolver under its own name, a map of
-#                   its own (syntek-media 0.7.0's, as it ships: production/src/footage, with
-#                   the roles footage and approved-take), the marked rules-web-tools
+#                   its own (syntek-media's as its D89 release ships it: production/src/footage,
+#                   bound to the roles footage and approved-take and marked "pull": "named",
+#                   D61), the marked rules-web-tools
 #                   block in its own rules file, the MCP lane, and the MCP files and settings.json
 #                   a render of syntek-author holds (the same shared bytes, rendered with the
 #                   same answers). In a business project, both orders, each first copy with a
@@ -150,15 +151,19 @@
 #                        another provider succeeds, and syntek-author's resolver's path exits 0
 #                        with a 'differ on DATA_PROVIDER' warning.
 #
-#                   The manifest role rules with both maps present (DESIGN.md D50; media's D86):
-#                   the sibling's map is syntek-media 0.7.0's, verbatim, one filing folder,
-#                   production/src/footage, and two roles of its own, footage and approved-take,
-#                   both evidence and both "repo": "skip". The capabilities it no longer uses
+#                   The manifest role rules with both maps present (DESIGN.md D50, D61; media's
+#                   D86 and D89): the sibling's map is syntek-media's as its D89 release ships
+#                   it, verbatim, one filing folder, production/src/footage, carrying "roles":
+#                   ["footage", "approved-take"] and "pull": "named", and two roles of its own,
+#                   footage and approved-take, both evidence and both "repo": "skip". The
+#                   capabilities it does not use
 #                   keep their cases on the map a later release might ship (peer_map_later,
 #                   hypothetical), written on that case's scratch copy alone: a fixed kind
 #                   (check 29), production/src/footage/proxies, nested inside the filing folder
 #                   and marked "rows": "none" (check 35), and brand-export, a role committed
-#                   under repo (check 34). Each case runs on a scratch copy of a project above, with a
+#                   under repo (check 34), which that map also lists in the filing folder's
+#                   "roles", so that check 34 still reaches 'commit the file instead'. Each case
+#                   runs on a scratch copy of a project above, with a
 #                   data root of its own:
 #                    31. The sibling map's own roles are roles to both resolvers: syntek-author's
 #                        files a copy under each (exit 0), each row recording evidence = true,
@@ -195,6 +200,17 @@
 #                        a kind's (videos) cannot be read: path into production/src/footage exits
 #                        2 from both resolvers, naming the role, while path into syntek-author's
 #                        library/src exits 0.
+#                    53. Roles bound to a folder (D61): add of production/src/footage/x.mov with
+#                        the shared role signed, which the sibling's folder does not list, exits
+#                        2 from both resolvers with one refusal naming 'footage, approved-take',
+#                        and writes nothing in the project or the data root, under external (on
+#                        a scratch copy of the media-first project) and under repo (of the
+#                        author-first one).
+#                    54. "pull": "named" (D61): with a footage row and a library row filed and
+#                        both work-tree copies removed, a whole pull by either resolver exits 0,
+#                        prints the one 'pull leaves out production/src/footage' line once,
+#                        copies the library file and leaves the footage uncopied; pull
+#                        'production/src/footage/*' by either copies the footage.
 #
 #                   The user guide shared by both (DESIGN.md D56): the sibling ships the shared
 #                   how-to files byte for byte, its own files under how-to/docs/<sibling>/,
@@ -289,7 +305,7 @@
 #                        refs/dummy-media/template holds no path under learning/. Skipped, by
 #                        name, where the template ships no learning/ pair or the repository has
 #                        no migrations/family-update.py (no render record).
-#                   Checks 25, 26 and 29–36 run the resolver, which needs Python at
+#                   Checks 25, 26, 29–36, 53 and 54 run the resolver, which needs Python at
 #                   _common.sh's SA_PYTHON_MIN or later (its pin refuses an older python3); on
 #                   a python3 without tomllib they are skipped, by name. Every resolver run gets
 #                   a temporary data root holding its own marker; no audit reads a machine's
@@ -300,7 +316,8 @@
 #                   What it CANNOT check: the real syntek-media. The dummies follow Section 9's
 #                   rules and media 0.4.2's .agents/ layout; family-shared.sh --sibling compares
 #                   a real syntek-media checkout's vendored sources. The sibling's map is a
-#                   copy of syntek-media 0.7.0's shipped map (DESIGN.md D50; media's D86),
+#                   copy of syntek-media's map as its D89 release ships it (DESIGN.md D50,
+#                   D61; media's D86, D89),
 #                   typed here, not read from a checkout, so a later media release that changes
 #                   it goes unseen until this copy follows; peer_map_later's fixed kind,
 #                   working-output folder and committed role are hypothetical, kept so the
@@ -571,9 +588,9 @@ Template-owned by %s.
     printf '%s' "$MEDIA04_CODEX" > "$b/template/.codex/config.toml"
   fi
   if [[ "$mode" == peer ]]; then
-    # The resolver under its own name, the same bytes (D50), and syntek-media 0.7.0's shipped map
-    # (media's D86): one filing folder, production/src/footage, with its two roles (checks 29,
-    # 31–36). renders/ sits beside it, as in media's production/src/, outside the shipped map.
+    # The resolver under its own name, the same bytes (D50), and syntek-media's map as its D89
+    # release ships it (media's D86, D89; D61): one filing folder, production/src/footage, bound
+    # to its two roles and marked "pull": "named" (checks 29, 31–36, 53, 54). renders/ sits beside it, as in media's production/src/, outside the shipped map.
     [[ -f "$src/template/$SA_DATAROOT_PY" ]] && cp "$src/template/$SA_DATAROOT_PY" "$b/template/.claude/syntek-$short-dataroot.py"
     peer_map > "$b/template/.claude/syntek-$short-dataroot.json"
     mkdir -p "$b/template/$PEER_FOOTAGE" "$b/template/$PEER_RENDERS"
@@ -937,8 +954,8 @@ PEER_ORDERS="author-first media-first"
 PEER_AREA="personal"; PEER_SLUG="lantern-road"; PEER_PHOTOS="images"; PEER_OTHER_SLUG="another-project"
 PEER_PIN_OLD="code-review-graph==1.0.0"
 declare -A PEER=()
-# The sibling map's own roles, both evidence and both "repo": "skip", as syntek-media 0.7.0
-# ships them (DESIGN.md D50; media's D86): footage and approved-take, filed from its one filing
+# The sibling map's own roles, both evidence and both "repo": "skip", as syntek-media ships
+# them (DESIGN.md D50; media's D86, D89): footage and approved-take, filed from its one filing
 # folder, production/src/footage. Its renders/ beside that folder is not in the shipped map.
 PEER_ROLES="footage approved-take"
 PEER_SKIP_ROLE="footage"; PEER_DIFFER_ROLE="approved-take"
@@ -950,14 +967,15 @@ PEER_PROXIES="$PEER_FOOTAGE/proxies"
 PEER_LATER_COMMIT_ROLE="brand-export"
 PEER_MAP_FILE=".claude/syntek-${PEER_NAME#syntek-}-dataroot.json"
 
-# The sibling's map (format 1), exactly as syntek-media 0.7.0 ships it: one filing folder with no
-# fixed kind, no working-output folder, and two roles that are never filed under repo.
+# The sibling's map (format 1), exactly as syntek-media's D89 release ships it: one filing folder
+# with no fixed kind, bound to its two roles and left out of a whole pull (D61), no working-output
+# folder, and two roles that are never filed under repo.
 peer_map() {
   cat <<EOF
 {
   "format": 1,
   "folders": [
-    {"path": "$PEER_FOOTAGE"}
+    {"path": "$PEER_FOOTAGE", "roles": ["footage", "approved-take"], "pull": "named"}
   ],
   "roles": [
     {"name": "footage", "evidence": true, "repo": "skip"},
@@ -971,14 +989,16 @@ EOF
 # It keeps the resolver capabilities the shipped map does not use in reach of the cases that
 # need them, each written on that case's scratch copy only: a fixed kind on the filing folder
 # (check 29), a proxies/ folder nested inside it and marked "rows": "none", so the longest path
-# must win (check 35), and a role committed under repo (check 34). The shipped map's two roles
-# stay as they are; renders/ stays in the dummy's tree, outside every map, as in media's.
+# must win (check 35), and a role committed under repo (check 34), listed in the filing folder's
+# "roles" beside the shipped two so that the binding (D61) lets it reach 'commit the file
+# instead'. The shipped map's two roles stay as they are; renders/ stays in the dummy's tree,
+# outside every map, as in media's.
 peer_map_later() {
   cat <<EOF
 {
   "format": 1,
   "folders": [
-    {"path": "$PEER_FOOTAGE", "kind": "videos"},
+    {"path": "$PEER_FOOTAGE", "kind": "videos", "roles": ["footage", "approved-take", "$PEER_LATER_COMMIT_ROLE"], "pull": "named"},
     {"path": "$PEER_PROXIES", "rows": "none"}
   ],
   "roles": [
@@ -1534,6 +1554,26 @@ run_roles_flow() {
         rc=0; rr_run "$who" "name-$n-library-$who" path library/src/logo.png || rc=$?; PEER[name.${n}_library_$who]=$rc
       done
     done
+
+    # 53: a role the sibling's folder does not list is refused by both resolvers (D61).
+    roles_project "$base" bound
+    bound_add ext
+
+    # 54: a whole pull leaves the sibling's folder out, in one line; a GLOB naming it pulls it.
+    roles_project "$base" pull
+    printf 'a take\n' > "$RP/$PEER_FOOTAGE/take-54.mov"
+    printf 'a scan\n' > "$RP/library/src/scan-54.pdf"
+    rc=0; rr_run author pull-add-footage add "$PEER_FOOTAGE/take-54.mov" --role "$PEER_SKIP_ROLE" || rc=$?
+    rr_run author pull-add-library add library/src/scan-54.pdf --role archive || rc=$?
+    PEER[pull.filed]=$rc
+    for who in author media; do
+      rm -f "$RP/$PEER_FOOTAGE/take-54.mov" "$RP/library/src/scan-54.pdf"
+      rc=0; rr_run "$who" "pull-whole-$who" pull || rc=$?
+      PEER[pull.whole_$who]="$rc $([[ -f "$RP/$PEER_FOOTAGE/take-54.mov" ]] && echo yes || echo no) $([[ -f "$RP/library/src/scan-54.pdf" ]] && echo yes || echo no) $(rr_count "pull-whole-$who" "^pull leaves out $PEER_FOOTAGE: its map says \"pull\": \"named\"")"
+      rm -f "$RP/$PEER_FOOTAGE/take-54.mov"
+      rc=0; rr_run "$who" "pull-named-$who" pull "$PEER_FOOTAGE/*" || rc=$?
+      PEER[pull.named_$who]="$rc $([[ -f "$RP/$PEER_FOOTAGE/take-54.mov" ]] && echo yes || echo no)"
+    done
   fi
   if [[ "${PEER[roles.repo]}" == true ]]; then
     # 34: under repo, a "repo": "skip" role is never filed and writes nothing; another is refused.
@@ -1553,8 +1593,27 @@ run_roles_flow() {
     fi
     rc=0; rr_run author skip-commit add "$PEER_FOOTAGE/take-34.mov" --role "$PEER_LATER_COMMIT_ROLE" || rc=$?
     PEER[skip.commit]="$rc $(rr_count skip-commit '^refused: .*commit the file instead')"
+    # 53 under repo: the binding comes before the roles that write nothing and 'commit instead'.
+    roles_project "$PEER_W/author-first" bound-repo
+    bound_add repo
   fi
   return 0
+}
+
+# Check 53 in the scratch copy RP: add --role signed into the sibling's bound folder, by both
+# resolvers, refused naming the folder's two roles, with nothing written in the project or root.
+bound_add() { # $1 = ext|repo
+  local who rc before
+  printf 'a signed copy\n' > "$RP/$PEER_FOOTAGE/x.mov"
+  before="$(tree_sum "$RP" "$RR")"
+  for who in author media; do
+    rc=0; rr_run "$who" "bound-$1-$who" add "$PEER_FOOTAGE/x.mov" --role signed || rc=$?
+    PEER[bound.$1_$who]="$rc $(rr_count "bound-$1-$who" "^refused: $PEER_FOOTAGE/x[.]mov is in $PEER_FOOTAGE, where .*files only the roles footage, approved-take")"
+  done
+  PEER[bound.$1_wrote]=nothing
+  if [[ "$(tree_sum "$RP" "$RR")" != "$before" || -n "$(find "$RP" -name .git -prune -o -name external.toml -print)" ]]; then
+    PEER[bound.$1_wrote]=something
+  fi
 }
 
 roles_checks() {
@@ -1622,6 +1681,15 @@ roles_checks() {
       [[ "${PEER[name.${n}_library_$who]:-unrun}" == 0 ]] || bad+=" '$n' by $who exit ${PEER[name.${n}_library_$who]:-unrun},"
     done; done
     [[ -z "$bad" ]] || finding "check 36 — beside a sibling map with a role named after a shared role or a kind, path library/src/logo.png was refused:${bad%,}: only the commands that touch that map's folders refuse"
+    bound_checks ext
+    # 54: "pull": "named".
+    bad=""
+    [[ "${PEER[pull.filed]:-unrun}" == 0 ]] || bad+=" filing the two rows exited ${PEER[pull.filed]:-unrun},"
+    for who in author media; do
+      [[ "${PEER[pull.whole_$who]:-unrun}" == "0 no yes 1" ]] || bad+=" $who's whole pull gave '${PEER[pull.whole_$who]:-unrun}',"
+      [[ "${PEER[pull.named_$who]:-unrun}" == "0 yes" ]] || bad+=" $who's pull '$PEER_FOOTAGE/*' gave '${PEER[pull.named_$who]:-unrun}',"
+    done
+    [[ -z "$bad" ]] || finding "check 54 — the sibling's $PEER_FOOTAGE, marked \"pull\": \"named\":${bad%,}; a whole pull must exit 0, leave the footage uncopied, copy the library file and say so in one line ('exit footage library lines' '0 no yes 1'), and a GLOB naming the folder must copy it ('0 yes', DESIGN.md D61)"
   fi
   if [[ "${PEER[roles.repo]:-false}" == true ]]; then
     # 34: "repo": "skip" under repo.
@@ -1631,8 +1699,20 @@ roles_checks() {
       || finding "check 34 — under repo, add with the sibling's \"repo\": \"skip\" role wrote into the project or the data root: it writes nothing"
     [[ "${PEER[skip.commit]:-unrun}" == "2 1" ]] \
       || finding "check 34 — under repo, add --role $PEER_LATER_COMMIT_ROLE (the later-release map's role, no \"repo\": \"skip\") gave '${PEER[skip.commit]:-unrun}' (exit, refusal lines), not exit 2 with 'commit the file instead'"
+    bound_checks repo
   fi
   return 0
+}
+
+# Check 53's verdict for one store (ext|repo).
+bound_checks() { # $1 = ext|repo
+  local who bad="" store="external"
+  [[ "$1" == repo ]] && store="repo"
+  for who in author media; do
+    [[ "${PEER[bound.$1_$who]:-unrun}" == "2 1" ]] || bad+=" $who's resolver '${PEER[bound.$1_$who]:-unrun}',"
+  done
+  [[ "${PEER[bound.$1_wrote]:-unrun}" == nothing ]] || bad+=" something was written in the project or the data root,"
+  [[ -z "$bad" ]] || finding "check 53 — under $store, add $PEER_FOOTAGE/x.mov --role signed (exit, refusal lines):${bad%,}; the sibling's folder lists only footage and approved-take, so both resolvers refuse it (exit 2) with one line naming them and write nothing (DESIGN.md D61)"
 }
 
 # ── One project, one set of agent clients and models (checks 43–50) ───────────────────────────
@@ -2531,6 +2611,15 @@ PY
       held_v="${PEER[name.videos_author]}"; PEER[name.videos_author]="0 0"
       probe "check 36 fires when a map role named after a kind is accepted" "check 36 — a sibling map role named after a shared role or a kind did not"
       PEER[name.videos_author]="$held_v"
+      # 53 and 54: roles bound to a folder and "pull": "named" (D61).
+      held_v="${PEER[bound.ext_media]}"; PEER[bound.ext_media]="0 0"
+      probe "check 53 fires when a resolver files a role the sibling's folder does not list" "check 53 — under external"; PEER[bound.ext_media]="$held_v"
+      held_v="${PEER[bound.repo_author]}"; PEER[bound.repo_author]="2 0"
+      probe "check 53 fires when the refusal under repo is not the binding line" "check 53 — under repo"; PEER[bound.repo_author]="$held_v"
+      held_v="${PEER[pull.whole_author]}"; PEER[pull.whole_author]="0 yes yes 0"
+      probe "check 54 fires when a whole pull copies the marked folder" "check 54 — the sibling's $PEER_FOOTAGE"; PEER[pull.whole_author]="$held_v"
+      held_v="${PEER[pull.named_media]}"; PEER[pull.named_media]="0 no"
+      probe "check 54 fires when a GLOB naming the folder does not pull it" "check 54 — the sibling's $PEER_FOOTAGE"; PEER[pull.named_media]="$held_v"
     fi
     if $CL_RAN; then
       # 43–50: one set of agent clients and models. Each mutation leaves a record as a block
