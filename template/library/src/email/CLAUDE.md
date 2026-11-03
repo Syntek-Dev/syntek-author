@@ -26,10 +26,12 @@ substance, and the archived threads kept as a record.
   1. Read the correspondent's facts and every other unsent email to the same correspondent,
      together: two drafts written days apart routinely contradict each other.
   2. Write the internal note first: the purpose, the facts checked with their dates, any deviation.
-  3. Draft the body; settle the subject line; name the file from it; leave `**Status:**` at Draft.
+  3. Draft the body; settle the subject line; name the file from it; create its
+     `<YYYY-MM-DD-HH-MM>-<topic>/` folder in the leaf with it, without asking and without a folder
+     pair; leave `**Status:**` at Draft.
 - **Definition of done:** the email makes its reason for writing the author's own, asks for one
   clear thing, carries no commitment the instruments do not, agrees with every other unsent email
-  to the same correspondent, is listed in its folder's `CONTEXT.md`, and waits at Draft for the
+  to the same correspondent, is listed in its leaf's `CONTEXT.md`, and waits at Draft for the
   author.
 
 ## Guardrails
@@ -51,10 +53,15 @@ substance, and the archived threads kept as a record.
   folder's `CLAUDE.md` only on the author's instruction, as the preference alone, never the
   personal reason behind it.
 - **Never name another client** in an email: correspondence is confidential.
+- **Never move an email filed flat before v0.10.0, or edit a record that names its old path.**
+  A record naming `<leaf>/<stem>.md` names that file where it stands; if the author has moved it,
+  it is at `<leaf>/<YYYY-MM-DD-HH-MM>-<topic>/<stem>.md` (find the folder ending `-<topic>`). Only
+  the author moves an old email.
 
 ## Output & naming
 
 - **Hand-written:** authored emails `<subject-line>-<DD-MM-YYYY>.md` (the subject in kebab-case, no
-  `email-` prefix), section drafts, and the pair of each new correspondent or family folder.
+  `email-` prefix), each in its own `<YYYY-MM-DD-HH-MM>-<topic>/` folder with its `.html`, section
+  drafts, and the pair of each new correspondent or family folder (never of an email folder).
 - **Kept as received:** archived threads, under their export name.
 - **Generated (never hand-edit):** any PDF, HTML or rich-text copy of an email.

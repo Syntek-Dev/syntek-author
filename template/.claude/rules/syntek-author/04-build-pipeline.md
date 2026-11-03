@@ -16,7 +16,7 @@ paths:
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 Markdown<: if DOC_TYPE == 'business' :> and LaTeX<: endif :> in `src/` folders is the only writing surface (the guide in
 `how-to/src/` is the template's, never the work); everything else is an export. The `Makefile` at

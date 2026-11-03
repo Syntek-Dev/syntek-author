@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 Names are how files find each other, so they follow one pattern each. Memory is how sessions find
 what earlier sessions settled, so it has one home and a gate.
@@ -35,24 +35,15 @@ workflow uses.
 | `<doc-type>-<client-slug>-v<major>-<minor>-DD-MM-YYYY.tex` | proposal-harbour-bakery-v1-0-03-10-2026.tex | a client's copy, under `client-docs/<client-slug>/` |
 | `planning/src/units/<document-slug>.md` | service-agreement.md | the document's brief |
 | `DOC-NNN` | DOC-014 | a document's identifier in the register |
-| `approval-<doc-type>-DD-MM-YYYY.md` | approval-pricing-03-10-2026.md | an approval record, in `planning/src/approvals/` (default) |
 <: endif :>| `drafts/<NN>-<section-slug>.md` | drafts/04-crossing-at-night.md | a section draft, beside the unit it will join |
 <: if DOC_TYPE != 'business' :>| `<!-- section: <slug> -->` | `<!-- section: crossing-at-night -->` | where a promoted section sits in the unit file |
 <: else :>| `% section: <slug>` … `% end section: <slug>` | % section: payment-terms | where a promoted section sits in a `.tex` document |
 <: endif :>| `standards/style/ledger/<unit>--<section-slug>.md` | 03-the-ford--crossing-at-night.md | a section's provenance record; `<unit>` is the unit's name, number included |
 | `workflows/NN-verb-first-name/` | 01-draft-a-section/ | a template procedure; numbers frozen |
 | `workflows/local/NN-verb-first-name/` | 01-prepare-a-reading/ | the author's own procedure, in the folder's own numbering; with a template workflow's slug, whatever its number, it overrides that workflow |
-| `how-to/src/TEMPLATE-GUIDE/<template>/NN-kebab-title.md` | 01-overview.md | a chapter of a template's user guide; numbers frozen |
-| `how-to/workflows/<template>/NN-verb-first-name/` | 01-update-the-template/ | a template's how-to procedure; numbers frozen |
-| `TEMPLATE-GUIDE/` | how-to/src/TEMPLATE-GUIDE/ | the one fixed upper-case folder: the guide's chapters |
 | `kebab-case.md` in `docs/` | drafting-with-ai.md | a guide, named for the question it answers |
 | `SCREAMING-SNAKE-CASE.md` | CONTEXT.md, STEPS.md | structural files, and sub-documents behind a thin index |
-| `HANDOFF-<DESCRIPTOR>-DD-MM-YYYY.md` | HANDOFF-OPENING-SECTIONS-03-10-2026.md | a session handoff, in `handoffs/` (default) |
-| `MAP-<TOPIC>.md` | MAP-PART-TWO.md | a decision map, in `planning/src/maps/` (default) |
-| `QUESTIONNAIRE-<SLUG>-DD-MM-YYYY.md` | QUESTIONNAIRE-FORD-CROSSING-14-11-2026.md | a questionnaire for someone outside the session, in `planning/src/questionnaires/`; its returned copy adds `-RETURNED` |
-| `REVIEW-<scope>-DD-MM-YYYY.md` | REVIEW-whole-work-03-10-2026.md | a structural review (advice only), in `planning/src/reviews/` |
 | `SPIKE-<slug>.md` | drafts/SPIKE-second-person.md | a throwaway prototype, deleted once answered |
-| `learning/<kebab-topic>/` | learning/dialogue-punctuation/ | a learning topic: `MISSION.md` (with its `Template:` line), `RESOURCES.md`, `PROGRESS.md`, `LESSONS/`; in `learning/syntek-author/<kebab-topic>/` while another template shares the project; never a template's name |
 <: if DOC_TYPE == 'theology' :>| `planning/src/arguments/NN-kebab-title.md` | 03-the-ford.md | a chapter's argument map |
 | `research/src/contested-readings/<kebab-passage>.md` | genesis-1-26-28.md | a contested-reading map: exegesis, not a decision map |
 <: endif :><: if DOC_TYPE == 'fiction' :>| `world/src/characters/<slug>.md` | ilse-varga.md | a character; places follow the same pattern |
@@ -65,10 +56,14 @@ workflow uses.
 <: endif :><: if DOC_TYPE != 'business' :>| `build/<scope with / as __>.<ext>` | `build/manuscript__src.pdf` | generated output; never hand-edited |
 <: endif :><: if DATA_STORE == 'external' :>| `ext:<path in the repository>` | ext:research/src/scans/deed-1852.pdf | in prose, a file filed under the data root, named by its path in the repository (`09-data-root.md` Section 4) |
 <: endif :>
-Dates in filenames are DD-MM-YYYY. A name that other files cite (a skill, a workflow number, a
-citation key) is never changed without a migration, because every citation of it breaks silently.
+A file a skill or folder owns (a handoff, a decision map, a questionnaire, a review,
+<: if DOC_TYPE == 'business' :>an approval record, <: endif :>a learning topic, and the user guide's chapters and procedures
+under `how-to/`, with its one upper-case folder `TEMPLATE-GUIDE/`) is named in that skill's
+`SKILL.md` or that folder's `CLAUDE.md`. Dates in filenames are DD-MM-YYYY. A name that other
+files cite (a skill, a workflow number, a citation key) is never changed without a migration,
+because every citation of it breaks silently.
 Where `00-project.md` `## Paths` gives another folder or filename form for a role (handoffs,
-decision maps, research notes<: if DOC_TYPE == 'business' :>, approvals<: endif :>), it wins over the defaults above; any other path
+decision maps, research notes<: if DOC_TYPE == 'business' :>, approvals<: endif :>), it wins over the default its skill or folder gives; any other path
 moves only by a redirect line in its `## Overrides` (`01-layout-and-routing.md` Section 9).
 
 **Every name is Windows-safe**, because the project is cloned onto Windows and macOS disks and its

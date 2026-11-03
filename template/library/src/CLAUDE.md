@@ -23,7 +23,8 @@ promotion.
 <: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>  - email → `email-documents` (plus the skill of the family that governs the substance) ·
     `library/workflows/12-write-an-email/`; email files by correspondent, not by client document:
     `library/src/email/client-emails/<client-slug>/<family>/` and
-    `library/src/email/supplier-emails/<matter-slug>/`
+    `library/src/email/supplier-emails/<matter-slug>/`, one `<YYYY-MM-DD-HH-MM>-<topic>/` folder
+    per email
 <: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>  - accounting → `accounting-documents` · `library/workflows/13-create-an-accounting-document/`
 <: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>  - social-media → `social-media-documents` ·
     `library/workflows/14-create-a-social-media-document/`

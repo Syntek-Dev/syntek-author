@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 This file owns the repository's shape: its layers, the sublayers inside them, the folder-pair rule,
 routing frontmatter, who owns which files, the order in which to read before working, and which
@@ -91,9 +91,9 @@ Shared skills and guides say "the content layer" and "the unit"; this section is
   - `library/src/business/`: proposals, statements of work, client guides and the business's
     internal policies<: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :> on HR and staff conduct<: endif :> (every project).
 <: if DOC_TYPE == 'business' and 'legal' in BUSINESS_FAMILIES :>  - `library/src/legal/`: contracts, non-disclosure and data processing agreements, and terms.
-<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>  - `library/src/email/`: client and supplier correspondence. The email family files by
-    correspondent instead: `client-emails/<client-slug>/<family>/` and
-    `supplier-emails/<matter-slug>/`.
+<: endif :><: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>  - `library/src/email/`: client and supplier correspondence, filed by correspondent:
+    `client-emails/<client-slug>/<family>/` and `supplier-emails/<matter-slug>/`, one
+    `<YYYY-MM-DD-HH-MM>-<topic>/` folder per email (flat before v0.10.0).
 <: endif :><: if DOC_TYPE == 'business' and 'accounting' in BUSINESS_FAMILIES :>  - `library/src/accounting/`: invoices, expenses and financial reports.
 <: endif :><: if DOC_TYPE == 'business' and 'social-media' in BUSINESS_FAMILIES :>  - `library/src/social-media/`: social media plans, content calendars and profiles.
 <: endif :><: if DOC_TYPE == 'business' and 'msp-scp' in BUSINESS_FAMILIES :>  - `library/src/msp-scp/`: IT and information-security policies, plans and reports for
@@ -132,7 +132,7 @@ The exceptions, and why each is exempt:
 - `.claude/rules/` holds rules only: Claude Code loads every Markdown file there as a rule, at
   launch or, where its `paths` frontmatter scopes it, with a matching file (Section 8), so a `CONTEXT.md` placed there would load as a rule.
 - The inside of each `.claude/skills/<skill>/` folder: a skill is its own manual.
-- Each `drafts/` folder carries only a `README.md`; its parent's pair governs it. A folder below `learning/` carries no pair: the `learning/` pair is its only manual.
+- Each `drafts/` folder carries only a `README.md`; its parent's pair governs it. A folder below `learning/` carries no pair: the `learning/` pair is its only manual.<: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :> Nor does an email folder: its leaf's `CONTEXT.md` lists it.<: endif :>
 <: if DOC_TYPE != 'business' :>- `typeset/src/units/.base/` carries only a `README.md`: it holds the Pandoc bases `make tex`
   writes, which are never hand-edited, and its parent's pair governs it.
 <: endif :>
@@ -232,7 +232,7 @@ Before editing anything, read in this order:
 
 Every folder `CLAUDE.md` repeats this chain in its own `Read order:` line, so a session that starts deep in the tree still climbs it.
 
-**Two rules load only with their files.** `04-build-pipeline.md` and `09-data-root.md` carry `paths` frontmatter: Claude Code loads each once a session reads or edits a file it lists, with a file tool or a one-file `cat`, `head`, `grep` or the like; a command that runs something, such as `make` or the data-root tool, loads neither. So read `04-build-pipeline.md` before you run a `make` target other than `help`, `flags`, `lint` or `provenance`<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> (or the language checks `lexicon`, `derive`, `coverage` and `family`)<: endif :>, before you run `pandoc`, XeLaTeX or a `tooling/` script by hand, and before you report a build that failed; read `09-data-root.md` before `make root`, a `make files-*` target<: if DOC_TYPE == 'business' :>, an issue (`ISSUE=1`)<: endif :> or `.claude/syntek-author-dataroot.py` run by hand; each unless it is already in this session.
+**Two rules load only with their files.** `04-build-pipeline.md` and `09-data-root.md` carry `paths` frontmatter: Claude Code loads each once a session reads or edits a file it lists, with a file tool or a one-file `cat`, `head`, `tail` or `sed -n`; a `grep` or `rg`, even of one file, and a command that runs something, such as `make` or the data-root tool, load neither. So read `04-build-pipeline.md` before you run a `make` target other than `help`, `flags`, `lint` or `provenance`<: if DOC_TYPE == 'fiction' and INCLUDE_CONLANG :> (or the language checks `lexicon`, `derive`, `coverage` and `family`)<: endif :>, before you run `pandoc`, XeLaTeX or a `tooling/` script by hand, and before you report a build that failed; read `09-data-root.md` before `make root`, a `make files-*` target<: if DOC_TYPE == 'business' :>, an issue (`ISSUE=1`)<: endif :> or `.claude/syntek-author-dataroot.py` run by hand; each unless it is already in this session.
 
 ---
 
@@ -240,15 +240,9 @@ Every folder `CLAUDE.md` repeats this chain in its own `Read order:` line, so a 
 
 **This project's settings live in one file**, `.claude/rules/syntek-author/00-project.md`:
 project-owned, written once from the Copier answers, and loaded at launch with these rules. A
-template file that needs a project-specific value reads it there, by heading:
-
-| Heading | Read it for |
-|---|---|
-| `## Brief` | the audience, the reader test and the variant's answers |
-| `## Paths` | where each thing a template file names by role lives; where a row differs from the default path a template file names, the row wins |
-| `## Memory headings` | the `.claude/MEMORY.md` heading that a template file's heading means here |
-| `## Workflow aliases` | a project procedure to run instead of a template workflow; checked first |
-| `## Overrides` | a template rule this project does not follow, and what it does instead; a redirect of a template path |
+template file that needs a project-specific value reads it there, under the heading that names it
+(`## Brief`, `## Paths`, `## Memory headings`, `## Workflow aliases`, `## Overrides`); each
+heading says what it holds, and a row there wins over the default a template file names.
 
 **Precedence**, highest first, when two rules conflict:
 
@@ -284,14 +278,10 @@ project already keeps each thing. In such a project:
 
 - a file the project already had at a template path (a `SKILL.md`, an index pair, a guide) is
   the project's own, and its text governs that path;
-- on `copier update`, a file the project kept at a template path comes back with conflict markers
-  whenever the template changed it: keep the project's version (its text governs that path), tell
-  the author which files were resolved and what the template changed, and extend a file only on
-  their word; never under `how-to/`, which the update restores (`06-global-rules.md` Section 3);
-- <: if DOC_TYPE == 'business' :>unticking a family or <: endif :>turning an option off on update deletes the project's own files at its
-  template paths too (`06-global-rules.md` Section 11): have the author copy them out first;
-- a mode file beside a project's own `SKILL.md` is ignored, because only a `SKILL.md` that carries
-  the Mode paragraph reads one (`.claude/rules/syntek-author/02-skills.md` Section 2);
+- where such a file comes back from `copier update` with conflict markers, keep the project's
+  version, tell the author what the template changed and extend it only on their word; what an
+  update deletes or restores is in `06-global-rules.md` Section 11, and a mode file beside a
+  project's own `SKILL.md` is ignored (`02-skills.md` Section 2);
 - `run-workflow` lists the workflow folders directly where an index file has no
   'You want to… | Procedure' table, after checking `## Workflow aliases`;
 - where the project keeps its own version of a template file at another path (the adoption

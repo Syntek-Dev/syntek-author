@@ -42,9 +42,19 @@ unsent email). Be blunt in it: it is never sent.
 - The stem is exactly as long as the subject and changes only when the subject does: settle the
   subject, then name the file. A renamed email has every reference to it updated, the register
   row's path included.
+- **One folder per email.** The email, its `.html` and anything only it uses sit in
+  `<YYYY-MM-DD-HH-MM>-<topic>/` inside its correspondent's leaf: the date is the filename's, the
+  time is when it was drafted (`00-00` where unknown), and `<topic>` is the filename's stem
+  without its date. A changed subject renames the folder with its files. The folder is created
+  with the email, without asking, and carries no folder pair: the leaf's `CONTEXT.md` lists it.
+- An email filed flat before v0.10.0 stays where it is: a record naming `<leaf>/<stem>.md` names
+  that file where it stands; if the author has moved it, it is at
+  `<leaf>/<YYYY-MM-DD-HH-MM>-<topic>/<stem>.md` (find the folder ending `-<topic>`). The record is
+  never edited.
 - An archived thread keeps its export name, and is never renamed to this pattern; an export of a
   binary type is evidence, filed as `email-standards.md` says for the project's store.
-- A derived paste copy (HTML or rich text) takes the same stem and is regenerated, never edited.
+- A derived paste copy (HTML or rich text) takes the same stem, sits in the email's folder, and is
+  regenerated, never edited.
 
 ## Markdown that survives a paste
 
@@ -61,7 +71,8 @@ unsent email). Be blunt in it: it is never sent.
 - [ ] Technical steps or explanation in Simplified Technical English, no longer than before; the
       greeting and relationship text in the recorded voice.
 - [ ] A follow-up recites no undertaking, counts no time and denies no chasing.
-- [ ] Named from its subject line and dated; no em dashes; the business's person throughout.
+- [ ] Named from its subject line and dated, in its own dated folder; no em dashes; the business's
+      person throughout.
 - [ ] Line breaks and links survive a paste; no placeholder left unflagged.
 - [ ] Read beside every other unsent email to the same correspondent.
-- [ ] Listed in its folder's `CONTEXT.md` and registered in `planning/src/document-register.md`.
+- [ ] Listed in its leaf's `CONTEXT.md` and registered in `planning/src/document-register.md`.

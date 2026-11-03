@@ -36,7 +36,7 @@ model: opus
 - [ ] Leads with the decision or the ask; nothing cut that was an ask, a caveat, a figure or a commitment. · _opus_
 - [ ] Technical steps or explanation in Simplified Technical English, without adding length; greeting and relationship text in the voice. · _opus_
 - [ ] A follow-up recites no undertaking, counts no time and denies no chasing. · _opus_
-- [ ] Subject settled (50 characters or fewer, 60 at most); file named from it. · _sonnet_
+- [ ] Subject settled (50 characters or fewer, 60 at most); file named from it, in its own `<YYYY-MM-DD-HH-MM>-<topic>/` folder. · _sonnet_
 - [ ] Fixed parts written: frontmatter, title, metadata, internal note, rule, subject, marker pair. · _sonnet_
 - [ ] Body promoted on the author's word through `library/workflows/04-promote-a-section/`. · _sonnet_
 
@@ -44,7 +44,7 @@ model: opus
 
 - [ ] `library/workflows/05-review-a-document/` run; every commitment traced to its instrument. · _opus_
 - [ ] Email checklist in `EMAIL-ANATOMY-AND-NAMING.md` worked through; no em dashes; no unflagged placeholder. · _sonnet_
-- [ ] Listed in its folder's `CONTEXT.md` and registered; any paste copy regenerated. · _sonnet_
+- [ ] Listed in its leaf's `CONTEXT.md` and registered; any paste copy regenerated. · _sonnet_
 - [ ] Handed back: path, subject, flags, contradictions; `**Status:**` left at Draft. · _opus_
 
 ## Done When

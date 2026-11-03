@@ -48,7 +48,7 @@ changes an archived thread. The procedure of record is the create workflow.
 |---|---|---|
 | What it is | an email the business writes, to send | an export of what was actually sent and received |
 | Form | the anatomy below | whatever the mail client produced |
-| Name | `<subject-line>-DD-MM-YYYY.md` | its export name, unchanged |
+| Name | `<subject-line>-DD-MM-YYYY.md`, in its own folder | its export name, unchanged |
 | Internal note and Status line | required | never |
 | Editable | until sent | never |
 | A PDF of it | a review proof, never sent; made again after any change | the evidential copy: never regenerated |
@@ -106,7 +106,16 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
   leaf folder is made, with its folder pair, only when its first email needs it and the author
   confirms.
 - **Suppliers:** `library/src/email/supplier-emails/<matter-slug>/`, by matter.
-- **An archived thread** goes in its correspondent's folder under its export name. An export of a
+- **One folder per email.** Each authored email, its `.html` and anything only it uses sit in
+  `<YYYY-MM-DD-HH-MM>-<topic>/` inside its leaf (the client's family leaf or the matter folder):
+  the date is the filename's, the time is when it was drafted (`00-00` where unknown), and
+  `<topic>` is the filename's stem without its date. Create it with the email, without asking; it
+  carries no folder pair, and the leaf's `CONTEXT.md` lists it. An email filed flat before
+  v0.10.0 stays where it is: a record naming `<leaf>/<stem>.md` names that file where it stands;
+  if the author has moved it, it is at `<leaf>/<YYYY-MM-DD-HH-MM>-<topic>/<stem>.md` (find the
+  folder ending `-<topic>`). The record is never edited; the author may move an old email by hand.
+- **An archived thread** goes in its correspondent's leaf under its export name, or stays where
+  its manifest rows put it when its copies are filed under the data root. An export of a
   binary type (a PDF, `.eml` or `.msg`) is evidence: committed as exported under the `repo` store,
   or filed under the data root with `make files-add FILE=<export> ROLE=evidence` under `external`
   (`.claude/rules/syntek-author/09-data-root.md`). Either way it is never edited or renamed.
@@ -115,8 +124,9 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
   on letterhead is a document of the family whose substance it carries. Neither is filed here.
 - **The filename** is the subject line in kebab-case, then the date: lower case, punctuation
   dropped, spaces to hyphens, no `email-` prefix. A stem is exactly as long as its subject. If the
-  subject changes before sending, rename the file and every derived copy, and chase every
-  reference, the register included. A sent email's subject and filename never change.
+  subject changes before sending, rename the folder with the file and every derived copy in it,
+  and chase every reference, the register included. A sent email's subject, filename and folder
+  never change.
 
 ## Writing an email
 
@@ -175,7 +185,7 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
    another style; a name, title or address is never guessed. *Complete when:* every fact is in
    hand or flagged, and every contradiction with another unsent email is listed for the author.
 
-3. **Settle the folder and plan the one section.** Find the folder under Filing above; a missing
+3. **Settle the folder and plan the one section.** Find the leaf under Filing above; a missing
    client, leaf or matter folder is made only with the author's confirmation, with its pair. Then
    run `planning/workflows/01-plan-a-unit/` in its shortest form: one section, `body`, and a brief
    recording the correspondent, the matter, the ask, every fact the email will state with its
@@ -187,9 +197,10 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
    Writing an email. *Complete when:* the author is content with the draft body.
 
 5. **Settle the subject line and write the fixed parts.** Settle the subject, name the file from
-   it, and create the email at its path with the anatomy above: frontmatter, title, metadata with
-   `**Status:**` at Draft, the internal note, the rule, the subject and the empty marker pair.
-   *Complete when:* the file exists with every part in order and the filename matches the subject.
+   it, make its email folder in the leaf, and create the email there with the anatomy above:
+   frontmatter, title, metadata with `**Status:**` at Draft, the internal note, the rule, the
+   subject and the empty marker pair. *Complete when:* the file exists in its own folder with every
+   part in order, and the filename matches the subject.
 
 6. **Promote it and check it.** On the author's word, `promote-section` puts the body between its
    markers. Then run `library/workflows/05-review-a-document/` in its short form: `obligation-check`
@@ -200,7 +211,7 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
    open with its location, and the register row is written.
 
 7. **Hand back.** Read every other unsent email to the same correspondent once more beside this
-   one. List the email in its folder's `CONTEXT.md` and make any derived copy again. Report the
+   one. List the email in its leaf's `CONTEXT.md` and make any derived copy again. Report the
    path, the subject, every flag and any contradiction. The email waits at Draft: sending it, and
    setting `**Status:**` to sent with the date, are the author's. *Complete when:* the author has
    the hand-back.
@@ -211,6 +222,7 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
 - [ ] `**Status:**` accurate, and changed only on the author's word.
 - [ ] Internal note holds decisions, dated sources, deliberate departures and open items.
 - [ ] Subject matter first, 50 characters or fewer (60 at most); filename matches it plus the date.
+- [ ] In its own `<YYYY-MM-DD-HH-MM>-<topic>/` folder, with its `.html` and anything only it uses.
 - [ ] The decision or ask first; the reader's likely questions answered; nothing restated.
 - [ ] Every commitment described matches its instrument in substance, without a clause number.
 - [ ] No invented name, title, address or entity detail; no other client named.
@@ -220,12 +232,12 @@ filed under the data root is named `ext:<path>` on the `**Attachment:**` line.
 - [ ] Hard breaks with two trailing spaces; URLs in angle brackets.
 - [ ] Read beside every other unsent email to the same correspondent.
 - [ ] Review proofs and the paste copy made from the final `.md`; no proof sent or attached.
-- [ ] Listed in its folder's `CONTEXT.md`; registered.
+- [ ] Listed in its leaf's `CONTEXT.md`; registered.
 
 ## Anti-patterns
 
 - **Touching an archived thread.** Tidying, renaming or re-rendering destroys the evidence.
-- **Changing a sent subject or filename.** It is part of the record and how the thread is found.
+- **Changing a sent subject, filename or folder.** It is part of the record and how the thread is found.
 - **Keeping score in a follow-up.** It reads as a complaint, however warmly it is phrased.
 - **Citing a clause number to a client,** or describing a term the instrument does not carry.
 - **Changing `**Status:**` unasked.** It is the only record of whether the reader has seen it.

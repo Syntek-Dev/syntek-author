@@ -921,9 +921,9 @@ SA_DRIVE_GUARD_STEP="Stop unless the documents are kept in the repository"
 
 # The path-scoped rules and the start-up budget (DESIGN.md D59, Section 4.1). The budget holds a
 # render's always-loaded instruction files (the seed .claude/CLAUDE.md, its imports and every
-# rules file without paths frontmatter); the limit is Claude Code's on-demand per-file limit on
+# rules file under .claude/rules/syntek-author/ without paths frontmatter); the limit is Claude Code's on-demand per-file limit on
 # a 200K window. The globs are Section 4.1's two frontmatter blocks, one a line, in order.
-SA_STARTUP_BUDGET=110000
+SA_STARTUP_BUDGET=105000
 SA_SCOPED_LIMIT=40000
 SA_RULE_PATHS_04='Makefile
 tooling/**

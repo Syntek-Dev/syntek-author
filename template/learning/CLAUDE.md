@@ -24,7 +24,8 @@ A safe practice workspace where a skill is built across sessions without touchin
   lesson, the recall result and the next-review date in `PROGRESS.md`.
 - **Definition of done:** `PROGRESS.md` holds a dated entry with a recall result and a next-review
   date, a worked piece sits in `LESSONS/`, and nothing outside the topic's folder has changed but
-  a `Template:` line <%AUTHOR_FIRST_NAME%> named when asked.
+  a `Template:` line <%AUTHOR_FIRST_NAME%> named when asked (with the topic's H1, in a new
+  `MISSION.md`, where the topic had none).
 
 ## Guardrails
 
@@ -33,7 +34,8 @@ A safe practice workspace where a skill is built across sessions without touchin
 - **Never move a topic, and never touch another template's.** A topic stays where it was begun.
   Another template's folder, and a topic whose `Template:` line names another template, follow
   that template's rules; the one exception is the `Template:` line <%AUTHOR_FIRST_NAME%> names
-  when asked whose a topic is.
+  when asked whose a topic is, written with the topic's H1 in a new `MISSION.md` where it has
+  none.
 - **Invented people, places and organisations only.** Never practise on a live client matter, a
   real person's story or real figures.
 - **Recall is assessed on substance, never on spelling or arithmetic form.** An answer that is

@@ -140,9 +140,12 @@
 #                            SA_STARTUP_BUDGET characters (DESIGN.md D59): .claude/CLAUDE.md, a
 #                            root CLAUDE.md or CLAUDE.local.md if one ships, each file they
 #                            import with an @ line (outside code spans and fences, relative to
-#                            the importing file, four hops), and every .claude/rules/**/*.md that
-#                            does not open with paths frontmatter; or a path-scoped rule is over
-#                            SA_SCOPED_LIMIT, past which Claude Code reads only its start.
+#                            the importing file, four hops), and every
+#                            .claude/rules/syntek-author/**/*.md that does not open with paths
+#                            frontmatter (another template's rules folder, which a combined
+#                            project holds, and the author's own rules are not this render's);
+#                            or a path-scoped rule is over SA_SCOPED_LIMIT, past which Claude
+#                            Code reads only its start.
 #                        25. Rules 04 and 09 do not open with exactly DESIGN.md Section 4.1's
 #                            frontmatter (---, paths:, one double-quoted glob a line equal to
 #                            SA_RULE_PATHS_04 or _09, in order, ---), their brace expansion
@@ -839,7 +842,7 @@ def main():
                     take(os.path.join(os.path.dirname(p), m.group(1)), depth + 1)
     for s in (".claude/CLAUDE.md", "CLAUDE.md", "CLAUDE.local.md"):
         take(os.path.join(tree, s), 0)
-    for root, dirs, files in os.walk(os.path.join(tree, ".claude", "rules")):
+    for root, dirs, files in os.walk(os.path.join(tree, R)):
         dirs.sort()
         for f in sorted(x for x in files if x.endswith(".md")):
             p = os.path.join(root, f); t = read(p); rel = os.path.relpath(p, tree)
@@ -847,7 +850,7 @@ def main():
                 take(p, 0)
             elif len(t) > limit:
                 print(f"24\t{rel} is {len(t):,} characters; Claude Code reads only the first {limit:,} of a rule it loads on demand (D59)")
-            if rel.startswith(R) and rel not in want and t.startswith("---\n"):
+            if rel not in want and t.startswith("---\n"):
                 print(f"25\t{rel} opens with frontmatter; only 04 and 09 are path-scoped (D59)")
     total = sum(n for _, n in loaded)
     if total > budget:
@@ -1380,6 +1383,10 @@ self_test() {
   head -c "$SA_STARTUP_BUDGET" /dev/zero | tr '\0' x >> "$TREE/.claude/MEMORY.md"
   probe "check 24 counts a file .claude/CLAUDE.md imports" "check 24 — the always-loaded instruction files total"
   cp "$tmp/cm" "$TREE/.claude/CLAUDE.md"; cp "$tmp/mem" "$TREE/.claude/MEMORY.md"
+  mkdir -p "$TREE/.claude/rules/syntek-other"
+  head -c "$SA_STARTUP_BUDGET" /dev/zero | tr '\0' x > "$TREE/.claude/rules/syntek-other/01-big.md"
+  probe_clean "check 24 leaves out another template's rules folder, as a combined project holds"
+  rm -rf "$TREE/.claude/rules/syntek-other"
   cp "$r/04-build-pipeline.md" "$tmp/r04"
   head -c "$SA_SCOPED_LIMIT" /dev/zero | tr '\0' x >> "$r/04-build-pipeline.md"
   probe "check 24 fires when a path-scoped rule passes the on-demand limit" "check 24 — .claude/rules/syntek-author/04-build-pipeline.md is"

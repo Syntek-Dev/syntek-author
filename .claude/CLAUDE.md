@@ -71,7 +71,7 @@ Every file under `template/` is rendered (`_templates_suffix: ""`) with the hous
 - **Guides** follow DESIGN.md Section 4.4 (54–82 lines). **Skills** follow DESIGN.md Section 5, moded skills carry the mode paragraph verbatim, and mode files use the four H2s of D6.
 - **How-to chapters** follow DESIGN.md Section 6 ('Template-guide chapter'): plain English for the author, one sentence per line, no header or delimiter, every command fence runnable as written; guides also live in `how-to/docs/<template>/`.
 - **Every instructional `.md` stays within 300 lines** (D25); an oversized one splits into `SCREAMING-SNAKE-CASE.md` sub-documents behind a thin index.
-- **A render's always-loaded instructions stay within 110,000 characters** (D59): the seed `.claude/CLAUDE.md`, its imports and every rules file without `paths` frontmatter (`shipped-variants.sh` check 24). Text only some work needs goes into a path-scoped rule, never into an `@` import, which loads at launch too; only 04 and 09 carry `paths`, with D59's exact frontmatter (check 25).
+- **A render's always-loaded instructions stay within 105,000 characters** (D59): the seed `.claude/CLAUDE.md`, its imports and every rules file under `.claude/rules/syntek-author/` without `paths` frontmatter (`shipped-variants.sh` check 24). Text only some work needs goes into a path-scoped rule, never into an `@` import, which loads at launch too; only 04 and 09 carry `paths`, with D59's exact frontmatter (check 25).
 - **Locale:** en_GB, single quotation marks, DD/MM/YYYY in prose, `DD-MM-YYYY` in filenames, "Section 3.2" and never the section sign.
 
 ## 7. How to change the template

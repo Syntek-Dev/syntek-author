@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 The authoring constitution. Every skill that drafts, revises, checks or promotes prose works
 inside it, and where a skill and this file disagree, this file wins and the disagreement is
@@ -212,26 +212,10 @@ changed contract, and the author is bound by it whether or not they noticed the 
 
 **Requirement.** Every section<: if DOC_TYPE == 'business' :> within Section 2's scope<: endif :> has a ledger entry from its first draft, at
 `standards/style/ledger/<unit>--<section-slug>.md`, where `<unit>` is the unit's name, number
-included (`.claude/rules/syntek-author/08-naming-and-memory.md` Section 1), holding:
-
-- `## AI original`: the AI draft the author worked from, verbatim and never tidied (empty for a
-  section the author drafted; a redraft keeps the earlier record in a dated comment beneath it);
-- `## Author original`: the text the loop started from, verbatim, when the AI did not draft it;
-- `## Revisions`: each later state of the text, verbatim, marked `ai` (an AI suggestion the author
-  accepted), `author-note` (the author's note or flag answer, applied by the AI) or `author` (the
-  author's own edits, recorded before any skill changes a word);
-- `## Author final`: the text as promoted, written by `promote-section`;
-- `## Improvement decisions`: every proposal with its decision, `accepted` or `rejected`, and
-  every author's note or flag answer the AI applied, logged as `author-note`.
-
-**An author's note is not an AI suggestion.** `tooling/provenance.py` counts only `accepted` and
-`rejected` rows as AI proposals, so the author's own notes never inflate the AI's share, and
-`learn-voice` still mines them as evidence of the voice.
-
-`promote-section` adds a row to `standards/style/ledger/provenance.md`; `tooling/provenance.py`
-computes the author's change ratio, `make provenance` prints a per-unit disclosure table, and
-`make compare` prints each section's redline. `standards/style/ledger/CONTEXT.md` owns the format,
-and `standards/style/ledger/CLAUDE.md` the procedure every skill follows.
+included (`.claude/rules/syntek-author/08-naming-and-memory.md` Section 1), recording the AI's
+draft or the author's starting text verbatim, every later state of the text, the text as
+promoted, and every proposal with its decision. `standards/style/ledger/CONTEXT.md` owns the
+format, and `standards/style/ledger/CLAUDE.md` the procedure every skill follows.
 
 When a publisher, agent, client or institution asks how AI was used, the answer comes from
 `make provenance`, not from memory or impression. Never describe the work as unassisted when the
@@ -284,15 +268,9 @@ author would answer for a sentence they never wrote. The check makes every diffe
 ## 10. Promotion into a LaTeX deliverable: the words are checked
 
 **Requirement.** A section promoted into a `.tex` document carries exactly the words the author
-approved in its Markdown draft.
-
-- `promote-section` places the section between its `% section: <slug>` and
-  `% end section: <slug>` markers, then runs `tooling/texcheck.py` in its section mode, which
-  compares the words between the markers with Pandoc's plain text of the draft. Any difference
-  stops the promotion before the ledger is written; the LaTeX is corrected, never the Markdown
-  (`.claude/skills/promote-section/BUSINESS.md`).
-- **Citation keys (`[@key]`) work only in Markdown documents.** A draft bound for a `.tex` that
-  still holds `[@` stops the promotion, and the author writes the reference out in full.
+approved in its Markdown draft, and `promote-section` proves it with `tooling/texcheck.py` before
+the ledger is written (`.claude/skills/promote-section/BUSINESS.md`). A citation key (`[@key]`)
+never reaches a `.tex`: the author writes the reference out in full.
 
 **Why this rule exists.** The ledger records the Markdown as the author's final text. A word
 changed while the section was set in LaTeX is a changed commitment the ledger says the author

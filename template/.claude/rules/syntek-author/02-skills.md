@@ -3,7 +3,7 @@
 **Last Updated**: <%DATE%> **Version**: 0.1.0 **Maintained By**: <%AUTHOR_NAME%>
 **Language**: British English (en_GB)
 
-> **Template-owned.** Shipped by syntek-author and replaced by every `copier update`: never edit it here. This project's settings, paths and overrides are in `00-project.md` beside it, which outranks this file; project rules go where its `## Paths` says.
+> **Template-owned:** never edit it (01 Section 7); `00-project.md` outranks it (01 Section 9).
 
 Skills live in `.claude/skills/<skill>/SKILL.md`. This file is the roster: which skills ship in
 this project, what each does, and which carry a mode file. The `.claude/skills/` pair routes here
@@ -19,19 +19,18 @@ section of the unit"). A described job that no skill matches, a request such as 
 "pick up where we left off" or "run the review workflow", goes to `run-workflow`, which resolves
 it to a workflow (and reads a handoff newer than `MEMORY.md` first). Every skill that carries out
 a workflow runs the project's alias for it (`00-project.md` `## Workflow aliases`) or the
-author's procedure of the same slug in `workflows/local/` instead, where one exists. Where work
-benefits from a separate context, such as a delegated search or a multi-lens review, the skill
-runs itself as a forked subagent (`context: fork`) instead of handing off to an agent file.
+author's procedure of the same slug in `workflows/local/` instead, where one exists.
 
 A template skill that is not listed here does not ship in this project on purpose. Never recreate
 one, and never improvise a substitute under its name: say which skill is missing and why it
-matters. Any other folder in `.claude/skills/` is the project's own (Section 7). For the author,
-`how-to/src/TEMPLATE-GUIDE/syntek-author/13-a-guide-to-skills.md` explains which skill does
-which job.
+matters. Any other folder in `.claude/skills/` is the project's own (Section 7).
 
 The paths in these tables are the template's defaults. Where `00-project.md` `## Paths` gives
 another path for the same role, a skill uses that one, and where a skill names a heading of
 `MEMORY.md`, it means the heading `## Memory headings` maps it to.
+
+`how-to/src/TEMPLATE-GUIDE/syntek-author/13-a-guide-to-skills.md` is the author's guide to which
+skill does which job.
 
 ---
 
@@ -41,28 +40,17 @@ another path for the same role, a skill uses that one, and where a skill names a
 <: elif DOC_TYPE == 'fiction' :>**The mode file in this project is `FICTION.md`.**
 <: else :>**The mode file in this project is `BUSINESS.md`.**
 <: endif :>A moded skill's `SKILL.md` is the same in every doc type; the domain lives in the one mode file
-that ships beside it. Every moded `SKILL.md` that this template alone ships carries this paragraph
-before step 1:
+that ships beside it, which the Mode paragraph before its step 1 says to read. Every
+**family-shared** skill (Section 8) carries the neutral form instead, which reads the mode files
+beside it that the project's rules route the work to.
 
-> **Mode.** Before step 1, read the doc-type mode file beside this one — exactly one of `THEOLOGY.md`, `FICTION.md`, `BUSINESS.md` ships in this folder. The mode owns the domain (paths, unit, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the author.
+This is that routing. In a project another Syntek template also built, a family-shared skill's
+folder can hold that template's mode files too, under other upper-case names. They are that
+template's: apply one only to work in the layers that template's rules route. For work in this
+template's layers, read this template's mode file (above), which holds the domain; where the two
+disagree, say so to the author rather than choosing silently.
 
-Every **family-shared** skill (Section 8) carries the neutral form instead, because another
-Syntek template in the same project may ship mode files of its own beside it. `grill-me` and
-`wait-what` carry it too, and this template ships no mode file beside them; with none there, the
-paragraph has nothing to read:
-
-> **Mode.** Before step 1, read the mode files beside this one (the upper-case `.md` files in this folder) that the project's rules route the work at hand to; where they name none, read every one. A mode file owns the domain (paths, the unit of work, extra reads, domain rules, examples); this file owns the procedure. Where they disagree, the procedure wins and the disagreement is reported to the owner.
-
-This is the routing that paragraph means. In a project another Syntek template also built, a
-family-shared skill's folder can hold that template's mode files too, under other upper-case
-names. They are that template's: apply one only to work in the layers that template's rules
-route. For work in this template's layers, read this template's mode file (above), which holds
-the domain; where the two disagree, say so to the author rather than choosing silently.
-
-Every mode file has the same four sections, so the split can be checked: `## Paths and unit`,
-`## Additions to the steps` (keyed by step number), `## Domain rules` and `## Examples`.
-
-**A mode file applies only when its `SKILL.md` carries one of the Mode paragraphs above.** A project's
+**A mode file applies only when its `SKILL.md` carries a Mode paragraph.** A project's
 own skill kept under a template skill's name (an adopted project,
 `.claude/rules/syntek-author/01-layout-and-routing.md` Section 9) does not carry it, so the mode
 file beside it is ignored: its steps are keyed to a procedure that is not there, and the
@@ -170,15 +158,10 @@ questions (`how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md`).
 - **Read the whole `SKILL.md`, then its mode file if it carries the Mode paragraph, before
   step 1.** A skill's steps each end with a completion test; a step is not done until its test
   passes.
-- **Skills never edit themselves or each other.** No skill rewrites a skill, standard, rules file
-  or `CLAUDE.md` without the author's explicit instruction
-  (`.claude/rules/syntek-author/06-global-rules.md` Section 3).
-- **A project-specific change to how a skill behaves** is written in `00-project.md`
-  `## Overrides` (naming the skill and step it replaces), or as a project rule where its
-  `## Paths` says. Editing the skill itself is undone, or turned into a conflict, by the next
-  update; editing a family-shared `SKILL.md` (Section 8) freezes it instead, and every later
-  update reports it as not updated because it was changed, with the commands to compare it and
-  to take the template's copy.
+- **Skills never edit themselves or each other** (`06-global-rules.md` Section 3).
+- **A project-specific change to how a skill behaves** goes in `00-project.md` `## Overrides`,
+  naming the skill and step it replaces, or in a project rule (`01-layout-and-routing.md`
+  Section 9), never in the skill itself.
 - **A skill of the author's own** goes in a new folder whose name collides with no skill in this
   file. Its frontmatter `name` equals the folder name. It belongs to the author, and Copier never
   touches it. A project that adopted the template may also keep its own skill under a template
@@ -190,10 +173,8 @@ questions (`how-to/src/TEMPLATE-GUIDE/syntek-author/04-the-answers.md`).
 
 Seven working-practice skills are **family-shared**: `grill-me`, `grill-with-docs`, `grilling`,
 `handoff`, `wait-what`, `wayfinder` and `to-questionnaire`. Their `SKILL.md` is byte for byte the
-one every Syntek template ships, so a project with two templates holds one copy. It is written by
-the first copy, refreshed by each update while you have not changed it, and written by the update
-of the release that introduces one where you never had it (one you deleted stays deleted); their
-mode files stay this template's own. A family-shared `SKILL.md` names no path only one template
+one every Syntek template ships (`01-layout-and-routing.md` Section 7 says how an update treats
+it); their mode files stay this template's own. A family-shared `SKILL.md` names no path only one template
 ships: it names a **role**, and this table gives the role its path in this project. Where
 `00-project.md` `## Paths` gives one of the other roles below another path, that row wins; its
 `Project rules` row is where your own extra rules live, and adds to this folder, never replaces it.

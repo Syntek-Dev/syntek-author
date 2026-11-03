@@ -25,8 +25,9 @@ Hold correspondence with suppliers, one folder per matter, with the suppliers' v
      its date and source; verify the legal entity against the public register.
   3. Where several suppliers receive the same request, write one master email and derive each
      supplier's copy from it, so every supplier is asked the same thing.
-- **Definition of done:** every email is in its matter folder, named from its subject line, listed
-  in the folder's `CONTEXT.md`, and every supplier fact it relies on is recorded with its source.
+- **Definition of done:** every email is in its own folder in its matter folder, named from its
+  subject line, listed in the matter folder's `CONTEXT.md`, and every supplier fact it relies on
+  is recorded with its source.
 
 ## Guardrails
 
@@ -40,5 +41,6 @@ Hold correspondence with suppliers, one folder per matter, with the suppliers' v
 ## Output & naming
 
 - **Hand-written:** matter folders `<matter-slug>/` with their pairs; authored emails
-  `<subject-line>-<DD-MM-YYYY>.md`.
+  `<YYYY-MM-DD-HH-MM>-<topic>/<subject-line>-<DD-MM-YYYY>.md`, the email folder made without
+  asking and without a pair. An email filed flat before v0.10.0 is never moved by a session.
 - **Kept as received:** archived threads and quotes as received, under their own names.

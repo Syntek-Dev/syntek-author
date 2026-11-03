@@ -20,7 +20,7 @@ syntek-author/
 ├── SECURITY.md               ← the latest release only; reports through GitHub's private vulnerability reporting alone
 ├── CODE_OF_CONDUCT.md        ← Contributor Covenant 2.1, verbatim, with its enforcement contact
 ├── family-shared.json        ← the D48 manifest: source bytes of the files, the copier.yml blocks and rules 06's block shared with companion templates
-├── .gitignore                ← the repository's own ignore rules (never shipped): /handoffs/, /.code-review-graph/ and /.claude/settings.local.json
+├── .gitignore                ← the repository's own ignore rules (never shipped): /handoffs/, /.code-review-graph/, /graphify-out/ and /.claude/settings.local.json
 ├── .mcp.json                 ← development only (never shipped): code-review-graph for this repository, pinned and keyless, its graph in /.code-review-graph/ (D54)
 ├── handoffs/                 ← maintainer handoffs and working notes; git-ignored, never committed or shipped
 ├── AGENTS.md · GEMINI.md     ← development entrypoints for Codex, OpenCode, Gemini CLI and Antigravity (D47)

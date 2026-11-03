@@ -38,7 +38,7 @@ library/src/<family>/
 ```
 
 <: if DOC_TYPE == 'business' and 'email' in BUSINESS_FAMILIES :>The email family files by correspondent instead of by client document: in
-`email/client-emails/` and `email/supplier-emails/`.
+`email/client-emails/` and `email/supplier-emails/`, one dated folder per email.
 
 <: endif :>## What's here
 
