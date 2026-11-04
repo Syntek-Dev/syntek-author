@@ -1,6 +1,6 @@
 # Changelog
 
-**Last Updated**: 03/11/2026 **Version**: 0.11.0 **Maintained By**: Syntek Studio
+**Last Updated**: 03/11/2026 **Version**: 0.11.1 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 All notable changes to syntek-author are documented here.
@@ -12,6 +12,12 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 ---
 
 ## [Unreleased]
+
+## [0.11.1] - 03/11/2026
+
+### Changed
+
+- **The shared data-root chapter matches D61 (D56, D61)**, at the maintainer's approval (03/11/2026), after syntek-media's review of v0.11.0. `how-to/src/TEMPLATE-GUIDE/the-data-root.md` no longer says the copies of the data-root tool are always the same bytes: they are once every template is up to date, and where they differ only the newer copy refuses a role a folder does not allow. `pull` is described as leaving out a folder its template keeps out of a whole pull unless a pattern names it, and a line says to file into another template's folder with that template's own copy. **Family-shared (D48):** companion templates must refresh this chapter. `family-shared.json` is `unreleased` again after v0.11.0.
 
 ## [0.11.0] - 03/11/2026
 
