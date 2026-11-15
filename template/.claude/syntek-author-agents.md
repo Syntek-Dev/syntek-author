@@ -103,8 +103,10 @@ anything that decides meaning; when in doubt, the work is substantive.
   (Python 3.14 or later) prints which of those denies and asks each client's file already
   carries, which it cannot express and why, and exits 1 if one it can express is missing.
   `--write` adds the missing ones to the client files that already exist, changing only their
-  permission keys; it never creates a file. Run it after changing `.claude/settings.json` or
-  adding a client, with the author's agreement. Allow rules stay with each client.
+  permission keys; it never creates a file or removes a rule. Where the settings file now allows
+  an MCP tool it once asked about, the ask written for it still prompts: each run notes that rule
+  for the author to delete by hand. Run it after changing `.claude/settings.json` or adding a
+  client, with the author's agreement. Allow rules stay with each client.
 - **The data root stays out of the session.** A data root is a folder outside every repository
   that holds a `.syntek-data-root` marker; this machine's is the one `SYNTEK_DATA_ROOT` names.
   Claude Code's `PreToolUse` hook (where `.claude/settings.json` wires it) blocks its file tools'
