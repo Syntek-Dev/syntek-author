@@ -1,6 +1,6 @@
 # Changelog
 
-**Last Updated**: 03/11/2026 **Version**: 0.11.1 **Maintained By**: Syntek Studio
+**Last Updated**: 15/11/2026 **Version**: 0.12.0 **Maintained By**: Syntek Studio
 **Language**: British English (en_GB)
 
 All notable changes to syntek-author are documented here.
@@ -13,11 +13,13 @@ Dates are DD/MM/YYYY. The design behind every entry is `DESIGN.md`; entries cite
 
 ## [Unreleased]
 
+## [0.12.0] - 15/11/2026
+
 ### Changed
 
 - **The permissions script, `.claude/syntek-author-permissions.py` (D49), notes an ask an allow has left behind.** When `.claude/settings.json` allows an MCP tool (`mcp__S__T`, `mcp__S` or `mcp__S__*`, with no ask or deny over it) that a client file still asks about in the form the script writes (OpenCode's top-level `S_T` ask, Codex's `approval_mode = "prompt"`, Gemini CLI's `mcp_S_T` in `tools.confirmationRequired`), `--check` and `--write` print a note naming the rule to delete by hand. The rule is never removed and is not drift, so the exit code is unchanged. This answers `syntek-media` 0.10.0 (its D90), which moves its credit-spending ElevenLabs tools from ask to allow. A rule whose name could stand for a tool settings.json still asks about (a server name may hold `_`), an owner's glob, and an OpenCode ask a later rule already decides are never noted. The self-test gains eleven probes.
 - **The bridge, `template/.claude/CONTEXT.md` and the shared chapter `agent-clients-and-mcp.md`** say the script never removes a rule and explain the note.
-- **Companion templates (`syntek-media`) must refresh** the permissions script and `how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md`, both family-shared (D48, D56).
+- **Companion templates (`syntek-media`) must refresh** the permissions script and `how-to/src/TEMPLATE-GUIDE/agent-clients-and-mcp.md`, both family-shared (D48, D56). `family-shared.json` is `unreleased` again after v0.11.1.
 
 ## [0.11.1] - 03/11/2026
 
